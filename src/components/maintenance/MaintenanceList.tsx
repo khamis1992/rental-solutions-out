@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { formatDateToDisplay } from "@/lib/dateUtils";
 import { 
   Wrench, Clock, AlertTriangle, CheckCircle, XCircle, Car, 
   Calendar, User, DollarSign, Info, FileText, Settings, 
-  Gauge, Cable, Filter, RefreshCw, Clipboard, Tool, CircuitBoard
+  Gauge, Cable, Filter, RefreshCw, Clipboard, CircuitBoard
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
@@ -202,7 +201,7 @@ export const MaintenanceList = () => {
           <div className="space-y-2">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-lg transform hover:scale-110 transition-transform duration-200">
-                <Tool className="h-8 w-8 text-white animate-[spin_3s_linear_infinite]" />
+                <Wrench className="h-8 w-8 text-white animate-[spin_3s_linear_infinite]" />
               </div>
               <div>
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 via-orange-500 to-orange-600 text-transparent bg-clip-text">
@@ -411,4 +410,3 @@ export const MaintenanceList = () => {
     </div>
   );
 };
-
