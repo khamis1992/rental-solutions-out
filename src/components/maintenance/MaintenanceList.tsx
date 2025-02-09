@@ -1,7 +1,12 @@
+
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { formatDateToDisplay } from "@/lib/dateUtils";
-import { Wrench, Clock, AlertTriangle, CheckCircle, XCircle, Car, Calendar, User, DollarSign, Info } from "lucide-react";
+import { 
+  Wrench, Clock, AlertTriangle, CheckCircle, XCircle, Car, 
+  Calendar, User, DollarSign, Info, Oil, Tool, SearchCheck, 
+  Repeat, Pause, Filter
+} from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +24,23 @@ import { MaintenanceStats } from "./MaintenanceStats";
 
 const ITEMS_PER_PAGE = 10;
 
+const getServiceIcon = (type: string) => {
+  switch (type.toLowerCase()) {
+    case 'oil change':
+      return <Oil className="h-5 w-5 text-primary" />;
+    case 'tire rotation':
+      return <Repeat className="h-5 w-5 text-primary" />;
+    case 'inspection':
+      return <SearchCheck className="h-5 w-5 text-primary" />;
+    case 'brake service':
+      return <Pause className="h-5 w-5 text-primary" />;
+    case 'accident repair':
+      return <AlertTriangle className="h-5 w-5 text-red-500" />;
+    default:
+      return <Tool className="h-5 w-5 text-primary" />;
+  }
+};
+
 const getStatusIcon = (status: string) => {
   switch (status) {
     case 'completed':
@@ -26,7 +48,7 @@ const getStatusIcon = (status: string) => {
     case 'in_progress':
       return <Wrench className="h-4 w-4 text-blue-500 animate-spin-slow" />;
     case 'urgent':
-      return <AlertTriangle className="h-4 w-4 text-red-500" />;
+      return <AlertTriangle className="h-4 w-4 text-red-500 animate-pulse" />;
     case 'cancelled':
       return <XCircle className="h-4 w-4 text-gray-500" />;
     default:
@@ -201,14 +223,23 @@ export const MaintenanceList = () => {
 
       <MaintenanceStats maintenanceData={records} />
 
-      <div className="flex gap-2 mb-4">
-        {["all", "scheduled", "in_progress", "urgent", "completed", "cancelled"].map((status) => (
+      <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+        <Button
+          variant={filter === "all" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setFilter("all")}
+          className="flex items-center gap-2 whitespace-nowrap"
+        >
+          <Filter className="h-4 w-4" />
+          All Records
+        </Button>
+        {["scheduled", "in_progress", "urgent", "completed", "cancelled"].map((status) => (
           <Button
             key={status}
             variant={filter === status ? "default" : "outline"}
             size="sm"
             onClick={() => setFilter(status)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 whitespace-nowrap"
           >
             {getStatusIcon(status)}
             <span className="capitalize">{status.replace('_', ' ')}</span>
@@ -220,7 +251,7 @@ export const MaintenanceList = () => {
         <Card className="p-8 bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
           <div className="flex flex-col items-center justify-center text-center space-y-4">
             <div className="p-4 rounded-full bg-orange-100 border-2 border-orange-200">
-              <Wrench className="h-12 w-12 text-primary" />
+              <Wrench className="h-12 w-12 text-primary animate-bounce" />
             </div>
             <p className="text-xl font-semibold text-gray-800">No maintenance records found</p>
             <p className="text-sm text-gray-600 max-w-md">
@@ -240,7 +271,7 @@ export const MaintenanceList = () => {
                 record.status === 'completed' ? 'before:bg-green-500' :
                 record.status === 'cancelled' ? 'before:bg-gray-500' :
                 'before:bg-yellow-500'
-              }`}
+              } hover:scale-[1.02] transition-transform duration-200`}
             >
               <div className="p-6 space-y-6">
                 <div className="flex items-start justify-between">
@@ -310,9 +341,9 @@ export const MaintenanceList = () => {
                   </div>
                 </div>
 
-                <div className="p-4 bg-gray-50 rounded-lg space-y-4">
+                <div className="p-4 bg-gray-50 rounded-lg space-y-4 hover:bg-gray-100 transition-colors">
                   <div className="flex items-center space-x-2">
-                    <Wrench className="h-5 w-5 text-primary" />
+                    {getServiceIcon(record.service_type)}
                     <p className="text-lg font-medium">{record.service_type}</p>
                   </div>
                   {record.description && (
