@@ -288,7 +288,7 @@ export const MaintenanceList = () => {
             </div>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4">
             {currentRecords.map((record) => (
               <Card 
                 key={record.id} 
@@ -304,7 +304,7 @@ export const MaintenanceList = () => {
                   hover:scale-[1.02] transition-transform duration-200
                   bg-gradient-to-br from-white to-gray-50/30`}
               >
-                <div className="p-6 space-y-6">
+                <div className="p-4 space-y-4">
                   <div className="flex items-start justify-between">
                     <Select
                       value={record.status}
@@ -358,7 +358,7 @@ export const MaintenanceList = () => {
                     </div>
                   </div>
 
-                  <div className="flex justify-center items-center space-x-2 bg-gray-50/50 p-4 rounded-lg hover:bg-gray-100/50 transition-colors">
+                  <div className="flex justify-center items-center space-x-2 bg-gray-50/50 p-3 rounded-lg hover:bg-gray-100/50 transition-colors">
                     <Car className="h-6 w-6 text-primary" />
                     <div className="text-center">
                       <p className="text-lg font-medium">
@@ -372,7 +372,7 @@ export const MaintenanceList = () => {
                     </div>
                   </div>
 
-                  <div className="p-4 bg-white rounded-lg space-y-4 shadow-sm group-hover:shadow-md transition-all duration-200">
+                  <div className="p-3 bg-white rounded-lg space-y-3 shadow-sm group-hover:shadow-md transition-all duration-200">
                     <div className="flex items-center space-x-3">
                       {getServiceIcon(record.service_type)}
                       <p className="text-lg font-medium">{record.service_type}</p>
@@ -385,7 +385,7 @@ export const MaintenanceList = () => {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                     <div className="flex items-center space-x-2 text-sm">
                       <Calendar className="h-4 w-4 text-gray-500" />
                       <span className="text-gray-600">
