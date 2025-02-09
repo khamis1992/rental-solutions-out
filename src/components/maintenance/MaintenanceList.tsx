@@ -1,7 +1,8 @@
+
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { formatDateToDisplay } from "@/lib/dateUtils";
-import { Wrench, Clock, AlertTriangle, Edit2, Trash2, Car, Calendar } from "lucide-react";
+import { Wrench, Clock, AlertTriangle, CheckCircle, XCircle, Car, Calendar, User } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +26,36 @@ interface MaintenanceRecord extends Maintenance {
     license_plate: string;
   };
 }
+
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'completed':
+      return <CheckCircle className="h-4 w-4 text-green-500" />;
+    case 'in_progress':
+      return <Wrench className="h-4 w-4 text-blue-500 animate-spin-slow" />;
+    case 'urgent':
+      return <AlertTriangle className="h-4 w-4 text-red-500" />;
+    case 'cancelled':
+      return <XCircle className="h-4 w-4 text-gray-500" />;
+    default:
+      return <Clock className="h-4 w-4 text-yellow-500" />;
+  }
+};
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'completed':
+      return 'bg-green-100 text-green-800 border-green-200';
+    case 'in_progress':
+      return 'bg-blue-100 text-blue-800 border-blue-200';
+    case 'urgent':
+      return 'bg-red-100 text-red-800 border-red-200';
+    case 'cancelled':
+      return 'bg-gray-100 text-gray-800 border-gray-200';
+    default:
+      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+  }
+};
 
 export const MaintenanceList = () => {
   const queryClient = useQueryClient();
@@ -135,8 +166,8 @@ export const MaintenanceList = () => {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[...Array(4)].map((_, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[...Array(6)].map((_, i) => (
           <Card key={i} className="p-6 space-y-4">
             <div className="animate-pulse space-y-3">
               <Skeleton className="h-6 w-[70%]" />
@@ -177,9 +208,18 @@ export const MaintenanceList = () => {
         <CreateJobDialog />
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {currentRecords.map((record) => (
-          <Card key={record.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-200">
+          <Card 
+            key={record.id} 
+            className={`group overflow-hidden hover:shadow-lg transition-shadow duration-200 animate-fade-in relative before:absolute before:left-0 before:top-0 before:h-full before:w-1 ${
+              record.status === 'urgent' ? 'before:bg-red-500' :
+              record.status === 'in_progress' ? 'before:bg-blue-500' :
+              record.status === 'completed' ? 'before:bg-green-500' :
+              record.status === 'cancelled' ? 'before:bg-gray-500' :
+              'before:bg-yellow-500'
+            }`}
+          >
             <div className="p-6 space-y-6">
               <div className="flex items-start justify-between">
                 <div className="flex flex-col space-y-4">
@@ -189,18 +229,37 @@ export const MaintenanceList = () => {
                       handleStatusChange(record.id, value)
                     }
                   >
-                    <SelectTrigger className={`w-[130px] ${
-                      record.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      record.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      <SelectValue />
+                    <SelectTrigger className={`w-[130px] ${getStatusColor(record.status)}`}>
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon(record.status)}
+                        <SelectValue />
+                      </div>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="scheduled">Scheduled</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value="scheduled">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          Scheduled
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="in_progress">
+                        <div className="flex items-center gap-2">
+                          <Wrench className="h-4 w-4" />
+                          In Progress
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="completed">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4" />
+                          Completed
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="cancelled">
+                        <div className="flex items-center gap-2">
+                          <XCircle className="h-4 w-4" />
+                          Cancelled
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -208,10 +267,11 @@ export const MaintenanceList = () => {
                   <EditMaintenanceDialog record={record} />
                   <Button 
                     variant="ghost" 
-                    size="icon"
+                    size="sm"
                     onClick={() => handleDelete(record.id)}
+                    className="hover:bg-destructive/10 hover:text-destructive transition-colors"
                   >
-                    <Trash2 className="h-4 w-4 text-destructive" />
+                    <XCircle className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
