@@ -26,10 +26,6 @@ const Maintenance = () => {
   return (
     <DashboardLayout>
       <div className="container mx-auto space-y-6 px-4 py-8">
-        <div className="flex justify-between items-start">
-          <h1 className="text-3xl font-bold">Maintenance</h1>
-        </div>
-        
         <div className="space-y-6">
           <MaintenanceAlerts />
           <MaintenanceList />
