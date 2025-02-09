@@ -25,12 +25,6 @@ export const AgreementListHeader = ({
 }: AgreementListHeaderProps) => {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between w-full">
-      <h1 className="text-3xl font-bold tracking-tight text-white">
-        Agreements
-        <span className="text-sm font-normal bg-white/20 px-2 py-1 rounded-full ml-2">
-          Management Portal
-        </span>
-      </h1>
       <div className="flex items-center gap-2">
         {/* Import/Export Group */}
         <div className="flex items-center gap-2 mr-4">
@@ -94,4 +88,3 @@ export const AgreementListHeader = ({
     </div>
   );
 };
-
