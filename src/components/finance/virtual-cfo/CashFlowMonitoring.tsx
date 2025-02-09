@@ -1,4 +1,3 @@
-
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,7 @@ import {
   CheckCircle2, 
   DollarSign,
   Timer,
-  Bank,
+  Wallet,
   TrendingUp,
   TrendingDown,
   Search,
@@ -96,7 +95,7 @@ export const CashFlowMonitoring = () => {
       case "upcoming_payment":
         return severity === "high" ? Timer : CalendarClock;
       case "threshold_breach":
-        return severity === "high" ? AlertCircle : Bank;
+        return severity === "high" ? AlertCircle : Wallet;
       case "high_expense":
         return severity === "high" ? TrendingUp : DollarSign;
       case "low_balance":
@@ -170,7 +169,7 @@ export const CashFlowMonitoring = () => {
       <CardHeader className="flex flex-row items-center justify-between sticky top-0 z-10 bg-card/80 border-b backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center gap-2">
           <CardTitle className="flex items-center gap-2">
-            <Bank className="h-5 w-5 text-primary animate-pulse" />
+            <Wallet className="h-5 w-5 text-primary animate-pulse" />
             Cash Flow Alerts
           </CardTitle>
           <Badge 
@@ -293,7 +292,7 @@ export const CashFlowMonitoring = () => {
                             </span>
                             {alert.threshold_amount > 0 && (
                               <span className="flex items-center gap-1">
-                                <Bank className="h-3 w-3" />
+                                <Wallet className="h-3 w-3" />
                                 Threshold: {formatCurrency(alert.threshold_amount)}
                               </span>
                             )}
