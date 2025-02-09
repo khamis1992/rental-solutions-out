@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { formatDateToDisplay } from "@/lib/dateUtils";
 import { 
   Wrench, Clock, AlertTriangle, CheckCircle, XCircle, Car, 
-  Calendar, User, DollarSign, Info, Oil, Tool, SearchCheck, 
-  Repeat, Pause, Filter
+  Calendar, User, DollarSign, Info, FileText, Settings, 
+  Gauge, Cable, Filter
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
@@ -27,17 +26,17 @@ const ITEMS_PER_PAGE = 10;
 const getServiceIcon = (type: string) => {
   switch (type.toLowerCase()) {
     case 'oil change':
-      return <Oil className="h-5 w-5 text-primary" />;
+      return <Gauge className="h-5 w-5 text-primary" />;
     case 'tire rotation':
-      return <Repeat className="h-5 w-5 text-primary" />;
+      return <Settings className="h-5 w-5 text-primary" />;
     case 'inspection':
-      return <SearchCheck className="h-5 w-5 text-primary" />;
+      return <FileText className="h-5 w-5 text-primary" />;
     case 'brake service':
-      return <Pause className="h-5 w-5 text-primary" />;
+      return <Cable className="h-5 w-5 text-primary" />;
     case 'accident repair':
       return <AlertTriangle className="h-5 w-5 text-red-500" />;
     default:
-      return <Tool className="h-5 w-5 text-primary" />;
+      return <Wrench className="h-5 w-5 text-primary" />;
   }
 };
 
