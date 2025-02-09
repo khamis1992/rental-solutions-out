@@ -6,7 +6,7 @@ import { VehicleLocationCell } from "./VehicleLocationCell";
 import { VehicleInsuranceCell } from "./VehicleInsuranceCell";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit, Trash2, MoreVertical } from "lucide-react";
+import { Eye, Edit, Trash2, MoreVertical, Car, FileText, MessageSquare, History, Barcode } from "lucide-react";
 import { 
   Tooltip,
   TooltipContent,
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface VehicleTableContentProps {
   vehicles: Vehicle[];
@@ -35,45 +36,90 @@ export const VehicleTableContent = ({
       {vehicles.map((vehicle) => (
         <TableRow 
           key={vehicle.id}
-          className="group hover:bg-muted/50 transition-colors animate-fade-in"
+          className={cn(
+            "group hover:bg-muted/50 transition-all duration-300",
+            "animate-fade-in relative",
+            "before:absolute before:left-0 before:top-0 before:h-full before:w-1",
+            "before:bg-transparent hover:before:bg-primary/50",
+            "before:transition-colors before:duration-300",
+            selectedVehicles.includes(vehicle.id) && 
+              "bg-primary/5 before:bg-primary"
+          )}
         >
           <TableCell className="w-12">
-            <input
-              type="checkbox"
-              className="rounded border-gray-300"
-              checked={selectedVehicles.includes(vehicle.id)}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  onSelectionChange([...selectedVehicles, vehicle.id]);
-                } else {
-                  onSelectionChange(selectedVehicles.filter(id => id !== vehicle.id));
-                }
-              }}
-            />
+            <div className="relative">
+              <input
+                type="checkbox"
+                className={cn(
+                  "rounded border-gray-300 text-primary",
+                  "focus:ring-primary/20 transition-all duration-200",
+                  "hover:border-primary cursor-pointer",
+                  "checked:bg-primary checked:border-primary"
+                )}
+                checked={selectedVehicles.includes(vehicle.id)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    onSelectionChange([...selectedVehicles, vehicle.id]);
+                  } else {
+                    onSelectionChange(selectedVehicles.filter(id => id !== vehicle.id));
+                  }
+                }}
+              />
+            </div>
           </TableCell>
+
           <TableCell>
             <Link 
               to={`/vehicles/${vehicle.id}`}
-              className="font-medium text-primary hover:underline flex items-center gap-2"
+              className="font-medium text-primary hover:underline flex items-center gap-2 group/link"
             >
-              {vehicle.license_plate}
-              <Badge 
-                variant="secondary" 
-                className="bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-              >
-                {vehicle.vin?.slice(-6)}
-              </Badge>
+              <div className="p-1.5 bg-primary/10 rounded-md group-hover/link:bg-primary/20 transition-colors">
+                <Car className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex flex-col">
+                <span>{vehicle.license_plate}</span>
+                <Badge 
+                  variant="secondary" 
+                  className={cn(
+                    "bg-primary/10 text-primary hover:bg-primary/20 transition-colors",
+                    "flex items-center gap-1.5 w-fit"
+                  )}
+                >
+                  <Barcode className="h-3 w-3" />
+                  {vehicle.vin?.slice(-6)}
+                </Badge>
+              </div>
             </Link>
           </TableCell>
-          <TableCell className="font-medium">{vehicle.make}</TableCell>
-          <TableCell>{vehicle.model}</TableCell>
-          <TableCell>{vehicle.year}</TableCell>
+
+          <TableCell className="font-medium">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-muted rounded-md">
+                <Car className="h-4 w-4 text-muted-foreground" />
+              </div>
+              {vehicle.make}
+            </div>
+          </TableCell>
+
+          <TableCell>
+            <div className="flex items-center gap-2">
+              {vehicle.model}
+            </div>
+          </TableCell>
+
+          <TableCell>
+            <Badge variant="outline" className="font-mono">
+              {vehicle.year}
+            </Badge>
+          </TableCell>
+
           <TableCell>
             <VehicleStatusCell 
               status={vehicle.status} 
               vehicleId={vehicle.id}
             />
           </TableCell>
+
           <TableCell>
             <VehicleLocationCell
               vehicleId={vehicle.id}
@@ -83,6 +129,7 @@ export const VehicleTableContent = ({
               onEditEnd={() => setEditingLocation(null)}
             />
           </TableCell>
+
           <TableCell>
             <VehicleInsuranceCell
               vehicleId={vehicle.id}
@@ -92,8 +139,9 @@ export const VehicleTableContent = ({
               onEditEnd={() => setEditingInsurance(null)}
             />
           </TableCell>
+
           <TableCell className="text-right">
-            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -140,6 +188,51 @@ export const VehicleTableContent = ({
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Delete Vehicle</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="hover:bg-primary/10 hover:text-primary transition-colors"
+                    >
+                      <History className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Maintenance History</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="hover:bg-primary/10 hover:text-primary transition-colors"
+                    >
+                      <FileText className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Documents</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="hover:bg-primary/10 hover:text-primary transition-colors"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Notes</p>
                   </TooltipContent>
                 </Tooltip>
 

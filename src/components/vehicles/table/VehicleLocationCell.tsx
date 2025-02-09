@@ -6,6 +6,7 @@ import { Check, X, MapPin, Edit2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 export interface VehicleLocationCellProps {
   vehicleId: string;
@@ -43,8 +44,13 @@ export const VehicleLocationCell = ({
   if (!isEditing) {
     return (
       <div className="flex items-center justify-between group">
-        <div className="flex items-center gap-2 text-sm">
-          <MapPin className="h-4 w-4 text-muted-foreground" />
+        <div className={cn(
+          "flex items-center gap-2 text-sm",
+          "transition-all duration-300 hover:scale-105"
+        )}>
+          <div className="p-1.5 bg-muted rounded-md">
+            <MapPin className="h-4 w-4 text-muted-foreground" />
+          </div>
           <span>{location || "Not set"}</span>
         </div>
         <TooltipProvider>
@@ -71,7 +77,9 @@ export const VehicleLocationCell = ({
   return (
     <div className="flex items-center gap-2 animate-fade-in">
       <div className="flex items-center gap-2 flex-1">
-        <MapPin className="h-4 w-4 text-muted-foreground" />
+        <div className="p-1.5 bg-muted rounded-md">
+          <MapPin className="h-4 w-4 text-muted-foreground" />
+        </div>
         <Input
           value={value}
           onChange={(e) => setValue(e.target.value)}
@@ -87,7 +95,7 @@ export const VehicleLocationCell = ({
               variant="ghost" 
               size="sm" 
               onClick={handleSave}
-              className="hover:text-green-500"
+              className="hover:text-emerald-500 transition-colors"
             >
               <Check className="h-4 w-4" />
             </Button>
@@ -103,7 +111,7 @@ export const VehicleLocationCell = ({
               variant="ghost" 
               size="sm" 
               onClick={onEditEnd}
-              className="hover:text-red-500"
+              className="hover:text-rose-500 transition-colors"
             >
               <X className="h-4 w-4" />
             </Button>
