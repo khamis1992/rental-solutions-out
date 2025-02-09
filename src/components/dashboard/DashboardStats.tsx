@@ -1,4 +1,4 @@
-import { Car, DollarSign, FileText, ArrowUpRight, TrendingUp } from "lucide-react";
+import { Car, Key, Wrench, Users, FileText, DollarSign, TrendingUp, ArrowUpRight, CarFront, TrendingDown } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { VehicleStatusChart } from "@/components/dashboard/VehicleStatusChart";
 import { useQuery } from "@tanstack/react-query";

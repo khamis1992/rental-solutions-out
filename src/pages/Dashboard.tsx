@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { WelcomeHeader } from "@/components/dashboard/WelcomeHeader";
@@ -5,7 +6,9 @@ import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardAlerts } from "@/components/dashboard/DashboardAlerts";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { PredictiveAnalytics } from "@/components/dashboard/PredictiveAnalytics";
+import { UpcomingRentals } from "@/components/dashboard/UpcomingRentals";
 import { DashboardStats as DashboardStatsType } from "@/types/dashboard.types";
+import { Card } from "@/components/ui/card";
 
 const Dashboard = () => {
   const { data: stats } = useQuery({
@@ -31,14 +34,14 @@ const Dashboard = () => {
   });
 
   return (
-    <div className="pt-[calc(var(--header-height,56px)+2rem)] max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
-      <div className="flex justify-between items-center bg-secondary rounded-lg p-6 text-white">
-        <div>
+    <div className="space-y-6 mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-[1400px] animate-fade-in">
+      <Card className="bg-gradient-to-r from-purple-50/90 to-blue-50/90 dark:from-purple-900/20 dark:to-blue-900/20 border-none shadow-lg">
+        <div className="p-6">
           <WelcomeHeader />
         </div>
-      </div>
+      </Card>
 
-      <div className="grid gap-8">
+      <div className="grid gap-6">
         <DashboardStats stats={stats || {
           totalVehicles: 0,
           availableVehicles: 0,
@@ -50,12 +53,14 @@ const Dashboard = () => {
         }} />
       </div>
 
-      <div className="grid gap-8 md:grid-cols-2">
-        <div className="col-span-2">
-          <PredictiveAnalytics />
-        </div>
-        <div className="col-span-2">
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="space-y-6">
+          <DashboardAlerts />
           <RecentActivity />
+        </div>
+        <div className="space-y-6">
+          <PredictiveAnalytics />
+          <UpcomingRentals />
         </div>
       </div>
     </div>
