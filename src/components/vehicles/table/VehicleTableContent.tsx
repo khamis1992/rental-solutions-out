@@ -6,7 +6,7 @@ import { VehicleLocationCell } from "./VehicleLocationCell";
 import { VehicleInsuranceCell } from "./VehicleInsuranceCell";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit, Trash2, MoreVertical, Car, FileText, MessageSquare, History, Barcode } from "lucide-react";
+import { Trash2, Car, Barcode } from "lucide-react";
 import { 
   Tooltip,
   TooltipContent,
@@ -118,39 +118,6 @@ export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      asChild
-                      className="hover:bg-primary/10 hover:text-primary transition-colors"
-                    >
-                      <Link to={`/vehicles/${vehicle.id}`}>
-                        <Eye className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>View Details</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="hover:bg-blue-500/10 hover:text-blue-500 transition-colors"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Edit Vehicle</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
                       className="hover:bg-destructive/10 hover:text-destructive transition-colors"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -158,66 +125,6 @@ export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Delete Vehicle</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="hover:bg-primary/10 hover:text-primary transition-colors"
-                    >
-                      <History className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Maintenance History</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="hover:bg-primary/10 hover:text-primary transition-colors"
-                    >
-                      <FileText className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Documents</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="hover:bg-primary/10 hover:text-primary transition-colors"
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Notes</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="hover:bg-gray-500/10 hover:text-gray-500 transition-colors"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>More Options</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -228,4 +135,3 @@ export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
     </>
   );
 };
-
