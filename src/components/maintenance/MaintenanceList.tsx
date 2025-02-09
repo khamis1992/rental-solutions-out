@@ -20,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { VehicleTablePagination } from "@/components/vehicles/table/VehicleTablePagination";
 import type { MaintenanceRecord } from "@/types/maintenance";
 import { MaintenanceStats } from "./MaintenanceStats";
+import { MaintenanceAlerts } from "./MaintenanceAlerts";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -238,177 +239,185 @@ export const MaintenanceList = () => {
 
       <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
         <MaintenanceStats maintenanceData={records} />
-
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-          <Button
-            variant={filter === "all" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFilter("all")}
-            className="flex items-center gap-2 whitespace-nowrap hover:scale-105 transition-transform duration-200"
-          >
-            <Wrench className="h-4 w-4" />
-            All Records
-          </Button>
-          {["scheduled", "in_progress", "urgent", "completed", "cancelled"].map((status) => (
-            <Button
-              key={status}
-              variant={filter === status ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilter(status)}
-              className={`flex items-center gap-2 whitespace-nowrap hover:scale-105 transition-transform duration-200 ${
-                status === 'urgent' ? 'hover:bg-red-50' :
-                status === 'completed' ? 'hover:bg-green-50' :
-                status === 'in_progress' ? 'hover:bg-blue-50' :
-                'hover:bg-gray-50'
-              }`}
-            >
-              {getStatusIcon(status)}
-              <span className="capitalize">{status.replace('_', ' ')}</span>
-            </Button>
-          ))}
-        </div>
-
-        {records.length === 0 ? (
-          <Card className="p-8 bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
-            <div className="flex flex-col items-center justify-center text-center space-y-4">
-              <div className="p-4 rounded-full bg-orange-100 border-2 border-orange-200">
-                <Wrench className="h-12 w-12 text-primary animate-bounce" />
-              </div>
-              <p className="text-xl font-semibold text-gray-800">No maintenance records found</p>
-              <p className="text-sm text-gray-600 max-w-md">
-                Create a new maintenance job to start tracking vehicle maintenance and repairs
-              </p>
-              <CreateJobDialog />
-            </div>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentRecords.map((record) => (
-              <Card 
-                key={record.id} 
-                className={`group overflow-hidden hover:shadow-lg transition-all duration-300 animate-fade-in relative 
-                  before:absolute before:left-0 before:top-0 before:h-full before:w-1
-                  ${
-                    record.status === 'urgent' ? 'before:bg-red-500 hover:bg-red-50/30' :
-                    record.status === 'in_progress' ? 'before:bg-blue-500 hover:bg-blue-50/30' :
-                    record.status === 'completed' ? 'before:bg-green-500 hover:bg-green-50/30' :
-                    record.status === 'cancelled' ? 'before:bg-gray-500 hover:bg-gray-50/30' :
-                    'before:bg-yellow-500 hover:bg-yellow-50/30'
-                  } 
-                  hover:scale-[1.02] transition-transform duration-200
-                  bg-gradient-to-br from-white to-gray-50/30`}
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2">
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+              <Button
+                variant={filter === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilter("all")}
+                className="flex items-center gap-2 whitespace-nowrap hover:scale-105 transition-transform duration-200"
               >
-                <div className="p-6 space-y-6">
-                  <div className="flex items-start justify-between">
-                    <Select
-                      value={record.status}
-                      onValueChange={(value: "scheduled" | "in_progress" | "completed" | "cancelled") => 
-                        handleStatusChange(record.id, value)
-                      }
-                    >
-                      <SelectTrigger className={`w-[130px] ${getStatusColor(record.status)}`}>
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(record.status)}
-                          <SelectValue />
-                        </div>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="scheduled">
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            Scheduled
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="in_progress">
-                          <div className="flex items-center gap-2">
-                            <Wrench className="h-4 w-4" />
-                            In Progress
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="completed">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle className="h-4 w-4" />
-                            Completed
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="cancelled">
-                          <div className="flex items-center gap-2">
-                            <XCircle className="h-4 w-4" />
-                            Cancelled
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <div className="flex items-center space-x-2">
-                      <EditMaintenanceDialog record={record} />
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleDelete(record.id)}
-                        className="hover:bg-destructive/10 hover:text-destructive transition-colors"
-                      >
-                        <XCircle className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+                <Wrench className="h-4 w-4" />
+                All Records
+              </Button>
+              {["scheduled", "in_progress", "urgent", "completed", "cancelled"].map((status) => (
+                <Button
+                  key={status}
+                  variant={filter === status ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilter(status)}
+                  className={`flex items-center gap-2 whitespace-nowrap hover:scale-105 transition-transform duration-200 ${
+                    status === 'urgent' ? 'hover:bg-red-50' :
+                    status === 'completed' ? 'hover:bg-green-50' :
+                    status === 'in_progress' ? 'hover:bg-blue-50' :
+                    'hover:bg-gray-50'
+                  }`}
+                >
+                  {getStatusIcon(status)}
+                  <span className="capitalize">{status.replace('_', ' ')}</span>
+                </Button>
+              ))}
+            </div>
 
-                  <div className="flex justify-center items-center space-x-2 bg-gray-50/50 p-4 rounded-lg hover:bg-gray-100/50 transition-colors">
-                    <Car className="h-6 w-6 text-primary" />
-                    <div className="text-center">
-                      <p className="text-lg font-medium">
-                        {record.vehicles 
-                          ? `${record.vehicles.make} ${record.vehicles.model}`
-                          : "Vehicle details unavailable"}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {record.vehicles?.license_plate || "N/A"}
-                      </p>
-                    </div>
+            {records.length === 0 ? (
+              <Card className="p-8 bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+                <div className="flex flex-col items-center justify-center text-center space-y-4">
+                  <div className="p-4 rounded-full bg-orange-100 border-2 border-orange-200">
+                    <Wrench className="h-12 w-12 text-primary animate-bounce" />
                   </div>
-
-                  <div className="p-4 bg-white rounded-lg space-y-4 shadow-sm group-hover:shadow-md transition-all duration-200">
-                    <div className="flex items-center space-x-3">
-                      {getServiceIcon(record.service_type)}
-                      <p className="text-lg font-medium">{record.service_type}</p>
-                    </div>
-                    {record.description && (
-                      <div className="flex items-start space-x-2">
-                        <Info className="h-4 w-4 text-muted-foreground mt-1" />
-                        <p className="text-sm text-gray-600 leading-relaxed">{record.description}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Calendar className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-600">
-                        {formatDateToDisplay(new Date(record.scheduled_date))}
-                      </span>
-                    </div>
-                    {record.cost && (
-                      <div className="flex items-center space-x-2">
-                        <DollarSign className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium text-primary">{record.cost}</span>
-                        <span className="text-sm text-gray-500">QAR</span>
-                      </div>
-                    )}
-                  </div>
+                  <p className="text-xl font-semibold text-gray-800">No maintenance records found</p>
+                  <p className="text-sm text-gray-600 max-w-md">
+                    Create a new maintenance job to start tracking vehicle maintenance and repairs
+                  </p>
+                  <CreateJobDialog />
                 </div>
               </Card>
-            ))}
-          </div>
-        )}
+            ) : (
+              <div className="grid grid-cols-1 gap-6">
+                {currentRecords.map((record) => (
+                  <Card 
+                    key={record.id} 
+                    className={`group overflow-hidden hover:shadow-lg transition-all duration-300 animate-fade-in relative 
+                      before:absolute before:left-0 before:top-0 before:h-full before:w-1
+                      ${
+                        record.status === 'urgent' ? 'before:bg-red-500 hover:bg-red-50/30' :
+                        record.status === 'in_progress' ? 'before:bg-blue-500 hover:bg-blue-50/30' :
+                        record.status === 'completed' ? 'before:bg-green-500 hover:bg-green-50/30' :
+                        record.status === 'cancelled' ? 'before:bg-gray-500 hover:bg-gray-50/30' :
+                        'before:bg-yellow-500 hover:bg-yellow-50/30'
+                      } 
+                      hover:scale-[1.02] transition-transform duration-200
+                      bg-gradient-to-br from-white to-gray-50/30`}
+                  >
+                    <div className="p-6 space-y-6">
+                      <div className="flex items-start justify-between">
+                        <Select
+                          value={record.status}
+                          onValueChange={(value: "scheduled" | "in_progress" | "completed" | "cancelled") => 
+                            handleStatusChange(record.id, value)
+                          }
+                        >
+                          <SelectTrigger className={`w-[130px] ${getStatusColor(record.status)}`}>
+                            <div className="flex items-center gap-2">
+                              {getStatusIcon(record.status)}
+                              <SelectValue />
+                            </div>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="scheduled">
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4" />
+                                Scheduled
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="in_progress">
+                              <div className="flex items-center gap-2">
+                                <Wrench className="h-4 w-4" />
+                                In Progress
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="completed">
+                              <div className="flex items-center gap-2">
+                                <CheckCircle className="h-4 w-4" />
+                                Completed
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="cancelled">
+                              <div className="flex items-center gap-2">
+                                <XCircle className="h-4 w-4" />
+                                Cancelled
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <div className="flex items-center space-x-2">
+                          <EditMaintenanceDialog record={record} />
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDelete(record.id)}
+                            className="hover:bg-destructive/10 hover:text-destructive transition-colors"
+                          >
+                            <XCircle className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
 
-        {records.length > 0 && (
-          <div className="flex justify-center mt-6">
-            <VehicleTablePagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
+                      <div className="flex justify-center items-center space-x-2 bg-gray-50/50 p-4 rounded-lg hover:bg-gray-100/50 transition-colors">
+                        <Car className="h-6 w-6 text-primary" />
+                        <div className="text-center">
+                          <p className="text-lg font-medium">
+                            {record.vehicles 
+                              ? `${record.vehicles.make} ${record.vehicles.model}`
+                              : "Vehicle details unavailable"}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {record.vehicles?.license_plate || "N/A"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="p-4 bg-white rounded-lg space-y-4 shadow-sm group-hover:shadow-md transition-all duration-200">
+                        <div className="flex items-center space-x-3">
+                          {getServiceIcon(record.service_type)}
+                          <p className="text-lg font-medium">{record.service_type}</p>
+                        </div>
+                        {record.description && (
+                          <div className="flex items-start space-x-2">
+                            <Info className="h-4 w-4 text-muted-foreground mt-1" />
+                            <p className="text-sm text-gray-600 leading-relaxed">{record.description}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <div className="flex items-center space-x-2 text-sm">
+                          <Calendar className="h-4 w-4 text-gray-500" />
+                          <span className="text-gray-600">
+                            {formatDateToDisplay(new Date(record.scheduled_date))}
+                          </span>
+                        </div>
+                        {record.cost && (
+                          <div className="flex items-center space-x-2">
+                            <DollarSign className="h-4 w-4 text-gray-500" />
+                            <span className="font-medium text-primary">{record.cost}</span>
+                            <span className="text-sm text-gray-500">QAR</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {records.length > 0 && (
+              <div className="flex justify-center mt-6">
+                <VehicleTablePagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            )}
           </div>
-        )}
+
+          <div className="md:col-span-1">
+            <MaintenanceAlerts />
+          </div>
+        </div>
       </div>
     </div>
   );
