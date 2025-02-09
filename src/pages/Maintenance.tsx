@@ -1,5 +1,5 @@
+
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { MaintenanceStats } from "@/components/maintenance/MaintenanceStats";
 import { MaintenanceList } from "@/components/maintenance/MaintenanceList";
 import { MaintenanceAlerts } from "@/components/maintenance/MaintenanceAlerts";
 import { useQuery } from "@tanstack/react-query";
@@ -29,8 +29,6 @@ const Maintenance = () => {
         <div className="flex justify-between items-start">
           <h1 className="text-3xl font-bold">Maintenance</h1>
         </div>
-        
-        <MaintenanceStats maintenanceData={maintenanceData || []} />
         
         <div className="space-y-6">
           <MaintenanceAlerts />
