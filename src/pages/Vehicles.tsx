@@ -8,7 +8,7 @@ import { CreateVehicleDialog } from "@/components/vehicles/CreateVehicleDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Car, Plus, FileImport, Filter, Grid, List, Search } from "lucide-react";
+import { Car, Plus, Import, Filter, Grid, List, Search } from "lucide-react";
 import { Vehicle } from "@/types/vehicle";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -70,7 +70,7 @@ const Vehicles = () => {
                 </Button>
               </CreateVehicleDialog>
               <Button variant="outline" className="flex items-center gap-2">
-                <FileImport className="h-4 w-4" />
+                <Import className="h-4 w-4" />
                 Import
               </Button>
               <Button variant="outline" className="flex items-center gap-2">
