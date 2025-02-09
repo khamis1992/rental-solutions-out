@@ -19,15 +19,9 @@ import { cn } from "@/lib/utils";
 
 interface VehicleTableContentProps {
   vehicles: Vehicle[];
-  selectedVehicles: string[];
-  onSelectionChange: (selectedIds: string[]) => void;
 }
 
-export const VehicleTableContent = ({ 
-  vehicles,
-  selectedVehicles,
-  onSelectionChange 
-}: VehicleTableContentProps) => {
+export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
   const [editingLocation, setEditingLocation] = useState<string | null>(null);
   const [editingInsurance, setEditingInsurance] = useState<string | null>(null);
 
@@ -41,33 +35,9 @@ export const VehicleTableContent = ({
             "animate-fade-in relative",
             "before:absolute before:left-0 before:top-0 before:h-full before:w-1",
             "before:bg-transparent hover:before:bg-primary/50",
-            "before:transition-colors before:duration-300",
-            selectedVehicles.includes(vehicle.id) && 
-              "bg-primary/5 before:bg-primary"
+            "before:transition-colors before:duration-300"
           )}
         >
-          <TableCell className="w-12">
-            <div className="relative">
-              <input
-                type="checkbox"
-                className={cn(
-                  "rounded border-gray-300 text-primary",
-                  "focus:ring-primary/20 transition-all duration-200",
-                  "hover:border-primary cursor-pointer",
-                  "checked:bg-primary checked:border-primary"
-                )}
-                checked={selectedVehicles.includes(vehicle.id)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    onSelectionChange([...selectedVehicles, vehicle.id]);
-                  } else {
-                    onSelectionChange(selectedVehicles.filter(id => id !== vehicle.id));
-                  }
-                }}
-              />
-            </div>
-          </TableCell>
-
           <TableCell>
             <Link 
               to={`/vehicles/${vehicle.id}`}
@@ -258,3 +228,4 @@ export const VehicleTableContent = ({
     </>
   );
 };
+
