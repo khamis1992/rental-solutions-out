@@ -1,5 +1,5 @@
 
-import { FileCheck, FileClock, FileX, FileText, TrendingUp, TrendingDown } from "lucide-react";
+import { FileCheck, FileClock, FileX, FileText, TrendingUp, TrendingDown, Clock, AlertCircle } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,14 +53,15 @@ export const AgreementStats = () => {
         icon={FileCheck}
         description={
           <div className="flex items-center gap-1">
-            <span>Currently active rentals</span>
-            <div className="flex items-center text-green-500">
+            <span>Currently active</span>
+            <div className="flex items-center text-green-500 ml-2">
               <TrendingUp className="h-3 w-3" />
-              <span className="text-xs">12%</span>
+              <span className="text-xs ml-1">12%</span>
             </div>
+            <div className="ml-2 h-2 w-2 rounded-full bg-green-500 animate-pulse" />
           </div>
         }
-        className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50"
+        className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
         iconClassName="green"
       />
       <StatsCard
@@ -69,11 +70,15 @@ export const AgreementStats = () => {
         icon={FileClock}
         description={
           <div className="flex items-center gap-1">
-            <span>Awaiting processing</span>
-            <div className="ml-1 h-2 w-2 rounded-full bg-orange-400 animate-pulse" />
+            <Clock className="h-3 w-3 text-orange-500" />
+            <span className="text-sm">Awaiting action</span>
+            <div className="flex items-center ml-2">
+              <AlertCircle className="h-3 w-3 text-orange-500" />
+              <span className="text-xs ml-1 text-orange-500">{stats?.pending || 0} urgent</span>
+            </div>
           </div>
         }
-        className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/50 dark:to-amber-950/50"
+        className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/50 dark:to-amber-950/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
         iconClassName="orange"
       />
       <StatsCard
@@ -82,14 +87,15 @@ export const AgreementStats = () => {
         icon={FileX}
         description={
           <div className="flex items-center gap-1">
-            <span>Completed rentals</span>
-            <div className="flex items-center text-red-500">
+            <span>Completed</span>
+            <div className="flex items-center text-red-500 ml-2">
               <TrendingDown className="h-3 w-3" />
-              <span className="text-xs">5%</span>
+              <span className="text-xs ml-1">5%</span>
             </div>
+            <div className="ml-2 h-2 w-2 rounded-full bg-red-500" />
           </div>
         }
-        className="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/50 dark:to-rose-950/50"
+        className="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/50 dark:to-rose-950/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
         iconClassName="red"
       />
       <StatsCard
@@ -99,13 +105,19 @@ export const AgreementStats = () => {
         description={
           <div className="flex items-center gap-1">
             <span>All time</span>
-            <div className="flex items-center text-blue-500">
+            <div className="flex items-center text-blue-500 ml-2">
               <TrendingUp className="h-3 w-3" />
-              <span className="text-xs">8%</span>
+              <span className="text-xs ml-1">8%</span>
+            </div>
+            <div className="h-1 w-12 bg-gray-200 rounded ml-2">
+              <div 
+                className="h-1 bg-blue-500 rounded transition-all duration-500" 
+                style={{ width: `${((stats?.active || 0) / (stats?.total || 1)) * 100}%` }}
+              />
             </div>
           </div>
         }
-        className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50"
+        className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
         iconClassName="blue"
       />
     </div>
