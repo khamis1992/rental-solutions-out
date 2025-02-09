@@ -5,7 +5,7 @@ import { formatDateToDisplay } from "@/lib/dateUtils";
 import { 
   Wrench, Clock, AlertTriangle, CheckCircle, XCircle, Car, 
   Calendar, User, DollarSign, Info, FileText, Settings, 
-  Gauge, Cable, Filter, RefreshCw, Clipboard
+  Gauge, Cable, Filter, RefreshCw, Clipboard, Tool, CircuitBoard
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
@@ -186,41 +186,54 @@ export const MaintenanceList = () => {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-32" />
-          ))}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="p-6 space-y-4">
-              <div className="animate-pulse space-y-3">
-                <Skeleton className="h-6 w-[70%]" />
-                <Skeleton className="h-4 w-[100%]" />
-                <Skeleton className="h-4 w-[60%]" />
-              </div>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const activeMaintenanceCount = records.filter(record => 
+    record.status !== 'completed' && record.status !== 'cancelled'
+  ).length;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h2 className="text-2xl font-semibold tracking-tight">
-            Maintenance Records
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Manage and track all vehicle maintenance activities
-          </p>
+      {/* Enhanced Title Section */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-orange-50 via-orange-100 to-orange-50 rounded-xl shadow-lg p-8">
+        <div className="absolute top-0 right-0 w-64 h-64 -mr-32 -mt-32 opacity-20">
+          <CircuitBoard className="w-full h-full text-orange-500 animate-pulse" />
         </div>
-        <CreateJobDialog />
+        
+        <div className="relative flex items-start justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-lg transform hover:scale-110 transition-transform duration-200">
+                <Tool className="h-8 w-8 text-white animate-[spin_3s_linear_infinite]" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 via-orange-500 to-orange-600 text-transparent bg-clip-text">
+                  Maintenance
+                </h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Track and manage all vehicle maintenance activities efficiently
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 mt-2">
+              <Badge 
+                variant="outline" 
+                className="bg-orange-100 text-orange-700 border-orange-200 px-3 py-1 animate-fade-in"
+              >
+                <Wrench className="w-3 h-3 mr-1" />
+                {activeMaintenanceCount} Active Tasks
+              </Badge>
+              <Badge 
+                variant="outline" 
+                className="bg-blue-100 text-blue-700 border-blue-200 px-3 py-1 animate-fade-in"
+              >
+                <Clock className="w-3 h-3 mr-1" />
+                Updated {formatDateToDisplay(new Date())}
+              </Badge>
+            </div>
+          </div>
+          
+          <CreateJobDialog />
+        </div>
       </div>
 
       <MaintenanceStats maintenanceData={records} />
@@ -398,3 +411,4 @@ export const MaintenanceList = () => {
     </div>
   );
 };
+
