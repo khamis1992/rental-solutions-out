@@ -20,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { VehicleTablePagination } from "@/components/vehicles/table/VehicleTablePagination";
 import type { MaintenanceRecord } from "@/types/maintenance";
 import { MaintenanceStats } from "./MaintenanceStats";
+import { MaintenanceAlerts } from "./MaintenanceAlerts";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -237,6 +238,10 @@ export const MaintenanceList = () => {
       </div>
 
       <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
+        <div className="animate-fade-in">
+          <MaintenanceAlerts />
+        </div>
+
         <MaintenanceStats maintenanceData={records} />
 
         <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
