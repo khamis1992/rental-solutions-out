@@ -25,58 +25,56 @@ export const AgreementListHeader = ({
 }: AgreementListHeaderProps) => {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between w-full">
-      <div className="flex items-center gap-2">
-        {/* Import/Export Group */}
-        <div className="flex items-center gap-2 mr-4">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onImportClick}
-                  className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all gap-2 group"
-                >
-                  <Upload className="h-4 w-4 group-hover:translate-y-[-2px] transition-transform" />
-                  Import
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Import agreements</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+      <div className="flex items-center gap-3 flex-wrap">
+        {/* Import/Export Group with Enhanced Styling */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onImportClick}
+                className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-300 gap-2 group shadow-lg hover:shadow-xl"
+              >
+                <Upload className="h-4 w-4 group-hover:translate-y-[-2px] transition-transform duration-300" />
+                Import
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Import agreements</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all gap-2 group"
-                >
-                  <Download className="h-4 w-4 group-hover:translate-y-[2px] transition-transform" />
-                  Export
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Export data</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-300 gap-2 group shadow-lg hover:shadow-xl"
+              >
+                <Download className="h-4 w-4 group-hover:translate-y-[2px] transition-transform duration-300" />
+                Export
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Export data</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
-        {/* Action Buttons */}
+        {/* Create Agreement Button with Enhanced Styling */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button 
                 variant="default"
                 size="sm"
-                className="gap-2 bg-primary hover:bg-primary/90 text-white transition-all duration-200 hover:scale-105 shadow-lg group"
+                className="bg-white/20 hover:bg-white/30 text-white gap-2 transition-all duration-300 hover:scale-105 shadow-lg group backdrop-blur-md border border-white/30"
               >
                 Create Agreement
-                <ChevronDown className="h-4 w-4 group-hover:rotate-180 transition-transform" />
+                <ChevronDown className="h-4 w-4 group-hover:rotate-180 transition-transform duration-300" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -88,3 +86,4 @@ export const AgreementListHeader = ({
     </div>
   );
 };
+
