@@ -1,3 +1,4 @@
+
 import {
   Table,
   TableBody,
@@ -9,14 +10,10 @@ import { VehicleTableContent } from "./VehicleTableContent";
 import { VehicleTablePagination } from "./VehicleTablePagination";
 import { Vehicle } from "@/types/vehicle";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
 
 interface VehicleListViewProps {
   vehicles: Vehicle[];
   isLoading: boolean;
-  selectedVehicles: string[];
-  onSelectionChange: (selectedIds: string[]) => void;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -25,8 +22,6 @@ interface VehicleListViewProps {
 export const VehicleListView = ({
   vehicles,
   isLoading,
-  selectedVehicles,
-  onSelectionChange,
   currentPage,
   totalPages,
   onPageChange,
@@ -57,18 +52,6 @@ export const VehicleListView = ({
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-12">
-                <input
-                  type="checkbox"
-                  className="rounded border-gray-300"
-                  checked={selectedVehicles.length === vehicles.length}
-                  onChange={(e) =>
-                    onSelectionChange(
-                      e.target.checked ? vehicles.map((v) => v.id) : []
-                    )
-                  }
-                />
-              </TableHead>
               <TableHead className="font-semibold">License Plate</TableHead>
               <TableHead className="font-semibold">Make</TableHead>
               <TableHead className="font-semibold">Model</TableHead>
@@ -80,11 +63,7 @@ export const VehicleListView = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            <VehicleTableContent
-              vehicles={vehicles}
-              selectedVehicles={selectedVehicles}
-              onSelectionChange={onSelectionChange}
-            />
+            <VehicleTableContent vehicles={vehicles} />
           </TableBody>
         </Table>
       </div>
