@@ -48,25 +48,28 @@ export const VehicleStats = ({ vehicles, isLoading }: VehicleStatsProps) => {
       title: "Available Vehicles",
       value: vehicleCounts?.available || 0,
       icon: Car,
-      color: "text-[#9b87f5]",
-      bgColor: "bg-[#9b87f5]/10",
-      ringColor: "ring-[#9b87f5]/20",
+      color: "text-emerald-500",
+      bgColor: "bg-emerald-500/10",
+      ringColor: "ring-emerald-500/20",
+      description: "Ready for use"
     },
     {
       title: "In Maintenance",
       value: vehicleCounts?.maintenance || 0,
       icon: Wrench,
-      color: "text-[#F97316]",
-      bgColor: "bg-[#F97316]/10",
-      ringColor: "ring-[#F97316]/20",
+      color: "text-amber-500",
+      bgColor: "bg-amber-500/10",
+      ringColor: "ring-amber-500/20",
+      description: "Under service"
     },
     {
       title: "Needs Attention",
       value: vehicleCounts?.needsAttention || 0,
       icon: AlertTriangle,
-      color: "text-[#ea384c]",
-      bgColor: "bg-[#ea384c]/10",
-      ringColor: "ring-[#ea384c]/20",
+      color: "text-rose-500",
+      bgColor: "bg-rose-500/10",
+      ringColor: "ring-rose-500/20",
+      description: "Requires immediate action"
     },
   ];
 
@@ -74,7 +77,7 @@ export const VehicleStats = ({ vehicles, isLoading }: VehicleStatsProps) => {
     return (
       <div className="grid gap-4 md:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <Card key={i}>
+          <Card key={i} className="animate-pulse">
             <CardContent className="p-6">
               <Skeleton className="h-4 w-24 mb-2 mx-auto" />
               <Skeleton className="h-8 w-16 mx-auto" />
@@ -100,19 +103,22 @@ export const VehicleStats = ({ vehicles, isLoading }: VehicleStatsProps) => {
         >
           <CardContent className="p-6">
             <div className="flex flex-col items-center justify-between animate-fade-in">
-              <p className="text-sm font-medium text-muted-foreground mb-4 text-center group-hover:text-foreground transition-colors">
-                {stat.title}
-              </p>
-              <div className="flex items-center gap-4">
-                <p className="text-3xl font-bold">{stat.value}</p>
-                <div className={cn(
-                  "p-3 rounded-full transition-all duration-300 group-hover:scale-110",
-                  stat.bgColor,
-                  stat.ringColor,
-                  "ring-1 shadow-sm group-hover:shadow-md"
-                )}>
-                  <stat.icon className={cn("h-6 w-6", stat.color)} />
-                </div>
+              <div className={cn(
+                "p-3 rounded-full transition-all duration-300 group-hover:scale-110 mb-4",
+                stat.bgColor,
+                stat.ringColor,
+                "ring-1 shadow-sm group-hover:shadow-md"
+              )}>
+                <stat.icon className={cn("h-6 w-6", stat.color)} />
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-bold mb-1">{stat.value}</p>
+                <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                  {stat.title}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {stat.description}
+                </p>
               </div>
             </div>
           </CardContent>
