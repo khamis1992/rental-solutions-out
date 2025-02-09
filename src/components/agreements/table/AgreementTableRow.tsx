@@ -2,7 +2,7 @@ import React from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { formatDateToDisplay } from "@/lib/dateUtils";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Trash2, Info } from "lucide-react";
+import { FileText, Trash2, Info, Car, User, Truck, Calendar, Activity } from "lucide-react";
 import type { Agreement } from "@/types/agreement.types";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -88,38 +88,55 @@ export const AgreementTableRow = ({
   };
 
   return (
-    <TableRow className="hover:bg-muted/50 transition-colors">
+    <TableRow className="hover:bg-muted/50 transition-colors group">
       <TableCell>
         <button
           onClick={() => onNameClick(agreement.id)}
-          className="text-primary hover:underline font-medium"
+          className="flex items-center gap-2 text-primary hover:text-primary/80 font-medium group-hover:translate-x-1 transition-all duration-300"
         >
+          <FileText className="h-4 w-4" />
           {agreement.agreement_number}
         </button>
       </TableCell>
       <TableCell>
         <button
           onClick={() => onNameClick(agreement.id)}
-          className="text-primary hover:underline"
+          className="flex items-center gap-2 text-primary hover:text-primary/80 group-hover:translate-x-1 transition-all duration-300"
         >
+          <Car className="h-4 w-4" />
           {agreement.vehicle?.license_plate}
         </button>
       </TableCell>
-      <TableCell className="font-medium">
-        {`${agreement.vehicle?.make} ${agreement.vehicle?.model}`}
+      <TableCell>
+        <span className="flex items-center gap-2 font-medium">
+          <Truck className="h-4 w-4 text-gray-500" />
+          {`${agreement.vehicle?.make} ${agreement.vehicle?.model}`}
+        </span>
       </TableCell>
       <TableCell>
-        <span className="font-medium truncate max-w-[200px] block">
+        <span className="flex items-center gap-2 font-medium truncate max-w-[200px]">
+          <User className="h-4 w-4 text-gray-500 shrink-0" />
           {agreement.customer?.full_name}
         </span>
       </TableCell>
-      <TableCell>{formatDateToDisplay(agreement.start_date)}</TableCell>
-      <TableCell>{formatDateToDisplay(agreement.end_date)}</TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-gray-500" />
+          {formatDateToDisplay(agreement.start_date)}
+        </div>
+      </TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-gray-500" />
+          {formatDateToDisplay(agreement.end_date)}
+        </div>
+      </TableCell>
       <TableCell>
         <Badge 
           variant="outline" 
-          className={`capitalize ${getStatusColor(agreement.status)} border px-3 py-1`}
+          className={`capitalize ${getStatusColor(agreement.status)} border px-3 py-1 transition-all duration-300 group-hover:scale-105`}
         >
+          <Activity className="h-3 w-3 mr-1 inline-block" />
           {agreement.status}
         </Badge>
       </TableCell>
@@ -132,9 +149,9 @@ export const AgreementTableRow = ({
                 variant="ghost"
                 size="sm"
                 onClick={handleViewTemplate}
-                className="hover:bg-primary/10"
+                className="hover:bg-primary/10 transition-colors duration-300"
               >
-                <FileText className="h-4 w-4 text-primary hover:text-primary/80" />
+                <FileText className="h-4 w-4 text-primary hover:text-primary/80 transition-colors duration-300" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -148,9 +165,9 @@ export const AgreementTableRow = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onNameClick(agreement.id)}
-                className="hover:bg-blue-100"
+                className="hover:bg-blue-100 transition-colors duration-300"
               >
-                <Info className="h-4 w-4 text-blue-600 hover:text-blue-500" />
+                <Info className="h-4 w-4 text-blue-600 hover:text-blue-500 transition-colors duration-300" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -164,9 +181,9 @@ export const AgreementTableRow = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowDeleteDialog(true)}
-                className="hover:bg-red-100"
+                className="hover:bg-red-100 transition-colors duration-300"
               >
-                <Trash2 className="h-4 w-4 text-red-600 hover:text-red-500" />
+                <Trash2 className="h-4 w-4 text-red-600 hover:text-red-500 transition-colors duration-300" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>

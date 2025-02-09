@@ -1,3 +1,4 @@
+
 import { Table, TableBody } from "@/components/ui/table";
 import { AgreementTableHeader } from "../table/AgreementTableHeader";
 import { AgreementTableRow } from "../table/AgreementTableRow";
@@ -31,7 +32,7 @@ export const AgreementListContent = ({
 }: AgreementListContentProps) => {
   return (
     <>
-      <div className="rounded-lg border bg-white shadow-sm overflow-hidden">
+      <div className="rounded-lg border bg-white shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
         <Table>
           <AgreementTableHeader />
           <TableBody>
