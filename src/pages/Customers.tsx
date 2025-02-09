@@ -1,7 +1,6 @@
 
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { CustomerList } from "@/components/customers/CustomerList";
-import { CustomerStats } from "@/components/customers/CustomerStats";
 import { CreateCustomerDialog } from "@/components/customers/CreateCustomerDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -209,11 +208,6 @@ const Customers = () => {
           </CardHeader>
         </Card>
       </div>
-
-      {/* Stats Section */}
-      <div className="mb-8">
-        <CustomerStats />
-      </div>
       
       {/* Customer List Section */}
       <Card className="bg-white/50 shadow-sm border-0 backdrop-blur-sm">
@@ -232,3 +226,4 @@ const Customers = () => {
 };
 
 export default Customers;
+
