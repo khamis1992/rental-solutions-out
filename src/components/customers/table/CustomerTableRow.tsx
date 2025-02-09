@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -48,17 +49,6 @@ export const CustomerTableRow = ({ customer, onDeleted, onClick }: CustomerTable
     }
   };
 
-  const getStatusColor = (status: string | null) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'pending_review':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   return (
     <>
       <TableRow 
@@ -92,14 +82,6 @@ export const CustomerTableRow = ({ customer, onDeleted, onClick }: CustomerTable
               </Badge>
             )}
           </div>
-        </TableCell>
-        <TableCell className="py-2">
-          <Badge 
-            variant="outline" 
-            className={`text-xs ${getStatusColor(customer.status)}`}
-          >
-            {customer.status?.replace('_', ' ') || 'N/A'}
-          </Badge>
         </TableCell>
         <TableCell className="py-2">
           <div className="flex items-center justify-end">
