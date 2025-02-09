@@ -1,7 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
-import { Users, UserPlus, UserCheck } from "lucide-react";
+import { Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -15,27 +15,15 @@ export const CustomerStats = () => {
         .select("*", { count: "exact", head: true })
         .eq('role', 'customer');
 
-      // Get new customers this month
-      const { count: newThisMonth } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .eq('role', 'customer')
-        .gte(
-          "created_at",
-          new Date(new Date().setDate(1)).toISOString()
-        );
-
       return {
         total: total || 0,
-        newThisMonth: newThisMonth || 0,
       };
     },
   });
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2">
-        <Skeleton className="h-32" />
+      <div className="grid gap-4">
         <Skeleton className="h-32" />
       </div>
     );
@@ -49,17 +37,10 @@ export const CustomerStats = () => {
       color: "text-blue-500",
       bgColor: "bg-blue-50",
     },
-    {
-      title: "New This Month",
-      value: stats?.newThisMonth || 0,
-      icon: UserPlus,
-      color: "text-green-500",
-      bgColor: "bg-green-50",
-    },
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid gap-4">
       {cards.map((card, index) => (
         <Card key={index} className="border-0 shadow-sm">
           <CardContent className="pt-6">
