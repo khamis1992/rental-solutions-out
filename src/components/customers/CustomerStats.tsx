@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, UserPlus, UserCheck } from "lucide-react";
@@ -33,8 +34,7 @@ export const CustomerStats = () => {
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-3">
-        <Skeleton className="h-32" />
+      <div className="grid gap-4 md:grid-cols-2">
         <Skeleton className="h-32" />
         <Skeleton className="h-32" />
       </div>
@@ -56,17 +56,10 @@ export const CustomerStats = () => {
       color: "text-green-500",
       bgColor: "bg-green-50",
     },
-    {
-      title: "Active Customers",
-      value: stats?.total - (stats?.newThisMonth || 0),
-      icon: UserCheck,
-      color: "text-purple-500",
-      bgColor: "bg-purple-50",
-    },
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-2">
       {cards.map((card, index) => (
         <Card key={index} className="border-0 shadow-sm">
           <CardContent className="pt-6">
