@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { formatDateToDisplay } from "@/lib/dateUtils";
-import { Wrench, Clock, AlertTriangle, CheckCircle, XCircle, Car, Calendar, User } from "lucide-react";
+import { Wrench, Clock, AlertTriangle, CheckCircle, XCircle, Car, Calendar, User, DollarSign, Info } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,17 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { VehicleTablePagination } from "@/components/vehicles/table/VehicleTablePagination";
-import type { Maintenance } from "@/types/maintenance";
+import type { MaintenanceRecord } from "@/types/maintenance";
+import { MaintenanceStats } from "./MaintenanceStats";
 
 const ITEMS_PER_PAGE = 10;
-
-interface MaintenanceRecord extends Maintenance {
-  vehicles?: {
-    make: string;
-    model: string;
-    license_plate: string;
-  };
-}
 
 const getStatusIcon = (status: string) => {
   switch (status) {
@@ -60,6 +52,7 @@ const getStatusColor = (status: string) => {
 export const MaintenanceList = () => {
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
+  const [filter, setFilter] = useState<string>("all");
 
   const { data: records = [], isLoading, error } = useQuery({
     queryKey: ["maintenance-and-accidents"],
@@ -148,10 +141,15 @@ export const MaintenanceList = () => {
     }
   };
 
-  const totalPages = Math.ceil(records.length / ITEMS_PER_PAGE);
+  const filteredRecords = records.filter(record => {
+    if (filter === "all") return true;
+    return record.status === filter;
+  });
+
+  const totalPages = Math.ceil(filteredRecords.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentRecords = records.slice(startIndex, endIndex);
+  const currentRecords = filteredRecords.slice(startIndex, endIndex);
 
   if (error) {
     return (
@@ -166,26 +164,59 @@ export const MaintenanceList = () => {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[...Array(6)].map((_, i) => (
-          <Card key={i} className="p-6 space-y-4">
-            <div className="animate-pulse space-y-3">
-              <Skeleton className="h-6 w-[70%]" />
-              <Skeleton className="h-4 w-[100%]" />
-              <Skeleton className="h-4 w-[60%]" />
-            </div>
-          </Card>
-        ))}
+      <div className="space-y-6">
+        <div className="grid grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-32" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="p-6 space-y-4">
+              <div className="animate-pulse space-y-3">
+                <Skeleton className="h-6 w-[70%]" />
+                <Skeleton className="h-4 w-[100%]" />
+                <Skeleton className="h-4 w-[60%]" />
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
 
-  if (records.length === 0) {
-    return (
-      <div className="space-y-4">
-        <div className="flex justify-end">
-          <CreateJobDialog />
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Maintenance Records
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Manage and track all vehicle maintenance activities
+          </p>
         </div>
+        <CreateJobDialog />
+      </div>
+
+      <MaintenanceStats maintenanceData={records} />
+
+      <div className="flex gap-2 mb-4">
+        {["all", "scheduled", "in_progress", "urgent", "completed", "cancelled"].map((status) => (
+          <Button
+            key={status}
+            variant={filter === status ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilter(status)}
+            className="flex items-center gap-2"
+          >
+            {getStatusIcon(status)}
+            <span className="capitalize">{status.replace('_', ' ')}</span>
+          </Button>
+        ))}
+      </div>
+
+      {records.length === 0 ? (
         <Card className="p-8 bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
           <div className="flex flex-col items-center justify-center text-center space-y-4">
             <div className="p-4 rounded-full bg-orange-100 border-2 border-orange-200">
@@ -198,31 +229,21 @@ export const MaintenanceList = () => {
             <CreateJobDialog />
           </div>
         </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-end">
-        <CreateJobDialog />
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {currentRecords.map((record) => (
-          <Card 
-            key={record.id} 
-            className={`group overflow-hidden hover:shadow-lg transition-shadow duration-200 animate-fade-in relative before:absolute before:left-0 before:top-0 before:h-full before:w-1 ${
-              record.status === 'urgent' ? 'before:bg-red-500' :
-              record.status === 'in_progress' ? 'before:bg-blue-500' :
-              record.status === 'completed' ? 'before:bg-green-500' :
-              record.status === 'cancelled' ? 'before:bg-gray-500' :
-              'before:bg-yellow-500'
-            }`}
-          >
-            <div className="p-6 space-y-6">
-              <div className="flex items-start justify-between">
-                <div className="flex flex-col space-y-4">
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {currentRecords.map((record) => (
+            <Card 
+              key={record.id} 
+              className={`group overflow-hidden hover:shadow-lg transition-all duration-200 animate-fade-in relative before:absolute before:left-0 before:top-0 before:h-full before:w-1 ${
+                record.status === 'urgent' ? 'before:bg-red-500' :
+                record.status === 'in_progress' ? 'before:bg-blue-500' :
+                record.status === 'completed' ? 'before:bg-green-500' :
+                record.status === 'cancelled' ? 'before:bg-gray-500' :
+                'before:bg-yellow-500'
+              }`}
+            >
+              <div className="p-6 space-y-6">
+                <div className="flex items-start justify-between">
                   <Select
                     value={record.status}
                     onValueChange={(value: "scheduled" | "in_progress" | "completed" | "cancelled") => 
@@ -262,70 +283,76 @@ export const MaintenanceList = () => {
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <EditMaintenanceDialog record={record} />
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleDelete(record.id)}
-                    className="hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  >
-                    <XCircle className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex justify-center items-center space-x-2">
-                <Car className="h-5 w-5 text-primary" />
-                <div className="text-center">
-                  <p className="text-lg font-medium">
-                    {record.vehicles 
-                      ? `${record.vehicles.make} ${record.vehicles.model}`
-                      : "Vehicle details unavailable"}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {record.vehicles?.license_plate || "N/A"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-4 bg-gray-50 rounded-lg space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Wrench className="h-5 w-5 text-primary" />
-                  <p className="text-lg font-medium">{record.service_type}</p>
-                </div>
-                {record.description && (
-                  <p className="text-base text-gray-600 leading-relaxed">{record.description}</p>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                <div className="flex items-center space-x-2 text-sm">
-                  <Calendar className="h-4 w-4 text-gray-500" />
-                  <span className="text-gray-600">
-                    {formatDateToDisplay(new Date(record.scheduled_date))}
-                  </span>
-                </div>
-                {record.cost && (
-                  <div className="px-3 py-1 bg-gray-100 rounded-full flex items-center space-x-1">
-                    <span className="font-medium text-primary">{record.cost}</span>
-                    <span className="text-sm text-gray-500">QAR</span>
+                  <div className="flex items-center space-x-2">
+                    <EditMaintenanceDialog record={record} />
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleDelete(record.id)}
+                      className="hover:bg-destructive/10 hover:text-destructive transition-colors"
+                    >
+                      <XCircle className="h-4 w-4" />
+                    </Button>
                   </div>
-                )}
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+                </div>
 
-      <div className="flex justify-center mt-6">
-        <VehicleTablePagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-      </div>
+                <div className="flex justify-center items-center space-x-2">
+                  <Car className="h-5 w-5 text-primary" />
+                  <div className="text-center">
+                    <p className="text-lg font-medium">
+                      {record.vehicles 
+                        ? `${record.vehicles.make} ${record.vehicles.model}`
+                        : "Vehicle details unavailable"}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {record.vehicles?.license_plate || "N/A"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-gray-50 rounded-lg space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Wrench className="h-5 w-5 text-primary" />
+                    <p className="text-lg font-medium">{record.service_type}</p>
+                  </div>
+                  {record.description && (
+                    <div className="flex items-start space-x-2">
+                      <Info className="h-4 w-4 text-muted-foreground mt-1" />
+                      <p className="text-sm text-gray-600 leading-relaxed">{record.description}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                  <div className="flex items-center space-x-2 text-sm">
+                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-600">
+                      {formatDateToDisplay(new Date(record.scheduled_date))}
+                    </span>
+                  </div>
+                  {record.cost && (
+                    <div className="flex items-center space-x-2">
+                      <DollarSign className="h-4 w-4 text-gray-500" />
+                      <span className="font-medium text-primary">{record.cost}</span>
+                      <span className="text-sm text-gray-500">QAR</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {records.length > 0 && (
+        <div className="flex justify-center mt-6">
+          <VehicleTablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      )}
     </div>
   );
 };
