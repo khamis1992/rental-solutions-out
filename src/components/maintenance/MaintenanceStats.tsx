@@ -2,13 +2,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 import { Wrench, AlertTriangle, Clock, CheckCircle2 } from "lucide-react";
+import type { MaintenanceRecord } from "@/types/maintenance";
 
 interface MaintenanceStatsProps {
-  maintenanceData?: {
-    id: string;
-    status: string;
-    cost?: number;
-  }[];
+  maintenanceData?: MaintenanceRecord[];
 }
 
 export const MaintenanceStats = ({ maintenanceData = [] }: MaintenanceStatsProps) => {
@@ -81,7 +78,7 @@ export const MaintenanceStats = ({ maintenanceData = [] }: MaintenanceStatsProps
         <CardContent className="p-6">
           <div className="flex flex-col items-center justify-between space-y-4">
             <div className="p-3 rounded-full bg-red-500/10 ring-1 ring-red-500/20 shadow-sm group-hover:shadow-md group-hover:scale-110 transition-all duration-300">
-              <AlertTriangle className="h-6 w-6 text-red-500" />
+              <AlertTriangle className="h-6 w-6 text-red-500 animate-pulse" />
             </div>
             <div className="text-center space-y-2">
               <p className="text-3xl font-bold">{urgentCount}</p>
