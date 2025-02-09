@@ -6,7 +6,7 @@ import { VehicleLocationCell } from "./VehicleLocationCell";
 import { VehicleInsuranceCell } from "./VehicleInsuranceCell";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Trash2, Car, Barcode } from "lucide-react";
+import { Trash2, Car } from "lucide-react";
 import { 
   Tooltip,
   TooltipContent,
@@ -14,7 +14,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 interface VehicleTableContentProps {
@@ -46,19 +45,7 @@ export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
               <div className="p-1.5 bg-primary/10 rounded-md group-hover/link:bg-primary/20 transition-colors">
                 <Car className="h-4 w-4 text-primary" />
               </div>
-              <div className="flex flex-col">
-                <span>{vehicle.license_plate}</span>
-                <Badge 
-                  variant="secondary" 
-                  className={cn(
-                    "bg-primary/10 text-primary hover:bg-primary/20 transition-colors",
-                    "flex items-center gap-1.5 w-fit"
-                  )}
-                >
-                  <Barcode className="h-3 w-3" />
-                  {vehicle.vin?.slice(-6)}
-                </Badge>
-              </div>
+              <span>{vehicle.license_plate}</span>
             </Link>
           </TableCell>
 
@@ -135,4 +122,3 @@ export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
     </>
   );
 };
-
