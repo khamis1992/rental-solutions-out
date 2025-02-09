@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 import { Wrench, AlertTriangle, Clock, CheckCircle2 } from "lucide-react";
@@ -28,51 +29,67 @@ export const MaintenanceStats = ({ maintenanceData = [] }: MaintenanceStatsProps
 
   return (
     <div className="grid gap-4 md:grid-cols-4">
-      <Card>
+      <Card className="group hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white/50 to-white/30">
         <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Total Cost
-            </h3>
-            <Wrench className="h-4 w-4 text-muted-foreground" />
+          <div className="flex flex-col items-center justify-between space-y-4">
+            <div className="p-3 rounded-full bg-primary/10 ring-1 ring-primary/20 shadow-sm group-hover:shadow-md group-hover:scale-110 transition-all duration-300">
+              <Wrench className="h-6 w-6 text-primary" />
+            </div>
+            <div className="text-center space-y-2">
+              <p className="text-3xl font-bold">{formatCurrency(totalCost)}</p>
+              <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                Total Cost
+              </p>
+            </div>
           </div>
-          <div className="text-2xl font-bold">{formatCurrency(totalCost)}</div>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="group hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white/50 to-white/30">
         <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Completed
-            </h3>
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
+          <div className="flex flex-col items-center justify-between space-y-4">
+            <div className="p-3 rounded-full bg-green-500/10 ring-1 ring-green-500/20 shadow-sm group-hover:shadow-md group-hover:scale-110 transition-all duration-300">
+              <CheckCircle2 className="h-6 w-6 text-green-500" />
+            </div>
+            <div className="text-center space-y-2">
+              <p className="text-3xl font-bold">{completedCount}</p>
+              <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                Completed
+              </p>
+            </div>
           </div>
-          <div className="text-2xl font-bold">{completedCount}</div>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="group hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white/50 to-white/30">
         <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Pending
-            </h3>
-            <Clock className="h-4 w-4 text-blue-500" />
+          <div className="flex flex-col items-center justify-between space-y-4">
+            <div className="p-3 rounded-full bg-blue-500/10 ring-1 ring-blue-500/20 shadow-sm group-hover:shadow-md group-hover:scale-110 transition-all duration-300">
+              <Clock className="h-6 w-6 text-blue-500" />
+            </div>
+            <div className="text-center space-y-2">
+              <p className="text-3xl font-bold">{pendingCount}</p>
+              <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                Pending
+              </p>
+            </div>
           </div>
-          <div className="text-2xl font-bold">{pendingCount}</div>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="group hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white/50 to-white/30">
         <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Urgent
-            </h3>
-            <AlertTriangle className="h-4 w-4 text-red-500" />
+          <div className="flex flex-col items-center justify-between space-y-4">
+            <div className="p-3 rounded-full bg-red-500/10 ring-1 ring-red-500/20 shadow-sm group-hover:shadow-md group-hover:scale-110 transition-all duration-300">
+              <AlertTriangle className="h-6 w-6 text-red-500" />
+            </div>
+            <div className="text-center space-y-2">
+              <p className="text-3xl font-bold">{urgentCount}</p>
+              <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                Urgent
+              </p>
+            </div>
           </div>
-          <div className="text-2xl font-bold">{urgentCount}</div>
         </CardContent>
       </Card>
     </div>

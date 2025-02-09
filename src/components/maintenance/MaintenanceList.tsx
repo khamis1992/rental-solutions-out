@@ -27,19 +27,19 @@ const ITEMS_PER_PAGE = 10;
 const getServiceIcon = (type: string) => {
   switch (type.toLowerCase()) {
     case 'oil change':
-      return <Filter className="h-5 w-5 text-primary" />;
+      return <Filter className="h-8 w-8 text-primary" />;
     case 'tire rotation':
-      return <RefreshCw className="h-5 w-5 text-primary" />;
+      return <RefreshCw className="h-8 w-8 text-primary" />;
     case 'inspection':
-      return <Clipboard className="h-5 w-5 text-primary" />;
+      return <Clipboard className="h-8 w-8 text-primary" />;
     case 'brake service':
-      return <Cable className="h-5 w-5 text-primary" />;
+      return <Cable className="h-8 w-8 text-primary" />;
     case 'engine repair':
-      return <Settings className="h-5 w-5 text-primary" />;
+      return <Settings className="h-8 w-8 text-primary" />;
     case 'accident repair':
-      return <AlertTriangle className="h-5 w-5 text-red-500" />;
+      return <AlertTriangle className="h-8 w-8 text-red-500" />;
     default:
-      return <Wrench className="h-5 w-5 text-primary" />;
+      return <Wrench className="h-8 w-8 text-primary" />;
   }
 };
 
@@ -230,9 +230,9 @@ export const MaintenanceList = () => {
           variant={filter === "all" ? "default" : "outline"}
           size="sm"
           onClick={() => setFilter("all")}
-          className="flex items-center gap-2 whitespace-nowrap"
+          className="flex items-center gap-2 whitespace-nowrap hover:scale-105 transition-transform duration-200"
         >
-          <Filter className="h-4 w-4" />
+          <Wrench className="h-4 w-4" />
           All Records
         </Button>
         {["scheduled", "in_progress", "urgent", "completed", "cancelled"].map((status) => (
@@ -241,7 +241,12 @@ export const MaintenanceList = () => {
             variant={filter === status ? "default" : "outline"}
             size="sm"
             onClick={() => setFilter(status)}
-            className="flex items-center gap-2 whitespace-nowrap"
+            className={`flex items-center gap-2 whitespace-nowrap hover:scale-105 transition-transform duration-200 ${
+              status === 'urgent' ? 'hover:bg-red-50' :
+              status === 'completed' ? 'hover:bg-green-50' :
+              status === 'in_progress' ? 'hover:bg-blue-50' :
+              'hover:bg-gray-50'
+            }`}
           >
             {getStatusIcon(status)}
             <span className="capitalize">{status.replace('_', ' ')}</span>
@@ -267,13 +272,17 @@ export const MaintenanceList = () => {
           {currentRecords.map((record) => (
             <Card 
               key={record.id} 
-              className={`group overflow-hidden hover:shadow-lg transition-all duration-200 animate-fade-in relative before:absolute before:left-0 before:top-0 before:h-full before:w-1 ${
-                record.status === 'urgent' ? 'before:bg-red-500' :
-                record.status === 'in_progress' ? 'before:bg-blue-500' :
-                record.status === 'completed' ? 'before:bg-green-500' :
-                record.status === 'cancelled' ? 'before:bg-gray-500' :
-                'before:bg-yellow-500'
-              } hover:scale-[1.02] transition-transform duration-200`}
+              className={`group overflow-hidden hover:shadow-lg transition-all duration-300 animate-fade-in relative 
+                before:absolute before:left-0 before:top-0 before:h-full before:w-1
+                ${
+                  record.status === 'urgent' ? 'before:bg-red-500 hover:bg-red-50/30' :
+                  record.status === 'in_progress' ? 'before:bg-blue-500 hover:bg-blue-50/30' :
+                  record.status === 'completed' ? 'before:bg-green-500 hover:bg-green-50/30' :
+                  record.status === 'cancelled' ? 'before:bg-gray-500 hover:bg-gray-50/30' :
+                  'before:bg-yellow-500 hover:bg-yellow-50/30'
+                } 
+                hover:scale-[1.02] transition-transform duration-200
+                bg-gradient-to-br from-white to-gray-50/30`}
             >
               <div className="p-6 space-y-6">
                 <div className="flex items-start justify-between">
@@ -329,8 +338,8 @@ export const MaintenanceList = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-center items-center space-x-2">
-                  <Car className="h-5 w-5 text-primary" />
+                <div className="flex justify-center items-center space-x-2 bg-gray-50/50 p-4 rounded-lg hover:bg-gray-100/50 transition-colors">
+                  <Car className="h-6 w-6 text-primary" />
                   <div className="text-center">
                     <p className="text-lg font-medium">
                       {record.vehicles 
@@ -343,8 +352,8 @@ export const MaintenanceList = () => {
                   </div>
                 </div>
 
-                <div className="p-4 bg-gray-50 rounded-lg space-y-4 hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center space-x-2">
+                <div className="p-4 bg-white rounded-lg space-y-4 shadow-sm group-hover:shadow-md transition-all duration-200">
+                  <div className="flex items-center space-x-3">
                     {getServiceIcon(record.service_type)}
                     <p className="text-lg font-medium">{record.service_type}</p>
                   </div>
@@ -389,4 +398,3 @@ export const MaintenanceList = () => {
     </div>
   );
 };
-
