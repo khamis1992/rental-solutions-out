@@ -107,7 +107,7 @@ export function MaintenanceAlerts() {
   const lowPriorityCount = anomalies?.filter(a => a.severity === 'low').length || 0;
 
   return (
-    <Card className="w-full max-w-[95%] mx-auto">
+    <Card className="w-full max-w-[98%] mx-auto">
       <CardHeader className="bg-gradient-to-r from-orange-50 via-orange-100 to-orange-50 border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -155,23 +155,23 @@ export function MaintenanceAlerts() {
         </div>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[200px] pr-4">
+        <ScrollArea className="h-[150px] pr-4">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : anomalies && anomalies.length > 0 ? (
-            <div className="space-y-4 mt-4">
+            <div className="space-y-3 mt-2">
               {anomalies.map((anomaly) => (
                 <div
                   key={anomaly.id}
-                  className={`group relative rounded-lg border p-3 transition-all duration-200 hover:shadow-md ${
+                  className={`group relative rounded-lg border p-2 transition-all duration-200 hover:shadow-md ${
                     getSeverityColor(anomaly.severity)
                   } hover:scale-[1.02] animate-fade-in`}
                 >
                   <div className="absolute -left-1 top-0 h-full w-1 rounded-l-lg bg-current opacity-50" />
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       {getStatusIcon(anomaly.severity)}
                       <Badge className={`${getSeverityColor(anomaly.severity)} ring-1 ring-current ring-opacity-20`}>
                         {anomaly.severity.toUpperCase()}
@@ -181,8 +181,8 @@ export function MaintenanceAlerts() {
                       {getTimeElapsed(anomaly.detected_at)}
                     </span>
                   </div>
-                  <p className="mt-2 text-sm font-medium">{anomaly.description}</p>
-                  <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground">
+                  <p className="mt-1 text-sm font-medium">{anomaly.description}</p>
+                  <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Car className="h-4 w-4" />
                       <span>{anomaly.affected_records.license_plate}</span>
@@ -192,16 +192,16 @@ export function MaintenanceAlerts() {
                       <span>{anomaly.affected_records.mileage.toLocaleString()} km</span>
                     </div>
                   </div>
-                  <div className="mt-2 flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-                    <Button variant="outline" size="sm" className="h-7">
-                      View Details <ArrowRight className="ml-1 h-4 w-4" />
+                  <div className="mt-1 flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                    <Button variant="outline" size="sm" className="h-6 text-xs">
+                      View Details <ArrowRight className="ml-1 h-3 w-3" />
                     </Button>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
+            <div className="flex flex-col items-center justify-center h-[150px] text-muted-foreground">
               <CheckCircle className="h-12 w-12 mb-4 text-green-500" />
               <p>No maintenance alerts at this time</p>
             </div>
