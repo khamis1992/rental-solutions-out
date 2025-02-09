@@ -36,10 +36,10 @@ const Index = () => {
         <div className="fixed top-0 left-0 right-0 h-[56px] border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50" />
         
         <div className="pt-[56px] pb-6">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl animate-fade-in">
             <div className="flex flex-col gap-6">
               <div className="w-full mt-6">
-                <Card className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 border-none shadow-lg hover:shadow-xl transition-all duration-300">
+                <Card className="overflow-hidden bg-gradient-to-r from-purple-900/20 via-blue-900/20 to-blue-900/10 border-none shadow-lg hover:shadow-xl transition-all duration-300">
                   <div className="p-6">
                     <ErrorBoundary>
                       <Suspense fallback={<ComponentLoader componentName="Welcome Header" />}>

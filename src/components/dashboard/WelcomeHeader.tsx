@@ -22,20 +22,20 @@ const getTimeConfig = (hour: number): { icon: LucideIcon; gradient: string; gree
   if (hour < 12) {
     return {
       icon: Sun,
-      gradient: "from-amber-500/20 to-yellow-500/20",
+      gradient: "from-amber-500/20 via-yellow-500/20 to-orange-500/20",
       greeting: "Good morning"
     };
   }
   if (hour < 18) {
     return {
       icon: CloudSun,
-      gradient: "from-blue-500/20 to-cyan-500/20",
+      gradient: "from-blue-500/20 via-cyan-500/20 to-sky-500/20",
       greeting: "Good afternoon"
     };
   }
   return {
     icon: Moon,
-    gradient: "from-indigo-500/20 to-purple-500/20",
+    gradient: "from-indigo-500/20 via-purple-500/20 to-violet-500/20",
     greeting: "Good evening"
   };
 };
@@ -77,10 +77,10 @@ export const WelcomeHeader = () => {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-full bg-gradient-to-r ${timeConfig.gradient} backdrop-blur-sm`}>
-            <TimeIcon className="h-6 w-6 text-white animate-fade-in" />
+          <div className={`p-2 rounded-full bg-gradient-to-r ${timeConfig.gradient} backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 group animate-fade-in`}>
+            <TimeIcon className="h-6 w-6 text-foreground/80 group-hover:scale-110 transition-transform duration-300" />
           </div>
-          <h1 className="text-2xl font-bold text-white animate-fade-in">
+          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground/90 to-foreground/70 animate-fade-in">
             {timeConfig.greeting}, {profile?.full_name || 'User'}
           </h1>
         </div>
@@ -88,7 +88,11 @@ export const WelcomeHeader = () => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-white hover:text-white/80">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-foreground/80 hover:text-foreground hover:bg-background/80 transition-colors"
+                >
                   <Bell className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
@@ -99,7 +103,11 @@ export const WelcomeHeader = () => {
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-white hover:text-white/80">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-foreground/80 hover:text-foreground hover:bg-background/80 transition-colors"
+                >
                   <Calendar className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
@@ -110,7 +118,11 @@ export const WelcomeHeader = () => {
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-white hover:text-white/80">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-foreground/80 hover:text-foreground hover:bg-background/80 transition-colors"
+                >
                   <Settings className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
@@ -122,10 +134,10 @@ export const WelcomeHeader = () => {
         </div>
       </div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <p className="text-sm text-[#D3D3D3] italic animate-fade-in">
+        <p className="text-sm text-foreground/70 italic animate-fade-in hover:text-foreground/90 transition-colors">
           "{quote}"
         </p>
-        <p className="text-sm text-[#B0B0B0] whitespace-nowrap animate-fade-in">
+        <p className="text-sm text-foreground/60 whitespace-nowrap animate-fade-in font-mono">
           {format(currentTime, "EEEE, MMMM do, yyyy • h:mm a")}
         </p>
       </div>

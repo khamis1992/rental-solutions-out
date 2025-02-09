@@ -41,20 +41,22 @@ export const StatsCard = ({
 }: StatsCardProps) => {
   return (
     <Card className={cn(
-      "overflow-hidden transition-all duration-300 hover:shadow-lg group",
-      "bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm",
-      "border border-gray-200/50 dark:border-gray-700/50",
+      "overflow-hidden transition-all duration-300 hover:shadow-lg group cursor-pointer",
+      "bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30",
+      "backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50",
       "hover:border-gray-300 dark:hover:border-gray-600",
       "hover:translate-y-[-2px]",
+      "animate-fade-in",
       className
     )}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+        <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
           {title}
         </CardTitle>
         <div className={cn(
           iconStyles({ variant: iconClassName as any }),
-          "animate-fade-in"
+          "animate-fade-in shadow-sm group-hover:shadow-md",
+          "ring-1 ring-gray-200/50 dark:ring-gray-700/50"
         )}>
           <Icon className="h-5 w-5" />
         </div>
@@ -65,7 +67,7 @@ export const StatsCard = ({
             {value}
           </div>
           {description && (
-            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 animate-fade-in">
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 animate-fade-in group-hover:text-foreground/80 transition-colors">
               {description}
             </p>
           )}
