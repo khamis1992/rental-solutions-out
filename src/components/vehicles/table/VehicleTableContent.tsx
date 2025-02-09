@@ -135,4 +135,3 @@ export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
     </>
   );
 };
-
