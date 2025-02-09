@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { formatDateToDisplay } from "@/lib/dateUtils";
@@ -192,7 +193,7 @@ export const MaintenanceList = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <div className="sticky top-0 z-10 w-full bg-gradient-to-r from-orange-50 via-orange-100 to-orange-50 shadow-md">
+      <div className="w-full bg-gradient-to-r from-orange-50 via-orange-100 to-orange-50 shadow-md">
         <div className="relative overflow-hidden p-6">
           <div className="absolute top-0 right-0 w-64 h-64 -mr-32 -mt-32 opacity-20">
             <CircuitBoard className="w-full h-full text-orange-500 animate-pulse" />
