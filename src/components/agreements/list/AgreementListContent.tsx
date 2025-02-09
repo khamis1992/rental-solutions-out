@@ -32,7 +32,7 @@ export const AgreementListContent = ({
 }: AgreementListContentProps) => {
   return (
     <>
-      <div className="rounded-lg border bg-white shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
+      <div className="rounded-xl border bg-white shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
         <Table>
           <AgreementTableHeader />
           <TableBody>
