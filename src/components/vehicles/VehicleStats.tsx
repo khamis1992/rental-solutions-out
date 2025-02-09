@@ -1,8 +1,10 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Car, Wrench, AlertTriangle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 interface Vehicle {
   id: string;
@@ -48,6 +50,7 @@ export const VehicleStats = ({ vehicles, isLoading }: VehicleStatsProps) => {
       icon: Car,
       color: "text-[#9b87f5]",
       bgColor: "bg-[#9b87f5]/10",
+      ringColor: "ring-[#9b87f5]/20",
     },
     {
       title: "In Maintenance",
@@ -55,6 +58,7 @@ export const VehicleStats = ({ vehicles, isLoading }: VehicleStatsProps) => {
       icon: Wrench,
       color: "text-[#F97316]",
       bgColor: "bg-[#F97316]/10",
+      ringColor: "ring-[#F97316]/20",
     },
     {
       title: "Needs Attention",
@@ -62,6 +66,7 @@ export const VehicleStats = ({ vehicles, isLoading }: VehicleStatsProps) => {
       icon: AlertTriangle,
       color: "text-[#ea384c]",
       bgColor: "bg-[#ea384c]/10",
+      ringColor: "ring-[#ea384c]/20",
     },
   ];
 
@@ -83,16 +88,30 @@ export const VehicleStats = ({ vehicles, isLoading }: VehicleStatsProps) => {
   return (
     <div className="grid gap-4 md:grid-cols-3">
       {mainStats.map((stat) => (
-        <Card key={stat.title}>
+        <Card 
+          key={stat.title}
+          className={cn(
+            "group hover:shadow-lg transition-all duration-300",
+            "bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30",
+            "backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50",
+            "hover:border-gray-300 dark:hover:border-gray-600",
+            "hover:translate-y-[-2px]"
+          )}
+        >
           <CardContent className="p-6">
-            <div className="flex flex-col items-center justify-between">
-              <p className="text-sm font-medium text-muted-foreground mb-3 text-center">
+            <div className="flex flex-col items-center justify-between animate-fade-in">
+              <p className="text-sm font-medium text-muted-foreground mb-4 text-center group-hover:text-foreground transition-colors">
                 {stat.title}
               </p>
-              <div className="flex items-center gap-3">
-                <p className="text-2xl font-bold">{stat.value}</p>
-                <div className={`p-3 rounded-full ${stat.bgColor}`}>
-                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
+              <div className="flex items-center gap-4">
+                <p className="text-3xl font-bold">{stat.value}</p>
+                <div className={cn(
+                  "p-3 rounded-full transition-all duration-300 group-hover:scale-110",
+                  stat.bgColor,
+                  stat.ringColor,
+                  "ring-1 shadow-sm group-hover:shadow-md"
+                )}>
+                  <stat.icon className={cn("h-6 w-6", stat.color)} />
                 </div>
               </div>
             </div>

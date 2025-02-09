@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -6,13 +7,15 @@ import { VehicleStats } from "@/components/vehicles/VehicleStats";
 import { CreateVehicleDialog } from "@/components/vehicles/CreateVehicleDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Car, Plus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Car, Plus, FileImport, Filter, Grid, List, Search } from "lucide-react";
 import { Vehicle } from "@/types/vehicle";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 const Vehicles = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
   const { data: vehicles = [], isLoading } = useQuery({
     queryKey: ["vehicles"],
@@ -44,33 +47,57 @@ const Vehicles = () => {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto py-6 space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Car className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-bold">Vehicle Management</h1>
+      <div className="container mx-auto py-6 space-y-6 animate-fade-in">
+        {/* Enhanced Header Section */}
+        <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-purple-900/20 via-blue-900/20 to-blue-900/10 p-6 border border-gray-200/50 dark:border-gray-700/50">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3 group">
+                <div className="p-2 bg-primary/10 rounded-lg transition-all duration-300 group-hover:scale-110">
+                  <Car className="h-8 w-8 text-primary" />
+                </div>
+                <h1 className="text-2xl font-bold">Vehicle Management</h1>
+              </div>
+              <p className="text-muted-foreground max-w-2xl">
+                Manage your fleet, track vehicle status, and monitor maintenance schedules. Efficiently oversee all aspects of your vehicle operations from a central dashboard.
+              </p>
             </div>
-            <p className="text-muted-foreground">
-              Manage your fleet, track vehicle status, and monitor maintenance schedules
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <CreateVehicleDialog>
-              <Button className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Add Vehicle
+            <div className="flex flex-wrap gap-3">
+              <CreateVehicleDialog>
+                <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90">
+                  <Plus className="h-4 w-4" />
+                  Add Vehicle
+                </Button>
+              </CreateVehicleDialog>
+              <Button variant="outline" className="flex items-center gap-2">
+                <FileImport className="h-4 w-4" />
+                Import
               </Button>
-            </CreateVehicleDialog>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                Filters
+              </Button>
+              <Button
+                variant="outline"
+                className="flex items-center gap-2"
+                onClick={() => setViewMode(viewMode === "list" ? "grid" : "list")}
+              >
+                {viewMode === "list" ? (
+                  <Grid className="h-4 w-4" />
+                ) : (
+                  <List className="h-4 w-4" />
+                )}
+                {viewMode === "list" ? "Grid View" : "List View"}
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Stats */}
+        {/* Stats Section */}
         <VehicleStats vehicles={vehicles} isLoading={isLoading} />
 
         {/* Vehicle List Section */}
-        <Card>
+        <Card className="border-gray-200/50 dark:border-gray-700/50">
           <CardContent className="pt-6">
             <div className="mb-6">
               <h2 className="text-xl font-semibold mb-2">Vehicle List</h2>
@@ -80,17 +107,21 @@ const Vehicles = () => {
             </div>
 
             <div className="flex gap-4 mb-6">
-              <Input
-                placeholder="Search vehicles..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="max-w-sm"
-              />
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search vehicles..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
             </div>
 
             <VehicleList 
               vehicles={filteredVehicles} 
-              isLoading={isLoading} 
+              isLoading={isLoading}
+              viewMode={viewMode}
             />
           </CardContent>
         </Card>

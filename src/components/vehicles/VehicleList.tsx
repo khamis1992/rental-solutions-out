@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { DeleteVehicleDialog } from "./DeleteVehicleDialog";
 import { VehicleListView } from "./table/VehicleListView";
+import { VehicleGrid } from "./VehicleGrid";
 import { BulkActionsMenu } from "./components/BulkActionsMenu";
-import { AdvancedVehicleFilters } from "./filters/AdvancedVehicleFilters";
 import { Vehicle } from "@/types/vehicle";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -11,12 +12,12 @@ import { useQueryClient } from "@tanstack/react-query";
 interface VehicleListProps {
   vehicles: Vehicle[];
   isLoading: boolean;
+  viewMode?: "list" | "grid";
 }
 
-export const VehicleList = ({ vehicles, isLoading }: VehicleListProps) => {
+export const VehicleList = ({ vehicles, isLoading, viewMode = "list" }: VehicleListProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedVehicles, setSelectedVehicles] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const queryClient = useQueryClient();
@@ -35,13 +36,11 @@ export const VehicleList = ({ vehicles, isLoading }: VehicleListProps) => {
         async (payload) => {
           console.log('Vehicle status changed:', payload);
           
-          // Invalidate and refetch relevant queries
           await Promise.all([
             queryClient.invalidateQueries({ queryKey: ["vehicles"] }),
             queryClient.invalidateQueries({ queryKey: ["vehicle-status-counts"] })
           ]);
 
-          // Show toast notification for status changes
           if (payload.eventType === 'UPDATE' && payload.new.status !== payload.old.status) {
             const vehicleInfo = `${payload.new.make} ${payload.new.model} (${payload.new.license_plate})`;
             toast.info(`Vehicle ${vehicleInfo} status updated to ${payload.new.status}`);
@@ -82,22 +81,34 @@ export const VehicleList = ({ vehicles, isLoading }: VehicleListProps) => {
   const currentVehicles = vehicles.slice(startIndex, endIndex);
   const totalPages = Math.ceil(vehicles.length / itemsPerPage);
 
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-4">
-        <AdvancedVehicleFilters 
-          searchQuery={searchQuery}
-          statusFilter=""
-          onSearchChange={setSearchQuery}
-          onStatusChange={() => {}}
-        />
+  if (viewMode === "grid") {
+    return (
+      <div className="space-y-4">
         {selectedVehicles.length > 0 && (
           <BulkActionsMenu
             selectedCount={selectedVehicles.length}
             onDelete={() => setShowDeleteDialog(true)}
           />
         )}
+        <VehicleGrid vehicles={currentVehicles} />
+        <DeleteVehicleDialog
+          isOpen={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+          onDelete={handleDeleteVehicle}
+          count={selectedVehicles.length}
+        />
       </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {selectedVehicles.length > 0 && (
+        <BulkActionsMenu
+          selectedCount={selectedVehicles.length}
+          onDelete={() => setShowDeleteDialog(true)}
+        />
+      )}
 
       <VehicleListView
         vehicles={currentVehicles}
