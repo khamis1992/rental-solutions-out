@@ -7,15 +7,15 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Button } from "@/components/ui/button";
 import { 
   Users, UserPlus, Download, Upload, Filter,
-  BarChart3, Wallet, Building2, UserCheck, Activity,
-  ChevronRight, ExternalLink, Search, Sparkles,
-  Shield, BadgeCheck, RefreshCw, MapPin
+  BarChart3, Wallet, TrendingUp, UserCheck, Activity,
+  ChevronRight, ExternalLink, Search, 
+  ArrowUpRight, Sparkles, Shield
 } from "lucide-react";
 
 const Customers = () => {
   return (
     <DashboardLayout>
-      {/* Animated Header Section with Modern Glass Effect */}
+      {/* Enhanced Header Section with Interactive Gradient and Glass Effect */}
       <div className="mb-8 relative overflow-hidden">
         <Card className="border-0 bg-gradient-to-br from-blue-50/80 via-indigo-50/80 to-purple-50/80 dark:from-gray-800/80 dark:via-gray-900/80 dark:to-gray-800/80 backdrop-blur-sm">
           <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25"></div>
@@ -25,8 +25,8 @@ const Customers = () => {
                 <div className="space-y-2">
                   <div className="flex items-center gap-4">
                     <div className="relative group">
-                      <div className="absolute inset-0 animate-ping rounded-lg bg-primary/20 duration-700"></div>
-                      <div className="absolute inset-0 rotate-180 animate-pulse rounded-lg bg-primary/10 duration-1000"></div>
+                      <div className="absolute inset-0 animate-ping rounded-lg bg-primary/20"></div>
+                      <div className="absolute inset-0 rotate-180 animate-pulse rounded-lg bg-primary/10"></div>
                       <div className="relative p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-all duration-300 transform group-hover:scale-110">
                         <Users className="h-8 w-8 text-primary transform group-hover:rotate-12 transition-transform duration-300" />
                       </div>
@@ -36,81 +36,74 @@ const Customers = () => {
                         Customer Management
                       </CardTitle>
                       <CardDescription className="text-base text-muted-foreground mt-1 flex items-center gap-2">
-                        Manage and analyze your customer relationships
-                        <BadgeCheck className="h-4 w-4 text-blue-500 animate-pulse" />
+                        Manage customer profiles and relationships efficiently
+                        <ArrowUpRight className="h-4 w-4 text-primary animate-bounce" />
                       </CardDescription>
                     </div>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  {/* Import/Export Actions */}
-                  <Card className="border border-gray-200/50 dark:border-gray-700/50">
-                    <CardContent className="p-1.5 flex items-center gap-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="sm" className="gap-2 hover:bg-primary/10">
-                              <Upload className="h-4 w-4 text-primary" />
-                              Import
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Import customer data</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                  <div className="flex items-center gap-2 p-1.5 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all duration-300">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="sm" className="gap-2 hover:bg-white/80 dark:hover:bg-gray-700/80">
+                            <Upload className="h-4 w-4 text-primary" />
+                            Import
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Import customer data</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
 
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="sm" className="gap-2 hover:bg-primary/10">
-                              <Download className="h-4 w-4 text-primary" />
-                              Export
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Export customer list</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </CardContent>
-                  </Card>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="sm" className="gap-2 hover:bg-white/80 dark:hover:bg-gray-700/80">
+                            <Download className="h-4 w-4 text-primary" />
+                            Export
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Export customer list</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
 
-                  {/* Search/Filter Actions */}
-                  <Card className="border border-gray-200/50 dark:border-gray-700/50">
-                    <CardContent className="p-1.5 flex items-center gap-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="sm" className="gap-2 hover:bg-primary/10">
-                              <Search className="h-4 w-4 text-primary" />
-                              Search
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Search customers</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                  <div className="flex items-center gap-2 p-1.5 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all duration-300">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="sm" className="gap-2 hover:bg-white/80 dark:hover:bg-gray-700/80">
+                            <Search className="h-4 w-4 text-primary" />
+                            Search
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Search customers</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
 
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="sm" className="gap-2 hover:bg-primary/10">
-                              <Filter className="h-4 w-4 text-primary" />
-                              Filter
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Filter customer view</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </CardContent>
-                  </Card>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="sm" className="gap-2 hover:bg-white/80 dark:hover:bg-gray-700/80">
+                            <Filter className="h-4 w-4 text-primary" />
+                            Filter
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Filter customer view</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
 
-                  {/* Add Customer Button */}
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -133,7 +126,6 @@ const Customers = () => {
 
               {/* Enhanced Stats Cards with Interactive Elements */}
               <div className="grid grid-cols-3 gap-4">
-                {/* Revenue Card */}
                 <Card className="group hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px] bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4">
@@ -142,16 +134,16 @@ const Customers = () => {
                         <Wallet className="h-6 w-6 text-emerald-600 dark:text-emerald-400 relative z-10 transform group-hover:rotate-12 transition-transform" />
                       </div>
                       <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
+                        <p className="text-sm font-medium text-muted-foreground">Revenue</p>
                         <div className="flex items-baseline gap-2">
                           <p className="text-2xl font-bold">$124.5k</p>
                           <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
-                            <BarChart3 className="h-3 w-3" />
+                            <TrendingUp className="h-3 w-3" />
                             <span>+12.5%</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                          <Activity className="h-3 w-3" />
+                          <BarChart3 className="h-3 w-3" />
                           <span>Monthly growth</span>
                           <ChevronRight className="h-3 w-3" />
                         </div>
@@ -160,26 +152,25 @@ const Customers = () => {
                   </CardContent>
                 </Card>
 
-                {/* Active Customers Card */}
                 <Card className="group hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px] bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4">
                       <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/30 group-hover:scale-110 transition-transform duration-300 relative">
                         <div className="absolute inset-0 rounded-lg bg-blue-200/60 dark:bg-blue-700/30 animate-pulse"></div>
-                        <Building2 className="h-6 w-6 text-blue-600 dark:text-blue-400 relative z-10 transform group-hover:rotate-12 transition-transform" />
+                        <Sparkles className="h-6 w-6 text-blue-600 dark:text-blue-400 relative z-10 transform group-hover:rotate-12 transition-transform" />
                       </div>
                       <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">Active Corporate</p>
+                        <p className="text-sm font-medium text-muted-foreground">Active</p>
                         <div className="flex items-baseline gap-2">
                           <p className="text-2xl font-bold">1,245</p>
                           <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
-                            <MapPin className="h-3 w-3" />
-                            <span>5 Locations</span>
+                            <Activity className="h-3 w-3" />
+                            <span>Now</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                          <RefreshCw className="h-3 w-3" />
-                          <span>Updated today</span>
+                          <UserPlus className="h-3 w-3" />
+                          <span>45 new this month</span>
                           <ExternalLink className="h-3 w-3" />
                         </div>
                       </div>
@@ -187,7 +178,6 @@ const Customers = () => {
                   </CardContent>
                 </Card>
 
-                {/* Verified Customers Card */}
                 <Card className="group hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px] bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4">
@@ -196,17 +186,17 @@ const Customers = () => {
                         <Shield className="h-6 w-6 text-purple-600 dark:text-purple-400 relative z-10 transform group-hover:rotate-12 transition-transform" />
                       </div>
                       <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">Verified Customers</p>
+                        <p className="text-sm font-medium text-muted-foreground">Verified</p>
                         <div className="flex items-baseline gap-2">
                           <p className="text-2xl font-bold">2,450</p>
                           <div className="flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400">
-                            <Sparkles className="h-3 w-3" />
+                            <TrendingUp className="h-3 w-3" />
                             <span>+8.3%</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                          <UserCheck className="h-3 w-3" />
-                          <span>Identity verified</span>
+                          <BarChart3 className="h-3 w-3" />
+                          <span>All time</span>
                           <ChevronRight className="h-3 w-3" />
                         </div>
                       </div>
@@ -236,3 +226,4 @@ const Customers = () => {
 };
 
 export default Customers;
+
