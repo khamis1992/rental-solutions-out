@@ -34,7 +34,7 @@ export const AgreementListHeader = ({
                 variant="outline"
                 size="sm"
                 onClick={onImportClick}
-                className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-300 gap-2 group shadow-lg hover:shadow-xl"
+                className="bg-white/80 text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all duration-300 gap-2 group shadow-sm hover:shadow-md"
               >
                 <Upload className="h-4 w-4 group-hover:translate-y-[-2px] transition-transform duration-300" />
                 Import
@@ -52,7 +52,7 @@ export const AgreementListHeader = ({
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-300 gap-2 group shadow-lg hover:shadow-xl"
+                className="bg-white/80 text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all duration-300 gap-2 group shadow-sm hover:shadow-md"
               >
                 <Download className="h-4 w-4 group-hover:translate-y-[2px] transition-transform duration-300" />
                 Export
@@ -71,7 +71,7 @@ export const AgreementListHeader = ({
               <Button 
                 variant="default"
                 size="sm"
-                className="bg-white/20 hover:bg-white/30 text-white gap-2 transition-all duration-300 hover:scale-105 shadow-lg group backdrop-blur-md border border-white/30"
+                className="bg-blue-500 hover:bg-blue-600 text-white gap-2 transition-all duration-300 hover:scale-105 shadow-md group"
               >
                 Create Agreement
                 <ChevronDown className="h-4 w-4 group-hover:rotate-180 transition-transform duration-300" />
@@ -86,4 +86,3 @@ export const AgreementListHeader = ({
     </div>
   );
 };
-
