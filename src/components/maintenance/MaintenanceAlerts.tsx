@@ -107,7 +107,7 @@ export function MaintenanceAlerts() {
   const lowPriorityCount = anomalies?.filter(a => a.severity === 'low').length || 0;
 
   return (
-    <Card className="w-full max-w-2xl">
+    <Card className="w-full max-w-[95%] mx-auto">
       <CardHeader className="bg-gradient-to-r from-orange-50 via-orange-100 to-orange-50 border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -155,7 +155,7 @@ export function MaintenanceAlerts() {
         </div>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[300px] pr-4">
+        <ScrollArea className="h-[200px] pr-4">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -165,7 +165,7 @@ export function MaintenanceAlerts() {
               {anomalies.map((anomaly) => (
                 <div
                   key={anomaly.id}
-                  className={`group relative rounded-lg border p-4 transition-all duration-200 hover:shadow-md ${
+                  className={`group relative rounded-lg border p-3 transition-all duration-200 hover:shadow-md ${
                     getSeverityColor(anomaly.severity)
                   } hover:scale-[1.02] animate-fade-in`}
                 >
@@ -181,8 +181,8 @@ export function MaintenanceAlerts() {
                       {getTimeElapsed(anomaly.detected_at)}
                     </span>
                   </div>
-                  <p className="mt-3 text-sm font-medium">{anomaly.description}</p>
-                  <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
+                  <p className="mt-2 text-sm font-medium">{anomaly.description}</p>
+                  <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Car className="h-4 w-4" />
                       <span>{anomaly.affected_records.license_plate}</span>
@@ -192,8 +192,8 @@ export function MaintenanceAlerts() {
                       <span>{anomaly.affected_records.mileage.toLocaleString()} km</span>
                     </div>
                   </div>
-                  <div className="mt-4 flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-                    <Button variant="outline" size="sm" className="h-8">
+                  <div className="mt-2 flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                    <Button variant="outline" size="sm" className="h-7">
                       View Details <ArrowRight className="ml-1 h-4 w-4" />
                     </Button>
                   </div>
@@ -201,7 +201,7 @@ export function MaintenanceAlerts() {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
+            <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
               <CheckCircle className="h-12 w-12 mb-4 text-green-500" />
               <p>No maintenance alerts at this time</p>
             </div>
