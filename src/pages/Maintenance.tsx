@@ -1,6 +1,7 @@
 
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { MaintenanceList } from "@/components/maintenance/MaintenanceList";
+import { MaintenanceAlerts } from "@/components/maintenance/MaintenanceAlerts";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,11 +26,13 @@ const Maintenance = () => {
   return (
     <DashboardLayout>
       <div className="container mx-auto space-y-6 px-4 py-8">
-        <MaintenanceList />
+        <div className="space-y-6">
+          <MaintenanceAlerts />
+          <MaintenanceList />
+        </div>
       </div>
     </DashboardLayout>
   );
 };
 
 export default Maintenance;
-
