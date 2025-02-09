@@ -54,14 +54,14 @@ export const VehicleListView = ({
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="font-semibold">License Plate</TableHead>
-              <TableHead className="font-semibold">Make</TableHead>
-              <TableHead className="font-semibold">Model</TableHead>
-              <TableHead className="font-semibold">Year</TableHead>
-              <TableHead className="font-semibold">Status</TableHead>
-              <TableHead className="font-semibold">Location</TableHead>
-              <TableHead className="font-semibold">Insurance</TableHead>
-              <TableHead className="text-right font-semibold">Actions</TableHead>
+              <TableHead className="w-[180px] font-semibold">License Plate</TableHead>
+              <TableHead className="w-[140px] font-semibold">Make</TableHead>
+              <TableHead className="w-[140px] font-semibold">Model</TableHead>
+              <TableHead className="w-[100px] font-semibold">Year</TableHead>
+              <TableHead className="w-[120px] font-semibold">Status</TableHead>
+              <TableHead className="w-[160px] font-semibold">Location</TableHead>
+              <TableHead className="w-[160px] font-semibold">Insurance</TableHead>
+              <TableHead className="w-[100px] text-right font-semibold">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
