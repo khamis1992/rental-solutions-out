@@ -79,7 +79,7 @@ export const DashboardStats = () => {
         }
       };
     },
-    staleTime: 60000, // Cache for 1 minute
+    staleTime: 60000,
   });
 
   return (
@@ -89,8 +89,7 @@ export const DashboardStats = () => {
           title="Total Vehicles"
           value={stats?.totalVehicles.toString() || "0"}
           icon={Car}
-          className="bg-white"
-          iconClassName="h-5 w-5 text-blue-500"
+          iconClassName="blue"
           description={
             <span className="flex items-center text-emerald-600 text-xs">
               <TrendingUp className="mr-1 h-4 w-4" />
@@ -101,11 +100,11 @@ export const DashboardStats = () => {
         <StatsCard
           title="Active Rentals"
           value={stats?.activeRentals.toString() || "0"}
-          icon={FileText}
-          className="bg-white"
-          iconClassName="h-5 w-5 text-purple-500"
+          icon={Key}
+          iconClassName="purple"
           description={
-            <span className="text-amber-600 text-xs">
+            <span className="text-amber-600 text-xs flex items-center">
+              <CarFront className="mr-1 h-4 w-4" />
               {stats?.pendingReturns} pending returns
             </span>
           }
@@ -114,8 +113,7 @@ export const DashboardStats = () => {
           title="Monthly Revenue"
           value={formatCurrency(stats?.monthlyRevenue || 0)}
           icon={DollarSign}
-          className="bg-white"
-          iconClassName="h-5 w-5 text-green-500"
+          iconClassName="green"
           description={
             <span className="flex items-center text-emerald-600 text-xs">
               <TrendingUp className="mr-1 h-4 w-4" />

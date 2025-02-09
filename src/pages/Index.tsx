@@ -1,9 +1,11 @@
+
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Suspense, lazy } from "react";
 import { usePerformanceMonitoring } from "@/hooks/use-performance-monitoring";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { AnomalyMonitoring } from "@/components/analytics/AnomalyMonitoring";
+import { Card } from "@/components/ui/card";
 
 const DashboardStats = lazy(() => import("@/components/dashboard/DashboardStats").then(module => ({ default: module.DashboardStats })));
 const DashboardAlerts = lazy(() => import("@/components/dashboard/DashboardAlerts").then(module => ({ default: module.DashboardAlerts })));
@@ -37,11 +39,15 @@ const Index = () => {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <div className="flex flex-col gap-6">
               <div className="w-full mt-6">
-                <ErrorBoundary>
-                  <Suspense fallback={<ComponentLoader componentName="Welcome Header" />}>
-                    <WelcomeHeader />
-                  </Suspense>
-                </ErrorBoundary>
+                <Card className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 border-none shadow-lg">
+                  <div className="p-6">
+                    <ErrorBoundary>
+                      <Suspense fallback={<ComponentLoader componentName="Welcome Header" />}>
+                        <WelcomeHeader />
+                      </Suspense>
+                    </ErrorBoundary>
+                  </div>
+                </Card>
               </div>
 
               <div className="w-full">
