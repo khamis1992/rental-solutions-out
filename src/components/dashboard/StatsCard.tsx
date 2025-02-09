@@ -14,14 +14,14 @@ interface StatsCardProps {
 }
 
 const iconStyles = cva(
-  "rounded-full p-2 transition-all duration-300 group-hover:scale-110",
+  "rounded-full p-3 transition-all duration-300 group-hover:scale-110",
   {
     variants: {
       variant: {
-        blue: "bg-blue-100 text-blue-700 dark:bg-blue-900/30",
-        purple: "bg-purple-100 text-purple-700 dark:bg-purple-900/30",
-        green: "bg-green-100 text-green-700 dark:bg-green-900/30",
-        orange: "bg-orange-100 text-orange-700 dark:bg-orange-900/30",
+        blue: "bg-blue-100/80 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+        purple: "bg-purple-100/80 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+        green: "bg-green-100/80 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+        orange: "bg-orange-100/80 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
       }
     },
     defaultVariants: {
@@ -41,26 +41,31 @@ export const StatsCard = ({
 }: StatsCardProps) => {
   return (
     <Card className={cn(
-      "overflow-hidden transition-all duration-300 hover:shadow-lg group bg-white dark:bg-gray-800/50 backdrop-blur-sm",
+      "overflow-hidden transition-all duration-300 hover:shadow-lg group",
+      "bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm",
       "border border-gray-200/50 dark:border-gray-700/50",
       "hover:border-gray-300 dark:hover:border-gray-600",
+      "hover:translate-y-[-2px]",
       className
     )}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
-        <div className={cn(iconStyles({ variant: iconClassName as any }))}>
-          <Icon className="h-4 w-4" />
+        <div className={cn(
+          iconStyles({ variant: iconClassName as any }),
+          "animate-fade-in"
+        )}>
+          <Icon className="h-5 w-5" />
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-1">
-          <div className="text-2xl font-bold tracking-tight break-words">
+          <div className="text-2xl font-bold tracking-tight break-words animate-fade-in">
             {value}
           </div>
           {description && (
-            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 animate-fade-in">
               {description}
             </p>
           )}

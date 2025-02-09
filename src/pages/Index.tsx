@@ -16,12 +16,12 @@ const SystemChatbot = lazy(() => import("@/components/chat/SystemChatbot").then(
 const ComponentLoader = ({ componentName }: { componentName: string }) => (
   <div className="w-full h-[200px] space-y-4 p-4">
     <div className="h-4 w-1/4">
-      <Skeleton className="h-full w-full rounded-lg" />
+      <Skeleton className="h-full w-full rounded-lg animate-pulse" />
     </div>
     <div className="h-[160px]">
-      <Skeleton className="h-full w-full rounded-lg" />
+      <Skeleton className="h-full w-full rounded-lg animate-pulse" />
     </div>
-    <div className="text-sm text-muted-foreground text-center">
+    <div className="text-sm text-muted-foreground text-center animate-fade-in">
       Loading {componentName}...
     </div>
   </div>
@@ -39,7 +39,7 @@ const Index = () => {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <div className="flex flex-col gap-6">
               <div className="w-full mt-6">
-                <Card className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 border-none shadow-lg">
+                <Card className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 border-none shadow-lg hover:shadow-xl transition-all duration-300">
                   <div className="p-6">
                     <ErrorBoundary>
                       <Suspense fallback={<ComponentLoader componentName="Welcome Header" />}>
