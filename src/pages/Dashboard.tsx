@@ -5,7 +5,6 @@ import { WelcomeHeader } from "@/components/dashboard/WelcomeHeader";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardAlerts } from "@/components/dashboard/DashboardAlerts";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
-import { PredictiveAnalytics } from "@/components/dashboard/PredictiveAnalytics";
 import { UpcomingRentals } from "@/components/dashboard/UpcomingRentals";
 import { DashboardStats as DashboardStatsType } from "@/types/dashboard.types";
 import { Card } from "@/components/ui/card";
@@ -59,7 +58,6 @@ const Dashboard = () => {
           <RecentActivity />
         </div>
         <div className="space-y-6">
-          <PredictiveAnalytics />
           <UpcomingRentals />
         </div>
       </div>
