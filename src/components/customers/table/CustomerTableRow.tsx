@@ -50,12 +50,24 @@ export const CustomerTableRow = ({ customer, onDeleted, onClick }: CustomerTable
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      const { error } = await supabase
+      // First, delete all associated legal cases
+      const { error: legalCasesError } = await supabase
+        .from('legal_cases')
+        .delete()
+        .eq('customer_id', customer.id);
+
+      if (legalCasesError) {
+        console.error('Error deleting legal cases:', legalCasesError);
+        throw legalCasesError;
+      }
+
+      // Then delete the customer profile
+      const { error: profileError } = await supabase
         .from('profiles')
         .delete()
         .eq('id', customer.id);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
 
       toast.success("Customer deleted successfully");
       onDeleted();
@@ -195,7 +207,7 @@ export const CustomerTableRow = ({ customer, onDeleted, onClick }: CustomerTable
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the customer
-              and all associated data.
+              and all associated data including legal cases.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -213,3 +225,4 @@ export const CustomerTableRow = ({ customer, onDeleted, onClick }: CustomerTable
     </>
   );
 };
+
