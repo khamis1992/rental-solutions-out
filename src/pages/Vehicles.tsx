@@ -8,16 +8,18 @@ import { CreateVehicleDialog } from "@/components/vehicles/CreateVehicleDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Car, Plus, Import, Filter, Grid, List, Search } from "lucide-react";
+import { Car, Plus, Import, Filter, Grid, List, Search, RefreshCw } from "lucide-react";
 import { Vehicle } from "@/types/vehicle";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const Vehicles = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const { data: vehicles = [], isLoading } = useQuery({
+  const { data: vehicles = [], isLoading, refetch } = useQuery({
     queryKey: ["vehicles"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -45,25 +47,40 @@ const Vehicles = () => {
     );
   });
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+      toast.success("Vehicle data refreshed successfully");
+    } catch (error) {
+      toast.error("Failed to refresh vehicle data");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="container mx-auto py-6 space-y-6">
-        {/* Enhanced Header Section */}
-        <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-purple-900/20 via-blue-900/20 to-blue-900/10 p-8 border border-gray-200/50 dark:border-gray-700/50 animate-fade-in">
+        {/* Enhanced Header Section with Gradient */}
+        <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 p-8 border border-gray-200/50 dark:border-gray-700/50">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="space-y-3">
               <div className="flex items-center gap-3 group">
                 <div className="p-3 bg-primary/10 rounded-lg transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20">
-                  <Car className="h-8 w-8 text-primary" />
+                  <Car className="h-8 w-8 text-primary animate-pulse" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold">Vehicle Management</h1>
+                  <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
+                    Vehicle Management
+                  </h1>
                   <p className="text-muted-foreground text-sm">
                     Manage and monitor your entire fleet from one place
                   </p>
                 </div>
               </div>
             </div>
+            
             <div className="flex flex-wrap gap-3">
               <CreateVehicleDialog>
                 <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300">
@@ -71,6 +88,7 @@ const Vehicles = () => {
                   Add Vehicle
                 </Button>
               </CreateVehicleDialog>
+              
               <Button 
                 variant="outline" 
                 className="flex items-center gap-2 hover:bg-secondary/10 transition-colors"
@@ -78,6 +96,7 @@ const Vehicles = () => {
                 <Import className="h-4 w-4" />
                 Import
               </Button>
+              
               <Button 
                 variant="outline" 
                 className="flex items-center gap-2 hover:bg-secondary/10 transition-colors"
@@ -85,6 +104,7 @@ const Vehicles = () => {
                 <Filter className="h-4 w-4" />
                 Filters
               </Button>
+              
               <Button
                 variant="outline"
                 className="flex items-center gap-2 hover:bg-secondary/10 transition-colors"
@@ -97,12 +117,25 @@ const Vehicles = () => {
                 )}
                 {viewMode === "list" ? "Grid View" : "List View"}
               </Button>
+
+              <Button
+                variant="outline"
+                className={cn(
+                  "flex items-center gap-2 hover:bg-secondary/10 transition-colors",
+                  isRefreshing && "animate-spin"
+                )}
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+              >
+                <RefreshCw className="h-4 w-4" />
+                Refresh
+              </Button>
             </div>
           </div>
           
           {/* Decorative background elements */}
-          <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-          <div className="absolute -left-20 -top-20 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl" />
+          <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -left-20 -top-20 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl animate-pulse" />
         </div>
 
         {/* Stats Section */}

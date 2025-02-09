@@ -6,7 +6,7 @@ import { VehicleLocationCell } from "./VehicleLocationCell";
 import { VehicleInsuranceCell } from "./VehicleInsuranceCell";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit, Trash2 } from "lucide-react";
+import { Eye, Edit, Trash2, MoreVertical } from "lucide-react";
 import { 
   Tooltip,
   TooltipContent,
@@ -14,6 +14,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 
 interface VehicleTableContentProps {
   vehicles: Vehicle[];
@@ -34,7 +35,7 @@ export const VehicleTableContent = ({
       {vehicles.map((vehicle) => (
         <TableRow 
           key={vehicle.id}
-          className="group hover:bg-muted/50 transition-colors"
+          className="group hover:bg-muted/50 transition-colors animate-fade-in"
         >
           <TableCell className="w-12">
             <input
@@ -53,9 +54,15 @@ export const VehicleTableContent = ({
           <TableCell>
             <Link 
               to={`/vehicles/${vehicle.id}`}
-              className="font-medium text-primary hover:underline"
+              className="font-medium text-primary hover:underline flex items-center gap-2"
             >
               {vehicle.license_plate}
+              <Badge 
+                variant="secondary" 
+                className="bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+              >
+                {vehicle.vin?.slice(-6)}
+              </Badge>
             </Link>
           </TableCell>
           <TableCell className="font-medium">{vehicle.make}</TableCell>
@@ -90,7 +97,12 @@ export const VehicleTableContent = ({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      asChild
+                      className="hover:bg-primary/10 hover:text-primary transition-colors"
+                    >
                       <Link to={`/vehicles/${vehicle.id}`}>
                         <Eye className="h-4 w-4" />
                       </Link>
@@ -103,7 +115,11 @@ export const VehicleTableContent = ({
 
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="hover:bg-blue-500/10 hover:text-blue-500 transition-colors"
+                    >
                       <Edit className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
@@ -114,12 +130,31 @@ export const VehicleTableContent = ({
 
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="hover:bg-destructive/10 hover:text-destructive transition-colors"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Delete Vehicle</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="hover:bg-gray-500/10 hover:text-gray-500 transition-colors"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>More Options</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
