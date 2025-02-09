@@ -16,12 +16,19 @@ import {
   ChevronRight,
   ArrowUpRight,
   ArrowDownRight,
-  Filter
+  Filter,
+  AlertCircle,
+  Timer,
+  TrendingUp,
+  TrendingDown,
+  Search,
+  SlidersHorizontal
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTouchGestures } from "@/hooks/use-touch-gestures";
 import { useRef } from "react";
+import { cn } from "@/lib/utils";
 
 interface CashFlowAlert {
   id: string;
@@ -63,34 +70,34 @@ export const CashFlowMonitoring = () => {
     switch (severity) {
       case "high":
         return {
-          containerClass: "bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 shadow-sm hover:shadow-md transition-all duration-200",
+          containerClass: "bg-gradient-to-r from-red-50/90 to-red-100/90 dark:from-red-900/20 dark:to-red-800/20 border-red-200 shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-sm",
           iconClass: "text-red-600 dark:text-red-400",
-          badge: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
-          progressClass: "bg-red-200"
+          badge: "bg-red-100/80 text-red-800 dark:bg-red-900/30 dark:text-red-300 backdrop-blur-sm",
+          progressClass: "bg-red-200/80 backdrop-blur-sm"
         };
       case "medium":
         return {
-          containerClass: "bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-200 shadow-sm hover:shadow-md transition-all duration-200",
+          containerClass: "bg-gradient-to-r from-yellow-50/90 to-yellow-100/90 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-200 shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-sm",
           iconClass: "text-yellow-600 dark:text-yellow-400",
-          badge: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
-          progressClass: "bg-yellow-200"
+          badge: "bg-yellow-100/80 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 backdrop-blur-sm",
+          progressClass: "bg-yellow-200/80 backdrop-blur-sm"
         };
       default:
         return {
-          containerClass: "bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 shadow-sm hover:shadow-md transition-all duration-200",
+          containerClass: "bg-gradient-to-r from-blue-50/90 to-blue-100/90 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-sm",
           iconClass: "text-blue-600 dark:text-blue-400",
-          badge: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-          progressClass: "bg-blue-200"
+          badge: "bg-blue-100/80 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 backdrop-blur-sm",
+          progressClass: "bg-blue-200/80 backdrop-blur-sm"
         };
     }
   };
 
-  const getAlertIcon = (type: string) => {
+  const getAlertIcon = (type: string, severity: string) => {
     switch (type) {
       case "upcoming_payment":
-        return Clock;
+        return severity === "high" ? Timer : CalendarClock;
       case "threshold_breach":
-        return AlertTriangle;
+        return severity === "high" ? AlertCircle : AlertTriangle;
       case "notification":
         return BellRing;
       default:
@@ -101,11 +108,17 @@ export const CashFlowMonitoring = () => {
   const renderProgressBar = (current: number, expected: number, className: string) => {
     const percentage = Math.min((current / expected) * 100, 100);
     return (
-      <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-2">
-        <div 
-          className={`h-full ${className} transition-all duration-500 ease-in-out`}
-          style={{ width: `${percentage}%` }}
-        />
+      <div className="relative w-full">
+        <div className="flex items-center justify-between mb-1 text-xs font-medium">
+          <span>Progress</span>
+          <span>{Math.round(percentage)}%</span>
+        </div>
+        <div className="w-full h-2 bg-gray-200/50 rounded-full overflow-hidden backdrop-blur-sm">
+          <div 
+            className={`h-full ${className} transition-all duration-500 ease-in-out rounded-full`}
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
       </div>
     );
   };
@@ -133,17 +146,28 @@ export const CashFlowMonitoring = () => {
   }
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between sticky top-0 z-10 bg-card border-b">
+    <Card className="overflow-hidden backdrop-blur-sm bg-white/80 dark:bg-gray-900/80">
+      <CardHeader className="flex flex-row items-center justify-between sticky top-0 z-10 bg-card/80 border-b backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center gap-2">
           <CardTitle>Cash Flow Alerts</CardTitle>
-          <Badge variant="outline" className="ml-2">
+          <Badge 
+            variant="outline" 
+            className="ml-2 bg-primary/10 border-primary/20"
+          >
             {alerts?.length || 0} Active
           </Badge>
         </div>
-        <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-          <Filter className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+            <Search className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+            <SlidersHorizontal className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+            <Filter className="h-4 w-4" />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         <ScrollArea 
@@ -153,32 +177,52 @@ export const CashFlowMonitoring = () => {
           <div className="space-y-2 p-6">
             {alerts?.map((alert) => {
               const styles = getSeverityStyles(alert.severity);
-              const AlertIcon = getAlertIcon(alert.alert_type);
+              const AlertIcon = getAlertIcon(alert.alert_type, alert.severity);
               const hasPaid = alert.current_amount > 0;
+              const isOverdue = new Date(alert.created_at) < new Date();
 
               return (
                 <Alert
                   key={alert.id}
-                  className={`group relative overflow-hidden ${styles.containerClass}`}
+                  className={cn(
+                    "group relative overflow-hidden hover:scale-[1.02]",
+                    styles.containerClass,
+                    "transition-all duration-300 ease-in-out"
+                  )}
                 >
                   <div className="flex items-start gap-4">
-                    <AlertIcon className={`h-5 w-5 mt-0.5 ${styles.iconClass}`} />
+                    <div className={cn(
+                      "rounded-full p-2",
+                      "bg-background/50 backdrop-blur-sm",
+                      styles.iconClass
+                    )}>
+                      <AlertIcon className="h-5 w-5" />
+                    </div>
                     <div className="flex-1 space-y-2">
                       <AlertTitle className="flex flex-wrap items-center gap-2 pr-6">
                         <span className="font-semibold">
                           {alert.alert_type === "upcoming_payment" ? "Upcoming Payment Due" : "Cash Flow Alert"}
                         </span>
-                        <Badge variant="outline" className={styles.badge}>
+                        <Badge variant="outline" className={cn(
+                          styles.badge,
+                          "animate-fade-in"
+                        )}>
                           {alert.severity.toUpperCase()}
                         </Badge>
+                        {isOverdue && (
+                          <Badge variant="outline" className="bg-red-100/80 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                            OVERDUE
+                          </Badge>
+                        )}
                       </AlertTitle>
                       <AlertDescription>
-                        <div className="grid gap-1">
+                        <div className="grid gap-3">
                           <p className="text-sm text-muted-foreground">{alert.message}</p>
                           {alert.expected_amount > 0 && (
-                            <div className="space-y-1">
+                            <div className="space-y-2">
                               <div className="flex items-center justify-between text-sm">
-                                <span className="font-medium">
+                                <span className="font-medium flex items-center gap-2">
+                                  <DollarSign className="h-4 w-4" />
                                   Expected: {formatCurrency(alert.expected_amount)}
                                 </span>
                                 {hasPaid && (
@@ -195,6 +239,18 @@ export const CashFlowMonitoring = () => {
                               )}
                             </div>
                           )}
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {formatDate(alert.created_at)}
+                            </span>
+                            {alert.threshold_amount > 0 && (
+                              <span className="flex items-center gap-1">
+                                <TrendingDown className="h-3 w-3" />
+                                Threshold: {formatCurrency(alert.threshold_amount)}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </AlertDescription>
                     </div>
