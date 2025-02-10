@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +17,7 @@ import { format } from "date-fns";
 import { 
   Loader2, PlusCircle, Pencil, Trash2, User, Copy, ChevronDown, ChevronUp,
   Activity, Clock, Filter, Search, FileText, CreditCard, Car, Users, 
-  Calendar, Download, LayoutList, Pipeline 
+  Calendar, Download, LayoutList, History 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -116,7 +115,6 @@ const Audit = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6 p-6">
-        {/* Enhanced Header with Stats */}
         <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-[#9b87f5]/10 to-[#E5DEFF]/50 p-8 shadow-lg border border-[#9b87f5]/20">
           <div className="absolute inset-0 bg-grid-[#9b87f5]/[0.03] bg-[size:20px_20px]" />
           <div className="relative space-y-4">
@@ -170,7 +168,6 @@ const Audit = () => {
           </div>
         </div>
 
-        {/* Enhanced Filters */}
         <Card className="bg-white/50 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -231,7 +228,7 @@ const Audit = () => {
                     className="border-[#9b87f5]/20 hover:bg-[#9b87f5]/10"
                     onClick={() => setView("timeline")}
                   >
-                    <Pipeline className={`h-4 w-4 ${view === "timeline" ? "text-[#9b87f5]" : "text-muted-foreground"}`} />
+                    <History className={`h-4 w-4 ${view === "timeline" ? "text-[#9b87f5]" : "text-muted-foreground"}`} />
                   </Button>
                 </div>
               </div>
@@ -239,7 +236,6 @@ const Audit = () => {
           </CardContent>
         </Card>
 
-        {/* Content */}
         <Card className="bg-white/50 backdrop-blur-sm">
           <CardContent className="p-0">
             {isLoading ? (
