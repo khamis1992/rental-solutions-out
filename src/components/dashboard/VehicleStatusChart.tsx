@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,8 +49,17 @@ const config = {
   }
 };
 
-export const VehicleStatusChart = () => {
+interface VehicleStatusChartProps {
+  onStatusChange?: (status: string) => void;
+}
+
+export const VehicleStatusChart = ({ onStatusChange }: VehicleStatusChartProps) => {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+
+  const handleStatusChange = (status: string) => {
+    setSelectedStatus(status);
+    onStatusChange?.(status);
+  };
 
   const { data: vehicleCounts, isLoading, error } = useQuery({
     queryKey: ["vehicle-status-counts"],
@@ -161,7 +169,7 @@ export const VehicleStatusChart = () => {
           </div>
           <ChartStatusSelect
             selectedStatus={selectedStatus}
-            onStatusChange={setSelectedStatus}
+            onStatusChange={handleStatusChange}
             statusData={vehicleCounts || []}
           />
         </div>

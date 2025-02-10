@@ -7,6 +7,9 @@ import { cn } from "@/lib/utils";
 import { VehicleStatus } from "@/types/vehicle";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useMemo } from "react";
+import { toast } from "sonner";
 
 interface VehicleStatusListProps {
   selectedStatus: string;
@@ -36,6 +39,7 @@ export const VehicleStatusList = ({ selectedStatus }: VehicleStatusListProps) =>
   const { data: vehicles = [], isLoading } = useQuery({
     queryKey: ["vehicles", selectedStatus],
     queryFn: async () => {
+      console.log("Fetching vehicles with status:", selectedStatus);
       const query = supabase
         .from("vehicles")
         .select("*");
@@ -48,6 +52,7 @@ export const VehicleStatusList = ({ selectedStatus }: VehicleStatusListProps) =>
 
       if (error) {
         console.error("Error fetching vehicles:", error);
+        toast.error("Failed to fetch vehicles");
         throw error;
       }
 
@@ -56,8 +61,18 @@ export const VehicleStatusList = ({ selectedStatus }: VehicleStatusListProps) =>
     refetchInterval: 30000,
   });
 
+  const filteredVehicles = useMemo(() => 
+    vehicles.sort((a, b) => b.updated_at.localeCompare(a.updated_at)),
+    [vehicles]
+  );
+
   const Icon = STATUS_ICONS[selectedStatus as keyof typeof STATUS_ICONS] || Car;
   const statusColor = STATUS_COLORS[selectedStatus as keyof typeof STATUS_COLORS] || "text-gray-500 bg-gray-500/10";
+
+  const handleCopyLicensePlate = (licensePlate: string) => {
+    navigator.clipboard.writeText(licensePlate);
+    toast.success("License plate copied to clipboard");
+  };
 
   if (isLoading) {
     return (
@@ -86,75 +101,92 @@ export const VehicleStatusList = ({ selectedStatus }: VehicleStatusListProps) =>
   }
 
   return (
-    <Card className={cn(
-      "bg-gradient-to-br from-white/50 to-white/30",
-      "backdrop-blur-sm border border-gray-200/50",
-      "hover:border-gray-300 transition-all duration-300",
-      "hover:shadow-lg group"
-    )}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <div className={cn(
-            "p-2 rounded-lg transition-all duration-300",
-            "group-hover:scale-110",
-            statusColor
-          )}>
-            <Icon className="h-5 w-5" />
-          </div>
-          {selectedStatus === "all" ? "All Vehicles" : (
-            `${selectedStatus.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Vehicles`
+    <TooltipProvider>
+      <Card className={cn(
+        "bg-gradient-to-br from-white/50 to-white/30",
+        "backdrop-blur-sm border border-gray-200/50",
+        "hover:border-gray-300 transition-all duration-300",
+        "hover:shadow-lg group"
+      )}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <div className={cn(
+              "p-2 rounded-lg transition-all duration-300",
+              "group-hover:scale-110",
+              statusColor
+            )}>
+              <Icon className="h-5 w-5" />
+            </div>
+            {selectedStatus === "all" ? "All Vehicles" : (
+              `${selectedStatus.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Vehicles`
+            )}
+            <Badge variant="secondary" className="ml-auto">
+              {filteredVehicles.length}
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {filteredVehicles.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+              <Car className="h-12 w-12 mb-4" />
+              <p>No vehicles found</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredVehicles.map((vehicle) => (
+                <Tooltip key={vehicle.id}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={cn(
+                        "flex items-center gap-4 p-4 rounded-lg cursor-pointer",
+                        "border border-transparent transition-all duration-300",
+                        "hover:border-gray-200 hover:bg-gray-50/50",
+                        "animate-fade-in"
+                      )}
+                      onClick={() => handleCopyLicensePlate(vehicle.license_plate)}
+                    >
+                      <div className={cn(
+                        "h-12 w-12 rounded-lg flex items-center justify-center",
+                        "transition-all duration-300 hover:scale-110",
+                        statusColor
+                      )}>
+                        <Car className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-medium truncate">
+                          {vehicle.year} {vehicle.make} {vehicle.model}
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          {vehicle.license_plate}
+                        </p>
+                      </div>
+                      <Badge 
+                        variant="secondary" 
+                        className={cn(
+                          "whitespace-nowrap",
+                          statusColor
+                        )}
+                      >
+                        {vehicle.status?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </Badge>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <p className="font-medium">Vehicle Details</p>
+                      <p className="text-sm">Click to copy license plate</p>
+                      {vehicle.description && (
+                        <p className="text-sm text-muted-foreground">{vehicle.description}</p>
+                      )}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
           )}
-          <Badge variant="secondary" className="ml-auto">
-            {vehicles.length}
-          </Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {vehicles.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-            <Car className="h-12 w-12 mb-4" />
-            <p>No vehicles found</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {vehicles.map((vehicle) => (
-              <div
-                key={vehicle.id}
-                className={cn(
-                  "flex items-center gap-4 p-4 rounded-lg",
-                  "border border-transparent transition-all duration-300",
-                  "hover:border-gray-200 hover:bg-gray-50/50",
-                  "animate-fade-in"
-                )}
-              >
-                <div className={cn(
-                  "h-12 w-12 rounded-lg flex items-center justify-center",
-                  statusColor
-                )}>
-                  <Car className="h-6 w-6" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-medium truncate">
-                    {vehicle.year} {vehicle.make} {vehicle.model}
-                  </h4>
-                  <p className="text-sm text-muted-foreground">
-                    {vehicle.license_plate}
-                  </p>
-                </div>
-                <Badge 
-                  variant="secondary" 
-                  className={cn(
-                    "whitespace-nowrap",
-                    statusColor
-                  )}
-                >
-                  {vehicle.status?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   );
 };
+
