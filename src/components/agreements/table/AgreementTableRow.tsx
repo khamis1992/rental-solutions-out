@@ -1,4 +1,3 @@
-
 import React from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { formatDateToDisplay } from "@/lib/dateUtils";
@@ -107,68 +106,67 @@ export const AgreementTableRow = ({
 
   return (
     <TableRow className="group hover:bg-gray-50/80 transition-all duration-200">
-      <TableCell>
+      <TableCell className="py-2">
         <button
           onClick={() => onNameClick(agreement.id)}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium group-hover:translate-x-1 transition-all duration-300"
+          className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-medium group-hover:translate-x-1 transition-all duration-300"
         >
           <FileText className="h-4 w-4 group-hover:scale-110 transition-transform" />
-          {agreement.agreement_number}
+          <span className="truncate">{agreement.agreement_number}</span>
         </button>
       </TableCell>
-      <TableCell>
+      <TableCell className="py-2">
         <button
           onClick={() => onNameClick(agreement.id)}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 group-hover:translate-x-1 transition-all duration-300"
+          className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 group-hover:translate-x-1 transition-all duration-300"
         >
           <Car className="h-4 w-4 group-hover:scale-110 transition-transform" />
-          {agreement.vehicle?.license_plate}
+          <span className="truncate">{agreement.vehicle?.license_plate}</span>
         </button>
       </TableCell>
-      <TableCell>
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-gray-100 rounded-full group-hover:bg-gray-200 transition-colors">
+      <TableCell className="py-2">
+        <div className="flex items-center gap-1.5">
+          <div className="p-1 bg-gray-100 rounded-full group-hover:bg-gray-200 transition-colors">
             <Truck className="h-4 w-4 text-gray-600" />
           </div>
           <div className="flex flex-col">
-            <span className="font-medium text-gray-900">{agreement.vehicle?.make}</span>
-            <span className="text-sm text-gray-500">{agreement.vehicle?.model}</span>
+            <span className="font-medium text-gray-900 truncate">{agreement.vehicle?.make}</span>
+            <span className="text-sm text-gray-500 truncate">{agreement.vehicle?.model}</span>
           </div>
         </div>
       </TableCell>
-      <TableCell>
-        <div className="flex items-center gap-3">
-          <div className="flex-shrink-0 h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+      <TableCell className="py-2">
+        <div className="flex items-center gap-2">
+          <div className="flex-shrink-0 h-7 w-7 bg-blue-100 rounded-full flex items-center justify-center">
             <User className="h-4 w-4 text-blue-600" />
           </div>
-          <span className="font-medium text-gray-900 truncate max-w-[160px]">
+          <span className="font-medium text-gray-900 truncate max-w-[130px]">
             {agreement.customer?.full_name}
           </span>
         </div>
       </TableCell>
-      <TableCell>
-        <div className="flex items-center gap-2 text-gray-600">
+      <TableCell className="py-2">
+        <div className="flex items-center gap-1.5 text-gray-600">
           <Calendar className="h-4 w-4" />
-          {formatDateToDisplay(agreement.start_date)}
+          <span className="truncate">{formatDateToDisplay(agreement.start_date)}</span>
         </div>
       </TableCell>
-      <TableCell>
-        <div className="flex items-center gap-2 text-gray-600">
+      <TableCell className="py-2">
+        <div className="flex items-center gap-1.5 text-gray-600">
           <Calendar className="h-4 w-4" />
-          {formatDateToDisplay(agreement.end_date)}
+          <span className="truncate">{formatDateToDisplay(agreement.end_date)}</span>
         </div>
       </TableCell>
-      <TableCell>
+      <TableCell className="py-2">
         <Badge 
           variant="outline" 
-          className={`capitalize ${statusConfig.color} border px-3 py-1 transition-all duration-300 group-hover:scale-105 flex items-center gap-1.5 w-fit`}
+          className={`capitalize ${statusConfig.color} border px-2 py-0.5 transition-all duration-300 group-hover:scale-105 flex items-center gap-1 w-fit`}
         >
           {statusConfig.icon}
-          {agreement.status}
+          <span className="truncate">{agreement.status}</span>
         </Badge>
       </TableCell>
-      
-      <TableCell className="text-right space-x-1">
+      <TableCell className="py-2 text-right space-x-1">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
