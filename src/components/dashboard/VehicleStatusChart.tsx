@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,15 +7,30 @@ import { ChartStatusSelect } from "./charts/ChartStatusSelect";
 import { DonutChart } from "./charts/DonutChart";
 import { ChartLegend } from "./charts/ChartLegend";
 import { toast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
+import { 
+  Car, AlertOctagon, CheckCircle2, Wrench, Shield, 
+  Key, AlertTriangle, Clock 
+} from "lucide-react";
 
 const STATUS_COLORS = {
-  accident: "#F97316",      // Orange
-  available: "#0EA5E9",     // Blue
-  maintenance: "#800000",   // Maroon
-  police_station: "#D946EF", // Magenta
-  rented: "#94A3B8",        // Gray
-  stolen: "#EF4444",        // Red
-  reserve: "#8B5CF6",       // Purple
+  accident: "#ea384c",      // Red
+  available: "#0FA0CE",     // Bright Blue
+  maintenance: "#F97316",   // Orange
+  police_station: "#1A1F2C", // Dark Purple
+  rented: "#9b87f5",        // Purple
+  stolen: "#D946EF",        // Magenta
+  reserve: "#8E9196",       // Gray
+} as const;
+
+const STATUS_ICONS = {
+  accident: AlertOctagon,
+  available: CheckCircle2,
+  maintenance: Wrench,
+  police_station: Shield,
+  rented: Key,
+  stolen: AlertTriangle,
+  reserve: Clock,
 } as const;
 
 type VehicleStatus = keyof typeof STATUS_COLORS;
@@ -28,8 +44,8 @@ const config = {
   }), {}),
   background: {
     theme: {
-      light: "#E2E8F0",
-      dark: "#334155",
+      light: "#F1F0FB",
+      dark: "#1A1F2C",
     }
   }
 };
@@ -64,13 +80,14 @@ export const VehicleStatusChart = () => {
       const data = Object.entries(counts).map(([status, count]) => ({
         name: status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
         value: count,
-        color: STATUS_COLORS[status as VehicleStatus] || "#CBD5E1"
+        color: STATUS_COLORS[status as VehicleStatus] || "#CBD5E1",
+        Icon: STATUS_ICONS[status as VehicleStatus] || Car
       }));
 
       console.log("Vehicle counts:", data);
       return data;
     },
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 30000,
   });
 
   const filteredData = useMemo(() => {
@@ -89,9 +106,23 @@ export const VehicleStatusChart = () => {
 
   if (isLoading) {
     return (
-      <Card className="bg-white">
+      <Card className={cn(
+        "bg-gradient-to-br from-white/50 to-white/30",
+        "backdrop-blur-sm border border-gray-200/50",
+        "hover:border-gray-300 transition-all duration-300"
+      )}>
         <CardContent className="h-[400px] flex items-center justify-center">
-          <div className="animate-pulse w-full h-full bg-muted rounded-md" />
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="animate-pulse space-y-4 w-full max-w-md">
+              <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto" />
+              <div className="h-64 bg-gray-200 rounded-full w-64 mx-auto" />
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-4 bg-gray-200 rounded w-full" />
+                ))}
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
@@ -99,19 +130,35 @@ export const VehicleStatusChart = () => {
 
   if (error) {
     return (
-      <Card className="bg-white">
+      <Card className={cn(
+        "bg-gradient-to-br from-rose-50 to-rose-100/30",
+        "backdrop-blur-sm border border-rose-200/50"
+      )}>
         <CardContent className="h-[400px] flex items-center justify-center">
-          <div className="text-destructive">Failed to load vehicle status data</div>
+          <div className="text-rose-500 flex flex-col items-center gap-4">
+            <AlertOctagon className="w-12 h-12" />
+            <div>Failed to load vehicle status data</div>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="bg-white">
+    <Card className={cn(
+      "bg-gradient-to-br from-white/50 to-white/30",
+      "backdrop-blur-sm border border-gray-200/50",
+      "hover:border-gray-300 transition-all duration-300",
+      "hover:shadow-lg"
+    )}>
       <CardContent className="pt-6">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-lg font-semibold">Vehicle Status</h3>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Car className="w-5 h-5 text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold">Vehicle Status</h3>
+          </div>
           <ChartStatusSelect
             selectedStatus={selectedStatus}
             onStatusChange={setSelectedStatus}
