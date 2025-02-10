@@ -31,12 +31,12 @@ export const AgreementListContent = ({
   onDeleted,
 }: AgreementListContentProps) => {
   return (
-    <>
-      <div className="rounded-xl border bg-white shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
+    <div className="space-y-4">
+      <div className="rounded-lg border bg-white shadow-sm">
         <Table>
           <AgreementTableHeader />
           <TableBody>
-            {agreements.map((agreement: Agreement) => (
+            {agreements.map((agreement) => (
               <AgreementTableRow
                 key={agreement.id}
                 agreement={agreement}
@@ -52,13 +52,11 @@ export const AgreementListContent = ({
         </Table>
       </div>
 
-      <div className="flex justify-center mt-6">
-        <VehicleTablePagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={onPageChange}
-        />
-      </div>
-    </>
+      <VehicleTablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+      />
+    </div>
   );
 };
