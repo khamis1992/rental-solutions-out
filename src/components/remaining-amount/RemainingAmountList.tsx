@@ -6,11 +6,15 @@ import { formatCurrency } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, Car, DollarSign, Clock, Copy, FileBox, CheckCircle } from "lucide-react";
+import { 
+  FileText, Car, Coins, Receipt, CreditCard, Calculator,
+  Clock, Copy, FileBox, CheckCircle, TrendingUp, TrendingDown 
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
 
 interface RemainingAmount {
   id: string;
@@ -44,13 +48,27 @@ export function RemainingAmountList() {
     });
   };
 
+  const getPaymentProgress = (paid: number, total: number) => {
+    return Math.round((paid / total) * 100);
+  };
+
+  const getStatusColor = (remaining: number, total: number) => {
+    const percentage = (remaining / total) * 100;
+    if (percentage <= 0) return "text-green-600";
+    if (percentage <= 25) return "text-blue-600";
+    if (percentage <= 50) return "text-yellow-600";
+    return "text-red-600";
+  };
+
   if (isLoading) {
     return (
       <Card className="p-6">
         <div className="space-y-4">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex space-x-4">
+              <Skeleton className="h-12 w-full rounded-md" />
+            </div>
+          ))}
         </div>
       </Card>
     );
@@ -77,25 +95,25 @@ export function RemainingAmountList() {
                 </TableHead>
                 <TableHead className="text-right font-semibold">
                   <div className="flex items-center justify-end gap-2">
-                    <DollarSign className="h-4 w-4 text-blue-500" />
+                    <Coins className="h-4 w-4 text-blue-500" />
                     Rent Amount
                   </div>
                 </TableHead>
                 <TableHead className="text-right font-semibold">
                   <div className="flex items-center justify-end gap-2">
-                    <DollarSign className="h-4 w-4 text-blue-500" />
+                    <Receipt className="h-4 w-4 text-blue-500" />
                     Final Price
                   </div>
                 </TableHead>
                 <TableHead className="text-right font-semibold">
                   <div className="flex items-center justify-end gap-2">
-                    <DollarSign className="h-4 w-4 text-blue-500" />
+                    <CreditCard className="h-4 w-4 text-blue-500" />
                     Amount Paid
                   </div>
                 </TableHead>
                 <TableHead className="text-right font-semibold">
                   <div className="flex items-center justify-end gap-2">
-                    <DollarSign className="h-4 w-4 text-blue-500" />
+                    <Calculator className="h-4 w-4 text-blue-500" />
                     Remaining Amount
                   </div>
                 </TableHead>
@@ -108,50 +126,100 @@ export function RemainingAmountList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {remainingAmounts?.map((item) => (
-                <TableRow key={item.id} className="group hover:bg-muted/50 transition-colors">
-                  <TableCell className="font-medium">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="p-0 h-auto hover:bg-transparent"
-                      onClick={() => copyToClipboard(item.agreement_number, "Agreement number")}
-                    >
-                      <div className="flex items-center gap-2">
-                        {item.agreement_number}
-                        <Copy className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+              {remainingAmounts?.map((item) => {
+                const paymentProgress = getPaymentProgress(item.amount_paid, item.final_price);
+                const statusColor = getStatusColor(item.remaining_amount, item.final_price);
+                const isComplete = item.remaining_amount <= 0;
+
+                return (
+                  <TableRow key={item.id} className="group hover:bg-muted/50 transition-colors">
+                    <TableCell className="font-medium">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="p-0 h-auto hover:bg-transparent"
+                        onClick={() => copyToClipboard(item.agreement_number, "Agreement number")}
+                      >
+                        <div className="flex items-center gap-2">
+                          {item.agreement_number}
+                          <Copy className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </Button>
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <div className="flex items-center gap-2">
+                            <Car className="h-4 w-4 text-muted-foreground" />
+                            {item.license_plate}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Vehicle License: {item.license_plate}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      <div className="flex items-center justify-end gap-2">
+                        {formatCurrency(item.rent_amount)}
                       </div>
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Car className="h-4 w-4 text-muted-foreground" />
-                      {item.license_plate}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {formatCurrency(item.rent_amount)}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {formatCurrency(item.final_price)}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {formatCurrency(item.amount_paid)}
-                  </TableCell>
-                  <TableCell className={cn(
-                    "text-right font-semibold tabular-nums",
-                    item.remaining_amount > 0 ? "text-blue-600" : "text-green-600"
-                  )}>
-                    {formatCurrency(item.remaining_amount)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      {item.agreement_duration}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      <div className="flex items-center justify-end gap-2">
+                        {formatCurrency(item.final_price)}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-end gap-2 tabular-nums">
+                          {formatCurrency(item.amount_paid)}
+                          {isComplete ? (
+                            <TrendingUp className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <TrendingDown className="h-4 w-4 text-yellow-500" />
+                          )}
+                        </div>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Progress value={paymentProgress} className="h-1.5 w-24 ml-auto" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{paymentProgress}% paid</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </TableCell>
+                    <TableCell className={cn(
+                      "text-right font-semibold tabular-nums",
+                      statusColor
+                    )}>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <div className="flex items-center justify-end gap-2">
+                            {formatCurrency(item.remaining_amount)}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{isComplete ? "Fully Paid" : `${paymentProgress}% Complete`}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            {item.agreement_duration}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Duration: {item.agreement_duration}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
               {!remainingAmounts?.length && (
                 <TableRow>
                   <TableCell colSpan={7} className="h-[400px] text-center">
