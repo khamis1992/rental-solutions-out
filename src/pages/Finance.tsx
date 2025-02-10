@@ -4,113 +4,54 @@ import { FinancialOverview } from "@/components/finance/dashboard/FinancialOverv
 import { FinancialDashboard } from "@/components/finance/FinancialDashboard";
 import { CarInstallmentContracts } from "@/components/finance/car-installments/CarInstallmentContracts";
 import { PaymentManagement } from "@/components/finance/payments/PaymentManagement";
-import { 
-  DollarSign, ChartBar, TrendingUp, CreditCard, PieChart, 
-  LayoutDashboard, Car, Receipt, Wallet, LineChart, ArrowUpRight,
-  CircleDollarSign, Coins, ArrowDownRight, FileText, Calculator,
-  BarChart3
-} from "lucide-react";
+import { DollarSign, ChartBar, TrendingUp, CreditCard, PieChart, LayoutDashboard, Car, Receipt, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Card } from "@/components/ui/card";
 
 export default function Finance() {
   return (
     <div className="container mx-auto py-6 space-y-8">
-      <Card className="relative overflow-hidden rounded-lg bg-gradient-to-br from-[#9b87f5]/5 via-[#E5DEFF]/30 to-[#9b87f5]/10 p-8 shadow-lg border border-[#9b87f5]/20 transition-all duration-500 hover:shadow-xl group">
+      <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-[#9b87f5]/10 to-[#E5DEFF]/50 p-8 shadow-lg border border-[#9b87f5]/20 transition-all duration-300 hover:shadow-xl">
         <div className="absolute inset-0 bg-grid-[#9b87f5]/[0.03] bg-[size:20px_20px]" />
-        
-        {/* Enhanced Floating Financial Elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-[#9b87f5]/10 rounded-full blur-2xl transform group-hover:scale-150 transition-transform duration-700" />
-          <div className="absolute left-1/2 top-1/2 w-32 h-32 bg-[#E5DEFF]/20 rounded-full blur-3xl transform group-hover:scale-150 transition-transform duration-1000" />
-          <div className="absolute -left-4 -bottom-4 w-32 h-32 bg-[#E5DEFF]/30 rounded-full blur-2xl transform group-hover:scale-150 transition-transform duration-700" />
-        </div>
-
-        <div className="relative space-y-6">
-          {/* Enhanced Title Section with 3D Icon Stack */}
-          <div className="flex items-center gap-4 animate-fade-in">
-            <div className="flex -space-x-3 transform group-hover:scale-105 transition-transform duration-300">
-              <div className="rounded-lg bg-gradient-to-br from-[#9b87f5]/20 to-[#9b87f5]/10 p-3 shadow-lg border border-[#9b87f5]/20 backdrop-blur-sm hover:rotate-12 transition-all duration-300">
-                <DollarSign className="h-7 w-7 text-[#9b87f5]" />
+        <div className="relative space-y-4">
+          <div className="flex items-center gap-3 animate-fade-in">
+            <div className="flex -space-x-1">
+              <div className="rounded-lg bg-[#9b87f5]/10 p-2">
+                <DollarSign className="h-6 w-6 text-[#9b87f5]" />
               </div>
-              <div className="rounded-lg bg-gradient-to-br from-[#9b87f5]/20 to-[#9b87f5]/10 p-3 shadow-lg border border-[#9b87f5]/20 backdrop-blur-sm hover:-rotate-12 transition-all duration-300">
-                <ChartBar className="h-7 w-7 text-[#9b87f5]" />
-              </div>
-              <div className="rounded-lg bg-gradient-to-br from-[#9b87f5]/20 to-[#9b87f5]/10 p-3 shadow-lg border border-[#9b87f5]/20 backdrop-blur-sm hover:rotate-12 transition-all duration-300">
-                <LineChart className="h-7 w-7 text-[#9b87f5]" />
+              <div className="rounded-lg bg-[#9b87f5]/10 p-2">
+                <ChartBar className="h-6 w-6 text-[#9b87f5]" />
               </div>
             </div>
-            <div className="space-y-1">
-              <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-[#1A1F2C] via-[#9b87f5] to-[#1A1F2C] bg-clip-text text-transparent animate-gradient">
-                Financial Management
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Comprehensive financial tracking and analysis system
-              </p>
-            </div>
+            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-[#1A1F2C] to-[#9b87f5] bg-clip-text text-transparent">
+              Financial Management
+            </h1>
           </div>
           
-          {/* Enhanced Feature Cards with Interactive Elements */}
-          <div className="grid gap-4 md:grid-cols-4 animate-fade-in">
-            <Card className="group/card flex items-center gap-3 p-4 transition-all duration-300 hover:shadow-md hover:bg-[#9b87f5]/5 border-[#9b87f5]/20">
-              <div className="rounded-lg bg-[#9b87f5]/10 p-2 transition-transform duration-300 group-hover/card:scale-110">
-                <CircleDollarSign className="h-5 w-5 text-[#9b87f5]" />
-              </div>
-              <div className="space-y-1">
-                <div className="font-medium">Revenue</div>
-                <div className="text-sm text-muted-foreground">Track income</div>
-              </div>
-              <ArrowUpRight className="ml-auto h-4 w-4 text-green-500 opacity-0 group-hover/card:opacity-100 transition-opacity" />
-            </Card>
-
-            <Card className="group/card flex items-center gap-3 p-4 transition-all duration-300 hover:shadow-md hover:bg-[#9b87f5]/5 border-[#9b87f5]/20">
-              <div className="rounded-lg bg-[#9b87f5]/10 p-2 transition-transform duration-300 group-hover/card:scale-110">
-                <Receipt className="h-5 w-5 text-[#9b87f5]" />
-              </div>
-              <div className="space-y-1">
-                <div className="font-medium">Expenses</div>
-                <div className="text-sm text-muted-foreground">Monitor costs</div>
-              </div>
-              <ArrowDownRight className="ml-auto h-4 w-4 text-red-500 opacity-0 group-hover/card:opacity-100 transition-opacity" />
-            </Card>
-
-            <Card className="group/card flex items-center gap-3 p-4 transition-all duration-300 hover:shadow-md hover:bg-[#9b87f5]/5 border-[#9b87f5]/20">
-              <div className="rounded-lg bg-[#9b87f5]/10 p-2 transition-transform duration-300 group-hover/card:scale-110">
-                <Calculator className="h-5 w-5 text-[#9b87f5]" />
-              </div>
-              <div className="space-y-1">
-                <div className="font-medium">Budgeting</div>
-                <div className="text-sm text-muted-foreground">Plan finances</div>
-              </div>
-              <FileText className="ml-auto h-4 w-4 text-muted-foreground opacity-0 group-hover/card:opacity-100 transition-opacity" />
-            </Card>
-
-            <Card className="group/card flex items-center gap-3 p-4 transition-all duration-300 hover:shadow-md hover:bg-[#9b87f5]/5 border-[#9b87f5]/20">
-              <div className="rounded-lg bg-[#9b87f5]/10 p-2 transition-transform duration-300 group-hover/card:scale-110">
-                <BarChart3 className="h-5 w-5 text-[#9b87f5]" />
-              </div>
-              <div className="space-y-1">
-                <div className="font-medium">Analytics</div>
-                <div className="text-sm text-muted-foreground">View insights</div>
-              </div>
-              <TrendingUp className="ml-auto h-4 w-4 text-blue-500 opacity-0 group-hover/card:opacity-100 transition-opacity" />
-            </Card>
+          <div className="grid gap-4 md:grid-cols-3 animate-fade-in">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <TrendingUp className="h-4 w-4 text-[#9b87f5]" />
+              <span>Track operations</span>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <CreditCard className="h-4 w-4 text-[#9b87f5]" />
+              <span>Monitor payments</span>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <PieChart className="h-4 w-4 text-[#9b87f5]" />
+              <span>Analyze revenue</span>
+            </div>
           </div>
         </div>
-      </Card>
+      </div>
 
       <FinancialOverview />
 
-      {/* Enhanced Tab Navigation */}
       <Tabs defaultValue="dashboard" className="space-y-4">
         <TabsList className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-lg p-1">
           <TabsTrigger 
             value="dashboard"
             className={cn(
-              "flex items-center gap-2 rounded-md transition-all",
-              "data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#9b87f5]/20 data-[state=active]:to-[#9b87f5]/10",
-              "data-[state=active]:text-[#9b87f5] data-[state=active]:shadow-sm",
-              "hover:bg-[#9b87f5]/5"
+              "flex items-center gap-2 rounded-md transition-all data-[state=active]:bg-[#9b87f5]/10 data-[state=active]:text-[#9b87f5]"
             )}
           >
             <LayoutDashboard className="h-4 w-4" />
@@ -119,10 +60,7 @@ export default function Finance() {
           <TabsTrigger 
             value="car-installments"
             className={cn(
-              "flex items-center gap-2 rounded-md transition-all",
-              "data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#9b87f5]/20 data-[state=active]:to-[#9b87f5]/10",
-              "data-[state=active]:text-[#9b87f5] data-[state=active]:shadow-sm",
-              "hover:bg-[#9b87f5]/5"
+              "flex items-center gap-2 rounded-md transition-all data-[state=active]:bg-[#9b87f5]/10 data-[state=active]:text-[#9b87f5]"
             )}
           >
             <div className="flex items-center gap-1">
@@ -134,10 +72,7 @@ export default function Finance() {
           <TabsTrigger 
             value="payments"
             className={cn(
-              "flex items-center gap-2 rounded-md transition-all",
-              "data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#9b87f5]/20 data-[state=active]:to-[#9b87f5]/10",
-              "data-[state=active]:text-[#9b87f5] data-[state=active]:shadow-sm",
-              "hover:bg-[#9b87f5]/5"
+              "flex items-center gap-2 rounded-md transition-all data-[state=active]:bg-[#9b87f5]/10 data-[state=active]:text-[#9b87f5]"
             )}
           >
             <Wallet className="h-4 w-4" />
