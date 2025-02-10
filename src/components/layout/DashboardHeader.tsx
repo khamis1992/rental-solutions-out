@@ -9,11 +9,11 @@ export const DashboardHeader = () => {
   const navigate = useNavigate();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
-      <div className="container mx-auto h-[var(--header-height,56px)]">
+    <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
+      <div className="container h-[var(--header-height,56px)]">
         <div className="flex h-full items-center justify-between gap-2 md:gap-4 px-4">
           <div className="flex items-center">
-            <div className="font-semibold text-lg hidden md:block hover:text-primary transition-colors">
+            <div className="font-semibold text-base md:text-lg hover:text-primary transition-colors">
               Rental Solution
             </div>
           </div>
@@ -23,7 +23,7 @@ export const DashboardHeader = () => {
             <Button 
               variant="ghost" 
               size="icon"
-              className="h-9 w-9 md:h-10 md:w-10 hover:bg-primary/10 transition-colors"
+              className="h-8 w-8 md:h-10 md:w-10 hover:bg-primary/10 transition-colors"
               onClick={() => navigate("/settings")}
               aria-label="Settings"
             >

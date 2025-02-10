@@ -1,27 +1,28 @@
+
 @layer components {
   /* Grid System */
   .auto-grid {
-    @apply grid gap-4;
+    @apply grid gap-4 md:gap-6;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--min-column-width, 300px)), 1fr));
   }
 
   .flex-grid {
-    @apply flex flex-wrap gap-4;
+    @apply flex flex-wrap gap-4 md:gap-6;
   }
 
   /* Content Containers */
   .content-container {
-    @apply mx-auto px-4 w-full max-w-[var(--content-max-width)];
+    @apply mx-auto px-4 md:px-6 lg:px-8 w-full max-w-[var(--content-max-width)];
   }
 
   .section-container {
-    @apply py-[var(--section-spacing)] space-y-[var(--component-spacing)];
+    @apply py-4 md:py-6 lg:py-8 space-y-4 md:space-y-6;
   }
 
   /* Card Layouts */
   .card-grid {
-    @apply grid gap-6;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr));
+    @apply grid gap-4 md:gap-6;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   }
 
   .stats-grid {
@@ -38,6 +39,20 @@
   .form-section {
     @apply space-y-4 max-w-[var(--text-block-width)] mx-auto;
   }
+
+  /* Touch-friendly Elements */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+
+  /* Responsive Typography */
+  .text-responsive {
+    @apply text-sm md:text-base lg:text-lg;
+  }
+
+  .heading-responsive {
+    @apply text-lg md:text-xl lg:text-2xl font-semibold;
+  }
 }
 
 /* Responsive Containers */
@@ -47,7 +62,7 @@
   }
   
   :root {
-    --section-spacing: 1.5rem;
+    --section-spacing: 1rem;
     --component-spacing: 0.75rem;
   }
 }
@@ -56,10 +71,39 @@
   .content-container {
     @apply px-6;
   }
+  
+  :root {
+    --section-spacing: 1.5rem;
+    --component-spacing: 1rem;
+  }
 }
 
 @media (min-width: 1025px) {
   .content-container {
     @apply px-8;
+  }
+  
+  :root {
+    --section-spacing: 2rem;
+    --component-spacing: 1.5rem;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) {
+  .hover-only {
+    @apply hidden;
+  }
+  
+  .touch-scrolling {
+    -webkit-overflow-scrolling: touch;
+    @apply overflow-auto;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none;
   }
 }
