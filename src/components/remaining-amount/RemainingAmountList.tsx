@@ -8,8 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   FileText, Coins, Receipt, CreditCard, Calculator,
-  Clock, Copy, FileBox, CheckCircle, TrendingUp, TrendingDown,
-  AlertCircle, Calendar, BarChart
+  Copy, FileBox, CheckCircle, TrendingUp, TrendingDown,
+  AlertCircle, BarChart
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -129,14 +129,6 @@ export function RemainingAmountList() {
                     <span className="text-[#1A1F2C]">Remaining Amount</span>
                   </div>
                 </TableHead>
-                <TableHead className="font-semibold">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-[#9b87f5]/10">
-                      <Calendar className="h-5 w-5 text-[#9b87f5]" />
-                    </div>
-                    <span className="text-[#1A1F2C]">Agreement Duration</span>
-                  </div>
-                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -220,26 +212,12 @@ export function RemainingAmountList() {
                         </TooltipContent>
                       </Tooltip>
                     </TableCell>
-                    <TableCell>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <div className="flex items-center gap-2 bg-[#E5DEFF]/20 px-2 py-1 rounded-md">
-                            <Calendar className="h-4 w-4 text-[#9b87f5]" />
-                            {item.agreement_duration}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent className="flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          <p>Duration: {item.agreement_duration}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TableCell>
                   </TableRow>
                 );
               })}
               {!remainingAmounts?.length && (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-[400px] text-center">
+                  <TableCell colSpan={5} className="h-[400px] text-center">
                     <div className="flex flex-col items-center gap-4">
                       <div className="rounded-full bg-[#E5DEFF] p-4">
                         <FileBox className="h-8 w-8 text-[#9b87f5]" />
