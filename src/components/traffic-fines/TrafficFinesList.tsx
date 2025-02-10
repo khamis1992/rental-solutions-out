@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -6,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { ArrowUpDown, Calendar, MapPin, Car, AlertTriangle, DollarSign, Activity, ExternalLink, Copy, CheckCircle } from "lucide-react";
+import { ArrowUpDown, Calendar, MapPin, Car, AlertTriangle, Activity, ExternalLink, Copy, CheckCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -174,7 +173,6 @@ export function TrafficFinesList({ searchQuery, statusFilter, sortField, sortDir
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <SortableHeader field="fine_amount">
-                        <DollarSign className="h-4 w-4 text-orange-500" />
                         Amount
                       </SortableHeader>
                     </TooltipTrigger>
@@ -235,10 +233,7 @@ export function TrafficFinesList({ searchQuery, statusFilter, sortField, sortDir
                     </div>
                   </TableCell>
                   <TableCell className="font-semibold text-orange-600">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4" />
-                      {formatCurrency(fine.fine_amount || 0)}
-                    </div>
+                    {formatCurrency(fine.fine_amount || 0)}
                   </TableCell>
                   <TableCell>
                     <Badge
@@ -277,5 +272,4 @@ export function TrafficFinesList({ searchQuery, statusFilter, sortField, sortDir
   );
 }
 
-// Make sure we're exporting the component with both names for backward compatibility
 export const TrafficFineTable = TrafficFinesList;
