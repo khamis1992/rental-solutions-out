@@ -3,7 +3,7 @@ import {
   LayoutDashboard, CarFront, Users, FileText, Wrench, 
   DollarSign, AlertTriangle, BarChart3, Archive,
   Building2, Scale, HelpCircle, ChevronRight, 
-  ChevronLeft, Activity
+  ChevronLeft, Activity, Menu
 } from "lucide-react";
 import {
   Sidebar,
@@ -22,6 +22,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   Tooltip,
   TooltipContent,
@@ -154,14 +159,106 @@ const menuGroups: MenuGroup[] = [
 
 export const DashboardSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { session, isLoading } = useSessionContext();
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
   const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
+    if (!isMobile) {
+      setIsCollapsed(!isCollapsed);
+    }
   };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    closeMobileMenu();
+  }, [location.pathname]);
+
+  const renderSidebarContent = () => (
+    <SidebarContent>
+      <div className="flex h-14 items-center border-b px-4 justify-between">
+        {!isCollapsed && (
+          <span className="font-semibold text-lg bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
+            Rental Solutions
+          </span>
+        )}
+        {!isMobile && (
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            {isCollapsed ? (
+              <ChevronRight className="h-5 w-5 text-gray-500" />
+            ) : (
+              <ChevronLeft className="h-5 w-5 text-gray-500" />
+            )}
+          </button>
+        )}
+      </div>
+
+      <div className="py-4">
+        {menuGroups.map((group, groupIndex) => (
+          <SidebarGroup key={groupIndex} className="px-2">
+            {!isCollapsed && (
+              <SidebarGroupLabel className="px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {group.label}
+              </SidebarGroupLabel>
+            )}
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item, itemIndex) => {
+                  const isActive = location.pathname === item.href;
+                  return (
+                    <SidebarMenuItem key={itemIndex}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton
+                            asChild
+                            className={cn(
+                              "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200",
+                              "hover:bg-orange-50 group",
+                              isActive && "bg-orange-100 text-orange-600"
+                            )}
+                          >
+                            <Link to={item.href} className="flex items-center gap-3 w-full" onClick={closeMobileMenu}>
+                              <item.icon className={cn(
+                                "h-5 w-5 transition-transform group-hover:scale-110",
+                                isActive ? "text-orange-600" : "text-gray-500 group-hover:text-orange-500"
+                              )} />
+                              {!isCollapsed && (
+                                <span className={cn(
+                                  "font-medium text-sm transition-colors",
+                                  isActive ? "text-orange-600" : "text-gray-700 group-hover:text-orange-500"
+                                )}>
+                                  {item.label}
+                                </span>
+                              )}
+                            </Link>
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        {isCollapsed && (
+                          <TooltipContent side="right" className="ml-2">
+                            <div className="text-sm font-medium">{item.label}</div>
+                            <div className="text-xs text-gray-500">{item.description}</div>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
+      </div>
+    </SidebarContent>
+  );
 
   if (isLoading) {
     return (
@@ -180,88 +277,35 @@ export const DashboardSidebar = () => {
     );
   }
 
+  if (isMobile) {
+    return (
+      <>
+        <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+          <SheetTrigger asChild>
+            <button
+              className="fixed top-3 left-4 z-50 p-2 rounded-lg bg-white/80 backdrop-blur-sm border shadow-sm hover:bg-gray-100 transition-colors"
+              aria-label="Open menu"
+            >
+              <Menu className="h-5 w-5 text-gray-600" />
+            </button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[280px] p-0">
+            {renderSidebarContent()}
+          </SheetContent>
+        </Sheet>
+      </>
+    );
+  }
+
   return (
     <TooltipProvider>
       <Sidebar className={cn(
         "border-r transition-all duration-300 bg-gradient-to-b from-white to-gray-50",
         isCollapsed ? "w-[70px]" : "w-[280px]"
       )}>
-        <SidebarContent>
-          <div className="flex h-14 items-center border-b px-4 justify-between">
-            {!isCollapsed && (
-              <span className="font-semibold text-lg bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
-                Rental Solutions
-              </span>
-            )}
-            <button
-              onClick={toggleSidebar}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              {isCollapsed ? (
-                <ChevronRight className="h-5 w-5 text-gray-500" />
-              ) : (
-                <ChevronLeft className="h-5 w-5 text-gray-500" />
-              )}
-            </button>
-          </div>
-
-          <div className="py-4">
-            {menuGroups.map((group, groupIndex) => (
-              <SidebarGroup key={groupIndex} className="px-2">
-                {!isCollapsed && (
-                  <SidebarGroupLabel className="px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {group.label}
-                  </SidebarGroupLabel>
-                )}
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {group.items.map((item, itemIndex) => {
-                      const isActive = location.pathname === item.href;
-                      return (
-                        <SidebarMenuItem key={itemIndex}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <SidebarMenuButton
-                                asChild
-                                className={cn(
-                                  "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200",
-                                  "hover:bg-orange-50 group",
-                                  isActive && "bg-orange-100 text-orange-600"
-                                )}
-                              >
-                                <Link to={item.href} className="flex items-center gap-3 w-full">
-                                  <item.icon className={cn(
-                                    "h-5 w-5 transition-transform group-hover:scale-110",
-                                    isActive ? "text-orange-600" : "text-gray-500 group-hover:text-orange-500"
-                                  )} />
-                                  {!isCollapsed && (
-                                    <span className={cn(
-                                      "font-medium text-sm transition-colors",
-                                      isActive ? "text-orange-600" : "text-gray-700 group-hover:text-orange-500"
-                                    )}>
-                                      {item.label}
-                                    </span>
-                                  )}
-                                </Link>
-                              </SidebarMenuButton>
-                            </TooltipTrigger>
-                            {isCollapsed && (
-                              <TooltipContent side="right" className="ml-2">
-                                <div className="text-sm font-medium">{item.label}</div>
-                                <div className="text-xs text-gray-500">{item.description}</div>
-                              </TooltipContent>
-                            )}
-                          </Tooltip>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            ))}
-          </div>
-        </SidebarContent>
+        {renderSidebarContent()}
       </Sidebar>
     </TooltipProvider>
   );
 };
+
