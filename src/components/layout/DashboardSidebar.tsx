@@ -1,4 +1,3 @@
-
 import { 
   LayoutDashboard, CarFront, Users, FileText, Wrench, 
   DollarSign, AlertTriangle, BarChart3, Archive,
@@ -176,12 +175,10 @@ export const DashboardSidebar = () => {
     setIsMobileMenuOpen(false);
   };
 
-  // Close mobile menu on route change
   useEffect(() => {
     closeMobileMenu();
   }, [location.pathname]);
 
-  // Handle escape key press
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && isMobileMenuOpen) {
@@ -303,17 +300,17 @@ export const DashboardSidebar = () => {
           <SheetTrigger asChild>
             <button
               ref={menuButtonRef}
-              className="fixed top-3 left-4 z-50 p-2 rounded-lg bg-white/80 backdrop-blur-sm border shadow-sm hover:bg-gray-100 active:bg-gray-200 transition-colors"
+              className="fixed top-3 left-4 z-[100] p-2.5 rounded-lg bg-white shadow-lg hover:bg-gray-50 active:bg-gray-100 transition-colors ring-1 ring-black/5"
               aria-label="Open menu"
             >
-              <Menu className="h-5 w-5 text-gray-600" />
+              <Menu className="h-5 w-5 text-gray-700" />
             </button>
           </SheetTrigger>
           <SheetContent 
             side="left" 
             className="w-[280px] p-0 border-r bg-white"
-            onInteractOutside={() => setIsMobileMenuOpen(false)}
-            onEscapeKeyDown={() => setIsMobileMenuOpen(false)}
+            onInteractOutside={closeMobileMenu}
+            onEscapeKeyDown={closeMobileMenu}
           >
             {renderSidebarContent()}
           </SheetContent>
