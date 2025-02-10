@@ -134,7 +134,7 @@ export const AgreementListContent = ({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {agreements.map((agreement) => {
           const statusConfig = getStatusConfig(agreement.status);
           
@@ -159,14 +159,14 @@ export const AgreementListContent = ({
                     <div className="p-1.5 bg-blue-50 rounded-lg group-hover/button:bg-blue-100 transition-colors">
                       <FileText className="h-4 w-4" />
                     </div>
-                    <span className="truncate">{agreement.agreement_number}</span>
+                    <span>{agreement.agreement_number}</span>
                   </button>
                   <Badge 
                     variant="outline" 
                     className={`capitalize ${statusConfig.color} ${statusConfig.bgColor} border-0 px-2 py-0.5 transition-all duration-300 flex items-center gap-1.5 w-fit font-medium`}
                   >
                     {statusConfig.icon}
-                    <span className="truncate">{agreement.status}</span>
+                    <span>{agreement.status}</span>
                   </Badge>
                 </div>
               </CardHeader>
@@ -177,12 +177,12 @@ export const AgreementListContent = ({
                     <Car className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                    <p className="font-medium text-gray-900 dark:text-gray-100">
                       {agreement.vehicle?.make} {agreement.vehicle?.model}
                     </p>
                     <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
                       <MapPin className="h-3.5 w-3.5" />
-                      <span className="truncate">{agreement.vehicle?.license_plate}</span>
+                      <span>{agreement.vehicle?.license_plate}</span>
                     </div>
                   </div>
                 </div>
@@ -192,13 +192,13 @@ export const AgreementListContent = ({
                     <User className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                    <p className="font-medium text-gray-900 dark:text-gray-100">
                       {agreement.customer?.full_name}
                     </p>
                     {agreement.total_amount && (
                       <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
                         <DollarSign className="h-3.5 w-3.5" />
-                        <span className="truncate">
+                        <span>
                           {new Intl.NumberFormat('en-US', {
                             style: 'currency',
                             currency: 'USD'
@@ -209,7 +209,7 @@ export const AgreementListContent = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
                     <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                       <Calendar className="h-3.5 w-3.5" />
@@ -310,3 +310,4 @@ export const AgreementListContent = ({
     </div>
   );
 };
+
