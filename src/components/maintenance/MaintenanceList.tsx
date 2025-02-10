@@ -193,19 +193,19 @@ export const MaintenanceList = () => {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <div className="w-full bg-gradient-to-r from-orange-50 via-orange-100 to-orange-50 shadow-md">
-        <div className="relative overflow-hidden p-4 md:p-6">
+        <div className="relative overflow-hidden p-6">
           <div className="absolute top-0 right-0 w-64 h-64 -mr-32 -mt-32 opacity-20">
             <CircuitBoard className="w-full h-full text-orange-500 animate-pulse" />
           </div>
           
-          <div className="relative flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div className="relative flex items-start justify-between">
             <div className="space-y-2">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-lg transform hover:scale-110 transition-transform duration-200">
-                  <Wrench className="h-6 w-6 md:h-8 md:w-8 text-white animate-[spin_3s_linear_infinite]" />
+                  <Wrench className="h-8 w-8 text-white animate-[spin_3s_linear_infinite]" />
                 </div>
                 <div>
-                  <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-orange-600 via-orange-500 to-orange-600 text-transparent bg-clip-text">
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 via-orange-500 to-orange-600 text-transparent bg-clip-text">
                     Maintenance
                   </h1>
                   <p className="text-sm text-muted-foreground mt-1">
@@ -214,7 +214,7 @@ export const MaintenanceList = () => {
                 </div>
               </div>
               
-              <div className="flex flex-wrap items-center gap-2 mt-2">
+              <div className="flex items-center gap-2 mt-2">
                 <Badge 
                   variant="outline" 
                   className="bg-orange-100 text-orange-700 border-orange-200 px-3 py-1 animate-fade-in"
@@ -244,12 +244,12 @@ export const MaintenanceList = () => {
 
         <MaintenanceStats maintenanceData={records} />
 
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-2 touch-scrolling">
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
           <Button
             variant={filter === "all" ? "default" : "outline"}
             size="sm"
             onClick={() => setFilter("all")}
-            className="whitespace-nowrap hover:scale-105 transition-transform duration-200 touch-target"
+            className="whitespace-nowrap hover:scale-105 transition-transform duration-200"
           >
             All Records
           </Button>
@@ -259,7 +259,7 @@ export const MaintenanceList = () => {
               variant={filter === status ? "default" : "outline"}
               size="sm"
               onClick={() => setFilter(status)}
-              className={`whitespace-nowrap hover:scale-105 transition-transform duration-200 touch-target ${
+              className={`whitespace-nowrap hover:scale-105 transition-transform duration-200 ${
                 status === 'urgent' ? 'hover:bg-red-50' :
                 status === 'completed' ? 'hover:bg-green-50' :
                 status === 'in_progress' ? 'hover:bg-blue-50' :
@@ -272,12 +272,12 @@ export const MaintenanceList = () => {
         </div>
 
         {records.length === 0 ? (
-          <Card className="p-4 md:p-8 bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+          <Card className="p-8 bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
             <div className="flex flex-col items-center justify-center text-center space-y-4">
               <div className="p-4 rounded-full bg-orange-100 border-2 border-orange-200">
-                <Wrench className="h-8 w-8 md:h-12 md:w-12 text-primary animate-bounce" />
+                <Wrench className="h-12 w-12 text-primary animate-bounce" />
               </div>
-              <p className="text-lg md:text-xl font-semibold text-gray-800">No maintenance records found</p>
+              <p className="text-xl font-semibold text-gray-800">No maintenance records found</p>
               <p className="text-sm text-gray-600 max-w-md">
                 Create a new maintenance job to start tracking vehicle maintenance and repairs
               </p>
@@ -348,7 +348,7 @@ export const MaintenanceList = () => {
                         variant="ghost" 
                         size="sm"
                         onClick={() => handleDelete(record.id)}
-                        className="hover:bg-destructive/10 hover:text-destructive transition-colors touch-target"
+                        className="hover:bg-destructive/10 hover:text-destructive transition-colors"
                       >
                         <XCircle className="h-4 w-4" />
                       </Button>
@@ -356,9 +356,9 @@ export const MaintenanceList = () => {
                   </div>
 
                   <div className="flex justify-center items-center space-x-2 bg-gray-50/50 p-3 rounded-lg hover:bg-gray-100/50 transition-colors">
-                    <Car className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+                    <Car className="h-6 w-6 text-primary" />
                     <div className="text-center">
-                      <p className="text-base md:text-lg font-medium">
+                      <p className="text-lg font-medium">
                         {record.vehicles 
                           ? `${record.vehicles.make} ${record.vehicles.model}`
                           : "Vehicle details unavailable"}
@@ -372,7 +372,7 @@ export const MaintenanceList = () => {
                   <div className="p-3 bg-white rounded-lg space-y-3 shadow-sm group-hover:shadow-md transition-all duration-200">
                     <div className="flex items-center space-x-3">
                       {getServiceIcon(record.service_type)}
-                      <p className="text-base md:text-lg font-medium">{record.service_type}</p>
+                      <p className="text-lg font-medium">{record.service_type}</p>
                     </div>
                     {record.description && (
                       <div className="flex items-start space-x-2">
