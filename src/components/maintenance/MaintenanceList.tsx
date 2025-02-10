@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { formatDateToDisplay } from "@/lib/dateUtils";
@@ -250,9 +249,8 @@ export const MaintenanceList = () => {
             variant={filter === "all" ? "default" : "outline"}
             size="sm"
             onClick={() => setFilter("all")}
-            className="flex items-center gap-2 whitespace-nowrap hover:scale-105 transition-transform duration-200"
+            className="whitespace-nowrap hover:scale-105 transition-transform duration-200"
           >
-            <Wrench className="h-4 w-4" />
             All Records
           </Button>
           {["scheduled", "in_progress", "urgent", "completed", "cancelled"].map((status) => (
@@ -261,14 +259,13 @@ export const MaintenanceList = () => {
               variant={filter === status ? "default" : "outline"}
               size="sm"
               onClick={() => setFilter(status)}
-              className={`flex items-center gap-2 whitespace-nowrap hover:scale-105 transition-transform duration-200 ${
+              className={`whitespace-nowrap hover:scale-105 transition-transform duration-200 ${
                 status === 'urgent' ? 'hover:bg-red-50' :
                 status === 'completed' ? 'hover:bg-green-50' :
                 status === 'in_progress' ? 'hover:bg-blue-50' :
                 'hover:bg-gray-50'
               }`}
             >
-              {getStatusIcon(status)}
               <span className="capitalize">{status.replace('_', ' ')}</span>
             </Button>
           ))}
