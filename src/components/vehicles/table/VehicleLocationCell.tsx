@@ -43,13 +43,13 @@ export const VehicleLocationCell = ({
 
   if (!isEditing) {
     return (
-      <div className="flex items-center justify-between group">
+      <div className="flex items-center justify-between group/location">
         <div className={cn(
           "flex items-center gap-2 text-sm",
-          "transition-all duration-300 hover:scale-105"
+          "transition-all duration-300 hover:scale-105 group-hover:text-primary"
         )}>
-          <div className="p-1.5 bg-muted rounded-md">
-            <MapPin className="h-4 w-4 text-muted-foreground" />
+          <div className="p-1.5 bg-muted rounded-md group-hover:bg-primary/10 transition-colors">
+            <MapPin className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
           </div>
           <span>{location || "Not set"}</span>
         </div>
@@ -60,7 +60,7 @@ export const VehicleLocationCell = ({
                 variant="ghost" 
                 size="sm" 
                 onClick={onEditStart}
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                className="opacity-0 group-hover/location:opacity-100 transition-opacity hover:bg-primary/10 hover:text-primary"
               >
                 <Edit2 className="h-4 w-4" />
               </Button>

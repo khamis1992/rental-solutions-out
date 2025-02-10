@@ -49,7 +49,9 @@ export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
             "animate-fade-in relative",
             "before:absolute before:left-0 before:top-0 before:h-full before:w-1",
             "before:bg-transparent hover:before:bg-primary/50",
-            "before:transition-colors before:duration-300"
+            "before:transition-colors before:duration-300",
+            "hover:scale-[1.01] hover:shadow-lg",
+            "backdrop-blur-sm hover:backdrop-blur-md"
           )}
         >
           <TableCell>
@@ -58,17 +60,17 @@ export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
               className="font-medium text-primary hover:underline flex items-center gap-2 group/link"
             >
               <div className="p-1.5 bg-primary/10 rounded-md group-hover/link:bg-primary/20 transition-colors">
-                <Car className="h-4 w-4 text-primary" />
+                <Car className="h-4 w-4 text-primary group-hover/link:scale-110 transition-transform" />
               </div>
               <div className="flex items-center gap-2">
-                <span>{vehicle.license_plate}</span>
+                <span className="font-mono">{vehicle.license_plate}</span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 p-0 hover:bg-muted"
+                        className="h-6 w-6 p-0 hover:bg-primary/10 hover:text-primary transition-colors"
                         onClick={(e) => {
                           e.preventDefault();
                           copyToClipboard(vehicle.license_plate);
@@ -89,24 +91,28 @@ export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
           <TableCell className="font-medium">
             <div className="flex items-center gap-2">
               <div className="p-1.5 bg-muted rounded-md">
-                <Car className="h-4 w-4 text-muted-foreground" />
+                <Car className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
-              <span className="font-medium">{vehicle.make}</span>
+              <span className="font-medium group-hover:text-primary transition-colors">{vehicle.make}</span>
             </div>
           </TableCell>
 
           <TableCell>
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">{vehicle.model}</span>
+              <span className="text-muted-foreground group-hover:text-foreground transition-colors">{vehicle.model}</span>
             </div>
           </TableCell>
 
           <TableCell>
             <Badge 
               variant="outline" 
-              className="font-mono bg-muted/50 hover:bg-muted transition-colors"
+              className={cn(
+                "font-mono bg-muted/50 hover:bg-muted transition-colors",
+                "group-hover:border-primary/50",
+                "flex items-center gap-1.5"
+              )}
             >
-              <Calendar className="h-3.5 w-3.5 mr-1" />
+              <Calendar className="h-3.5 w-3.5" />
               {vehicle.year}
             </Badge>
           </TableCell>
