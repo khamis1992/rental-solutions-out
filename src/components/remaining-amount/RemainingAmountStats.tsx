@@ -95,7 +95,7 @@ export function RemainingAmountStats() {
                 {card.title}
               </CardTitle>
               <div className={`rounded-full p-2 transition-all duration-300 group-hover:scale-110 ${card.iconClassName}`}>
-                <Icon className="h-4 w-4" />
+                <Icon className="h-6 w-6" />
               </div>
             </CardHeader>
             <CardContent>
