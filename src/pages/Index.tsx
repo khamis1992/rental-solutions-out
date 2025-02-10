@@ -1,4 +1,3 @@
-
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Suspense, lazy } from "react";
 import { usePerformanceMonitoring } from "@/hooks/use-performance-monitoring";
@@ -6,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { AnomalyMonitoring } from "@/components/analytics/AnomalyMonitoring";
 import { Card } from "@/components/ui/card";
+import { VehicleStatusList } from "@/components/dashboard/VehicleStatusList";
 
 const DashboardStats = lazy(() => import("@/components/dashboard/DashboardStats").then(module => ({ default: module.DashboardStats })));
 const DashboardAlerts = lazy(() => import("@/components/dashboard/DashboardAlerts").then(module => ({ default: module.DashboardAlerts })));
@@ -66,8 +66,8 @@ const Index = () => {
                 </ErrorBoundary>
 
                 <ErrorBoundary>
-                  <Suspense fallback={<ComponentLoader componentName="Dashboard Alerts" />}>
-                    <DashboardAlerts />
+                  <Suspense fallback={<ComponentLoader componentName="Vehicle Status List" />}>
+                    <VehicleStatusList selectedStatus="all" />
                   </Suspense>
                 </ErrorBoundary>
               </div>
