@@ -4,13 +4,14 @@ import { Suspense, lazy, useState } from "react";
 import { usePerformanceMonitoring } from "@/hooks/use-performance-monitoring";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
-import { AnomalyMonitoring } from "@/components/analytics/AnomalyMonitoring";
 import { Card } from "@/components/ui/card";
 import { VehicleStatusList } from "@/components/dashboard/VehicleStatusList";
 import { VehicleStatusChart } from "@/components/dashboard/VehicleStatusChart";
+import { QuickActions } from "@/components/dashboard/QuickActions";
+import { BusinessHealth } from "@/components/dashboard/BusinessHealth";
+import { SmartNotifications } from "@/components/dashboard/SmartNotifications";
 
 const DashboardStats = lazy(() => import("@/components/dashboard/DashboardStats").then(module => ({ default: module.DashboardStats })));
-const DashboardAlerts = lazy(() => import("@/components/dashboard/DashboardAlerts").then(module => ({ default: module.DashboardAlerts })));
 const WelcomeHeader = lazy(() => import("@/components/dashboard/WelcomeHeader").then(module => ({ default: module.WelcomeHeader })));
 const RecentActivity = lazy(() => import("@/components/dashboard/RecentActivity").then(module => ({ default: module.RecentActivity })));
 const SystemChatbot = lazy(() => import("@/components/chat/SystemChatbot").then(module => ({ default: module.SystemChatbot })));
@@ -60,6 +61,16 @@ const Index = () => {
                   </Suspense>
                 </ErrorBoundary>
               </div>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <ErrorBoundary>
+                  <BusinessHealth />
+                </ErrorBoundary>
+
+                <ErrorBoundary>
+                  <SmartNotifications />
+                </ErrorBoundary>
+              </div>
               
               <div className="grid gap-6 md:grid-cols-2">
                 <ErrorBoundary>
@@ -70,6 +81,10 @@ const Index = () => {
                   <VehicleStatusList selectedStatus={selectedStatus} />
                 </ErrorBoundary>
               </div>
+
+              <ErrorBoundary>
+                <QuickActions />
+              </ErrorBoundary>
               
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
                 <div className="lg:col-span-4">
