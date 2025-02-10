@@ -5,7 +5,21 @@ import type { Agreement } from "../hooks/useAgreements";
 import { formatDateToDisplay } from "@/lib/dateUtils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Trash2, Info, Car, User, Calendar, Activity, CheckCircle, Clock, XCircle, CheckSquare } from "lucide-react";
+import { 
+  FileText, 
+  Trash2, 
+  Info, 
+  Car, 
+  User, 
+  Calendar, 
+  Activity, 
+  CheckCircle, 
+  Clock, 
+  XCircle, 
+  CheckSquare,
+  DollarSign,
+  MapPin
+} from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -49,31 +63,36 @@ export const AgreementListContent = ({
   const [templateContent, setTemplateContent] = useState("");
   const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
 
-  const getStatusConfig = (status: string): { color: string; icon: React.ReactNode } => {
+  const getStatusConfig = (status: string): { color: string; icon: React.ReactNode; bgColor: string } => {
     switch (status) {
       case 'active':
         return {
-          color: 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border-emerald-400',
+          color: 'text-emerald-700 dark:text-emerald-400',
+          bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
           icon: <CheckCircle className="h-3.5 w-3.5 animate-pulse" />
         };
       case 'pending_payment':
         return {
-          color: 'bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-400',
+          color: 'text-amber-700 dark:text-amber-400',
+          bgColor: 'bg-amber-50 dark:bg-amber-900/20',
           icon: <Clock className="h-3.5 w-3.5" />
         };
       case 'terminated':
         return {
-          color: 'bg-red-100 text-red-800 hover:bg-red-200 border-red-400',
+          color: 'text-red-700 dark:text-red-400',
+          bgColor: 'bg-red-50 dark:bg-red-900/20',
           icon: <XCircle className="h-3.5 w-3.5" />
         };
       case 'completed':
         return {
-          color: 'bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-400',
+          color: 'text-blue-700 dark:text-blue-400',
+          bgColor: 'bg-blue-50 dark:bg-blue-900/20',
           icon: <CheckSquare className="h-3.5 w-3.5" />
         };
       default:
         return {
-          color: 'bg-gray-100 text-gray-800 hover:bg-gray-200 border-gray-400',
+          color: 'text-gray-700 dark:text-gray-400',
+          bgColor: 'bg-gray-50 dark:bg-gray-900/20',
           icon: <Activity className="h-3.5 w-3.5" />
         };
     }
@@ -120,19 +139,31 @@ export const AgreementListContent = ({
           const statusConfig = getStatusConfig(agreement.status);
           
           return (
-            <Card key={agreement.id} className="hover:shadow-md transition-shadow duration-200">
+            <Card 
+              key={agreement.id} 
+              className="group hover:shadow-lg transition-all duration-300 border-l-4 dark:bg-gray-800/50 backdrop-blur-sm"
+              style={{ 
+                borderLeftColor: agreement.status === 'active' ? '#10B981' 
+                  : agreement.status === 'pending_payment' ? '#F59E0B'
+                  : agreement.status === 'terminated' ? '#EF4444'
+                  : agreement.status === 'completed' ? '#3B82F6'
+                  : '#6B7280'
+              }}
+            >
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <button
                     onClick={() => onNameClick(agreement.id)}
-                    className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                    className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-medium transition-colors group/button"
                   >
-                    <FileText className="h-4 w-4" />
+                    <div className="p-1.5 bg-blue-50 rounded-lg group-hover/button:bg-blue-100 transition-colors">
+                      <FileText className="h-4 w-4" />
+                    </div>
                     <span className="truncate">{agreement.agreement_number}</span>
                   </button>
                   <Badge 
                     variant="outline" 
-                    className={`capitalize ${statusConfig.color} border px-2 py-0.5 transition-all duration-300 flex items-center gap-1 w-fit`}
+                    className={`capitalize ${statusConfig.color} ${statusConfig.bgColor} border-0 px-2 py-0.5 transition-all duration-300 flex items-center gap-1.5 w-fit font-medium`}
                   >
                     {statusConfig.icon}
                     <span className="truncate">{agreement.status}</span>
@@ -141,39 +172,61 @@ export const AgreementListContent = ({
               </CardHeader>
 
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-blue-50 rounded-full">
-                    <Car className="h-4 w-4 text-blue-600" />
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-50 rounded-lg dark:bg-blue-900/20">
+                    <Car className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">
+                    <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
                       {agreement.vehicle?.make} {agreement.vehicle?.model}
                     </p>
-                    <p className="text-sm text-gray-500 truncate">
-                      {agreement.vehicle?.license_plate}
-                    </p>
+                    <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+                      <MapPin className="h-3.5 w-3.5" />
+                      <span className="truncate">{agreement.vehicle?.license_plate}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <div className="flex-shrink-0 h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <User className="h-4 w-4 text-blue-600" />
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-purple-50 rounded-lg dark:bg-purple-900/20">
+                    <User className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">
+                    <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
                       {agreement.customer?.full_name}
                     </p>
+                    {agreement.total_amount && (
+                      <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+                        <DollarSign className="h-3.5 w-3.5" />
+                        <span className="truncate">
+                          {new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD'
+                          }).format(agreement.total_amount)}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="flex items-center gap-1.5 text-gray-600">
-                    <Calendar className="h-4 w-4" />
-                    <span className="truncate">{formatDateToDisplay(agreement.start_date)}</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex flex-col gap-1 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                      <Calendar className="h-3.5 w-3.5" />
+                      <span>Start Date</span>
+                    </div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {formatDateToDisplay(agreement.start_date)}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-1.5 text-gray-600">
-                    <Calendar className="h-4 w-4" />
-                    <span className="truncate">{formatDateToDisplay(agreement.end_date)}</span>
+                  <div className="flex flex-col gap-1 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                      <Calendar className="h-3.5 w-3.5" />
+                      <span>End Date</span>
+                    </div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {formatDateToDisplay(agreement.end_date)}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -186,9 +239,9 @@ export const AgreementListContent = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleViewTemplate(agreement.id)}
-                        className="hover:bg-blue-50 transition-colors duration-300"
+                        className="hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-300"
                       >
-                        <FileText className="h-4 w-4 text-blue-600 hover:text-blue-700 transition-colors duration-300" />
+                        <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -202,9 +255,9 @@ export const AgreementListContent = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => onNameClick(agreement.id)}
-                        className="hover:bg-blue-50 transition-colors duration-300"
+                        className="hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-300"
                       >
-                        <Info className="h-4 w-4 text-blue-600 hover:text-blue-700 transition-colors duration-300" />
+                        <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -218,9 +271,9 @@ export const AgreementListContent = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => setShowDeleteDialog(agreement.id)}
-                        className="hover:bg-red-50 transition-colors duration-300"
+                        className="hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-300"
                       >
-                        <Trash2 className="h-4 w-4 text-red-600 hover:text-red-500 transition-colors duration-300" />
+                        <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -257,4 +310,3 @@ export const AgreementListContent = ({
     </div>
   );
 };
-
