@@ -1,8 +1,10 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Car, Clock, CheckCircle, Banknote } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export const RecentActivity = () => {
   const { data: recentActivities } = useQuery({
@@ -110,34 +112,42 @@ export const RecentActivity = () => {
   ].filter(Boolean);
 
   return (
-    <Card className="lg:col-span-4">
-      <CardHeader>
-        <CardTitle>Recent Activity</CardTitle>
+    <Card className="h-full">
+      <CardHeader className="p-4 md:p-6">
+        <CardTitle className="text-base md:text-lg font-semibold">Recent Activity</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {activities.map((activity, i) => (
-            activity && (
-              <div key={i} className="flex items-center gap-4 p-4 rounded-lg border">
-                <div className={`h-12 w-12 rounded-full flex items-center justify-center
-                  ${activity.status === 'success' ? 'bg-emerald-50 text-emerald-500' :
-                    activity.status === 'warning' ? 'bg-yellow-50 text-yellow-500' :
-                    'bg-blue-50 text-blue-500'}`}>
-                  <activity.icon className="h-6 w-6" />
+      <CardContent className="p-0">
+        <ScrollArea className="h-[calc(100vh-20rem)] min-h-[300px] max-h-[600px]">
+          <div className="space-y-3 p-4 md:p-6">
+            {activities.map((activity, i) => (
+              activity && (
+                <div 
+                  key={i} 
+                  className="flex items-start gap-3 p-3 md:p-4 rounded-lg border hover:bg-accent/5 transition-colors duration-200"
+                >
+                  <div className={`flex-shrink-0 h-10 w-10 md:h-12 md:w-12 rounded-full flex items-center justify-center
+                    ${activity.status === 'success' ? 'bg-emerald-50 text-emerald-500' :
+                      activity.status === 'warning' ? 'bg-yellow-50 text-yellow-500' :
+                      'bg-blue-50 text-blue-500'}`}
+                  >
+                    <activity.icon className="h-5 w-5 md:h-6 md:w-6" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm md:text-base font-medium line-clamp-1">
+                      {activity.title}
+                    </h4>
+                    <p className="text-xs md:text-sm text-muted-foreground line-clamp-2 mt-0.5">
+                      {activity.description}
+                    </p>
+                  </div>
+                  <span className="text-xs md:text-sm text-muted-foreground whitespace-nowrap flex-shrink-0">
+                    {activity.time}
+                  </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-medium truncate">{activity.title}</h4>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {activity.description}
-                  </p>
-                </div>
-                <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  {activity.time}
-                </span>
-              </div>
-            )
-          ))}
-        </div>
+              )
+            ))}
+          </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );
