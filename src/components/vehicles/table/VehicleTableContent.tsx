@@ -6,7 +6,15 @@ import { VehicleLocationCell } from "./VehicleLocationCell";
 import { VehicleInsuranceCell } from "./VehicleInsuranceCell";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Trash2, Car } from "lucide-react";
+import { 
+  Trash2, 
+  Car, 
+  Copy, 
+  Shield, 
+  Info,
+  Calendar,
+  MapPin
+} from "lucide-react";
 import { 
   Tooltip,
   TooltipContent,
@@ -16,6 +24,7 @@ import {
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface VehicleTableContentProps {
   vehicles: Vehicle[];
@@ -24,6 +33,11 @@ interface VehicleTableContentProps {
 export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
   const [editingLocation, setEditingLocation] = useState<string | null>(null);
   const [editingInsurance, setEditingInsurance] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("License plate copied to clipboard");
+  };
 
   return (
     <>
@@ -46,7 +60,29 @@ export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
               <div className="p-1.5 bg-primary/10 rounded-md group-hover/link:bg-primary/20 transition-colors">
                 <Car className="h-4 w-4 text-primary" />
               </div>
-              <span>{vehicle.license_plate}</span>
+              <div className="flex items-center gap-2">
+                <span>{vehicle.license_plate}</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 hover:bg-muted"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          copyToClipboard(vehicle.license_plate);
+                        }}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Copy license plate</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </Link>
           </TableCell>
 
@@ -55,18 +91,22 @@ export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
               <div className="p-1.5 bg-muted rounded-md">
                 <Car className="h-4 w-4 text-muted-foreground" />
               </div>
-              {vehicle.make}
+              <span className="font-medium">{vehicle.make}</span>
             </div>
           </TableCell>
 
           <TableCell>
             <div className="flex items-center gap-2">
-              {vehicle.model}
+              <span className="text-muted-foreground">{vehicle.model}</span>
             </div>
           </TableCell>
 
           <TableCell>
-            <Badge variant="outline" className="font-mono">
+            <Badge 
+              variant="outline" 
+              className="font-mono bg-muted/50 hover:bg-muted transition-colors"
+            >
+              <Calendar className="h-3.5 w-3.5 mr-1" />
               {vehicle.year}
             </Badge>
           </TableCell>
@@ -99,14 +139,29 @@ export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
           </TableCell>
 
           <TableCell className="text-right">
-            <div className="flex items-center justify-end gap-1">
+            <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
                       variant="ghost" 
-                      size="sm" 
-                      className="hover:bg-destructive/10 hover:text-destructive transition-colors"
+                      size="sm"
+                      className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                    >
+                      <Info className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>View Details</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive transition-colors"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
