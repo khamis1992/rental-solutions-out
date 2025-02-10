@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
-  FileText, Coins, Receipt, CreditCard, Calculator,
+  FileText, Car, Coins, Receipt, CreditCard, Calculator,
   Clock, Copy, FileBox, CheckCircle, TrendingUp, TrendingDown,
   AlertCircle, Calendar, BarChart
 } from "lucide-react";
@@ -97,6 +97,14 @@ export function RemainingAmountList() {
                     <span className="text-[#1A1F2C]">Agreement Number</span>
                   </div>
                 </TableHead>
+                <TableHead className="font-semibold">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-[#9b87f5]/10">
+                      <Car className="h-5 w-5 text-[#9b87f5]" />
+                    </div>
+                    <span className="text-[#1A1F2C]">License Plate</span>
+                  </div>
+                </TableHead>
                 <TableHead className="text-right font-semibold">
                   <div className="flex items-center justify-end gap-2">
                     <div className="p-1.5 rounded-lg bg-[#9b87f5]/10">
@@ -161,6 +169,19 @@ export function RemainingAmountList() {
                           <Copy className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                       </Button>
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <div className="flex items-center gap-2 bg-[#E5DEFF]/20 px-2 py-1 rounded-md">
+                            <Car className="h-4 w-4 text-[#9b87f5]" />
+                            {item.license_plate}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Vehicle License: {item.license_plate}</p>
+                        </TooltipContent>
+                      </Tooltip>
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       <div className="flex items-center justify-end gap-2">
@@ -239,7 +260,7 @@ export function RemainingAmountList() {
               })}
               {!remainingAmounts?.length && (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-[400px] text-center">
+                  <TableCell colSpan={7} className="h-[400px] text-center">
                     <div className="flex flex-col items-center gap-4">
                       <div className="rounded-full bg-[#E5DEFF] p-4">
                         <FileBox className="h-8 w-8 text-[#9b87f5]" />
@@ -261,4 +282,3 @@ export function RemainingAmountList() {
     </TooltipProvider>
   );
 }
-
