@@ -1,3 +1,4 @@
+
 import { 
   LayoutDashboard, CarFront, Users, FileText, Wrench, 
   DollarSign, AlertTriangle, BarChart3, Archive,
@@ -14,7 +15,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useSessionContext } from '@supabase/auth-helpers-react';
 import { supabase } from "@/integrations/supabase/client";
@@ -163,7 +164,6 @@ export const DashboardSidebar = () => {
   const { session, isLoading } = useSessionContext();
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   const toggleSidebar = () => {
     if (!isMobile) {
@@ -175,24 +175,14 @@ export const DashboardSidebar = () => {
     setIsMobileMenuOpen(false);
   };
 
+  // Close mobile menu on route change
   useEffect(() => {
     closeMobileMenu();
   }, [location.pathname]);
 
-  useEffect(() => {
-    const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isMobileMenuOpen) {
-        closeMobileMenu();
-      }
-    };
-
-    window.addEventListener('keydown', handleEscapeKey);
-    return () => window.removeEventListener('keydown', handleEscapeKey);
-  }, [isMobileMenuOpen]);
-
   const renderSidebarContent = () => (
-    <SidebarContent className="flex flex-col h-full">
-      <div className="flex h-14 items-center border-b px-4 justify-between bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <SidebarContent>
+      <div className="flex h-14 items-center border-b px-4 justify-between">
         {!isCollapsed && (
           <span className="font-semibold text-lg bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
             Rental Solutions
@@ -202,7 +192,6 @@ export const DashboardSidebar = () => {
           <button
             onClick={toggleSidebar}
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isCollapsed ? (
               <ChevronRight className="h-5 w-5 text-gray-500" />
@@ -213,11 +202,11 @@ export const DashboardSidebar = () => {
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto py-4 px-2">
+      <div className="py-4">
         {menuGroups.map((group, groupIndex) => (
-          <SidebarGroup key={groupIndex}>
+          <SidebarGroup key={groupIndex} className="px-2">
             {!isCollapsed && (
-              <SidebarGroupLabel className="px-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <SidebarGroupLabel className="px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
                 {group.label}
               </SidebarGroupLabel>
             )}
@@ -233,16 +222,11 @@ export const DashboardSidebar = () => {
                             asChild
                             className={cn(
                               "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200",
-                              "hover:bg-orange-50 active:bg-orange-100 group",
-                              "touch-manipulation",
+                              "hover:bg-orange-50 group",
                               isActive && "bg-orange-100 text-orange-600"
                             )}
                           >
-                            <Link 
-                              to={item.href} 
-                              className="flex items-center gap-3 w-full" 
-                              onClick={closeMobileMenu}
-                            >
+                            <Link to={item.href} className="flex items-center gap-3 w-full" onClick={closeMobileMenu}>
                               <item.icon className={cn(
                                 "h-5 w-5 transition-transform group-hover:scale-110",
                                 isActive ? "text-orange-600" : "text-gray-500 group-hover:text-orange-500"
@@ -299,19 +283,13 @@ export const DashboardSidebar = () => {
         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
           <SheetTrigger asChild>
             <button
-              ref={menuButtonRef}
-              className="fixed top-3 left-4 z-[100] p-2.5 rounded-lg bg-white shadow-lg hover:bg-gray-50 active:bg-gray-100 transition-colors ring-1 ring-black/5"
+              className="fixed top-3 left-4 z-50 p-2 rounded-lg bg-white/80 backdrop-blur-sm border shadow-sm hover:bg-gray-100 transition-colors"
               aria-label="Open menu"
             >
-              <Menu className="h-5 w-5 text-gray-700" />
+              <Menu className="h-5 w-5 text-gray-600" />
             </button>
           </SheetTrigger>
-          <SheetContent 
-            side="left" 
-            className="w-[280px] p-0 border-r bg-white"
-            onInteractOutside={closeMobileMenu}
-            onEscapeKeyDown={closeMobileMenu}
-          >
+          <SheetContent side="left" className="w-[280px] p-0">
             {renderSidebarContent()}
           </SheetContent>
         </Sheet>
@@ -330,3 +308,4 @@ export const DashboardSidebar = () => {
     </TooltipProvider>
   );
 };
+
