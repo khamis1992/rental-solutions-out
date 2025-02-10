@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { TrafficFineStats } from "./TrafficFineStats";
 import { TrafficFineImport } from "./TrafficFineImport";
@@ -6,7 +7,7 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrafficCone } from "lucide-react";
+import { TrafficCone, Car } from "lucide-react";
 
 export function TrafficFinesDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,12 +39,29 @@ export function TrafficFinesDashboard() {
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
       <div className="flex flex-col space-y-6">
-        <div className="flex items-center gap-3 border-b pb-4">
-          <TrafficCone className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold">Traffic Fines Management</h1>
+        <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-orange-500/10 via-orange-500/5 to-orange-500/0 p-6 border backdrop-blur-sm">
+          <div className="absolute inset-0 bg-grid-white/10" />
+          <div className="relative flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-orange-500/10 rounded-lg animate-pulse">
+                <TrafficCone className="h-8 w-8 text-orange-500" />
+              </div>
+              <div className="p-2 bg-orange-500/10 rounded-lg">
+                <Car className="h-8 w-8 text-orange-500" />
+              </div>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
+                Traffic Fines Management
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                Monitor and manage traffic violations, fines, and payments efficiently
+              </p>
+            </div>
+          </div>
         </div>
         
-        <Card className="bg-white/50 backdrop-blur-sm">
+        <Card className="bg-white/50 backdrop-blur-sm border-orange-500/20">
           <CardContent className="p-6">
             <ErrorBoundary>
               <TrafficFineStats paymentCount={finesCount || 0} />
@@ -52,7 +70,7 @@ export function TrafficFinesDashboard() {
         </Card>
       </div>
       
-      <Card className="bg-white/50 backdrop-blur-sm">
+      <Card className="bg-white/50 backdrop-blur-sm hover:bg-white/60 transition-colors border-orange-500/20">
         <CardContent className="p-6">
           <ErrorBoundary>
             <TrafficFineImport />
@@ -60,7 +78,7 @@ export function TrafficFinesDashboard() {
         </CardContent>
       </Card>
       
-      <Card className="bg-white/50 backdrop-blur-sm">
+      <Card className="bg-white/50 backdrop-blur-sm hover:bg-white/60 transition-colors border-orange-500/20">
         <CardContent className="p-6">
           <ErrorBoundary>
             <TrafficFinesList 
