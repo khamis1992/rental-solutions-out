@@ -1,6 +1,6 @@
 
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { Suspense, lazy, useState } from "react";
+import { Suspense, lazy } from "react";
 import { usePerformanceMonitoring } from "@/hooks/use-performance-monitoring";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
@@ -32,7 +32,6 @@ const ComponentLoader = ({ componentName }: { componentName: string }) => (
 
 const Index = () => {
   usePerformanceMonitoring();
-  const [selectedStatus, setSelectedStatus] = useState("all");
 
   return (
     <DashboardLayout>
@@ -74,11 +73,11 @@ const Index = () => {
               
               <div className="grid gap-6 md:grid-cols-2">
                 <ErrorBoundary>
-                  <VehicleStatusChart onStatusChange={setSelectedStatus} />
+                  <VehicleStatusChart />
                 </ErrorBoundary>
 
                 <ErrorBoundary>
-                  <VehicleStatusList selectedStatus={selectedStatus} />
+                  <VehicleStatusList selectedStatus="all" />
                 </ErrorBoundary>
               </div>
 
