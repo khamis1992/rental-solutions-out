@@ -2,6 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   AlertTriangle, Clock, Calendar, FileText, 
   Shield, Car, CreditCard, Bell 
@@ -59,32 +60,41 @@ export const SmartNotifications = () => {
   };
 
   return (
-    <Card className="bg-white/50 backdrop-blur-sm hover:bg-white/60 transition-colors">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg font-semibold">Notifications</CardTitle>
+    <Card className="h-full bg-white/50 backdrop-blur-sm hover:bg-white/60 transition-colors">
+      <CardHeader className="flex flex-row items-center justify-between p-4 md:p-6">
+        <CardTitle className="text-base md:text-lg font-semibold">Notifications</CardTitle>
         <Button 
           variant="ghost" 
           size="icon"
+          className="h-8 w-8 md:h-9 md:w-9"
           onClick={() => toast.info("Notifications settings coming soon")}
         >
           <Bell className="h-4 w-4" />
         </Button>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {notifications.map((notification) => (
-            <Alert 
-              key={notification.id}
-              className={`border ${getPriorityStyles(notification.priority)}`}
-            >
-              <notification.icon className="h-4 w-4" />
-              <AlertTitle>{notification.title}</AlertTitle>
-              <AlertDescription>
-                {notification.description}
-              </AlertDescription>
-            </Alert>
-          ))}
-        </div>
+      <CardContent className="p-0">
+        <ScrollArea className="h-[calc(100%-4rem)] max-h-[400px]">
+          <div className="space-y-2 p-4 md:p-6">
+            {notifications.map((notification) => (
+              <Alert 
+                key={notification.id}
+                className={`flex items-start gap-3 p-3 md:p-4 rounded-lg border transition-all duration-200 hover:brightness-95 cursor-pointer ${getPriorityStyles(notification.priority)}`}
+              >
+                <div className="flex-shrink-0 mt-1">
+                  <notification.icon className="h-4 w-4 md:h-5 md:w-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <AlertTitle className="text-sm md:text-base font-semibold mb-1 line-clamp-1">
+                    {notification.title}
+                  </AlertTitle>
+                  <AlertDescription className="text-xs md:text-sm line-clamp-2">
+                    {notification.description}
+                  </AlertDescription>
+                </div>
+              </Alert>
+            ))}
+          </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );
