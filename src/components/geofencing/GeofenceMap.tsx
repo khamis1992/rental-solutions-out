@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { Button } from '@/components/ui/button';
-import { MapPin, Circle as CircleIcon, Square } from 'lucide-react';
+import { MapPin, Circle as CircleIcon, Square, Edit2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { GeofenceZone, GeofenceType } from '@/types/geofence';
 
@@ -9,14 +9,17 @@ interface GeofenceMapProps {
   mapboxToken: string;
   center: [number, number];
   onGeofenceCreate?: (geofence: GeofenceZone) => void;
+  onGeofenceUpdate?: (geofence: GeofenceZone) => void;
+  geofences?: GeofenceZone[];
 }
 
-export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate }: GeofenceMapProps) => {
+export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate, onGeofenceUpdate, geofences = [] }: GeofenceMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [drawMode, setDrawMode] = useState<'none' | GeofenceType>('none');
   const [drawingPoints, setDrawingPoints] = useState<[number, number][]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [editingGeofence, setEditingGeofence] = useState<GeofenceZone | null>(null);
   const circleLayer = useRef<string | null>(null);
   const circleSource = useRef<string | null>(null);
   const polygonLayer = useRef<string | null>(null);
@@ -371,7 +374,15 @@ export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate }: GeofenceM
 
   const completeGeofence = async (geofenceData: GeofenceZone) => {
     try {
-      if (onGeofenceCreate) {
+      if (editingGeofence) {
+        if (onGeofenceUpdate) {
+          onGeofenceUpdate({
+            ...editingGeofence,
+            ...geofenceData
+          });
+        }
+        setEditingGeofence(null);
+      } else if (onGeofenceCreate) {
         onGeofenceCreate(geofenceData);
       }
       
@@ -381,10 +392,10 @@ export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate }: GeofenceM
       setDrawMode('none');
       cleanupLayers();
       
-      toast.success('Geofence created successfully');
+      toast.success(editingGeofence ? 'Geofence updated successfully' : 'Geofence created successfully');
     } catch (error) {
-      console.error('Error creating geofence:', error);
-      toast.error('Failed to create geofence');
+      console.error('Error with geofence:', error);
+      toast.error(editingGeofence ? 'Failed to update geofence' : 'Failed to create geofence');
     }
   };
 
@@ -402,6 +413,117 @@ export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate }: GeofenceM
     setDrawingPoints([]);
   };
 
+  const renderGeofences = () => {
+    if (!map.current) return;
+
+    geofences.forEach((geofence, index) => {
+      const sourceId = `geofence-${geofence.id}-source`;
+      const layerId = `geofence-${geofence.id}-layer`;
+      const outlineLayerId = `geofence-${geofence.id}-outline`;
+
+      // Remove existing layers and sources if they exist
+      if (map.current.getLayer(layerId)) map.current.removeLayer(layerId);
+      if (map.current.getLayer(outlineLayerId)) map.current.removeLayer(outlineLayerId);
+      if (map.current.getSource(sourceId)) map.current.removeSource(sourceId);
+
+      if (geofence.type === 'circle' && geofence.center_lat && geofence.center_lng && geofence.radius) {
+        // Create circle data
+        const center: [number, number] = [geofence.center_lng, geofence.center_lat];
+        const steps = 64;
+        const coords = [];
+        for (let i = 0; i <= steps; i++) {
+          const angle = (i * 360) / steps;
+          const lat = geofence.center_lat + (geofence.radius / 111320) * Math.cos(angle * Math.PI / 180);
+          const lon = geofence.center_lng + (geofence.radius / (111320 * Math.cos(geofence.center_lat * Math.PI / 180))) * Math.sin(angle * Math.PI / 180);
+          coords.push([lon, lat]);
+        }
+
+        const circleData = {
+          type: 'Feature',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [coords]
+          },
+          properties: {
+            id: geofence.id,
+            name: geofence.name
+          }
+        };
+
+        map.current.addSource(sourceId, {
+          type: 'geojson',
+          data: circleData as any
+        });
+
+      } else if (geofence.type === 'polygon' && geofence.coordinates) {
+        // Create polygon data
+        const polygonData = {
+          type: 'Feature',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [geofence.coordinates]
+          },
+          properties: {
+            id: geofence.id,
+            name: geofence.name
+          }
+        };
+
+        map.current.addSource(sourceId, {
+          type: 'geojson',
+          data: polygonData as any
+        });
+      }
+
+      // Add fill layer
+      map.current.addLayer({
+        id: layerId,
+        type: 'fill',
+        source: sourceId,
+        paint: {
+          'fill-color': editingGeofence?.id === geofence.id ? '#ffd700' : '#ff0000',
+          'fill-opacity': 0.2
+        }
+      });
+
+      // Add outline layer
+      map.current.addLayer({
+        id: outlineLayerId,
+        type: 'line',
+        source: sourceId,
+        paint: {
+          'line-color': editingGeofence?.id === geofence.id ? '#ffd700' : '#ff0000',
+          'line-width': 2
+        }
+      });
+
+      // Add click handler for editing
+      map.current.on('click', layerId, (e) => {
+        if (isDrawing) return;
+        const feature = e.features?.[0];
+        const clickedGeofence = geofences.find(g => g.id === feature?.properties?.id);
+        if (clickedGeofence) {
+          setEditingGeofence(clickedGeofence);
+          setDrawMode(clickedGeofence.type);
+          if (clickedGeofence.type === 'circle') {
+            setDrawingPoints([[clickedGeofence.center_lng!, clickedGeofence.center_lat!]]);
+          } else if (clickedGeofence.type === 'polygon' && clickedGeofence.coordinates) {
+            setDrawingPoints(clickedGeofence.coordinates.slice(0, -1));
+          }
+        }
+      });
+    });
+  };
+
+  useEffect(() => {
+    renderGeofences();
+  }, [geofences, editingGeofence]);
+
+  const cancelEditing = () => {
+    setEditingGeofence(null);
+    cancelDrawing();
+  };
+
   return (
     <div className="relative w-full h-[400px] rounded-lg overflow-hidden">
       <div ref={mapContainer} className="w-full h-full" />
@@ -412,29 +534,30 @@ export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate }: GeofenceM
           variant={drawMode === 'circle' ? "secondary" : "default"}
           size="sm"
           onClick={() => startDrawing('circle')}
-          disabled={isDrawing && drawMode !== 'circle'}
+          disabled={(isDrawing && drawMode !== 'circle') || (!!editingGeofence && editingGeofence.type !== 'circle')}
         >
           <CircleIcon className="w-4 h-4 mr-2" />
-          Draw Circle
+          {editingGeofence?.type === 'circle' ? 'Edit Circle' : 'Draw Circle'}
         </Button>
         
         <Button
           variant={drawMode === 'polygon' ? "secondary" : "default"}
           size="sm"
           onClick={() => startDrawing('polygon')}
-          disabled={isDrawing && drawMode !== 'polygon'}
+          disabled={(isDrawing && drawMode !== 'polygon') || (!!editingGeofence && editingGeofence.type !== 'polygon')}
         >
           <Square className="w-4 h-4 mr-2" />
-          Draw Polygon
+          {editingGeofence?.type === 'polygon' ? 'Edit Polygon' : 'Draw Polygon'}
         </Button>
 
-        {isDrawing && (
+        {(isDrawing || editingGeofence) && (
           <Button
             variant="destructive"
             size="sm"
-            onClick={cancelDrawing}
+            onClick={editingGeofence ? cancelEditing : cancelDrawing}
           >
-            Cancel
+            <X className="w-4 h-4 mr-2" />
+            {editingGeofence ? 'Cancel Edit' : 'Cancel'}
           </Button>
         )}
       </div>

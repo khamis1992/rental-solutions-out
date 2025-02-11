@@ -24,6 +24,17 @@ export const GeofenceManager = () => {
     }
   });
 
+  const { data: geofences, refetch: refetchGeofences } = useQuery({
+    queryKey: ['geofences'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('geofence_zones')
+        .select('*');
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const handleGeofenceCreate = async (geofenceData: Partial<GeofenceZone>) => {
     try {
       if (!formData.name) {
@@ -60,9 +71,41 @@ export const GeofenceManager = () => {
 
       toast.success('Geofence created successfully');
       setFormData({ name: '', description: '' });
+      refetchGeofences();
     } catch (error) {
       console.error('Error creating geofence:', error);
       toast.error('Failed to create geofence');
+    }
+  };
+
+  const handleGeofenceUpdate = async (geofenceData: GeofenceZone) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No authenticated user');
+
+      const updateData = {
+        ...geofenceData,
+        ...(geofenceData.type === 'circle' ? {
+          coordinates: null
+        } : {
+          center_lat: null,
+          center_lng: null,
+          radius: null
+        })
+      };
+
+      const { error } = await supabase
+        .from('geofence_zones')
+        .update(updateData)
+        .eq('id', geofenceData.id);
+
+      if (error) throw error;
+
+      toast.success('Geofence updated successfully');
+      refetchGeofences();
+    } catch (error) {
+      console.error('Error updating geofence:', error);
+      toast.error('Failed to update geofence');
     }
   };
 
@@ -98,6 +141,8 @@ export const GeofenceManager = () => {
             mapboxToken={mapboxToken}
             center={[51.5074, 25.2867]} // Default to Doha coordinates
             onGeofenceCreate={handleGeofenceCreate}
+            onGeofenceUpdate={handleGeofenceUpdate}
+            geofences={geofences}
           />
         </Card>
       )}
