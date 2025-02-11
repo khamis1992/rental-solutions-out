@@ -227,6 +227,15 @@ export default function App() {
                 </Suspense>
               }
             />
+
+            <Route
+              path="/location-tracking"
+              element={
+                <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                  <LazyComponents.LocationTracking />
+                </Suspense>
+              }
+            />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
