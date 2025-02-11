@@ -20,3 +20,4 @@ export const Audit = lazy(() => import("@/pages/Audit"));
 export const ChauffeurService = lazy(() => import("@/pages/ChauffeurService"));
 export const CustomerPortal = lazy(() => import("@/pages/CustomerPortal"));
 export const CarInstallmentDetails = lazy(() => import("@/pages/CarInstallmentDetails"));
+export const LocationTracking = lazy(() => import("@/pages/LocationTracking"));

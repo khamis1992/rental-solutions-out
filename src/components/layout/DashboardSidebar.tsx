@@ -1,8 +1,9 @@
+
 import { 
   LayoutDashboard, CarFront, Users, FileText, Wrench, 
   DollarSign, AlertTriangle, BarChart3, Archive,
   Building2, Scale, HelpCircle, ChevronRight, 
-  ChevronLeft, Activity, Menu
+  ChevronLeft, Activity, Menu, MapPin
 } from "lucide-react";
 import {
   Sidebar,
@@ -128,6 +129,12 @@ const menuGroups: MenuGroup[] = [
         label: "Reports", 
         href: "/reports",
         description: "Business analytics"
+      },
+      { 
+        icon: MapPin, 
+        label: "Location Tracking", 
+        href: "/location-tracking",
+        description: "Real-time location monitoring"
       },
       { 
         icon: Archive, 
