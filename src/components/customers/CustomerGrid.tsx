@@ -37,8 +37,6 @@ export const CustomerGrid = ({ customers, onCustomerClick }: CustomerGridProps) 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
-  const [swipedCustomerId, setSwipedCustomerId] = useState<string | null>(null);
 
   const handleDelete = async (customerId: string) => {
     setIsDeleting(true);
@@ -56,7 +54,6 @@ export const CustomerGrid = ({ customers, onCustomerClick }: CustomerGridProps) 
     } finally {
       setIsDeleting(false);
       setShowDeleteDialog(false);
-      setSwipedCustomerId(null);
     }
   };
 
@@ -66,56 +63,22 @@ export const CustomerGrid = ({ customers, onCustomerClick }: CustomerGridProps) 
     setShowDeleteDialog(true);
   };
 
-  const handleTouchStart = (e: React.TouchEvent, customerId: string) => {
-    setTouchStart({
-      x: e.touches[0].clientX,
-      y: e.touches[0].clientY
-    });
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent, customerId: string) => {
-    if (!touchStart) return;
-
-    const deltaX = e.changedTouches[0].clientX - touchStart.x;
-    const deltaY = e.changedTouches[0].clientY - touchStart.y;
-
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      if (deltaX < -50) {
-        setSwipedCustomerId(customerId);
-      } else if (deltaX > 50) {
-        setSwipedCustomerId(null);
-      }
-    }
-
-    setTouchStart(null);
-  };
-
   return (
     <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
       {customers.map((customer) => (
         <Card
           key={customer.id}
-          className={cn(
-            "relative flex flex-col min-h-[160px] cursor-pointer group",
-            "hover:shadow-lg transition-all duration-300",
-            "bg-card border-border/50 hover:border-border",
-            "animate-fade-in touch-target overflow-hidden",
-            swipedCustomerId === customer.id && "translate-x-[-40px]"
-          )}
-          onClick={() => !swipedCustomerId && onCustomerClick?.(customer.id)}
-          onTouchStart={(e) => handleTouchStart(e, customer.id)}
-          onTouchEnd={(e) => handleTouchEnd(e, customer.id)}
+          className="relative flex flex-col min-h-[160px] cursor-pointer group hover:shadow-lg transition-all duration-300"
+          onClick={() => onCustomerClick?.(customer.id)}
         >
-          <div className="absolute right-0 top-0 bottom-0 w-[40px] bg-destructive flex items-center justify-center">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => handleDeleteClick(e, customer.id)}
-              className="h-8 w-8 rounded-none text-white hover:bg-destructive/90"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => handleDeleteClick(e, customer.id)}
+            className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 md:hover:bg-destructive/10 hover:text-destructive transition-all duration-200 touch:opacity-100"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
 
           <div className="p-4 sm:p-6 flex flex-col h-full">
             <div className="flex items-start justify-between">
