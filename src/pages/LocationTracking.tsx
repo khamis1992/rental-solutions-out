@@ -17,6 +17,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { GeofenceManager } from "@/components/geofencing/GeofenceManager";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface LocationRecord {
   id: string;
@@ -114,7 +116,6 @@ const LocationTracking = () => {
     }
   }, [isError, queryError]);
 
-  // Initialize map when the container is ready, we have location data, and mapbox token
   useEffect(() => {
     if (!mapContainer.current || !lastLocation || !mapboxToken || map.current) return;
 
@@ -150,7 +151,6 @@ const LocationTracking = () => {
     };
   }, [lastLocation, mapboxToken]);
 
-  // Update markers when location history changes and map is loaded
   useEffect(() => {
     if (!mapLoaded || !map.current || !locationHistory) return;
 
@@ -205,103 +205,116 @@ const LocationTracking = () => {
         </Badge>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="p-6 space-y-4">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-orange-100 rounded-full">
-              <MapPin className="h-6 w-6 text-orange-600" />
-            </div>
-            <div>
-              <h3 className="font-medium">Current Location</h3>
-              {lastLocation ? (
-                <p className="text-sm text-muted-foreground">
-                  Lat: {lastLocation.latitude.toFixed(6)}, 
-                  Long: {lastLocation.longitude.toFixed(6)}
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No location data available
-                </p>
+      <Tabs defaultValue="tracking">
+        <TabsList>
+          <TabsTrigger value="tracking">Location Tracking</TabsTrigger>
+          <TabsTrigger value="geofencing">Geofencing</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="tracking" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="p-6 space-y-4">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-orange-100 rounded-full">
+                  <MapPin className="h-6 w-6 text-orange-600" />
+                </div>
+                <div>
+                  <h3 className="font-medium">Current Location</h3>
+                  {lastLocation ? (
+                    <p className="text-sm text-muted-foreground">
+                      Lat: {lastLocation.latitude.toFixed(6)}, 
+                      Long: {lastLocation.longitude.toFixed(6)}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No location data available
+                    </p>
+                  )}
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6 space-y-4">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-orange-100 rounded-full">
+                  <User className="h-6 w-6 text-orange-600" />
+                </div>
+                <div>
+                  <h3 className="font-medium">Last Update</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {lastLocation ? (
+                      <>
+                        By: {lastLocation.full_name || 'Unknown User'}
+                        <br />
+                        {formatDistanceToNow(new Date(lastLocation.created_at), { addSuffix: true })}
+                      </>
+                    ) : (
+                      'No updates yet'
+                    )}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <Card className="w-full h-[400px] overflow-hidden">
+            <div className="w-full h-full" ref={mapContainer}>
+              {!mapboxToken && (
+                <div className="flex items-center justify-center h-full bg-muted">
+                  <p className="text-muted-foreground">Loading map...</p>
+                </div>
               )}
             </div>
-          </div>
-        </Card>
+          </Card>
 
-        <Card className="p-6 space-y-4">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-orange-100 rounded-full">
-              <User className="h-6 w-6 text-orange-600" />
+          <Card className="mt-6">
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Location History</h2>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User</TableHead>
+                      <TableHead>Latitude</TableHead>
+                      <TableHead>Longitude</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Updated</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {locationHistory?.map((location) => (
+                      <TableRow key={location.id}>
+                        <TableCell>{location.full_name || 'Unknown'}</TableCell>
+                        <TableCell>{location.latitude.toFixed(6)}</TableCell>
+                        <TableCell>{location.longitude.toFixed(6)}</TableCell>
+                        <TableCell>
+                          <Badge variant={location.connection_status === 'active' ? 'success' : 'secondary'}>
+                            {location.connection_status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {formatDistanceToNow(new Date(location.created_at), { addSuffix: true })}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {(!locationHistory || locationHistory.length === 0) && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                          No location history available
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
-            <div>
-              <h3 className="font-medium">Last Update</h3>
-              <p className="text-sm text-muted-foreground">
-                {lastLocation ? (
-                  <>
-                    By: {lastLocation.full_name || 'Unknown User'}
-                    <br />
-                    {formatDistanceToNow(new Date(lastLocation.created_at), { addSuffix: true })}
-                  </>
-                ) : (
-                  'No updates yet'
-                )}
-              </p>
-            </div>
-          </div>
-        </Card>
-      </div>
+          </Card>
+        </TabsContent>
 
-      <Card className="w-full h-[400px] overflow-hidden">
-        <div className="w-full h-full" ref={mapContainer}>
-          {!mapboxToken && (
-            <div className="flex items-center justify-center h-full bg-muted">
-              <p className="text-muted-foreground">Loading map...</p>
-            </div>
-          )}
-        </div>
-      </Card>
-
-      <Card className="mt-6">
-        <div className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Location History</h2>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Latitude</TableHead>
-                  <TableHead>Longitude</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Updated</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {locationHistory?.map((location) => (
-                  <TableRow key={location.id}>
-                    <TableCell>{location.full_name || 'Unknown'}</TableCell>
-                    <TableCell>{location.latitude.toFixed(6)}</TableCell>
-                    <TableCell>{location.longitude.toFixed(6)}</TableCell>
-                    <TableCell>
-                      <Badge variant={location.connection_status === 'active' ? 'success' : 'secondary'}>
-                        {location.connection_status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {formatDistanceToNow(new Date(location.created_at), { addSuffix: true })}
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {(!locationHistory || locationHistory.length === 0) && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
-                      No location history available
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-      </Card>
+        <TabsContent value="geofencing">
+          <GeofenceManager />
+        </TabsContent>
+      </Tabs>
 
       {error && (
         <Card className="p-6 border-destructive">
