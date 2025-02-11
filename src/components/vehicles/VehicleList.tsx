@@ -90,7 +90,9 @@ export const VehicleList = ({ vehicles, isLoading, viewMode = "list" }: VehicleL
             onDelete={() => setShowDeleteDialog(true)}
           />
         )}
-        <VehicleGrid vehicles={currentVehicles} />
+        <div className="auto-grid">
+          <VehicleGrid vehicles={currentVehicles} />
+        </div>
         <DeleteVehicleDialog
           isOpen={showDeleteDialog}
           onClose={() => setShowDeleteDialog(false)}
@@ -110,15 +112,17 @@ export const VehicleList = ({ vehicles, isLoading, viewMode = "list" }: VehicleL
         />
       )}
 
-      <VehicleListView
-        vehicles={currentVehicles}
-        isLoading={isLoading}
-        selectedVehicles={selectedVehicles}
-        onSelectionChange={setSelectedVehicles}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
+      <div className="rounded-lg border bg-card overflow-hidden">
+        <VehicleListView
+          vehicles={currentVehicles}
+          isLoading={isLoading}
+          selectedVehicles={selectedVehicles}
+          onSelectionChange={setSelectedVehicles}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
+      </div>
 
       <DeleteVehicleDialog
         isOpen={showDeleteDialog}

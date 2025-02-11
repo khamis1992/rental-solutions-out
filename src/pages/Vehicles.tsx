@@ -61,53 +61,54 @@ const Vehicles = () => {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto py-6 space-y-6">
+      <div className="content-container">
         {/* Enhanced Header Section with Gradient */}
-        <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 p-8 border border-gray-200/50 dark:border-gray-700/50">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-3">
+        <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 p-4 sm:p-6 lg:p-8 border border-gray-200/50 dark:border-gray-700/50">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">
+            <div className="space-y-3 w-full md:w-auto">
               <div className="flex items-center gap-3 group">
                 <div className="p-3 bg-primary/10 rounded-lg transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20">
-                  <Car className="h-8 w-8 text-primary animate-pulse" />
+                  <Car className="h-6 w-6 md:h-8 md:w-8 text-primary animate-pulse" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
+                  <h1 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
                     Vehicle Management
                   </h1>
-                  <p className="text-muted-foreground text-sm">
+                  <p className="text-sm text-muted-foreground">
                     Manage and monitor your entire fleet from one place
                   </p>
                 </div>
               </div>
             </div>
             
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2 md:gap-3 w-full md:w-auto">
               <CreateVehicleDialog>
-                <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300">
+                <Button className="flex-1 md:flex-none items-center gap-2 bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300">
                   <Plus className="h-4 w-4" />
-                  Add Vehicle
+                  <span className="hidden sm:inline">Add Vehicle</span>
+                  <span className="sm:hidden">Add</span>
                 </Button>
               </CreateVehicleDialog>
               
               <Button 
                 variant="outline" 
-                className="flex items-center gap-2 hover:bg-secondary/10 transition-colors"
+                className="flex-1 md:flex-none items-center gap-2 hover:bg-secondary/10 transition-colors"
               >
                 <Import className="h-4 w-4" />
-                Import
+                <span className="hidden sm:inline">Import</span>
               </Button>
               
               <Button 
                 variant="outline" 
-                className="flex items-center gap-2 hover:bg-secondary/10 transition-colors"
+                className="flex-1 md:flex-none items-center gap-2 hover:bg-secondary/10 transition-colors"
               >
                 <Filter className="h-4 w-4" />
-                Filters
+                <span className="hidden sm:inline">Filters</span>
               </Button>
               
               <Button
                 variant="outline"
-                className="flex items-center gap-2 hover:bg-secondary/10 transition-colors"
+                className="flex-1 md:flex-none items-center gap-2 hover:bg-secondary/10 transition-colors"
                 onClick={() => setViewMode(viewMode === "list" ? "grid" : "list")}
               >
                 {viewMode === "list" ? (
@@ -115,20 +116,22 @@ const Vehicles = () => {
                 ) : (
                   <List className="h-4 w-4" />
                 )}
-                {viewMode === "list" ? "Grid View" : "List View"}
+                <span className="hidden sm:inline">
+                  {viewMode === "list" ? "Grid View" : "List View"}
+                </span>
               </Button>
 
               <Button
                 variant="outline"
                 className={cn(
-                  "flex items-center gap-2 hover:bg-secondary/10 transition-colors",
+                  "flex-1 md:flex-none items-center gap-2 hover:bg-secondary/10 transition-colors",
                   isRefreshing && "animate-spin"
                 )}
                 onClick={handleRefresh}
                 disabled={isRefreshing}
               >
                 <RefreshCw className="h-4 w-4" />
-                Refresh
+                <span className="hidden sm:inline">Refresh</span>
               </Button>
             </div>
           </div>
@@ -139,35 +142,39 @@ const Vehicles = () => {
         </div>
 
         {/* Stats Section */}
-        <VehicleStats vehicles={vehicles} isLoading={isLoading} />
+        <div className="mt-6">
+          <VehicleStats vehicles={vehicles} isLoading={isLoading} />
+        </div>
 
         {/* Vehicle List Section */}
-        <Card className="border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-shadow duration-300">
-          <CardContent className="pt-6">
+        <Card className="mt-6 border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-shadow duration-300">
+          <CardContent className="p-4 sm:p-6">
             <div className="mb-6">
               <h2 className="text-xl font-semibold mb-2">Vehicle List</h2>
-              <p className="text-muted-foreground text-sm">
+              <p className="text-sm text-muted-foreground">
                 View and manage all vehicles in your fleet
               </p>
             </div>
 
-            <div className="flex gap-4 mb-6">
-              <div className="relative flex-1 max-w-sm">
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className="relative flex-1 max-w-sm w-full">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search vehicles..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 bg-background/50 hover:bg-background/80 transition-colors"
+                  className="pl-9 bg-background/50 hover:bg-background/80 transition-colors w-full"
                 />
               </div>
             </div>
 
-            <VehicleList 
-              vehicles={filteredVehicles} 
-              isLoading={isLoading}
-              viewMode={viewMode}
-            />
+            <div className="overflow-hidden">
+              <VehicleList 
+                vehicles={filteredVehicles} 
+                isLoading={isLoading}
+                viewMode={viewMode}
+              />
+            </div>
           </CardContent>
         </Card>
       </div>

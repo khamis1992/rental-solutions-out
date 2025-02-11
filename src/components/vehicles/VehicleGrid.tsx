@@ -1,5 +1,6 @@
+
 import { useEffect, useState } from "react";
-import { Vehicle } from "@/types/database/vehicle.types";
+import { Vehicle } from "@/types/vehicle";
 import { Card } from "@/components/ui/card";
 import { MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -65,11 +66,11 @@ export const VehicleGrid = ({ vehicles, onVehicleClick }: VehicleGridProps) => {
 
       if (error) throw error;
 
-      toast("Location updated successfully");
+      toast.success("Location updated successfully");
       setEditingLocation(null);
     } catch (error) {
       console.error('Error updating location:', error);
-      toast("Failed to update location");
+      toast.error("Failed to update location");
     }
   };
 
@@ -86,11 +87,11 @@ export const VehicleGrid = ({ vehicles, onVehicleClick }: VehicleGridProps) => {
               <img
                 src={vehicle.image_url}
                 alt={`${vehicle.make} ${vehicle.model}`}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover rounded-t-lg"
               />
             </div>
           ) : (
-            <div className="w-full h-24 bg-gray-50" />
+            <div className="w-full h-24 bg-gray-50 rounded-t-lg" />
           )}
           <div className="p-3 flex flex-col flex-grow">
             <h3 className="text-base font-medium truncate">
