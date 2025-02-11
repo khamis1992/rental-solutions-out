@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,6 +18,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { format } from 'date-fns';
 
 export const GeofenceManager = () => {
   const [formData, setFormData] = useState<Pick<GeofenceZone, 'name' | 'description'>>({
@@ -44,6 +45,30 @@ export const GeofenceManager = () => {
       if (error) throw error;
       return data as GeofenceZone[];
     },
+  });
+
+  const { data: geofenceEvents } = useQuery({
+    queryKey: ['geofence-events'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('geofence_events')
+        .select(`
+          *,
+          geofence_zones (
+            name,
+            type
+          ),
+          profiles:user_id (
+            full_name
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      return data;
+    },
+    refetchInterval: 5000 // Refresh every 5 seconds
   });
 
   const handleGeofenceCreate = async (geofenceData: Partial<GeofenceZone>) => {
@@ -139,96 +164,160 @@ export const GeofenceManager = () => {
 
   return (
     <div className="space-y-4">
-      <Card className="p-4">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="Enter geofence name"
-            />
-          </div>
+      <Tabs defaultValue="zones">
+        <TabsList>
+          <TabsTrigger value="zones">Geofence Zones</TabsTrigger>
+          <TabsTrigger value="events">Events</TabsTrigger>
+        </TabsList>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description (optional)</Label>
-            <Input
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Enter description"
-            />
-          </div>
-        </div>
-      </Card>
+        <TabsContent value="zones" className="space-y-4">
+          <Card className="p-4">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter geofence name"
+                />
+              </div>
 
-      {mapboxToken && (
-        <Card className="p-4">
-          <GeofenceMap
-            mapboxToken={mapboxToken}
-            center={[51.5074, 25.2867]} // Default to Doha coordinates
-            onGeofenceCreate={handleGeofenceCreate}
-            onGeofenceUpdate={handleGeofenceUpdate}
-            geofences={geofences}
-          />
-        </Card>
-      )}
+              <div className="space-y-2">
+                <Label htmlFor="description">Description (optional)</Label>
+                <Input
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Enter description"
+                />
+              </div>
+            </div>
+          </Card>
 
-      <Card className="p-4">
-        <h2 className="text-lg font-semibold mb-4">Geofence List</h2>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Details</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {geofences?.map((geofence) => (
-              <TableRow key={geofence.id}>
-                <TableCell>{geofence.name}</TableCell>
-                <TableCell>{geofence.description || '-'}</TableCell>
-                <TableCell>
-                  <Badge variant="secondary" className="capitalize">
-                    {geofence.type}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {geofence.type === 'circle' ? (
-                    <span className="text-sm text-muted-foreground">
-                      Radius: {geofence.radius?.toFixed(0)}m
-                    </span>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">
-                      Points: {geofence.coordinates?.length || 0}
-                    </span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleGeofenceDelete(geofence.id!)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-            {(!geofences || geofences.length === 0) && (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
-                  No geofences found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </Card>
+          {mapboxToken && (
+            <Card className="p-4">
+              <GeofenceMap
+                mapboxToken={mapboxToken}
+                center={[51.5074, 25.2867]} // Default to Doha coordinates
+                onGeofenceCreate={handleGeofenceCreate}
+                onGeofenceUpdate={handleGeofenceUpdate}
+                geofences={geofences}
+              />
+            </Card>
+          )}
+
+          <Card className="p-4">
+            <h2 className="text-lg font-semibold mb-4">Geofence List</h2>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Details</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {geofences?.map((geofence) => (
+                  <TableRow key={geofence.id}>
+                    <TableCell>{geofence.name}</TableCell>
+                    <TableCell>{geofence.description || '-'}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="capitalize">
+                        {geofence.type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {geofence.type === 'circle' ? (
+                        <span className="text-sm text-muted-foreground">
+                          Radius: {geofence.radius?.toFixed(0)}m
+                        </span>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">
+                          Points: {geofence.coordinates?.length || 0}
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleGeofenceDelete(geofence.id!)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {(!geofences || geofences.length === 0) && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                      No geofences found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="events">
+          <Card className="p-4">
+            <h2 className="text-lg font-semibold mb-4">Geofence Events</h2>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Zone</TableHead>
+                  <TableHead>Event</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Time</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {geofenceEvents?.map((event) => (
+                  <TableRow key={event.id}>
+                    <TableCell>{event.profiles?.full_name || 'Unknown'}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span>{event.geofence_zones?.name}</span>
+                        <span className="text-xs text-muted-foreground capitalize">
+                          {event.geofence_zones?.type} zone
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={event.event_type === 'enter' ? 'success' : 'destructive'}
+                        className="capitalize"
+                      >
+                        {event.event_type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm">
+                        {event.location_lat.toFixed(6)}, {event.location_lng.toFixed(6)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {format(new Date(event.created_at), 'MMM d, yyyy HH:mm:ss')}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {(!geofenceEvents || geofenceEvents.length === 0) && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                      No events recorded
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

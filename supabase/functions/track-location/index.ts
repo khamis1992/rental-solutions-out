@@ -19,6 +19,47 @@ interface LocationData {
   deviceInfo?: object
 }
 
+// Function to check if a point is inside a circle
+function isPointInCircle(
+  pointLat: number,
+  pointLng: number,
+  centerLat: number,
+  centerLng: number,
+  radius: number
+): boolean {
+  const R = 6371000; // Earth's radius in meters
+  const φ1 = (pointLat * Math.PI) / 180;
+  const φ2 = (centerLat * Math.PI) / 180;
+  const Δφ = ((centerLat - pointLat) * Math.PI) / 180;
+  const Δλ = ((centerLng - pointLng) * Math.PI) / 180;
+
+  const a =
+    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c;
+
+  return distance <= radius;
+}
+
+// Function to check if a point is inside a polygon
+function isPointInPolygon(
+  pointLat: number,
+  pointLng: number,
+  coordinates: number[][]
+): boolean {
+  let isInside = false;
+  for (let i = 0, j = coordinates.length - 1; i < coordinates.length; j = i++) {
+    const xi = coordinates[i][0], yi = coordinates[i][1];
+    const xj = coordinates[j][0], yj = coordinates[j][1];
+
+    const intersect = ((yi > pointLng) !== (yj > pointLng))
+      && (pointLat < (xj - xi) * (pointLng - yi) / (yj - yi) + xi);
+    if (intersect) isInside = !isInside;
+  }
+  return isInside;
+}
+
 Deno.serve(async (req) => {
   console.log('Function invoked with method:', req.method)
 
@@ -145,38 +186,79 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Check for geofence events
-    const { data: zones } = await supabaseClient
+    // Get all geofence zones
+    const { data: zones, error: zonesError } = await supabaseClient
       .from('geofence_zones')
       .select('*')
 
-    for (const zone of zones || []) {
-      let isInZone = false
-      
-      if (zone.type === 'circle') {
-        const distance = await supabaseClient.rpc('calculate_distance', {
-          lat1: latitude,
-          lon1: longitude,
-          lat2: zone.center_lat,
-          lon2: zone.center_lng
-        })
-        isInZone = distance <= zone.radius
-      } else {
-        // For polygon zones, you would implement point-in-polygon check here
-        // This is a placeholder for the actual implementation
-        continue
-      }
+    if (zonesError) {
+      console.error('Error fetching geofence zones:', zonesError)
+    } else {
+      // Get user's last known location
+      const { data: lastLocation } = await supabaseClient
+        .from('user_locations')
+        .select('latitude, longitude')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(2)
 
-      // Record zone event if user has entered/exited zone
-      // This is a simplified version - you would need to track previous state
-      if (isInZone) {
-        await supabaseClient
-          .from('zone_events')
-          .insert({
-            user_id: user.id,
-            zone_id: zone.id,
-            event_type: 'enter'
-          })
+      // Process each zone
+      for (const zone of zones) {
+        let wasInZone = false
+        let isInZone = false
+
+        // Check if user was in zone based on last location
+        if (lastLocation && lastLocation.length > 1) {
+          const prevLocation = lastLocation[1]
+          wasInZone = zone.type === 'circle'
+            ? isPointInCircle(
+                prevLocation.latitude,
+                prevLocation.longitude,
+                zone.center_lat!,
+                zone.center_lng!,
+                zone.radius!
+              )
+            : isPointInPolygon(
+                prevLocation.latitude,
+                prevLocation.longitude,
+                zone.coordinates!
+              )
+        }
+
+        // Check if user is currently in zone
+        isInZone = zone.type === 'circle'
+          ? isPointInCircle(
+              latitude,
+              longitude,
+              zone.center_lat!,
+              zone.center_lng!,
+              zone.radius!
+            )
+          : isPointInPolygon(
+              latitude,
+              longitude,
+              zone.coordinates!
+            )
+
+        // Determine if an event needs to be recorded
+        if (isInZone !== wasInZone) {
+          const eventType = isInZone ? 'enter' : 'exit'
+          const { error: eventError } = await supabaseClient
+            .from('geofence_events')
+            .insert({
+              user_id: user.id,
+              zone_id: zone.id,
+              event_type: eventType,
+              location_lat: latitude,
+              location_lng: longitude
+            })
+
+          if (eventError) {
+            console.error('Error recording geofence event:', eventError)
+          } else {
+            console.log(`Recorded ${eventType} event for zone ${zone.id}`)
+          }
+        }
       }
     }
 
