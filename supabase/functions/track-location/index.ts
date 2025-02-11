@@ -11,6 +11,11 @@ interface LocationData {
   latitude: number
   longitude: number
   accuracy?: number
+  altitude?: number
+  heading?: number
+  speed?: number
+  battery_level?: number
+  network_type?: string
   deviceInfo?: object
 }
 
@@ -72,7 +77,17 @@ Deno.serve(async (req) => {
       )
     }
 
-    const { latitude, longitude, accuracy, deviceInfo } = body
+    const { 
+      latitude, 
+      longitude, 
+      accuracy, 
+      altitude,
+      heading,
+      speed,
+      battery_level,
+      network_type,
+      deviceInfo 
+    } = body
 
     // Validate location data
     if (typeof latitude !== 'number' || typeof longitude !== 'number') {
@@ -81,6 +96,19 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'Invalid location data' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
+    }
+
+    // Try to get address using reverse geocoding
+    let address = null
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+        { headers: { 'User-Agent': 'LocationTrackingApp/1.0' } }
+      )
+      const data = await response.json()
+      address = data.display_name
+    } catch (error) {
+      console.warn('Failed to get address:', error)
     }
 
     // Insert location data
@@ -92,8 +120,15 @@ Deno.serve(async (req) => {
           latitude,
           longitude,
           accuracy,
+          altitude,
+          heading,
+          speed,
+          battery_level,
+          network_type,
+          address,
           device_info: deviceInfo,
-          connection_status: 'active'
+          connection_status: 'active',
+          last_updated: new Date().toISOString()
         }
       ])
       .select()
@@ -108,6 +143,41 @@ Deno.serve(async (req) => {
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
+    }
+
+    // Check for geofence events
+    const { data: zones } = await supabaseClient
+      .from('geofence_zones')
+      .select('*')
+
+    for (const zone of zones || []) {
+      let isInZone = false
+      
+      if (zone.type === 'circle') {
+        const distance = await supabaseClient.rpc('calculate_distance', {
+          lat1: latitude,
+          lon1: longitude,
+          lat2: zone.center_lat,
+          lon2: zone.center_lng
+        })
+        isInZone = distance <= zone.radius
+      } else {
+        // For polygon zones, you would implement point-in-polygon check here
+        // This is a placeholder for the actual implementation
+        continue
+      }
+
+      // Record zone event if user has entered/exited zone
+      // This is a simplified version - you would need to track previous state
+      if (isInZone) {
+        await supabaseClient
+          .from('zone_events')
+          .insert({
+            user_id: user.id,
+            zone_id: zone.id,
+            event_type: 'enter'
+          })
+      }
     }
 
     console.log('Location saved successfully')

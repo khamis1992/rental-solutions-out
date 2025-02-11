@@ -2225,6 +2225,66 @@ export type Database = {
           },
         ]
       }
+      geofence_zones: {
+        Row: {
+          center_lat: number | null
+          center_lng: number | null
+          coordinates: Json
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_restricted: boolean | null
+          name: string
+          radius: number | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          center_lat?: number | null
+          center_lng?: number | null
+          coordinates: Json
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_restricted?: boolean | null
+          name: string
+          radius?: number | null
+          type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          center_lat?: number | null
+          center_lng?: number | null
+          coordinates?: Json
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_restricted?: boolean | null
+          name?: string
+          radius?: number | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "geofence_zones_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "geofence_zones_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       help_faqs: {
         Row: {
           answer: string
@@ -6136,42 +6196,63 @@ export type Database = {
       user_locations: {
         Row: {
           accuracy: number | null
+          address: string | null
+          altitude: number | null
+          battery_level: number | null
           connection_status:
             | Database["public"]["Enums"]["user_location_status"]
             | null
           created_at: string | null
           device_info: Json | null
+          heading: number | null
           id: string
+          last_updated: string | null
           latitude: number
           longitude: number
+          network_type: string | null
+          speed: number | null
           timestamp: string | null
           updated_at: string | null
           user_id: string | null
         }
         Insert: {
           accuracy?: number | null
+          address?: string | null
+          altitude?: number | null
+          battery_level?: number | null
           connection_status?:
             | Database["public"]["Enums"]["user_location_status"]
             | null
           created_at?: string | null
           device_info?: Json | null
+          heading?: number | null
           id?: string
+          last_updated?: string | null
           latitude: number
           longitude: number
+          network_type?: string | null
+          speed?: number | null
           timestamp?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
         Update: {
           accuracy?: number | null
+          address?: string | null
+          altitude?: number | null
+          battery_level?: number | null
           connection_status?:
             | Database["public"]["Enums"]["user_location_status"]
             | null
           created_at?: string | null
           device_info?: Json | null
+          heading?: number | null
           id?: string
+          last_updated?: string | null
           latitude?: number
           longitude?: number
+          network_type?: string | null
+          speed?: number | null
           timestamp?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -6849,6 +6930,52 @@ export type Database = {
           },
         ]
       }
+      zone_events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          user_id: string | null
+          zone_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          user_id?: string | null
+          zone_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          user_id?: string | null
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zone_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "zone_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "zone_events_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "geofence_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       audit_logs_with_users: {
@@ -7077,6 +7204,15 @@ export type Database = {
           p_credit_history_length: number
         }
         Returns: Json
+      }
+      calculate_distance: {
+        Args: {
+          lat1: number
+          lon1: number
+          lat2: number
+          lon2: number
+        }
+        Returns: number
       }
       calculate_late_fine: {
         Args: {
