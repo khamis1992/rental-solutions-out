@@ -6133,6 +6133,66 @@ export type Database = {
         }
         Relationships: []
       }
+      user_locations: {
+        Row: {
+          accuracy: number | null
+          connection_status:
+            | Database["public"]["Enums"]["user_location_status"]
+            | null
+          created_at: string | null
+          device_info: Json | null
+          id: string
+          latitude: number
+          longitude: number
+          timestamp: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          accuracy?: number | null
+          connection_status?:
+            | Database["public"]["Enums"]["user_location_status"]
+            | null
+          created_at?: string | null
+          device_info?: Json | null
+          id?: string
+          latitude: number
+          longitude: number
+          timestamp?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          accuracy?: number | null
+          connection_status?:
+            | Database["public"]["Enums"]["user_location_status"]
+            | null
+          created_at?: string | null
+          device_info?: Json | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          timestamp?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_locations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_locations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicle_documents: {
         Row: {
           category: Database["public"]["Enums"]["document_category"] | null
@@ -7272,6 +7332,7 @@ export type Database = {
         | "OTHER"
         | "INCOME"
         | "EXPENSE"
+      user_location_status: "active" | "inactive" | "error"
       user_role: "admin" | "staff" | "customer" | "manager"
       vehicle_status:
         | "available"
