@@ -63,7 +63,7 @@ export const GeofenceManager = () => {
             name,
             type
           ),
-          profiles:user_id (
+          users:profiles!geofence_events_user_id_fkey (
             full_name
           )
         `)
@@ -284,7 +284,7 @@ export const GeofenceManager = () => {
               <TableBody>
                 {geofenceEvents?.map((event) => (
                   <TableRow key={event.id}>
-                    <TableCell>{event.profiles?.full_name || 'Unknown'}</TableCell>
+                    <TableCell>{event.users?.full_name || 'Unknown'}</TableCell>
                     <TableCell>
                       <div className="flex flex-col">
                         <span>{event.geofence_zones?.name}</span>
