@@ -1,24 +1,25 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { Circle } from '@turf/turf';
 import { Button } from '@/components/ui/button';
 import { MapPin, Circle as CircleIcon, Square } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { GeofenceZone, GeofenceType } from '@/types/geofence';
 
 interface GeofenceMapProps {
   mapboxToken: string;
   center: [number, number];
-  onGeofenceCreate?: (geofence: any) => void;
+  onGeofenceCreate?: (geofence: GeofenceZone) => void;
 }
 
 export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate }: GeofenceMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [drawMode, setDrawMode] = useState<'none' | 'circle' | 'polygon'>('none');
-  const [drawingPoints, setDrawingPoints] = useState<number[][]>([]);
+  const [drawMode, setDrawMode] = useState<'none' | GeofenceType>('none');
+  const [drawingPoints, setDrawingPoints] = useState<[number, number][]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
+  const circleLayer = useRef<string | null>(null);
+  const circleSource = useRef<string | null>(null);
 
   // Initialize map
   useEffect(() => {
@@ -38,6 +39,7 @@ export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate }: GeofenceM
     map.current.on('click', handleMapClick);
 
     return () => {
+      cleanupLayers();
       map.current?.remove();
       map.current = null;
     };
@@ -46,51 +48,72 @@ export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate }: GeofenceM
   const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
     if (!map.current || drawMode === 'none' || !isDrawing) return;
 
-    const coords = [e.lngLat.lng, e.lngLat.lat];
+    const coords: [number, number] = [e.lngLat.lng, e.lngLat.lat];
     setDrawingPoints(prev => [...prev, coords]);
 
-    if (drawMode === 'circle' && drawingPoints.length === 0) {
-      // For circle, we need center and one point for radius
-      const point = {
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'Point',
-          coordinates: coords
-        }
-      };
+    if (drawMode === 'circle') {
+      if (drawingPoints.length === 0) {
+        // Add center point visualization
+        const centerPoint = {
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: coords
+          },
+          properties: {}
+        };
 
-      // Add center point to map
-      if (map.current) {
-        map.current.addSource('center-point', {
-          type: 'geojson',
-          data: point
-        });
+        if (map.current) {
+          const sourceId = 'circle-center-source';
+          const layerId = 'circle-center-layer';
 
-        map.current.addLayer({
-          id: 'center-point',
-          type: 'circle',
-          source: 'center-point',
-          paint: {
-            'circle-radius': 6,
-            'circle-color': '#FF0000'
+          // Remove existing layers if they exist
+          if (map.current.getLayer(layerId)) {
+            map.current.removeLayer(layerId);
           }
-        });
+          if (map.current.getSource(sourceId)) {
+            map.current.removeSource(sourceId);
+          }
+
+          // Add new source and layer
+          map.current.addSource(sourceId, {
+            type: 'geojson',
+            data: centerPoint as any
+          });
+
+          map.current.addLayer({
+            id: layerId,
+            type: 'circle',
+            source: sourceId,
+            paint: {
+              'circle-radius': 6,
+              'circle-color': '#FF0000',
+              'circle-stroke-width': 2,
+              'circle-stroke-color': '#FFFFFF'
+            }
+          });
+
+          circleSource.current = sourceId;
+          circleLayer.current = layerId;
+        }
+      } else if (drawingPoints.length === 1) {
+        // Calculate circle and complete drawing
+        const center = drawingPoints[0];
+        const radius = calculateDistance(center, coords);
+        
+        const geofence: GeofenceZone = {
+          type: 'circle',
+          center_lat: center[1],
+          center_lng: center[0],
+          radius: Math.round(radius)
+        };
+
+        completeGeofence(geofence);
       }
-    } else if (drawMode === 'circle' && drawingPoints.length === 1) {
-      // Calculate circle and complete drawing
-      const center = drawingPoints[0];
-      const radius = calculateDistance(center, coords);
-      
-      completeGeofence({
-        type: 'circle',
-        center: center,
-        radius: radius
-      });
     }
   };
 
-  const calculateDistance = (point1: number[], point2: number[]): number => {
+  const calculateDistance = (point1: [number, number], point2: [number, number]): number => {
     const lat1 = point1[1];
     const lon1 = point1[0];
     const lat2 = point2[1];
@@ -110,52 +133,52 @@ export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate }: GeofenceM
     return R * c; // Distance in meters
   };
 
-  const completeGeofence = async (geofenceData: any) => {
+  const cleanupLayers = () => {
+    if (!map.current) return;
+
+    // Clean up circle layers
+    if (circleLayer.current && map.current.getLayer(circleLayer.current)) {
+      map.current.removeLayer(circleLayer.current);
+    }
+    if (circleSource.current && map.current.getSource(circleSource.current)) {
+      map.current.removeSource(circleSource.current);
+    }
+
+    circleLayer.current = null;
+    circleSource.current = null;
+  };
+
+  const completeGeofence = async (geofenceData: Partial<GeofenceZone>) => {
     try {
       if (onGeofenceCreate) {
-        onGeofenceCreate(geofenceData);
+        onGeofenceCreate(geofenceData as GeofenceZone);
       }
       
       // Reset drawing state
       setDrawingPoints([]);
       setIsDrawing(false);
       setDrawMode('none');
-
-      // Clean up temporary drawing layers
-      if (map.current) {
-        if (map.current.getLayer('center-point')) {
-          map.current.removeLayer('center-point');
-        }
-        if (map.current.getSource('center-point')) {
-          map.current.removeSource('center-point');
-        }
-      }
+      cleanupLayers();
+      
+      toast.success('Geofence created successfully');
     } catch (error) {
       console.error('Error creating geofence:', error);
       toast.error('Failed to create geofence');
     }
   };
 
-  const startDrawing = (mode: 'circle' | 'polygon') => {
+  const startDrawing = (mode: GeofenceType) => {
+    cleanupLayers();
     setDrawMode(mode);
     setIsDrawing(true);
     setDrawingPoints([]);
   };
 
   const cancelDrawing = () => {
+    cleanupLayers();
     setDrawMode('none');
     setIsDrawing(false);
     setDrawingPoints([]);
-    
-    // Clean up temporary drawing layers
-    if (map.current) {
-      if (map.current.getLayer('center-point')) {
-        map.current.removeLayer('center-point');
-      }
-      if (map.current.getSource('center-point')) {
-        map.current.removeSource('center-point');
-      }
-    }
   };
 
   return (
