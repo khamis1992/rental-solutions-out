@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { Button } from '@/components/ui/button';
@@ -41,12 +40,24 @@ export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate }: GeofenceM
     map.current.on('click', handleMapClick);
     map.current.on('dblclick', handleDoubleClick);
 
+    // Add mousemove handler for circle preview
+    map.current.on('mousemove', handleMouseMove);
+
     return () => {
       cleanupLayers();
       map.current?.remove();
       map.current = null;
     };
   }, [mapboxToken, center]);
+
+  const handleMouseMove = (e: mapboxgl.MapMouseEvent) => {
+    if (!map.current || drawMode !== 'circle' || !isDrawing || drawingPoints.length !== 1) return;
+
+    // Update circle preview
+    const center = drawingPoints[0];
+    const radius = calculateDistance(center, [e.lngLat.lng, e.lngLat.lat]);
+    updateCirclePreview(center, radius);
+  };
 
   const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
     if (!map.current || drawMode === 'none' || !isDrawing) return;
@@ -119,6 +130,108 @@ export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate }: GeofenceM
       };
 
       completeGeofence(geofence);
+    }
+  };
+
+  const updateCirclePreview = (center: [number, number], radius: number) => {
+    if (!map.current) return;
+
+    const steps = 64;
+    const radiusInKm = radius / 1000;
+    const coords = [];
+    
+    for (let i = 0; i <= steps; i++) {
+      const angle = (i * 360) / steps;
+      const lat = center[1] + (radius / 111320) * Math.cos(angle * Math.PI / 180);
+      const lon = center[0] + (radius / (111320 * Math.cos(center[1] * Math.PI / 180))) * Math.sin(angle * Math.PI / 180);
+      coords.push([lon, lat]);
+    }
+
+    const circleData = {
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: [coords]
+      },
+      properties: {
+        radius: Math.round(radius)
+      }
+    };
+
+    // Update or create circle preview layer
+    const previewSourceId = 'circle-preview-source';
+    const previewLayerId = 'circle-preview-layer';
+    const radiusLineSourceId = 'radius-line-source';
+    const radiusLineLayerId = 'radius-line-layer';
+
+    if (!map.current.getSource(previewSourceId)) {
+      map.current.addSource(previewSourceId, {
+        type: 'geojson',
+        data: circleData as any
+      });
+    } else {
+      (map.current.getSource(previewSourceId) as mapboxgl.GeoJSONSource).setData(circleData as any);
+    }
+
+    if (!map.current.getLayer(previewLayerId)) {
+      map.current.addLayer({
+        id: previewLayerId,
+        type: 'fill',
+        source: previewSourceId,
+        paint: {
+          'fill-color': '#FF0000',
+          'fill-opacity': 0.2
+        }
+      });
+
+      map.current.addLayer({
+        id: previewLayerId + '-outline',
+        type: 'line',
+        source: previewSourceId,
+        paint: {
+          'line-color': '#FF0000',
+          'line-width': 2
+        }
+      });
+    }
+
+    // Add or update radius line
+    const radiusLineData = {
+      type: 'Feature',
+      geometry: {
+        type: 'LineString',
+        coordinates: [center, [center[0] + (radius / (111320 * Math.cos(center[1] * Math.PI / 180))), center[1]]]
+      },
+      properties: {}
+    };
+
+    if (!map.current.getSource(radiusLineSourceId)) {
+      map.current.addSource(radiusLineSourceId, {
+        type: 'geojson',
+        data: radiusLineData as any
+      });
+    } else {
+      (map.current.getSource(radiusLineSourceId) as mapboxgl.GeoJSONSource).setData(radiusLineData as any);
+    }
+
+    if (!map.current.getLayer(radiusLineLayerId)) {
+      map.current.addLayer({
+        id: radiusLineLayerId,
+        type: 'line',
+        source: radiusLineSourceId,
+        paint: {
+          'line-color': '#FF0000',
+          'line-width': 2,
+          'line-dasharray': [2, 2]
+        }
+      });
+    }
+
+    // Update radius display
+    const radiusInMeters = Math.round(radius);
+    const radiusDisplay = document.getElementById('radius-display');
+    if (radiusDisplay) {
+      radiusDisplay.textContent = `Radius: ${radiusInMeters}m`;
     }
   };
 
@@ -222,22 +335,33 @@ export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate }: GeofenceM
   const cleanupLayers = () => {
     if (!map.current) return;
 
-    // Clean up circle layers
-    if (circleLayer.current && map.current.getLayer(circleLayer.current)) {
-      map.current.removeLayer(circleLayer.current);
-    }
-    if (circleSource.current && map.current.getSource(circleSource.current)) {
-      map.current.removeSource(circleSource.current);
-    }
+    const layersToRemove = [
+      'circle-center-layer',
+      'circle-preview-layer',
+      'circle-preview-layer-outline',
+      'radius-line-layer',
+      'polygon-preview-layer',
+      'polygon-line-layer'
+    ];
+    
+    const sourcesToRemove = [
+      'circle-center-source',
+      'circle-preview-source',
+      'radius-line-source',
+      'polygon-preview-source'
+    ];
 
-    // Clean up polygon layers
-    if (polygonLayer.current && map.current.getLayer(polygonLayer.current)) {
-      map.current.removeLayer(polygonLayer.current);
-      map.current.removeLayer('polygon-line-layer');
-    }
-    if (polygonSource.current && map.current.getSource(polygonSource.current)) {
-      map.current.removeSource(polygonSource.current);
-    }
+    layersToRemove.forEach(layer => {
+      if (map.current?.getLayer(layer)) {
+        map.current.removeLayer(layer);
+      }
+    });
+
+    sourcesToRemove.forEach(source => {
+      if (map.current?.getSource(source)) {
+        map.current.removeSource(source);
+      }
+    });
 
     circleLayer.current = null;
     circleSource.current = null;
@@ -315,7 +439,7 @@ export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate }: GeofenceM
         )}
       </div>
 
-      {/* Drawing instructions */}
+      {/* Drawing instructions and radius display */}
       {isDrawing && (
         <div className="absolute bottom-4 left-4 right-4 bg-background/90 p-4 rounded-lg">
           <p className="text-sm">
@@ -325,6 +449,11 @@ export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate }: GeofenceM
                 : "Click to set the radius of the circle"
               : "Click to add polygon points. Double click to complete."}
           </p>
+          {drawMode === 'circle' && drawingPoints.length === 1 && (
+            <p id="radius-display" className="text-sm font-medium mt-2">
+              Radius: 0m
+            </p>
+          )}
         </div>
       )}
     </div>
