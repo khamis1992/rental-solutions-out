@@ -37,9 +37,32 @@ const LocationTracking = () => {
   const { data: locationHistory, isError, error: queryError } = useQuery<LocationRecord[]>({
     queryKey: ["location-history"],
     queryFn: async () => {
+      // First verify the view exists by checking for user_locations table
+      const { error: tableError } = await supabase
+        .from('user_locations')
+        .select('id')
+        .limit(1);
+
+      if (tableError) {
+        throw new Error("Location tracking is not set up properly");
+      }
+
       const { data, error } = await supabase
-        .from('location_tracking_view')
-        .select()
+        .from('user_locations')
+        .select(`
+          id,
+          user_id,
+          profiles (
+            full_name
+          ),
+          latitude,
+          longitude,
+          accuracy,
+          device_info,
+          connection_status,
+          created_at,
+          updated_at
+        `)
         .order('created_at', { ascending: false })
         .limit(10);
 
@@ -47,7 +70,11 @@ const LocationTracking = () => {
         throw new Error(error.message);
       }
 
-      return data as LocationRecord[];
+      // Transform the data to match LocationRecord interface
+      return data.map(record => ({
+        ...record,
+        full_name: record.profiles?.full_name || null
+      })) as LocationRecord[];
     },
     refetchInterval: 5000 // Refresh every 5 seconds
   });
