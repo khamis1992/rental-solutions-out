@@ -2225,6 +2225,44 @@ export type Database = {
           },
         ]
       }
+      geofence_events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          location_lat: number | null
+          location_lng: number | null
+          user_id: string | null
+          zone_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          user_id?: string | null
+          zone_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          user_id?: string | null
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "geofence_events_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "geofence_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       geofence_zones: {
         Row: {
           center_lat: number | null
@@ -7413,6 +7451,7 @@ export type Database = {
       document_language: "english" | "spanish" | "french" | "arabic"
       document_version_status: "draft" | "published" | "archived"
       driver_status: "available" | "busy" | "off_duty" | "on_leave"
+      geofence_type: "circle" | "polygon"
       import_source_type: "csv" | "manual" | "api" | "bulk_upload"
       import_status: "pending" | "processing" | "completed" | "failed"
       import_status_type:
