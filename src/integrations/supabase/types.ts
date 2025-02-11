@@ -633,6 +633,73 @@ export type Database = {
         }
         Relationships: []
       }
+      alerts: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          description: string | null
+          id: string
+          is_read: boolean
+          priority: Database["public"]["Enums"]["alert_priority"]
+          resolved_at: string | null
+          resolved_by: string | null
+          title: string
+          type: Database["public"]["Enums"]["alert_type"]
+          updated_at: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          description?: string | null
+          id?: string
+          is_read?: boolean
+          priority?: Database["public"]["Enums"]["alert_priority"]
+          resolved_at?: string | null
+          resolved_by?: string | null
+          title: string
+          type: Database["public"]["Enums"]["alert_type"]
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          description?: string | null
+          id?: string
+          is_read?: boolean
+          priority?: Database["public"]["Enums"]["alert_priority"]
+          resolved_at?: string | null
+          resolved_by?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["alert_type"]
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alerts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alerts_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       analytics_insights: {
         Row: {
           action_taken: boolean | null
@@ -1590,6 +1657,57 @@ export type Database = {
           },
         ]
       }
+      customer_status_logs: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          customer_id: string
+          id: string
+          new_status: Database["public"]["Enums"]["customer_status_type"]
+          notes: string | null
+          previous_status:
+            | Database["public"]["Enums"]["customer_status_type"]
+            | null
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          customer_id: string
+          id?: string
+          new_status: Database["public"]["Enums"]["customer_status_type"]
+          notes?: string | null
+          previous_status?:
+            | Database["public"]["Enums"]["customer_status_type"]
+            | null
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          customer_id?: string
+          id?: string
+          new_status?: Database["public"]["Enums"]["customer_status_type"]
+          notes?: string | null
+          previous_status?:
+            | Database["public"]["Enums"]["customer_status_type"]
+            | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_status_logs_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_status_logs_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       damages: {
         Row: {
           created_at: string
@@ -2328,6 +2446,7 @@ export type Database = {
           ownership_transferred: boolean | null
           payment_frequency: string | null
           payment_status: string | null
+          remaining_amount: number | null
           rent_amount: number | null
           rent_due_day: number | null
           return_date: string | null
@@ -2373,6 +2492,7 @@ export type Database = {
           ownership_transferred?: boolean | null
           payment_frequency?: string | null
           payment_status?: string | null
+          remaining_amount?: number | null
           rent_amount?: number | null
           rent_due_day?: number | null
           return_date?: string | null
@@ -2418,6 +2538,7 @@ export type Database = {
           ownership_transferred?: boolean | null
           payment_frequency?: string | null
           payment_status?: string | null
+          remaining_amount?: number | null
           rent_amount?: number | null
           rent_due_day?: number | null
           return_date?: string | null
@@ -7062,6 +7183,8 @@ export type Database = {
     Enums: {
       agreement_template_type: "lease_to_own" | "short_term"
       agreement_type: "lease_to_own" | "short_term"
+      alert_priority: "high" | "medium" | "low"
+      alert_type: "vehicle" | "payment" | "maintenance"
       audit_action_type:
         | "create"
         | "update"
@@ -7103,6 +7226,7 @@ export type Database = {
         | "terminated"
         | "cancelled"
         | "archived"
+        | "completed"
       legal_case_status:
         | "pending_reminder"
         | "in_legal_process"
