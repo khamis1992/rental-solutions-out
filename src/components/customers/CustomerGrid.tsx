@@ -92,7 +92,7 @@ export const CustomerGrid = ({ customers, onCustomerClick }: CustomerGridProps) 
   };
 
   return (
-    <div className="grid gap-4 sm:gap-6 grid-cols-1">
+    <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
       {customers.map((customer) => (
         <Card
           key={customer.id}
