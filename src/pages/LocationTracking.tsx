@@ -1,13 +1,46 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocationTracking } from "@/hooks/use-location-tracking";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { MapPin, Activity } from "lucide-react";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { MapPin, Activity, User, Clock } from "lucide-react";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { formatDistanceToNow } from "date-fns";
 
 const LocationTracking = () => {
   const { isTracking, error } = useLocationTracking();
+  const [lastLocation, setLastLocation] = useState<any>(null);
+
+  const { data: locationHistory } = useQuery({
+    queryKey: ["location-history"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('location_tracking_view')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      return data;
+    },
+    refetchInterval: 5000 // Refresh every 5 seconds
+  });
+
+  useEffect(() => {
+    if (locationHistory && locationHistory.length > 0) {
+      setLastLocation(locationHistory[0]);
+    }
+  }, [locationHistory]);
 
   useEffect(() => {
     if (error) {
@@ -34,15 +67,17 @@ const LocationTracking = () => {
               <MapPin className="h-6 w-6 text-orange-600" />
             </div>
             <div>
-              <h3 className="font-medium">Tracking Status</h3>
-              <p className="text-sm text-muted-foreground">
-                {isTracking 
-                  ? "Currently tracking vehicle location" 
-                  : error 
-                    ? "Unable to track location" 
-                    : "Initializing tracking..."
-                }
-              </p>
+              <h3 className="font-medium">Current Location</h3>
+              {lastLocation ? (
+                <p className="text-sm text-muted-foreground">
+                  Lat: {lastLocation.latitude.toFixed(6)}, 
+                  Long: {lastLocation.longitude.toFixed(6)}
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No location data available
+                </p>
+              )}
             </div>
           </div>
         </Card>
@@ -50,20 +85,68 @@ const LocationTracking = () => {
         <Card className="p-6 space-y-4">
           <div className="flex items-center space-x-4">
             <div className="p-3 bg-orange-100 rounded-full">
-              <Activity className="h-6 w-6 text-orange-600" />
+              <User className="h-6 w-6 text-orange-600" />
             </div>
             <div>
-              <h3 className="font-medium">Location Updates</h3>
+              <h3 className="font-medium">Last Update</h3>
               <p className="text-sm text-muted-foreground">
-                {isTracking 
-                  ? "Receiving real-time location updates" 
-                  : "Location updates paused"
-                }
+                {lastLocation ? (
+                  <>
+                    By: {lastLocation.full_name || 'Unknown User'}
+                    <br />
+                    {formatDistanceToNow(new Date(lastLocation.created_at), { addSuffix: true })}
+                  </>
+                ) : (
+                  'No updates yet'
+                )}
               </p>
             </div>
           </div>
         </Card>
       </div>
+
+      <Card className="mt-6">
+        <div className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Location History</h2>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Latitude</TableHead>
+                  <TableHead>Longitude</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Updated</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {locationHistory?.map((location) => (
+                  <TableRow key={location.id}>
+                    <TableCell>{location.full_name || 'Unknown'}</TableCell>
+                    <TableCell>{location.latitude.toFixed(6)}</TableCell>
+                    <TableCell>{location.longitude.toFixed(6)}</TableCell>
+                    <TableCell>
+                      <Badge variant={location.connection_status === 'active' ? 'success' : 'secondary'}>
+                        {location.connection_status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {formatDistanceToNow(new Date(location.created_at), { addSuffix: true })}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {(!locationHistory || locationHistory.length === 0) && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                      No location history available
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </Card>
 
       {error && (
         <Card className="p-6 border-destructive">
@@ -72,14 +155,6 @@ const LocationTracking = () => {
           </div>
         </Card>
       )}
-
-      <div className="prose max-w-none">
-        <h2 className="text-xl font-semibold mt-8 mb-4">About Location Tracking</h2>
-        <p className="text-muted-foreground">
-          This feature enables real-time tracking of vehicle locations for enhanced fleet management and security. 
-          Location data is collected securely and used only for authorized fleet management purposes.
-        </p>
-      </div>
     </div>
   );
 };
