@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Table,
@@ -9,10 +10,12 @@ import { VehicleTablePagination } from "../vehicles/table/VehicleTablePagination
 import { CustomerDetailsDialog } from "./CustomerDetailsDialog";
 import { CustomerTableHeader } from "./table/CustomerTableHeader";
 import { CustomerTableRow } from "./table/CustomerTableRow";
+import { CustomerGrid } from "./CustomerGrid";
 import { useCustomers } from "./hooks/useCustomers";
 import type { Customer } from "./types/customer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -22,6 +25,7 @@ export const CustomerList = () => {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [roleFilter, setRoleFilter] = useState("all");
+  const isMobile = useIsMobile();
 
   const { data, isLoading, error, refetch } = useCustomers({
     searchQuery,
@@ -37,6 +41,11 @@ export const CustomerList = () => {
   );
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+
+  const handleCustomerClick = (customerId: string) => {
+    setSelectedCustomerId(customerId);
+    setShowDetailsDialog(true);
+  };
 
   if (error) {
     return (
@@ -115,23 +124,29 @@ export const CustomerList = () => {
           onSearchChange={setSearchQuery}
           onRoleFilter={setRoleFilter}
         />
-        <div className="rounded-md border bg-card mt-4 overflow-hidden">
-          <Table>
-            <CustomerTableHeader />
-            <TableBody>
-              {filteredCustomers.map((customer: Customer) => (
-                <CustomerTableRow 
-                  key={customer.id}
-                  customer={customer}
-                  onDeleted={refetch}
-                  onClick={() => {
-                    setSelectedCustomerId(customer.id);
-                    setShowDetailsDialog(true);
-                  }}
-                />
-              ))}
-            </TableBody>
-          </Table>
+        <div className="mt-4">
+          {isMobile ? (
+            <CustomerGrid 
+              customers={filteredCustomers}
+              onCustomerClick={handleCustomerClick}
+            />
+          ) : (
+            <div className="rounded-md border bg-card overflow-hidden">
+              <Table>
+                <CustomerTableHeader />
+                <TableBody>
+                  {filteredCustomers.map((customer: Customer) => (
+                    <CustomerTableRow 
+                      key={customer.id}
+                      customer={customer}
+                      onDeleted={refetch}
+                      onClick={() => handleCustomerClick(customer.id)}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-center mt-6">
