@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -77,20 +78,38 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   /* Fixed layout styles */
   .page-container {
     @apply min-h-screen w-full bg-background;
+    contain: content;
   }
 
   .content-wrapper {
     @apply pt-[var(--header-height)] pb-6;
+    contain: paint layout style;
   }
 
   .content-container {
     @apply container mx-auto px-4 sm:px-6 lg:px-8 max-w-[var(--content-max-width)];
+    contain: layout style;
+  }
+
+  /* Improve scroll performance */
+  :root {
+    scroll-behavior: smooth;
+  }
+
+  /* Optimize paint operations */
+  .transform-gpu {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
   }
 }

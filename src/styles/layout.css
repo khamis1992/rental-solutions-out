@@ -53,6 +53,23 @@
   .heading-responsive {
     @apply text-lg md:text-xl lg:text-2xl font-semibold;
   }
+
+  /* Optimize Header Performance */
+  .header-container {
+    @apply fixed top-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/60;
+    transform: translateZ(0);
+    will-change: transform;
+    contain: layout style paint;
+  }
+
+  /* Optimize Scroll Performance */
+  .scroll-container {
+    @apply overflow-y-auto overflow-x-hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    scroll-behavior: smooth;
+    contain: content;
+  }
 }
 
 /* Responsive Containers */
