@@ -11,7 +11,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { MapPin, Activity, User, Clock } from "lucide-react";
+import { MapPin, User } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,17 +34,20 @@ const LocationTracking = () => {
   const { isTracking, error } = useLocationTracking();
   const [lastLocation, setLastLocation] = useState<LocationRecord | null>(null);
 
-  const { data: locationHistory } = useQuery<LocationRecord[]>({
+  const { data: locationHistory, isError, error: queryError } = useQuery<LocationRecord[]>({
     queryKey: ["location-history"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('location_tracking_view')
-        .select('*')
+        .select()
         .order('created_at', { ascending: false })
         .limit(10);
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return data as LocationRecord[];
     },
     refetchInterval: 5000 // Refresh every 5 seconds
   });
@@ -60,6 +63,12 @@ const LocationTracking = () => {
       toast.error(error);
     }
   }, [error]);
+
+  useEffect(() => {
+    if (isError && queryError) {
+      toast.error(`Failed to fetch location data: ${queryError.message}`);
+    }
+  }, [isError, queryError]);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
