@@ -35,7 +35,6 @@ interface LocationRecord {
 const LocationTracking = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [mapToken, setMapToken] = useState<string>("");
   const { isTracking, error } = useLocationTracking();
   const [lastLocation, setLastLocation] = useState<LocationRecord | null>(null);
 
@@ -106,8 +105,8 @@ const LocationTracking = () => {
   useEffect(() => {
     if (!mapContainer.current || !lastLocation || map.current) return;
 
-    // Initialize the map
-    mapboxgl.accessToken = process.env.VITE_MAPBOX_TOKEN || '';
+    // Initialize the map using Vite's environment variable syntax
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
     
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
