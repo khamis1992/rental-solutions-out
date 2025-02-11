@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocationTracking } from "@/hooks/use-location-tracking";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -16,6 +16,8 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 interface LocationRecord {
   id: string;
@@ -31,6 +33,9 @@ interface LocationRecord {
 }
 
 const LocationTracking = () => {
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const [mapToken, setMapToken] = useState<string>("");
   const { isTracking, error } = useLocationTracking();
   const [lastLocation, setLastLocation] = useState<LocationRecord | null>(null);
 
@@ -97,6 +102,72 @@ const LocationTracking = () => {
     }
   }, [isError, queryError]);
 
+  // Initialize map when the container is ready and we have location data
+  useEffect(() => {
+    if (!mapContainer.current || !lastLocation || map.current) return;
+
+    // Initialize the map
+    mapboxgl.accessToken = process.env.VITE_MAPBOX_TOKEN || '';
+    
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [lastLocation.longitude, lastLocation.latitude],
+      zoom: 15
+    });
+
+    // Add navigation controls
+    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    // Add markers for all locations
+    return () => {
+      map.current?.remove();
+    };
+  }, [lastLocation]);
+
+  // Update markers when location history changes
+  useEffect(() => {
+    if (!map.current || !locationHistory) return;
+
+    // Clear existing markers
+    const markers = document.getElementsByClassName('mapboxgl-marker');
+    while(markers[0]) {
+      markers[0].remove();
+    }
+
+    // Add new markers
+    locationHistory.forEach((location) => {
+      const el = document.createElement('div');
+      el.className = 'location-marker';
+      el.style.width = '20px';
+      el.style.height = '20px';
+      el.style.backgroundColor = '#ff6b6b';
+      el.style.borderRadius = '50%';
+      el.style.border = '2px solid white';
+
+      new mapboxgl.Marker(el)
+        .setLngLat([location.longitude, location.latitude])
+        .setPopup(
+          new mapboxgl.Popup({ offset: 25 })
+            .setHTML(`
+              <div>
+                <strong>${location.full_name || 'Unknown User'}</strong>
+                <p>Updated ${formatDistanceToNow(new Date(location.created_at), { addSuffix: true })}</p>
+              </div>
+            `)
+        )
+        .addTo(map.current);
+    });
+
+    // If we have a last location, center the map on it
+    if (lastLocation) {
+      map.current.flyTo({
+        center: [lastLocation.longitude, lastLocation.latitude],
+        essential: true
+      });
+    }
+  }, [locationHistory, lastLocation]);
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -153,6 +224,10 @@ const LocationTracking = () => {
           </div>
         </Card>
       </div>
+
+      <Card className="w-full h-[400px] overflow-hidden">
+        <div className="w-full h-full" ref={mapContainer} />
+      </Card>
 
       <Card className="mt-6">
         <div className="p-6">

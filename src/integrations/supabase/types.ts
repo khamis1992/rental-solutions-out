@@ -7316,6 +7316,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_point_in_polygon: {
+        Args: {
+          p_lat: number
+          p_lng: number
+          polygon_coords: Json
+        }
+        Returns: boolean
+      }
       is_valid_date: {
         Args: {
           date_str: string
