@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -53,12 +54,16 @@ export const GeofenceManager = () => {
       const { data, error } = await supabase
         .from('geofence_events')
         .select(`
-          *,
+          id,
+          event_type,
+          location_lat,
+          location_lng,
+          created_at,
           geofence_zones (
             name,
             type
           ),
-          profiles:user_id (
+          user:user_id (
             full_name
           )
         `)
@@ -279,7 +284,7 @@ export const GeofenceManager = () => {
               <TableBody>
                 {geofenceEvents?.map((event) => (
                   <TableRow key={event.id}>
-                    <TableCell>{event.profiles?.full_name || 'Unknown'}</TableCell>
+                    <TableCell>{event.user?.full_name || 'Unknown'}</TableCell>
                     <TableCell>
                       <div className="flex flex-col">
                         <span>{event.geofence_zones?.name}</span>
