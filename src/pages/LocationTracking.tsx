@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from "react";
 import { useLocationTracking } from "@/hooks/use-location-tracking";
 import { Badge } from "@/components/ui/badge";
@@ -35,8 +34,10 @@ interface LocationRecord {
 const LocationTracking = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
   const { isTracking, error } = useLocationTracking();
   const [lastLocation, setLastLocation] = useState<LocationRecord | null>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   const { data: mapboxToken } = useQuery({
     queryKey: ['mapbox-token'],
@@ -121,7 +122,7 @@ const LocationTracking = () => {
       // Initialize the map
       mapboxgl.accessToken = mapboxToken;
       
-      map.current = new mapboxgl.Map({
+      const newMap = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/streets-v12',
         center: [lastLocation.longitude, lastLocation.latitude],
@@ -129,7 +130,14 @@ const LocationTracking = () => {
       });
 
       // Add navigation controls
-      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+      // Wait for map to load before updating the ref and state
+      newMap.on('load', () => {
+        map.current = newMap;
+        setMapLoaded(true);
+      });
+
     } catch (err) {
       console.error('Error initializing map:', err);
       toast.error('Failed to initialize map');
@@ -137,18 +145,18 @@ const LocationTracking = () => {
 
     return () => {
       map.current?.remove();
+      map.current = null;
+      setMapLoaded(false);
     };
   }, [lastLocation, mapboxToken]);
 
-  // Update markers when location history changes
+  // Update markers when location history changes and map is loaded
   useEffect(() => {
-    if (!map.current || !locationHistory) return;
+    if (!mapLoaded || !map.current || !locationHistory) return;
 
     // Clear existing markers
-    const markers = document.getElementsByClassName('mapboxgl-marker');
-    while(markers[0]) {
-      markers[0].remove();
-    }
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
 
     // Add new markers
     locationHistory.forEach((location) => {
@@ -160,7 +168,7 @@ const LocationTracking = () => {
       el.style.borderRadius = '50%';
       el.style.border = '2px solid white';
 
-      new mapboxgl.Marker(el)
+      const marker = new mapboxgl.Marker(el)
         .setLngLat([location.longitude, location.latitude])
         .setPopup(
           new mapboxgl.Popup({ offset: 25 })
@@ -172,6 +180,8 @@ const LocationTracking = () => {
             `)
         )
         .addTo(map.current);
+
+      markersRef.current.push(marker);
     });
 
     // If we have a last location, center the map on it
@@ -181,7 +191,7 @@ const LocationTracking = () => {
         essential: true
       });
     }
-  }, [locationHistory, lastLocation]);
+  }, [locationHistory, lastLocation, mapLoaded]);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
