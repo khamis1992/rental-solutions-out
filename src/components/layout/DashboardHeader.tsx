@@ -9,7 +9,7 @@ export const DashboardHeader = () => {
   const navigate = useNavigate();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[100] border-b bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/60 shadow-sm will-change-transform transform-gpu">
+    <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm transform-gpu">
       <div className="container h-[var(--header-height,56px)]">
         <div className="flex h-full items-center justify-between gap-2 md:gap-4 px-4">
           <div className="flex items-center">
