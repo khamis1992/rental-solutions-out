@@ -20,6 +20,8 @@ export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate }: GeofenceM
   const [isDrawing, setIsDrawing] = useState(false);
   const circleLayer = useRef<string | null>(null);
   const circleSource = useRef<string | null>(null);
+  const polygonLayer = useRef<string | null>(null);
+  const polygonSource = useRef<string | null>(null);
 
   // Initialize map
   useEffect(() => {
@@ -37,6 +39,7 @@ export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate }: GeofenceM
 
     // Add click handler for drawing
     map.current.on('click', handleMapClick);
+    map.current.on('dblclick', handleDoubleClick);
 
     return () => {
       cleanupLayers();
@@ -47,70 +50,153 @@ export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate }: GeofenceM
 
   const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
     if (!map.current || drawMode === 'none' || !isDrawing) return;
+    e.preventDefault();
 
     const coords: [number, number] = [e.lngLat.lng, e.lngLat.lat];
     setDrawingPoints(prev => [...prev, coords]);
 
     if (drawMode === 'circle') {
-      if (drawingPoints.length === 0) {
-        // Add center point visualization
-        const centerPoint = {
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: coords
-          },
-          properties: {}
-        };
-
-        if (map.current) {
-          const sourceId = 'circle-center-source';
-          const layerId = 'circle-center-layer';
-
-          // Remove existing layers if they exist
-          if (map.current.getLayer(layerId)) {
-            map.current.removeLayer(layerId);
-          }
-          if (map.current.getSource(sourceId)) {
-            map.current.removeSource(sourceId);
-          }
-
-          // Add new source and layer
-          map.current.addSource(sourceId, {
-            type: 'geojson',
-            data: centerPoint as any
-          });
-
-          map.current.addLayer({
-            id: layerId,
-            type: 'circle',
-            source: sourceId,
-            paint: {
-              'circle-radius': 6,
-              'circle-color': '#FF0000',
-              'circle-stroke-width': 2,
-              'circle-stroke-color': '#FFFFFF'
-            }
-          });
-
-          circleSource.current = sourceId;
-          circleLayer.current = layerId;
-        }
-      } else if (drawingPoints.length === 1) {
-        // Calculate circle and complete drawing
-        const center = drawingPoints[0];
-        const radius = calculateDistance(center, coords);
-        
-        const geofence: GeofenceZone = {
-          type: 'circle',
-          center_lat: center[1],
-          center_lng: center[0],
-          radius: Math.round(radius)
-        };
-
-        completeGeofence(geofence);
-      }
+      handleCircleDrawing(coords);
+    } else if (drawMode === 'polygon') {
+      updatePolygonPreview([...drawingPoints, coords]);
     }
+  };
+
+  const handleCircleDrawing = (coords: [number, number]) => {
+    if (drawingPoints.length === 0) {
+      // Add center point visualization
+      const centerPoint = {
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: coords
+        },
+        properties: {}
+      };
+
+      if (map.current) {
+        const sourceId = 'circle-center-source';
+        const layerId = 'circle-center-layer';
+
+        if (map.current.getLayer(layerId)) {
+          map.current.removeLayer(layerId);
+        }
+        if (map.current.getSource(sourceId)) {
+          map.current.removeSource(sourceId);
+        }
+
+        map.current.addSource(sourceId, {
+          type: 'geojson',
+          data: centerPoint as any
+        });
+
+        map.current.addLayer({
+          id: layerId,
+          type: 'circle',
+          source: sourceId,
+          paint: {
+            'circle-radius': 6,
+            'circle-color': '#FF0000',
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#FFFFFF'
+          }
+        });
+
+        circleSource.current = sourceId;
+        circleLayer.current = layerId;
+      }
+    } else if (drawingPoints.length === 1) {
+      // Calculate circle and complete drawing
+      const center = drawingPoints[0];
+      const radius = calculateDistance(center, coords);
+      
+      const geofence: GeofenceZone = {
+        name: 'New Geofence', // Required by type, will be overwritten by form data
+        type: 'circle',
+        center_lat: center[1],
+        center_lng: center[0],
+        radius: Math.round(radius)
+      };
+
+      completeGeofence(geofence);
+    }
+  };
+
+  const handleDoubleClick = (e: mapboxgl.MapMouseEvent) => {
+    if (!map.current || drawMode !== 'polygon' || !isDrawing) return;
+    e.preventDefault();
+
+    if (drawingPoints.length >= 3) {
+      // Close the polygon by adding the first point again
+      const closedPolygon = [...drawingPoints, drawingPoints[0]];
+      
+      const geofence: GeofenceZone = {
+        name: 'New Geofence', // Required by type, will be overwritten by form data
+        type: 'polygon',
+        coordinates: closedPolygon
+      };
+
+      completeGeofence(geofence);
+    } else {
+      toast.error('Please add at least 3 points to create a polygon');
+    }
+  };
+
+  const updatePolygonPreview = (points: [number, number][]) => {
+    if (!map.current) return;
+
+    const sourceId = 'polygon-preview-source';
+    const layerId = 'polygon-preview-layer';
+    const lineLayerId = 'polygon-line-layer';
+
+    // Create polygon data
+    const polygonData = {
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: [points.length > 2 ? [...points, points[0]] : points]
+      },
+      properties: {}
+    };
+
+    // Add or update source
+    if (!map.current.getSource(sourceId)) {
+      map.current.addSource(sourceId, {
+        type: 'geojson',
+        data: polygonData as any
+      });
+    } else {
+      (map.current.getSource(sourceId) as mapboxgl.GeoJSONSource).setData(polygonData as any);
+    }
+
+    // Add or update fill layer
+    if (!map.current.getLayer(layerId)) {
+      map.current.addLayer({
+        id: layerId,
+        type: 'fill',
+        source: sourceId,
+        paint: {
+          'fill-color': '#ff0000',
+          'fill-opacity': 0.2
+        }
+      });
+    }
+
+    // Add or update line layer
+    if (!map.current.getLayer(lineLayerId)) {
+      map.current.addLayer({
+        id: lineLayerId,
+        type: 'line',
+        source: sourceId,
+        paint: {
+          'line-color': '#ff0000',
+          'line-width': 2
+        }
+      });
+    }
+
+    polygonSource.current = sourceId;
+    polygonLayer.current = layerId;
   };
 
   const calculateDistance = (point1: [number, number], point2: [number, number]): number => {
@@ -144,14 +230,25 @@ export const GeofenceMap = ({ mapboxToken, center, onGeofenceCreate }: GeofenceM
       map.current.removeSource(circleSource.current);
     }
 
+    // Clean up polygon layers
+    if (polygonLayer.current && map.current.getLayer(polygonLayer.current)) {
+      map.current.removeLayer(polygonLayer.current);
+      map.current.removeLayer('polygon-line-layer');
+    }
+    if (polygonSource.current && map.current.getSource(polygonSource.current)) {
+      map.current.removeSource(polygonSource.current);
+    }
+
     circleLayer.current = null;
     circleSource.current = null;
+    polygonLayer.current = null;
+    polygonSource.current = null;
   };
 
-  const completeGeofence = async (geofenceData: Partial<GeofenceZone>) => {
+  const completeGeofence = async (geofenceData: GeofenceZone) => {
     try {
       if (onGeofenceCreate) {
-        onGeofenceCreate(geofenceData as GeofenceZone);
+        onGeofenceCreate(geofenceData);
       }
       
       // Reset drawing state
