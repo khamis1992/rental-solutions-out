@@ -16,8 +16,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <DashboardSidebar />
         <div className="flex-1 flex flex-col min-h-screen">
           <DashboardHeader />
-          <main className="flex-1 pt-[var(--header-height,56px)] px-4 md:px-6 lg:px-8 mx-auto w-full max-w-7xl">
-            <div className="py-4 md:py-6 lg:py-8">
+          <main className="page-container">
+            <div className="content-wrapper">
               {children || <Outlet />}
             </div>
           </main>

@@ -12,7 +12,8 @@
 
   /* Content Containers */
   .content-container {
-    @apply mx-auto px-4 md:px-6 lg:px-8 w-full max-w-[var(--content-max-width)];
+    @apply container mx-auto px-4 sm:px-6 lg:px-8 w-full;
+    max-width: min(100vw - 2rem, var(--content-max-width, 1400px));
   }
 
   .section-container {
@@ -54,55 +55,57 @@
     @apply text-lg md:text-xl lg:text-2xl font-semibold;
   }
 
-  /* Optimize Header Performance */
-  .header-container {
-    @apply fixed top-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/60;
-    transform: translateZ(0);
-    will-change: transform;
-    contain: layout style paint;
+  /* Layout Components */
+  .page-container {
+    @apply flex-1 w-full max-w-[var(--content-max-width)] mx-auto px-4 sm:px-6 lg:px-8;
   }
 
-  /* Optimize Scroll Performance */
-  .scroll-container {
-    @apply overflow-y-auto overflow-x-hidden;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
-    scroll-behavior: smooth;
-    contain: content;
+  .content-wrapper {
+    @apply space-y-4 md:space-y-6 lg:space-y-8 py-4 md:py-6 lg:py-8;
+  }
+
+  .card-container {
+    @apply bg-card rounded-lg border shadow-sm hover:shadow-md transition-all duration-300;
+  }
+
+  /* Responsive Containers */
+  .responsive-container {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8;
+    max-width: min(100vw - 2rem, var(--content-max-width, 1400px));
+  }
+
+  /* Mobile Optimizations */
+  .mobile-padding {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  .mobile-wrapper {
+    @apply -mx-4 sm:-mx-6 lg:-mx-8;
   }
 }
 
-/* Responsive Containers */
+/* Screen Size Adaptations */
 @media (max-width: 640px) {
-  .content-container {
-    @apply px-4;
-  }
-  
   :root {
     --section-spacing: 1rem;
     --component-spacing: 0.75rem;
+    --content-padding: 1rem;
   }
 }
 
 @media (min-width: 641px) and (max-width: 1024px) {
-  .content-container {
-    @apply px-6;
-  }
-  
   :root {
     --section-spacing: 1.5rem;
     --component-spacing: 1rem;
+    --content-padding: 1.5rem;
   }
 }
 
 @media (min-width: 1025px) {
-  .content-container {
-    @apply px-8;
-  }
-  
   :root {
     --section-spacing: 2rem;
     --component-spacing: 1.5rem;
+    --content-padding: 2rem;
   }
 }
 
