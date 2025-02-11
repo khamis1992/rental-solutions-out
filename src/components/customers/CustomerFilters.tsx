@@ -1,3 +1,4 @@
+
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
@@ -18,12 +19,12 @@ export const CustomerFilters = ({
         <Input
           placeholder="Search customers..."
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-10"
+          className="w-full pl-10 h-10 md:h-9"
         />
       </div>
       <div className="w-full md:w-1/4">
         <Select onValueChange={onRoleFilter} defaultValue="all">
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full h-10 md:h-9">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
               <SelectValue placeholder="Filter by role" />

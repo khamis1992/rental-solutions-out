@@ -64,7 +64,7 @@ export const CustomerGrid = ({ customers, onCustomerClick }: CustomerGridProps) 
   };
 
   return (
-    <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
       {customers.map((customer) => (
         <Card
           key={customer.id}
@@ -72,7 +72,7 @@ export const CustomerGrid = ({ customers, onCustomerClick }: CustomerGridProps) 
             "flex flex-col h-[220px] cursor-pointer group",
             "hover:shadow-lg transition-all duration-300",
             "bg-card border-border/50 hover:border-border",
-            "animate-fade-in"
+            "animate-fade-in touch-target"
           )}
           onClick={() => onCustomerClick?.(customer.id)}
         >
@@ -94,26 +94,26 @@ export const CustomerGrid = ({ customers, onCustomerClick }: CustomerGridProps) 
                 variant="ghost"
                 size="sm"
                 onClick={(e) => handleDeleteClick(e, customer.id)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
+                className="opacity-0 group-hover:opacity-100 transition-opacity h-10 w-10 p-0 touch-target"
               >
                 <Trash2 className="h-4 w-4 text-destructive" />
               </Button>
             </div>
 
-            <div className="mt-4 space-y-2">
+            <div className="mt-4 space-y-3">
               <div className="flex items-center gap-2 text-sm">
-                <Phone className="w-4 h-4 text-muted-foreground" />
-                <span>{customer.phone_number || "No phone number"}</span>
+                <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <span className="truncate">{customer.phone_number || "No phone number"}</span>
               </div>
 
               <div className="flex items-center gap-2 text-sm">
-                <MapPin className="w-4 h-4 text-muted-foreground" />
+                <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <span className="truncate">{customer.address || "No address"}</span>
               </div>
 
               <div className="flex items-center gap-2 text-sm">
-                <FileCheck className="w-4 h-4 text-muted-foreground" />
-                <span>{customer.driver_license || "No license"}</span>
+                <FileCheck className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <span className="truncate">{customer.driver_license || "No license"}</span>
               </div>
             </div>
 

@@ -1,21 +1,14 @@
 
 import { useState } from "react";
-import {
-  Table,
-  TableBody,
-} from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CustomerFilters } from "./CustomerFilters";
 import { VehicleTablePagination } from "../vehicles/table/VehicleTablePagination";
 import { CustomerDetailsDialog } from "./CustomerDetailsDialog";
-import { CustomerTableHeader } from "./table/CustomerTableHeader";
-import { CustomerTableRow } from "./table/CustomerTableRow";
-import { CustomerGrid } from "./CustomerGrid";
 import { useCustomers } from "./hooks/useCustomers";
-import type { Customer } from "./types/customer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Users } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { CustomerHeader } from "./CustomerHeader";
+import { CustomerFilters } from "./CustomerFilters";
+import { CustomerContent } from "./CustomerContent";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -25,7 +18,6 @@ export const CustomerList = () => {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [roleFilter, setRoleFilter] = useState("all");
-  const isMobile = useIsMobile();
 
   const { data, isLoading, error, refetch } = useCustomers({
     searchQuery,
@@ -50,7 +42,8 @@ export const CustomerList = () => {
   if (error) {
     return (
       <Card className="mx-auto">
-        <CardContent className="pt-6">
+        <CustomerHeader />
+        <CardContent className="pt-0">
           <CustomerFilters 
             onSearchChange={setSearchQuery}
             onRoleFilter={setRoleFilter}
@@ -67,26 +60,18 @@ export const CustomerList = () => {
   if (isLoading) {
     return (
       <Card className="mx-auto">
-        <CardContent className="pt-6">
+        <CustomerHeader />
+        <CardContent className="pt-0">
           <CustomerFilters 
             onSearchChange={setSearchQuery}
             onRoleFilter={setRoleFilter}
           />
-          <div className="rounded-md border bg-card mt-4">
-            <Table>
-              <CustomerTableHeader />
-              <TableBody>
-                {[...Array(5)].map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td className="p-4"><Skeleton className="h-4 w-[200px]" /></td>
-                    <td className="p-4"><Skeleton className="h-4 w-[120px]" /></td>
-                    <td className="p-4"><Skeleton className="h-4 w-[250px]" /></td>
-                    <td className="p-4"><Skeleton className="h-4 w-[100px]" /></td>
-                    <td className="p-4"><Skeleton className="h-4 w-[100px]" /></td>
-                  </tr>
-                ))}
-              </TableBody>
-            </Table>
+          <div className="mt-4 space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <Skeleton className="h-24 w-full rounded-lg" />
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -96,7 +81,8 @@ export const CustomerList = () => {
   if (!filteredCustomers?.length) {
     return (
       <Card className="mx-auto">
-        <CardContent className="pt-6">
+        <CustomerHeader />
+        <CardContent className="pt-0">
           <CustomerFilters 
             onSearchChange={setSearchQuery}
             onRoleFilter={setRoleFilter}
@@ -113,40 +99,19 @@ export const CustomerList = () => {
 
   return (
     <Card className="mx-auto">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-2xl font-bold flex items-center gap-2">
-          <Users className="h-6 w-6 text-primary" />
-          Customers
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+      <CustomerHeader />
+      <CardContent className="pt-0">
         <CustomerFilters 
           onSearchChange={setSearchQuery}
           onRoleFilter={setRoleFilter}
         />
+        
         <div className="mt-4">
-          {isMobile ? (
-            <CustomerGrid 
-              customers={filteredCustomers}
-              onCustomerClick={handleCustomerClick}
-            />
-          ) : (
-            <div className="rounded-md border bg-card overflow-hidden">
-              <Table>
-                <CustomerTableHeader />
-                <TableBody>
-                  {filteredCustomers.map((customer: Customer) => (
-                    <CustomerTableRow 
-                      key={customer.id}
-                      customer={customer}
-                      onDeleted={refetch}
-                      onClick={() => handleCustomerClick(customer.id)}
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+          <CustomerContent 
+            customers={filteredCustomers}
+            onCustomerClick={handleCustomerClick}
+            onCustomerDeleted={refetch}
+          />
         </div>
 
         <div className="flex justify-center mt-6">
