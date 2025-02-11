@@ -38,6 +38,18 @@ const LocationTracking = () => {
   const { isTracking, error } = useLocationTracking();
   const [lastLocation, setLastLocation] = useState<LocationRecord | null>(null);
 
+  const { data: mapboxToken } = useQuery({
+    queryKey: ['mapbox-token'],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('get-mapbox-token', {
+        method: 'GET'
+      });
+      
+      if (error) throw error;
+      return data.token;
+    }
+  });
+
   const { data: locationHistory, isError, error: queryError } = useQuery<LocationRecord[]>({
     queryKey: ["location-history"],
     queryFn: async () => {
@@ -101,28 +113,32 @@ const LocationTracking = () => {
     }
   }, [isError, queryError]);
 
-  // Initialize map when the container is ready and we have location data
+  // Initialize map when the container is ready, we have location data, and mapbox token
   useEffect(() => {
-    if (!mapContainer.current || !lastLocation || map.current) return;
+    if (!mapContainer.current || !lastLocation || !mapboxToken || map.current) return;
 
-    // Initialize the map using Vite's environment variable syntax
-    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
-    
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [lastLocation.longitude, lastLocation.latitude],
-      zoom: 15
-    });
+    try {
+      // Initialize the map
+      mapboxgl.accessToken = mapboxToken;
+      
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [lastLocation.longitude, lastLocation.latitude],
+        zoom: 15
+      });
 
-    // Add navigation controls
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      // Add navigation controls
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    } catch (err) {
+      console.error('Error initializing map:', err);
+      toast.error('Failed to initialize map');
+    }
 
-    // Add markers for all locations
     return () => {
       map.current?.remove();
     };
-  }, [lastLocation]);
+  }, [lastLocation, mapboxToken]);
 
   // Update markers when location history changes
   useEffect(() => {
@@ -225,7 +241,13 @@ const LocationTracking = () => {
       </div>
 
       <Card className="w-full h-[400px] overflow-hidden">
-        <div className="w-full h-full" ref={mapContainer} />
+        <div className="w-full h-full" ref={mapContainer}>
+          {!mapboxToken && (
+            <div className="flex items-center justify-center h-full bg-muted">
+              <p className="text-muted-foreground">Loading map...</p>
+            </div>
+          )}
+        </div>
       </Card>
 
       <Card className="mt-6">
