@@ -26,7 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 
 interface CustomerGridProps {
   customers: Customer[];
@@ -79,11 +79,10 @@ export const CustomerGrid = ({ customers, onCustomerClick }: CustomerGridProps) 
     const deltaX = e.changedTouches[0].clientX - touchStart.x;
     const deltaY = e.changedTouches[0].clientY - touchStart.y;
 
-    // Only handle horizontal swipes
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      if (deltaX < -50) { // Left swipe
+      if (deltaX < -50) {
         setSwipedCustomerId(customerId);
-      } else if (deltaX > 50) { // Right swipe
+      } else if (deltaX > 50) {
         setSwipedCustomerId(null);
       }
     }
@@ -101,20 +100,20 @@ export const CustomerGrid = ({ customers, onCustomerClick }: CustomerGridProps) 
             "hover:shadow-lg transition-all duration-300",
             "bg-card border-border/50 hover:border-border",
             "animate-fade-in touch-target overflow-hidden",
-            swipedCustomerId === customer.id && "translate-x-[-80px]"
+            swipedCustomerId === customer.id && "translate-x-[-40px]"
           )}
           onClick={() => !swipedCustomerId && onCustomerClick?.(customer.id)}
           onTouchStart={(e) => handleTouchStart(e, customer.id)}
           onTouchEnd={(e) => handleTouchEnd(e, customer.id)}
         >
-          <div className="absolute right-0 top-0 bottom-0 w-[80px] bg-destructive flex items-center justify-center">
+          <div className="absolute right-0 top-0 bottom-0 w-[40px] bg-destructive flex items-center justify-center">
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={(e) => handleDeleteClick(e, customer.id)}
-              className="h-full w-full rounded-none text-white hover:bg-destructive/90"
+              className="h-8 w-8 rounded-none text-white hover:bg-destructive/90"
             >
-              <Trash2 className="h-6 w-6" />
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
 
