@@ -8,6 +8,7 @@ import { Vehicle } from "@/types/vehicle";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface VehicleListProps {
   vehicles: Vehicle[];
@@ -19,10 +20,10 @@ export const VehicleList = ({ vehicles, isLoading, viewMode = "list" }: VehicleL
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedVehicles, setSelectedVehicles] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const isMobile = useIsMobile();
+  const itemsPerPage = isMobile ? 5 : 10;
   const queryClient = useQueryClient();
 
-  // Set up real-time subscription for vehicle status changes
   useEffect(() => {
     const channel = supabase
       .channel('vehicle-status-changes')
@@ -81,9 +82,12 @@ export const VehicleList = ({ vehicles, isLoading, viewMode = "list" }: VehicleL
   const currentVehicles = vehicles.slice(startIndex, endIndex);
   const totalPages = Math.ceil(vehicles.length / itemsPerPage);
 
-  if (viewMode === "grid") {
+  // Automatically switch to grid view on mobile
+  const effectiveViewMode = isMobile ? "grid" : viewMode;
+
+  if (effectiveViewMode === "grid") {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 animate-fade-in">
         {selectedVehicles.length > 0 && (
           <BulkActionsMenu
             selectedCount={selectedVehicles.length}
@@ -91,7 +95,10 @@ export const VehicleList = ({ vehicles, isLoading, viewMode = "list" }: VehicleL
           />
         )}
         <div className="auto-grid">
-          <VehicleGrid vehicles={currentVehicles} />
+          <VehicleGrid 
+            vehicles={currentVehicles}
+            onVehicleClick={(id) => console.log('Vehicle clicked:', id)}
+          />
         </div>
         <DeleteVehicleDialog
           isOpen={showDeleteDialog}
@@ -104,7 +111,7 @@ export const VehicleList = ({ vehicles, isLoading, viewMode = "list" }: VehicleL
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fade-in">
       {selectedVehicles.length > 0 && (
         <BulkActionsMenu
           selectedCount={selectedVehicles.length}

@@ -1,3 +1,4 @@
+
 import { Database } from "@/integrations/supabase/types";
 
 export type VehicleStatus = Database['public']['Enums']['vehicle_status'];
@@ -11,7 +12,7 @@ export interface Vehicle {
   license_plate: string;
   vin: string;
   status: VehicleStatus;
-  mileage: number;
+  mileage: number | null;
   image_url: string | null;
   description: string | null;
   created_at: string;
@@ -19,4 +20,16 @@ export interface Vehicle {
   location: string | null;
   insurance_company: string | null;
   is_test_data?: boolean;
+}
+
+export interface VehicleTableItem extends Vehicle {
+  selected?: boolean;
+}
+
+export interface VehicleFilterParams {
+  status?: VehicleStatus;
+  make?: string;
+  model?: string;
+  year?: number;
+  searchQuery?: string;
 }
