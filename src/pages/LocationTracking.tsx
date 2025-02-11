@@ -17,11 +17,24 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 
+interface LocationRecord {
+  id: string;
+  user_id: string;
+  full_name: string | null;
+  latitude: number;
+  longitude: number;
+  accuracy: number | null;
+  device_info: any;
+  connection_status: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const LocationTracking = () => {
   const { isTracking, error } = useLocationTracking();
-  const [lastLocation, setLastLocation] = useState<any>(null);
+  const [lastLocation, setLastLocation] = useState<LocationRecord | null>(null);
 
-  const { data: locationHistory } = useQuery({
+  const { data: locationHistory } = useQuery<LocationRecord[]>({
     queryKey: ["location-history"],
     queryFn: async () => {
       const { data, error } = await supabase
