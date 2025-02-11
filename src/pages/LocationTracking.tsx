@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from "react";
 import { useLocationTracking } from "@/hooks/use-location-tracking";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +10,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { MapPin, User } from "lucide-react";
+import { MapPin, User, Focus } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +19,9 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { GeofenceManager } from "@/components/geofencing/GeofenceManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 // Time threshold for considering a user inactive (5 minutes)
 const INACTIVE_THRESHOLD = 5 * 60 * 1000;
@@ -57,6 +59,9 @@ const LocationTracking = () => {
   const markersRef = useRef<{ [key: string]: mapboxgl.Marker }>({});
   const { isTracking, error } = useLocationTracking();
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [followMode, setFollowMode] = useState(false);
 
   const { data: mapboxToken } = useQuery({
     queryKey: ['mapbox-token'],
@@ -85,6 +90,36 @@ const LocationTracking = () => {
     },
     refetchInterval: 5000
   });
+
+  const filteredLocations = locations?.filter(loc => {
+    const name = loc.profiles?.full_name?.toLowerCase() || '';
+    return name.includes(searchQuery.toLowerCase());
+  });
+
+  const selectedLocation = locations?.find(loc => loc.user_id === selectedUserId);
+
+  const focusOnUser = (userId: string) => {
+    const location = locations?.find(loc => loc.user_id === userId);
+    if (location && map.current) {
+      map.current.flyTo({
+        center: [location.longitude, location.latitude],
+        zoom: 15,
+        duration: 1000
+      });
+
+      // Open popup for selected user
+      markersRef.current[userId]?.togglePopup();
+    }
+  };
+
+  useEffect(() => {
+    if (followMode && selectedLocation && map.current) {
+      map.current.flyTo({
+        center: [selectedLocation.longitude, selectedLocation.latitude],
+        duration: 1000
+      });
+    }
+  }, [selectedLocation, followMode]);
 
   useEffect(() => {
     // Subscribe to realtime updates
@@ -147,15 +182,14 @@ const LocationTracking = () => {
   useEffect(() => {
     if (!mapLoaded || !map.current || !locations) return;
 
-    // Track which markers we've updated
     const updatedMarkers = new Set<string>();
 
     locations.forEach((location) => {
       const userId = location.user_id;
       const isActive = new Date().getTime() - new Date(location.last_updated).getTime() < INACTIVE_THRESHOLD;
+      const isSelected = selectedUserId === userId;
       
       if (!isActive) {
-        // Remove inactive user markers
         if (markersRef.current[userId]) {
           markersRef.current[userId].remove();
           delete markersRef.current[userId];
@@ -166,17 +200,20 @@ const LocationTracking = () => {
       updatedMarkers.add(userId);
       const userColor = generateUserColor(userId);
 
-      // Create or update marker
       if (!markersRef.current[userId]) {
-        // Create marker element
         const el = document.createElement('div');
         el.className = 'location-marker';
-        el.style.width = '20px';
-        el.style.height = '20px';
+        el.style.width = isSelected ? '30px' : '20px';
+        el.style.height = isSelected ? '30px' : '20px';
         el.style.backgroundColor = userColor;
         el.style.borderRadius = '50%';
-        el.style.border = '2px solid white';
+        el.style.border = isSelected ? '3px solid white' : '2px solid white';
         el.style.cursor = 'pointer';
+        el.style.transition = 'all 0.3s ease';
+        
+        if (isSelected) {
+          el.style.boxShadow = '0 0 0 8px rgba(255,255,255,0.4)';
+        }
 
         const marker = new mapboxgl.Marker(el)
           .setLngLat([location.longitude, location.latitude])
@@ -194,7 +231,12 @@ const LocationTracking = () => {
 
         markersRef.current[userId] = marker;
       } else {
-        // Update existing marker
+        const el = markersRef.current[userId].getElement();
+        el.style.width = isSelected ? '30px' : '20px';
+        el.style.height = isSelected ? '30px' : '20px';
+        el.style.border = isSelected ? '3px solid white' : '2px solid white';
+        el.style.boxShadow = isSelected ? '0 0 0 8px rgba(255,255,255,0.4)' : 'none';
+        
         markersRef.current[userId]
           .setLngLat([location.longitude, location.latitude])
           .getPopup()
@@ -208,7 +250,6 @@ const LocationTracking = () => {
       }
     });
 
-    // Remove markers for users no longer in the locations data
     Object.keys(markersRef.current).forEach(userId => {
       if (!updatedMarkers.has(userId)) {
         markersRef.current[userId].remove();
@@ -216,7 +257,7 @@ const LocationTracking = () => {
       }
     });
 
-  }, [locations, mapLoaded]);
+  }, [locations, mapLoaded, selectedUserId]);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -237,104 +278,134 @@ const LocationTracking = () => {
         </TabsList>
 
         <TabsContent value="tracking" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card className="p-6 space-y-4">
-              <div className="flex items-center space-x-4">
-                <div className="p-3 bg-orange-100 rounded-full">
-                  <MapPin className="h-6 w-6 text-orange-600" />
-                </div>
-                <div>
-                  <h3 className="font-medium">Active Users</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {locations?.filter(loc => 
-                      new Date().getTime() - new Date(loc.last_updated).getTime() < INACTIVE_THRESHOLD
-                    ).length || 0} users online
-                  </p>
-                </div>
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-4 items-center">
+              <div className="flex-1">
+                <Input
+                  placeholder="Search users..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="max-w-sm"
+                />
+              </div>
+              <Select
+                value={selectedUserId || ""}
+                onValueChange={(value) => {
+                  setSelectedUserId(value || null);
+                  if (value) focusOnUser(value);
+                }}
+              >
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Select user" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Users</SelectItem>
+                  {filteredLocations?.filter(loc => 
+                    new Date().getTime() - new Date(loc.last_updated).getTime() < INACTIVE_THRESHOLD
+                  ).map((location) => (
+                    <SelectItem key={location.user_id} value={location.user_id}>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: generateUserColor(location.user_id) }}
+                        />
+                        {location.profiles?.full_name || 'Unknown'}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedUserId && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFollowMode(!followMode)}
+                  className={followMode ? "bg-primary text-primary-foreground" : ""}
+                >
+                  {followMode ? "Following" : "Follow"}
+                </Button>
+              )}
+            </div>
+
+            <Card className="w-full h-[400px] overflow-hidden">
+              <div className="w-full h-full" ref={mapContainer}>
+                {!mapboxToken && (
+                  <div className="flex items-center justify-center h-full bg-muted">
+                    <p className="text-muted-foreground">Loading map...</p>
+                  </div>
+                )}
               </div>
             </Card>
 
-            <Card className="p-6 space-y-4">
-              <div className="flex items-center space-x-4">
-                <div className="p-3 bg-orange-100 rounded-full">
-                  <User className="h-6 w-6 text-orange-600" />
-                </div>
-                <div>
-                  <h3 className="font-medium">Last Update</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {locations?.[0] ? (
-                      formatDistanceToNow(new Date(locations[0].last_updated), { addSuffix: true })
-                    ) : (
-                      'No updates yet'
-                    )}
-                  </p>
+            <Card className="mt-6">
+              <div className="p-6">
+                <h2 className="text-xl font-semibold mb-4">Active Users</h2>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>User</TableHead>
+                        <TableHead>Latitude</TableHead>
+                        <TableHead>Longitude</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Last Update</TableHead>
+                        <TableHead></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredLocations?.filter(loc => 
+                        new Date().getTime() - new Date(loc.last_updated).getTime() < INACTIVE_THRESHOLD
+                      ).map((location) => (
+                        <TableRow 
+                          key={location.id}
+                          className={selectedUserId === location.user_id ? "bg-muted/50" : ""}
+                        >
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: generateUserColor(location.user_id) }}
+                              />
+                              {location.profiles?.full_name || 'Unknown'}
+                            </div>
+                          </TableCell>
+                          <TableCell>{location.latitude.toFixed(6)}</TableCell>
+                          <TableCell>{location.longitude.toFixed(6)}</TableCell>
+                          <TableCell>
+                            <Badge variant={location.connection_status === 'active' ? 'success' : 'secondary'}>
+                              {location.connection_status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {formatDistanceToNow(new Date(location.last_updated), { addSuffix: true })}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedUserId(location.user_id);
+                                focusOnUser(location.user_id);
+                              }}
+                            >
+                              <Focus className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {(!filteredLocations || filteredLocations.length === 0) && (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
+                            No location history available
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
                 </div>
               </div>
             </Card>
           </div>
-
-          <Card className="w-full h-[400px] overflow-hidden">
-            <div className="w-full h-full" ref={mapContainer}>
-              {!mapboxToken && (
-                <div className="flex items-center justify-center h-full bg-muted">
-                  <p className="text-muted-foreground">Loading map...</p>
-                </div>
-              )}
-            </div>
-          </Card>
-
-          <Card className="mt-6">
-            <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Active Users</h2>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>User</TableHead>
-                      <TableHead>Latitude</TableHead>
-                      <TableHead>Longitude</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Last Update</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {locations?.filter(loc => 
-                      new Date().getTime() - new Date(loc.last_updated).getTime() < INACTIVE_THRESHOLD
-                    ).map((location) => (
-                      <TableRow key={location.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: generateUserColor(location.user_id) }}
-                            />
-                            {location.profiles?.full_name || 'Unknown'}
-                          </div>
-                        </TableCell>
-                        <TableCell>{location.latitude.toFixed(6)}</TableCell>
-                        <TableCell>{location.longitude.toFixed(6)}</TableCell>
-                        <TableCell>
-                          <Badge variant={location.connection_status === 'active' ? 'success' : 'secondary'}>
-                            {location.connection_status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {formatDistanceToNow(new Date(location.last_updated), { addSuffix: true })}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {(!locations || locations.length === 0) && (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
-                          No location history available
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-          </Card>
         </TabsContent>
 
         <TabsContent value="geofencing">
