@@ -8,6 +8,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { GeofenceZone } from '@/types/geofence';
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow 
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
 
 export const GeofenceManager = () => {
   const [formData, setFormData] = useState<Pick<GeofenceZone, 'name' | 'description'>>({
@@ -31,7 +42,7 @@ export const GeofenceManager = () => {
         .from('geofence_zones')
         .select('*');
       if (error) throw error;
-      return data;
+      return data as GeofenceZone[];
     },
   });
 
@@ -45,7 +56,7 @@ export const GeofenceManager = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No authenticated user');
 
-      const newGeofence: GeofenceZone = {
+      const newGeofence = {
         name: formData.name,
         description: formData.description,
         type: geofenceData.type!,
@@ -109,6 +120,23 @@ export const GeofenceManager = () => {
     }
   };
 
+  const handleGeofenceDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('geofence_zones')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success('Geofence deleted successfully');
+      refetchGeofences();
+    } catch (error) {
+      console.error('Error deleting geofence:', error);
+      toast.error('Failed to delete geofence');
+    }
+  };
+
   return (
     <div className="space-y-4">
       <Card className="p-4">
@@ -146,6 +174,61 @@ export const GeofenceManager = () => {
           />
         </Card>
       )}
+
+      <Card className="p-4">
+        <h2 className="text-lg font-semibold mb-4">Geofence List</h2>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Details</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {geofences?.map((geofence) => (
+              <TableRow key={geofence.id}>
+                <TableCell>{geofence.name}</TableCell>
+                <TableCell>{geofence.description || '-'}</TableCell>
+                <TableCell>
+                  <Badge variant="secondary" className="capitalize">
+                    {geofence.type}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {geofence.type === 'circle' ? (
+                    <span className="text-sm text-muted-foreground">
+                      Radius: {geofence.radius?.toFixed(0)}m
+                    </span>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">
+                      Points: {geofence.coordinates?.length || 0}
+                    </span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleGeofenceDelete(geofence.id!)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+            {(!geofences || geofences.length === 0) && (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                  No geofences found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </Card>
     </div>
   );
 };
