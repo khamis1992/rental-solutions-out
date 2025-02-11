@@ -1,3 +1,4 @@
+
 @layer utilities {
   /* Spacing Utilities */
   .space-responsive {
@@ -25,11 +26,77 @@
   .glass-hover {
     @apply hover:bg-background/80 hover:backdrop-blur supports-[backdrop-filter]:hover:bg-background/50;
   }
+
+  /* Mobile Optimizations */
+  .mobile-touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  .mobile-safe-bottom {
+    @apply pb-[env(safe-area-inset-bottom)];
+  }
+
+  /* Touch Device Optimizations */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+
+  /* Responsive Container */
+  .responsive-container {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Responsive Grid */
+  .responsive-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6;
+  }
+
+  /* Responsive Flex */
+  .responsive-flex {
+    @apply flex flex-col md:flex-row gap-4 md:gap-6;
+  }
+
+  /* Responsive Text */
+  .responsive-text {
+    @apply text-sm sm:text-base md:text-lg;
+  }
+
+  /* Responsive Padding */
+  .responsive-padding {
+    @apply p-4 sm:p-6 md:p-8;
+  }
+
+  /* Responsive Margin */
+  .responsive-margin {
+    @apply m-4 sm:m-6 md:m-8;
+  }
 }
 
 /* Print Styles */
 @media print {
   .no-print {
     display: none;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) {
+  .touch-only {
+    @apply block;
+  }
+  
+  .no-touch-only {
+    @apply hidden;
+  }
+}
+
+/* Desktop Optimizations */
+@media (hover: hover) {
+  .touch-only {
+    @apply hidden;
+  }
+  
+  .no-touch-only {
+    @apply block;
   }
 }
