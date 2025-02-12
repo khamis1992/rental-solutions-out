@@ -289,17 +289,17 @@ const LocationTracking = () => {
                 />
               </div>
               <Select
-                value={selectedUserId || ""}
+                value={selectedUserId || "all"}
                 onValueChange={(value) => {
-                  setSelectedUserId(value || null);
-                  if (value) focusOnUser(value);
+                  setSelectedUserId(value === "all" ? null : value);
+                  if (value !== "all") focusOnUser(value);
                 }}
               >
                 <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Select user" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Users</SelectItem>
+                  <SelectItem value="all">All Users</SelectItem>
                   {filteredLocations?.filter(loc => 
                     new Date().getTime() - new Date(loc.last_updated).getTime() < INACTIVE_THRESHOLD
                   ).map((location) => (
