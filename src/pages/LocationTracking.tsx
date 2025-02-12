@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from "react";
-import { useLocationTracking } from "@/hooks/use-location-tracking";
+import { useEffect, useRef, useState } from "react";
+import { useLocation } from "@/contexts/LocationContext";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { 
@@ -10,7 +10,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { MapPin, User, Focus, RefreshCw } from "lucide-react";
+import { Focus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,10 +63,10 @@ const getLocationFreshness = (lastUpdated: string) => {
 };
 
 const LocationTracking = () => {
+  const { isTracking, error } = useLocation();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<{ [key: string]: mapboxgl.Marker }>({});
-  const { isTracking, error } = useLocationTracking();
   const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
