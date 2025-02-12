@@ -63,7 +63,7 @@ const getLocationFreshness = (lastUpdated: string) => {
 };
 
 const LocationTracking = () => {
-  const { isTracking, error } = useLocation();
+  const { isTracking, error, permissionStatus, requestPermission } = useLocation();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<{ [key: string]: mapboxgl.Marker }>({});
@@ -288,6 +288,15 @@ const LocationTracking = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Location Tracking</h1>
         <div className="flex items-center gap-2">
+          {permissionStatus === 'prompt' && (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={requestPermission}
+            >
+              Enable Tracking
+            </Button>
+          )}
           <Badge 
             variant={isTracking ? "success" : "destructive"}
             className="px-3 py-1"
@@ -305,6 +314,24 @@ const LocationTracking = () => {
           </Button>
         </div>
       </div>
+
+      {permissionStatus === 'denied' && (
+        <Card className="p-4 border-destructive bg-destructive/10 mb-4">
+          <div className="flex items-start gap-2">
+            <div className="text-sm">
+              <p className="font-semibold text-destructive">Location Access Required</p>
+              <p className="text-muted-foreground">
+                Location tracking is disabled. To enable tracking:
+                <ol className="list-decimal list-inside mt-2 space-y-1">
+                  <li>Click the location icon in your browser's address bar</li>
+                  <li>Select "Allow" for location access</li>
+                  <li>Refresh the page</li>
+                </ol>
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
 
       <Tabs defaultValue="tracking">
         <TabsList>
