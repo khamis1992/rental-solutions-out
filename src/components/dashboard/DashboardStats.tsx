@@ -1,6 +1,6 @@
+
 import { Car, Key, Wrench, Users, FileText, DollarSign, TrendingUp, ArrowUpRight, CarFront, TrendingDown } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
-import { VehicleStatusChart } from "@/components/dashboard/VehicleStatusChart";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/utils";
@@ -53,6 +53,11 @@ export const DashboardStats = () => {
       if (newVehiclesResponse.error) throw newVehiclesResponse.error;
       if (pendingReturnsResponse.error) throw pendingReturnsResponse.error;
 
+      // Calculate fleet utilization
+      const totalVehicles = vehiclesResponse.count || 0;
+      const activeRentals = rentalsResponse.count || 0;
+      const utilizationRate = totalVehicles > 0 ? ((activeRentals / totalVehicles) * 100).toFixed(1) : 0;
+
       const monthlyRevenue = paymentsResponse.data?.reduce((sum, payment) => 
         sum + (payment.amount || 0), 0) || 0;
 
@@ -64,17 +69,12 @@ export const DashboardStats = () => {
         ? ((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 
         : 0;
 
-      const totalVehicles = vehiclesResponse.count || 0;
-      const newVehicles = newVehiclesResponse.count || 0;
-      const pendingReturns = pendingReturnsResponse.count || 0;
-
       return {
-        totalVehicles,
+        utilizationRate,
         activeRentals: rentalsResponse.count || 0,
         monthlyRevenue,
-        pendingReturns,
+        pendingReturns: pendingReturnsResponse.count || 0,
         growth: {
-          vehicles: `+${newVehicles} this month`,
           revenue: `${growth.toFixed(1)}% from last month`
         }
       };
@@ -86,16 +86,11 @@ export const DashboardStats = () => {
     <div className="space-y-8">
       <div className="grid gap-6 md:grid-cols-3">
         <StatsCard
-          title="Total Vehicles"
-          value={stats?.totalVehicles.toString() || "0"}
+          title="Fleet Utilization"
+          value={`${stats?.utilizationRate || '0'}%`}
           icon={Car}
           iconClassName="blue"
-          description={
-            <span className="flex items-center text-emerald-600 text-xs">
-              <TrendingUp className="mr-1 h-4 w-4" />
-              {stats?.growth.vehicles}
-            </span>
-          }
+          description="of fleet is currently rented"
         />
         <StatsCard
           title="Active Rentals"
@@ -122,8 +117,6 @@ export const DashboardStats = () => {
           }
         />
       </div>
-      
-      <VehicleStatusChart />
     </div>
   );
 };
