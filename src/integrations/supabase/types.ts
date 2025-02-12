@@ -6856,6 +6856,78 @@ export type Database = {
         }
         Relationships: []
       }
+      visitor_analytics: {
+        Row: {
+          browser: string | null
+          city: string | null
+          connection_status: string | null
+          country: string | null
+          created_at: string | null
+          device_info: Json | null
+          engagement_metrics: Json | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          os: string | null
+          page_visited: string | null
+          performance_metrics: Json | null
+          referrer: string | null
+          session_id: string | null
+          updated_at: string | null
+          user_id: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          visited_at: string | null
+        }
+        Insert: {
+          browser?: string | null
+          city?: string | null
+          connection_status?: string | null
+          country?: string | null
+          created_at?: string | null
+          device_info?: Json | null
+          engagement_metrics?: Json | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          os?: string | null
+          page_visited?: string | null
+          performance_metrics?: Json | null
+          referrer?: string | null
+          session_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          visited_at?: string | null
+        }
+        Update: {
+          browser?: string | null
+          city?: string | null
+          connection_status?: string | null
+          country?: string | null
+          created_at?: string | null
+          device_info?: Json | null
+          engagement_metrics?: Json | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          os?: string | null
+          page_visited?: string | null
+          performance_metrics?: Json | null
+          referrer?: string | null
+          session_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          visited_at?: string | null
+        }
+        Relationships: []
+      }
       workflow_automation_logs: {
         Row: {
           action_type: string
