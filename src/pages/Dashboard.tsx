@@ -7,7 +7,6 @@ import { DashboardAlerts } from "@/components/dashboard/DashboardAlerts";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { DashboardStats as DashboardStatsType } from "@/types/dashboard.types";
 import { Card } from "@/components/ui/card";
-import { VehicleStatusChart } from "@/components/dashboard/VehicleStatusChart";
 import { BusinessHealth } from "@/components/dashboard/BusinessHealth";
 import { SmartNotifications } from "@/components/dashboard/SmartNotifications";
 import { QuickActions } from "@/components/dashboard/QuickActions";
@@ -63,10 +62,12 @@ const Dashboard = () => {
           <SmartNotifications />
         </Card>
         
-        <VehicleStatusChart />
-        
         <Card className="bg-white/50 backdrop-blur-sm border-gray-200/50 hover:border-gray-300 transition-all duration-300">
           <RecentActivity />
+        </Card>
+
+        <Card className="bg-white/50 backdrop-blur-sm border-gray-200/50 hover:border-gray-300 transition-all duration-300">
+          <DashboardAlerts />
         </Card>
       </div>
 
@@ -78,11 +79,6 @@ const Dashboard = () => {
       {/* Quick Actions - Full Width */}
       <div className="w-full">
         <QuickActions />
-      </div>
-
-      {/* Alerts Section - Now at the bottom */}
-      <div className="grid gap-6 grid-cols-1">
-        <DashboardAlerts />
       </div>
     </div>
   );
