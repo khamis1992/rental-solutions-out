@@ -7088,12 +7088,14 @@ export type Database = {
           full_name: string | null
           heading: number | null
           id: string | null
+          last_pull_timestamp: string | null
           last_updated: string | null
           latitude: number | null
           longitude: number | null
           network_type: string | null
           portal_user_id: string | null
           speed: number | null
+          timestamp: string | null
           updated_at: string | null
           user_id: string | null
           user_phone: string | null

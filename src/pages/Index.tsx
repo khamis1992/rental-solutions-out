@@ -11,10 +11,10 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { BusinessHealth } from "@/components/dashboard/BusinessHealth";
 import { SmartNotifications } from "@/components/dashboard/SmartNotifications";
 
-const DashboardStats = lazy(() => import("@/components/dashboard/DashboardStats").then(module => ({ default: module.DashboardStats })));
-const WelcomeHeader = lazy(() => import("@/components/dashboard/WelcomeHeader").then(module => ({ default: module.WelcomeHeader })));
-const RecentActivity = lazy(() => import("@/components/dashboard/RecentActivity").then(module => ({ default: module.RecentActivity })));
-const SystemChatbot = lazy(() => import("@/components/chat/SystemChatbot").then(module => ({ default: module.SystemChatbot })));
+const DashboardStats = lazy(() => import("@/components/dashboard/DashboardStats"));
+const WelcomeHeader = lazy(() => import("@/components/dashboard/WelcomeHeader"));
+const RecentActivity = lazy(() => import("@/components/dashboard/RecentActivity"));
+const SystemChatbot = lazy(() => import("@/components/chat/SystemChatbot"));
 
 const ComponentLoader = ({ componentName }: { componentName: string }) => (
   <div className="w-full h-[200px] space-y-4 p-4">
@@ -34,78 +34,68 @@ const Index = () => {
   usePerformanceMonitoring();
 
   return (
-    <DashboardLayout>
-      <div className="min-h-screen bg-background">
-        <div className="fixed top-0 left-0 right-0 h-[56px] border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50" />
-        
-        <div className="pt-[56px] pb-6">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl animate-fade-in">
-            <div className="flex flex-col gap-6">
-              <div className="w-full mt-6">
-                <Card className="overflow-hidden bg-gradient-to-r from-purple-900/20 via-blue-900/20 to-blue-900/10 border-none shadow-lg hover:shadow-xl transition-all duration-300">
-                  <div className="p-6">
-                    <ErrorBoundary>
-                      <Suspense fallback={<ComponentLoader componentName="Welcome Header" />}>
-                        <WelcomeHeader />
-                      </Suspense>
-                    </ErrorBoundary>
-                  </div>
-                </Card>
-              </div>
-
-              <div className="w-full">
-                <ErrorBoundary>
-                  <Suspense fallback={<ComponentLoader componentName="Dashboard Stats" />}>
-                    <DashboardStats />
-                  </Suspense>
-                </ErrorBoundary>
-              </div>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                <ErrorBoundary>
-                  <BusinessHealth />
-                </ErrorBoundary>
-
-                <ErrorBoundary>
-                  <SmartNotifications />
-                </ErrorBoundary>
-              </div>
-              
-              <div className="grid gap-6 md:grid-cols-2">
-                <ErrorBoundary>
-                  <VehicleStatusChart />
-                </ErrorBoundary>
-
-                <ErrorBoundary>
-                  <VehicleStatusList selectedStatus="all" />
-                </ErrorBoundary>
-              </div>
-
-              <ErrorBoundary>
-                <QuickActions />
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-6 animate-fade-in">
+        <div className="flex flex-col gap-6">
+          <Card className="overflow-hidden bg-gradient-to-r from-purple-900/20 via-blue-900/20 to-blue-900/10 border-none shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="p-6">
+              <ErrorBoundary fallback={<div>Error loading welcome header</div>}>
+                <Suspense fallback={<ComponentLoader componentName="Welcome Header" />}>
+                  <WelcomeHeader />
+                </Suspense>
               </ErrorBoundary>
-              
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-                <div className="lg:col-span-4">
-                  <ErrorBoundary>
-                    <Suspense fallback={<ComponentLoader componentName="Recent Activity" />}>
-                      <RecentActivity />
-                    </Suspense>
-                  </ErrorBoundary>
-                </div>
-                <div className="lg:col-span-3">
-                  <ErrorBoundary>
-                    <Suspense fallback={<ComponentLoader componentName="System Chatbot" />}>
-                      <SystemChatbot />
-                    </Suspense>
-                  </ErrorBoundary>
-                </div>
-              </div>
+            </div>
+          </Card>
+
+          <ErrorBoundary fallback={<div>Error loading dashboard stats</div>}>
+            <Suspense fallback={<ComponentLoader componentName="Dashboard Stats" />}>
+              <DashboardStats />
+            </Suspense>
+          </ErrorBoundary>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <ErrorBoundary fallback={<div>Error loading business health</div>}>
+              <BusinessHealth />
+            </ErrorBoundary>
+
+            <ErrorBoundary fallback={<div>Error loading notifications</div>}>
+              <SmartNotifications />
+            </ErrorBoundary>
+          </div>
+          
+          <div className="grid gap-6 md:grid-cols-2">
+            <ErrorBoundary fallback={<div>Error loading vehicle status chart</div>}>
+              <VehicleStatusChart />
+            </ErrorBoundary>
+
+            <ErrorBoundary fallback={<div>Error loading vehicle status list</div>}>
+              <VehicleStatusList selectedStatus="all" />
+            </ErrorBoundary>
+          </div>
+
+          <ErrorBoundary fallback={<div>Error loading quick actions</div>}>
+            <QuickActions />
+          </ErrorBoundary>
+          
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+            <div className="lg:col-span-4">
+              <ErrorBoundary fallback={<div>Error loading recent activity</div>}>
+                <Suspense fallback={<ComponentLoader componentName="Recent Activity" />}>
+                  <RecentActivity />
+                </Suspense>
+              </ErrorBoundary>
+            </div>
+            <div className="lg:col-span-3">
+              <ErrorBoundary fallback={<div>Error loading system chatbot</div>}>
+                <Suspense fallback={<ComponentLoader componentName="System Chatbot" />}>
+                  <SystemChatbot />
+                </Suspense>
+              </ErrorBoundary>
             </div>
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 
