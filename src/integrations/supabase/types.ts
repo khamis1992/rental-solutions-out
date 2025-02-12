@@ -6251,12 +6251,16 @@ export type Database = {
           accuracy: number | null
           address: string | null
           altitude: number | null
+          analytics_data: Json | null
           battery_level: number | null
           connection_status:
             | Database["public"]["Enums"]["user_location_status"]
             | null
           created_at: string | null
           device_info: Json | null
+          dwell_time: number | null
+          entry_point: string | null
+          exit_point: string | null
           heading: number | null
           id: string
           last_pull_timestamp: string | null
@@ -6274,12 +6278,16 @@ export type Database = {
           accuracy?: number | null
           address?: string | null
           altitude?: number | null
+          analytics_data?: Json | null
           battery_level?: number | null
           connection_status?:
             | Database["public"]["Enums"]["user_location_status"]
             | null
           created_at?: string | null
           device_info?: Json | null
+          dwell_time?: number | null
+          entry_point?: string | null
+          exit_point?: string | null
           heading?: number | null
           id?: string
           last_pull_timestamp?: string | null
@@ -6297,12 +6305,16 @@ export type Database = {
           accuracy?: number | null
           address?: string | null
           altitude?: number | null
+          analytics_data?: Json | null
           battery_level?: number | null
           connection_status?:
             | Database["public"]["Enums"]["user_location_status"]
             | null
           created_at?: string | null
           device_info?: Json | null
+          dwell_time?: number | null
+          entry_point?: string | null
+          exit_point?: string | null
           heading?: number | null
           id?: string
           last_pull_timestamp?: string | null
@@ -7460,6 +7472,10 @@ export type Database = {
           p_daily_rate?: number
         }
         Returns: number
+      }
+      calculate_location_analytics: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       calculate_model_risk_metrics: {
         Args: {
