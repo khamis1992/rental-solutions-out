@@ -4813,6 +4813,8 @@ export type Database = {
           is_ai_generated: boolean | null
           last_login: string | null
           license_document_url: string | null
+          location_tracking_consent_date: string | null
+          location_tracking_enabled: boolean | null
           nationality: string | null
           needs_review: boolean | null
           phone_number: string | null
@@ -4841,6 +4843,8 @@ export type Database = {
           is_ai_generated?: boolean | null
           last_login?: string | null
           license_document_url?: string | null
+          location_tracking_consent_date?: string | null
+          location_tracking_enabled?: boolean | null
           nationality?: string | null
           needs_review?: boolean | null
           phone_number?: string | null
@@ -4869,6 +4873,8 @@ export type Database = {
           is_ai_generated?: boolean | null
           last_login?: string | null
           license_document_url?: string | null
+          location_tracking_consent_date?: string | null
+          location_tracking_enabled?: boolean | null
           nationality?: string | null
           needs_review?: boolean | null
           phone_number?: string | null
