@@ -72,7 +72,6 @@ export function LocationProvider({ children }: { children: ReactNode }) {
             console.error('Geolocation error:', err);
             setError(err.message);
             setIsTracking(false);
-            toast.error('Location tracking error');
           },
           {
             enableHighAccuracy: true,
@@ -87,7 +86,6 @@ export function LocationProvider({ children }: { children: ReactNode }) {
         console.error('Error setting up location tracking:', err);
         setError(err.message);
         setIsTracking(false);
-        toast.error('Failed to start location tracking');
       }
     };
 
