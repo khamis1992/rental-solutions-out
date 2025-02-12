@@ -23,8 +23,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { VisitorAnalyticsDashboard } from "@/components/analytics/VisitorAnalyticsDashboard";
 
-// Time threshold for considering a user inactive (5 minutes)
 const INACTIVE_THRESHOLD = 5 * 60 * 1000;
 const REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour
 
@@ -337,6 +337,7 @@ const LocationTracking = () => {
         <TabsList>
           <TabsTrigger value="tracking">Location Tracking</TabsTrigger>
           <TabsTrigger value="geofencing">Geofencing</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tracking" className="space-y-6">
@@ -490,6 +491,10 @@ const LocationTracking = () => {
 
         <TabsContent value="geofencing">
           <GeofenceManager />
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <VisitorAnalyticsDashboard />
         </TabsContent>
       </Tabs>
 
