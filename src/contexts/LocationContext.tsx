@@ -19,41 +19,6 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   const [lastLocation, setLastLocation] = useState<GeolocationPosition | null>(null);
   const [watchId, setWatchId] = useState<number | null>(null);
 
-  // Initialize service worker
-  useEffect(() => {
-    async function initServiceWorker() {
-      if ('serviceWorker' in navigator) {
-        try {
-          const registration = await navigator.serviceWorker.ready;
-          
-          // Store current auth token for background sync
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session?.access_token) {
-            await registration.active?.postMessage({
-              type: 'STORE_TOKEN',
-              token: session.access_token
-            });
-          }
-
-          // Register for periodic sync if supported
-          if ('periodicSync' in registration) {
-            try {
-              await (registration as any).periodicSync.register('location-sync', {
-                minInterval: 15 * 60 * 1000 // 15 minutes
-              });
-            } catch (err) {
-              console.log('Periodic sync could not be registered:', err);
-            }
-          }
-        } catch (err) {
-          console.error('Service Worker initialization failed:', err);
-        }
-      }
-    }
-
-    initServiceWorker();
-  }, []);
-
   useEffect(() => {
     let mounted = true;
 
@@ -84,38 +49,22 @@ export function LocationProvider({ children }: { children: ReactNode }) {
                 platform: navigator.platform,
               };
 
-              // Store location in IndexedDB for offline support
-              if ('serviceWorker' in navigator) {
-                const registration = await navigator.serviceWorker.ready;
-                await registration.active?.postMessage({
-                  type: 'STORE_LOCATION',
-                  location: {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude,
-                    accuracy: position.coords.accuracy,
-                    deviceInfo
-                  }
-                });
-              }
-
-              // Attempt immediate sync if online
-              if (navigator.onLine) {
-                const { error: locationError } = await supabase.functions.invoke('track-location', {
-                  body: {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude,
-                    accuracy: position.coords.accuracy,
-                    deviceInfo
-                  }
-                });
-
-                if (locationError) {
-                  console.error('Error sending location:', locationError);
-                  toast.error('Failed to update location');
+              const { error: locationError } = await supabase.functions.invoke('track-location', {
+                body: {
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                  accuracy: position.coords.accuracy,
+                  deviceInfo
                 }
+              });
+
+              if (locationError) {
+                console.error('Error sending location:', locationError);
+                toast.error('Failed to update location');
               }
             } catch (err) {
               console.error('Error in location tracking:', err);
+              toast.error('Location tracking error');
             }
           },
           (err) => {
