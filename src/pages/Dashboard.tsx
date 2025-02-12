@@ -6,6 +6,7 @@ import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { DashboardStats as DashboardStatsType } from "@/types/dashboard.types";
 import { Card } from "@/components/ui/card";
+import { BusinessHealth } from "@/components/dashboard/BusinessHealth";
 import { SmartNotifications } from "@/components/dashboard/SmartNotifications";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -68,6 +69,11 @@ const Dashboard = () => {
             <RecentActivity />
           </ScrollArea>
         </Card>
+      </div>
+
+      {/* Business Health Section */}
+      <div className="grid gap-6 grid-cols-1">
+        <BusinessHealth />
       </div>
 
       {/* Quick Actions - Full Width */}
