@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,9 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ProfileManagementProps {
   profile: {
+    id: string;
     full_name?: string | null;
     phone_number?: string | null;
     email?: string | null;
@@ -22,20 +25,25 @@ export const ProfileManagement = ({ profile }: ProfileManagementProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    full_name: profile.full_name || "",
-    phone_number: profile.phone_number || "",
-    email: profile.email || "",
-    address: profile.address || "",
-    nationality: profile.nationality || ""
+    full_name: profile?.full_name || "",
+    phone_number: profile?.phone_number || "",
+    email: profile?.email || "",
+    address: profile?.address || "",
+    nationality: profile?.nationality || ""
   });
 
   const handleSubmit = async () => {
+    if (!profile?.id) {
+      toast.error("Profile ID is missing");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const { error } = await supabase
         .from("profiles")
         .update(formData)
-        .eq("id", (await supabase.auth.getUser()).data.user?.id);
+        .eq("id", profile.id);
 
       if (error) throw error;
 
@@ -43,13 +51,21 @@ export const ProfileManagement = ({ profile }: ProfileManagementProps) => {
       setIsEditing(false);
     } catch (error: any) {
       console.error("Error updating profile:", error);
-      toast.error("Failed to update profile");
+      toast.error(error.message || "Failed to update profile");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (!profile) return null;
+  if (!profile) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <Skeleton className="h-32 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

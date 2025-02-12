@@ -11,6 +11,8 @@ import { CustomerFeedback } from '@/components/customers/portal/CustomerFeedback
 import { ProfileManagement } from '@/components/customers/portal/ProfileManagement';
 import { toast } from 'sonner';
 import { useNavigate } from "react-router-dom";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface PortalLoginResponse {
   success: boolean;
@@ -27,11 +29,13 @@ export default function CustomerPortal() {
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     try {
       const { data, error } = await supabase.rpc('handle_portal_login', {
@@ -44,8 +48,7 @@ export default function CustomerPortal() {
       const response = data as unknown as PortalLoginResponse;
 
       if (response.success) {
-        setIsAuthenticated(true);
-        const { data: agreementData } = await supabase
+        const { data: agreementData, error: profileError } = await supabase
           .from('leases')
           .select(`
             *,
@@ -59,17 +62,24 @@ export default function CustomerPortal() {
             )
           `)
           .eq('agreement_number', agreementNumber)
-          .single();
+          .maybeSingle();
 
-        if (agreementData) {
-          setProfile(agreementData.customer);
+        if (profileError) throw profileError;
+
+        if (!agreementData?.customer) {
+          throw new Error('Customer profile not found');
         }
+
+        setProfile(agreementData.customer);
+        setIsAuthenticated(true);
         toast.success('Login successful');
       } else {
+        setError(response.message || 'Invalid credentials');
         toast.error(response.message || 'Invalid credentials');
       }
     } catch (error: any) {
       console.error('Login error:', error);
+      setError(error.message || 'Failed to login');
       toast.error(error.message || 'Failed to login');
     } finally {
       setIsLoading(false);
@@ -104,13 +114,19 @@ export default function CustomerPortal() {
             </Button>
           </div>
 
-          <ProfileManagement profile={profile} />
+          <ErrorBoundary fallback={<Card className="p-6">Error loading profile</Card>}>
+            <ProfileManagement profile={profile} />
+          </ErrorBoundary>
 
           {profile?.id && (
-            <PaymentHistory customerId={profile.id} />
+            <ErrorBoundary fallback={<Card className="p-6">Error loading payment history</Card>}>
+              <PaymentHistory customerId={profile.id} />
+            </ErrorBoundary>
           )}
 
-          <CustomerFeedback agreementId={agreementNumber} />
+          <ErrorBoundary fallback={<Card className="p-6">Error loading feedback form</Card>}>
+            <CustomerFeedback agreementId={agreementNumber} />
+          </ErrorBoundary>
         </div>
       </div>
     );
@@ -140,6 +156,7 @@ export default function CustomerPortal() {
                 value={agreementNumber}
                 onChange={(e) => setAgreementNumber(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
             
@@ -151,8 +168,13 @@ export default function CustomerPortal() {
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
+
+            {error && (
+              <div className="text-sm text-destructive">{error}</div>
+            )}
 
             <Button 
               type="submit" 
