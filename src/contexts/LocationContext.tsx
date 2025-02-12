@@ -85,11 +85,11 @@ export function LocationProvider({ children }: { children: ReactNode }) {
 
             if (locationError) {
               console.error('Error sending location:', locationError);
-              toast.error('Failed to update location');
+              // Removed the toast.error notification
             }
           } catch (err) {
             console.error('Error in location tracking:', err);
-            toast.error('Location tracking error');
+            // Removed the toast.error notification
           }
         },
         (err) => {
