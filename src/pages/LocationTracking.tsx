@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "@/contexts/LocationContext";
 import { Badge } from "@/components/ui/badge";
