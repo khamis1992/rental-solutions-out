@@ -1,11 +1,10 @@
+
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Suspense, lazy } from "react";
 import { usePerformanceMonitoring } from "@/hooks/use-performance-monitoring";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Card } from "@/components/ui/card";
-import { VehicleStatusList } from "@/components/dashboard/VehicleStatusList";
-import { VehicleStatusChart } from "@/components/dashboard/VehicleStatusChart";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { BusinessHealth } from "@/components/dashboard/BusinessHealth";
 import { SmartNotifications } from "@/components/dashboard/SmartNotifications";
@@ -71,16 +70,6 @@ const Index = () => {
                   <SmartNotifications />
                 </ErrorBoundary>
               </div>
-              
-              <div className="grid gap-6 md:grid-cols-2">
-                <ErrorBoundary>
-                  <VehicleStatusChart />
-                </ErrorBoundary>
-
-                <ErrorBoundary>
-                  <VehicleStatusList selectedStatus="all" />
-                </ErrorBoundary>
-              </div>
 
               <ErrorBoundary>
                 <QuickActions />
@@ -111,3 +100,4 @@ const Index = () => {
 };
 
 export default Index;
+
