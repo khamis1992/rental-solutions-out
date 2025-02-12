@@ -7075,7 +7075,9 @@ export type Database = {
             | Database["public"]["Enums"]["user_location_status"]
             | null
           created_at: string | null
+          customer_id: string | null
           device_info: Json | null
+          full_name: string | null
           heading: number | null
           id: string | null
           last_pull_timestamp: string | null
@@ -7083,12 +7085,21 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           network_type: string | null
+          portal_user_id: string | null
           speed: number | null
           timestamp: string | null
           updated_at: string | null
           user_id: string | null
+          user_phone: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "user_locations_portal_user_id_fkey"
+            columns: ["portal_user_id"]
+            isOneToOne: false
+            referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_locations_user_id_fkey"
             columns: ["user_id"]
