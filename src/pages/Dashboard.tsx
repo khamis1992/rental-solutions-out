@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { WelcomeHeader } from "@/components/dashboard/WelcomeHeader";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
-import { DashboardAlerts } from "@/components/dashboard/DashboardAlerts";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { DashboardStats as DashboardStatsType } from "@/types/dashboard.types";
 import { Card } from "@/components/ui/card";
@@ -56,18 +55,14 @@ const Dashboard = () => {
         }} />
       </div>
 
-      {/* Three Column Layout for Alerts, Chart, and Activity */}
-      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      {/* Two Column Layout for Notifications and Activity */}
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
         <Card className="bg-white/50 backdrop-blur-sm border-gray-200/50 hover:border-gray-300 transition-all duration-300">
           <SmartNotifications />
         </Card>
         
         <Card className="bg-white/50 backdrop-blur-sm border-gray-200/50 hover:border-gray-300 transition-all duration-300">
           <RecentActivity />
-        </Card>
-
-        <Card className="bg-white/50 backdrop-blur-sm border-gray-200/50 hover:border-gray-300 transition-all duration-300">
-          <DashboardAlerts />
         </Card>
       </div>
 
