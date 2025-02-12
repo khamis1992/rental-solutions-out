@@ -1,4 +1,3 @@
-
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Suspense, lazy } from "react";
 import { usePerformanceMonitoring } from "@/hooks/use-performance-monitoring";
@@ -10,6 +9,7 @@ import { VehicleStatusChart } from "@/components/dashboard/VehicleStatusChart";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { BusinessHealth } from "@/components/dashboard/BusinessHealth";
 import { SmartNotifications } from "@/components/dashboard/SmartNotifications";
+import { useVisitorTracking } from "@/hooks/use-visitor-tracking";
 
 const DashboardStats = lazy(() => import("@/components/dashboard/DashboardStats").then(module => ({ default: module.DashboardStats })));
 const WelcomeHeader = lazy(() => import("@/components/dashboard/WelcomeHeader").then(module => ({ default: module.WelcomeHeader })));
@@ -32,6 +32,7 @@ const ComponentLoader = ({ componentName }: { componentName: string }) => (
 
 const Index = () => {
   usePerformanceMonitoring();
+  useVisitorTracking();
 
   return (
     <DashboardLayout>

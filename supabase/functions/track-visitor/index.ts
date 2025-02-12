@@ -15,6 +15,18 @@ interface VisitorData {
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
+  performanceMetrics?: {
+    timeToFirstByte?: number;
+    firstContentfulPaint?: number;
+    largestContentfulPaint?: number;
+    firstInputDelay?: number;
+  };
+  engagementMetrics?: {
+    timeOnPage: number;
+    scrollDepth: number;
+    lastInteraction: number;
+  };
+  isPageExit?: boolean;
 }
 
 // Function to anonymize IP address (keep first two octets, hash the rest)
@@ -36,7 +48,7 @@ function parseUserAgent(userAgent: string) {
   };
 }
 
-// Function to get country and city from IP (mock implementation)
+// Function to get country and city from IP using MaxMind-like service
 async function getGeoLocation(ip: string) {
   try {
     const response = await fetch(`http://ip-api.com/json/${ip}`);
@@ -93,6 +105,8 @@ Deno.serve(async (req) => {
         browser,
         os,
         device_type: device,
+        performance_metrics: visitorData.performanceMetrics,
+        engagement_metrics: visitorData.engagementMetrics,
         visited_at: new Date().toISOString()
       })
       .select()
@@ -108,7 +122,9 @@ Deno.serve(async (req) => {
       page: visitorData.pageVisited,
       browser,
       os,
-      device
+      device,
+      performanceMetrics: visitorData.performanceMetrics,
+      engagementMetrics: visitorData.engagementMetrics
     });
 
     return new Response(
