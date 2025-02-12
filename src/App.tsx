@@ -1,4 +1,3 @@
-
 import { Suspense, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
@@ -17,30 +16,14 @@ export default function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Handle auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
       if (event === 'SIGNED_OUT') {
         navigate('/auth');
       } else if (event === 'SIGNED_IN') {
-        try {
-          // Attempt to refresh the session
-          const { error: refreshError } = await supabase.auth.refreshSession();
-          if (refreshError) {
-            console.error('Session refresh error:', refreshError);
-            toast.error('Your session has expired. Please sign in again.');
-            await supabase.auth.signOut();
-            navigate('/auth');
-          }
-        } catch (err) {
-          console.error('Error refreshing session:', err);
-          toast.error('Authentication error. Please sign in again.');
-          await supabase.auth.signOut();
-          navigate('/auth');
-        }
+        supabase.auth.refreshSession();
       }
     });
 
-    // Handle session errors
     if (error) {
       console.error('Session error:', error);
       if (error.message?.includes('refresh_token_not_found') || 
@@ -52,34 +35,10 @@ export default function App() {
       }
     }
 
-    // Cleanup subscription
     return () => {
       subscription.unsubscribe();
     };
   }, [error, navigate]);
-
-  // Add periodic session refresh
-  useEffect(() => {
-    const refreshInterval = setInterval(async () => {
-      if (session) {
-        try {
-          const { error: refreshError } = await supabase.auth.refreshSession();
-          if (refreshError) {
-            console.error('Auto refresh error:', refreshError);
-            if (refreshError.message.includes('refresh_token_not_found')) {
-              toast.error('Session expired. Please sign in again.');
-              await supabase.auth.signOut();
-              navigate('/auth');
-            }
-          }
-        } catch (err) {
-          console.error('Error in auto refresh:', err);
-        }
-      }
-    }, 10 * 60 * 1000); // Refresh every 10 minutes
-
-    return () => clearInterval(refreshInterval);
-  }, [session, navigate]);
 
   if (isLoading) {
     return <Skeleton className="h-screen w-screen" />;
@@ -97,15 +56,6 @@ export default function App() {
               element={
                 <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
                   <LazyComponents.Auth />
-                </Suspense>
-              }
-            />
-
-            <Route
-              path="/customer-portal"
-              element={
-                <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
-                  <LazyComponents.CustomerPortal />
                 </Suspense>
               }
             />

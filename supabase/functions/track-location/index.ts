@@ -17,7 +17,6 @@ interface LocationData {
   battery_level?: number
   network_type?: string
   deviceInfo?: object
-  portal_user_id?: string // Added for portal users
 }
 
 // Function to check if a point is inside a circle
@@ -82,22 +81,31 @@ Deno.serve(async (req) => {
       }
     )
 
-    let userId: string | null = null;
-    let isPortalUser = false;
-
-    // First check for regular authenticated user
+    // Get auth header
     const authHeader = req.headers.get('Authorization')
-    if (authHeader) {
-      const token = authHeader.replace('Bearer ', '')
-      const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
-      
-      if (!userError && user) {
-        userId = user.id;
-        console.log('Authenticated user:', userId)
-      }
+    if (!authHeader) {
+      console.error('No authorization header')
+      return new Response(
+        JSON.stringify({ error: 'No authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
-    // Parse request body
+    // Get user from auth header
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
+    
+    if (userError || !user) {
+      console.error('Auth error:', userError)
+      return new Response(
+        JSON.stringify({ error: 'Authentication failed', details: userError }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    console.log('Authenticated user:', user.id)
+
+    // Parse and validate request body
     let body: LocationData
     try {
       body = await req.json()
@@ -107,30 +115,6 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Invalid JSON' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // If portal_user_id is provided, verify it exists and use it
-    if (body.portal_user_id) {
-      const { data: portalUser, error: portalError } = await supabaseClient
-        .from('portal_users')
-        .select('*')
-        .eq('id', body.portal_user_id)
-        .single()
-
-      if (!portalError && portalUser) {
-        userId = body.portal_user_id;
-        isPortalUser = true;
-        console.log('Portal user:', userId)
-      }
-    }
-
-    // If no valid user found, return error
-    if (!userId) {
-      console.error('No valid user found')
-      return new Response(
-        JSON.stringify({ error: 'No valid user found' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -173,8 +157,7 @@ Deno.serve(async (req) => {
       .from('user_locations')
       .insert([
         {
-          user_id: userId,
-          portal_user_id: isPortalUser ? userId : null,
+          user_id: user.id,
           latitude,
           longitude,
           accuracy,
@@ -215,7 +198,7 @@ Deno.serve(async (req) => {
       const { data: lastLocation } = await supabaseClient
         .from('user_locations')
         .select('latitude, longitude')
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(2)
 
@@ -263,7 +246,7 @@ Deno.serve(async (req) => {
           const { error: eventError } = await supabaseClient
             .from('geofence_events')
             .insert({
-              user_id: userId,
+              user_id: user.id,
               zone_id: zone.id,
               event_type: eventType,
               location_lat: latitude,

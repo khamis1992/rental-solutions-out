@@ -4687,10 +4687,7 @@ export type Database = {
           agreement_number: string
           created_at: string
           id: string
-          last_known_location: Json | null
           last_login: string | null
-          location_tracking_consent_date: string | null
-          location_tracking_enabled: boolean | null
           login_attempts: number | null
           phone_number: string
           status: Database["public"]["Enums"]["portal_user_status"] | null
@@ -4700,10 +4697,7 @@ export type Database = {
           agreement_number: string
           created_at?: string
           id?: string
-          last_known_location?: Json | null
           last_login?: string | null
-          location_tracking_consent_date?: string | null
-          location_tracking_enabled?: boolean | null
           login_attempts?: number | null
           phone_number: string
           status?: Database["public"]["Enums"]["portal_user_status"] | null
@@ -4713,10 +4707,7 @@ export type Database = {
           agreement_number?: string
           created_at?: string
           id?: string
-          last_known_location?: Json | null
           last_login?: string | null
-          location_tracking_consent_date?: string | null
-          location_tracking_enabled?: boolean | null
           login_attempts?: number | null
           phone_number?: string
           status?: Database["public"]["Enums"]["portal_user_status"] | null
@@ -7085,7 +7076,6 @@ export type Database = {
             | null
           created_at: string | null
           device_info: Json | null
-          full_name: string | null
           heading: number | null
           id: string | null
           last_pull_timestamp: string | null
@@ -7093,21 +7083,12 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           network_type: string | null
-          portal_user_id: string | null
           speed: number | null
           timestamp: string | null
           updated_at: string | null
           user_id: string | null
-          user_phone: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "user_locations_portal_user_id_fkey"
-            columns: ["portal_user_id"]
-            isOneToOne: false
-            referencedRelation: "portal_users"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "user_locations_user_id_fkey"
             columns: ["user_id"]
@@ -7271,57 +7252,6 @@ export type Database = {
             columns: ["lease_id"]
             isOneToOne: false
             referencedRelation: "leases"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      portal_user_locations: {
-        Row: {
-          accuracy: number | null
-          address: string | null
-          agreement_number: string | null
-          altitude: number | null
-          battery_level: number | null
-          connection_status:
-            | Database["public"]["Enums"]["user_location_status"]
-            | null
-          created_at: string | null
-          customer_phone: string | null
-          device_info: Json | null
-          full_name: string | null
-          heading: number | null
-          id: string | null
-          last_pull_timestamp: string | null
-          last_updated: string | null
-          latitude: number | null
-          longitude: number | null
-          network_type: string | null
-          portal_user_id: string | null
-          speed: number | null
-          timestamp: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_locations_portal_user_id_fkey"
-            columns: ["portal_user_id"]
-            isOneToOne: false
-            referencedRelation: "portal_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_locations_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "customer_statuses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_locations_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
