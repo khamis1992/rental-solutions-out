@@ -10,11 +10,11 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { MapPin, User, Focus } from "lucide-react";
+import { MapPin, User, Focus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { GeofenceManager } from "@/components/geofencing/GeofenceManager";
@@ -22,9 +22,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Time threshold for considering a user inactive (5 minutes)
 const INACTIVE_THRESHOLD = 5 * 60 * 1000;
+const REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour
 
 interface LocationRecord {
   id: string;
@@ -38,19 +40,26 @@ interface LocationRecord {
   created_at: string;
   updated_at: string;
   last_updated: string;
+  last_pull_timestamp: string;
   profiles?: {
     full_name: string | null;
   }
 }
 
 const generateUserColor = (userId: string) => {
-  // Generate a consistent color based on user ID
   let hash = 0;
   for (let i = 0; i < userId.length; i++) {
     hash = userId.charCodeAt(i) + ((hash << 5) - hash);
   }
   const hue = hash % 360;
   return `hsl(${hue}, 70%, 50%)`;
+};
+
+const getLocationFreshness = (lastUpdated: string) => {
+  const ageInMinutes = (new Date().getTime() - new Date(lastUpdated).getTime()) / (1000 * 60);
+  if (ageInMinutes < 60) return 'bg-green-500';
+  if (ageInMinutes < 120) return 'bg-yellow-500';
+  return 'bg-red-500';
 };
 
 const LocationTracking = () => {
@@ -62,6 +71,8 @@ const LocationTracking = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [followMode, setFollowMode] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: mapboxToken } = useQuery({
     queryKey: ['mapbox-token'],
@@ -72,11 +83,11 @@ const LocationTracking = () => {
     }
   });
 
-  const { data: locations } = useQuery<LocationRecord[]>({
+  const { data: locations, refetch: refetchLocations } = useQuery<LocationRecord[]>({
     queryKey: ["user-locations"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('user_locations')
+        .from('latest_user_locations')
         .select(`
           *,
           profiles (
@@ -88,8 +99,21 @@ const LocationTracking = () => {
       if (error) throw error;
       return data;
     },
-    refetchInterval: 5000
+    refetchInterval: REFRESH_INTERVAL
   });
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetchLocations();
+      toast.success('Location data refreshed successfully');
+    } catch (error) {
+      toast.error('Failed to refresh location data');
+      console.error('Refresh error:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const filteredLocations = locations?.filter(loc => {
     const name = loc.profiles?.full_name?.toLowerCase() || '';
@@ -263,12 +287,23 @@ const LocationTracking = () => {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Location Tracking</h1>
-        <Badge 
-          variant={isTracking ? "success" : "destructive"}
-          className="px-3 py-1"
-        >
-          {isTracking ? "Active" : "Inactive"}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge 
+            variant={isTracking ? "success" : "destructive"}
+            className="px-3 py-1"
+          >
+            {isTracking ? "Active" : "Inactive"}
+          </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="tracking">
@@ -339,7 +374,14 @@ const LocationTracking = () => {
 
             <Card className="mt-6">
               <div className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Active Users</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold">Active Users</h2>
+                  <div className="text-sm text-muted-foreground">
+                    Last updated: {locations && locations.length > 0 ? 
+                      format(new Date(locations[0].last_pull_timestamp), 'dd/MM/yyyy HH:mm:ss') : 
+                      'Never'}
+                  </div>
+                </div>
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -349,6 +391,7 @@ const LocationTracking = () => {
                         <TableHead>Longitude</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Last Update</TableHead>
+                        <TableHead>Freshness</TableHead>
                         <TableHead></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -377,7 +420,17 @@ const LocationTracking = () => {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            {formatDistanceToNow(new Date(location.last_updated), { addSuffix: true })}
+                            <Tooltip>
+                              <TooltipTrigger>
+                                {formatDistanceToNow(new Date(location.last_updated), { addSuffix: true })}
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {format(new Date(location.last_updated), 'dd/MM/yyyy HH:mm:ss')}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell>
+                            <div className={`w-3 h-3 rounded-full ${getLocationFreshness(location.last_updated)}`} />
                           </TableCell>
                           <TableCell>
                             <Button
@@ -395,7 +448,7 @@ const LocationTracking = () => {
                       ))}
                       {(!filteredLocations || filteredLocations.length === 0) && (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
+                          <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
                             No location history available
                           </TableCell>
                         </TableRow>
