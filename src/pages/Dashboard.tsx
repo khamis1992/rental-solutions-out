@@ -8,7 +8,6 @@ import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { DashboardStats as DashboardStatsType } from "@/types/dashboard.types";
 import { Card } from "@/components/ui/card";
 import { VehicleStatusChart } from "@/components/dashboard/VehicleStatusChart";
-import { VehicleStatusList } from "@/components/dashboard/VehicleStatusList";
 import { BusinessHealth } from "@/components/dashboard/BusinessHealth";
 import { SmartNotifications } from "@/components/dashboard/SmartNotifications";
 import { QuickActions } from "@/components/dashboard/QuickActions";
@@ -71,10 +70,9 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Two Column Layout for Business Health and Vehicle Status */}
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+      {/* Business Health Section */}
+      <div className="grid gap-6 grid-cols-1">
         <BusinessHealth />
-        <VehicleStatusList selectedStatus="all" />
       </div>
 
       {/* Quick Actions - Full Width */}
