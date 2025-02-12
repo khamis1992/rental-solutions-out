@@ -45,6 +45,22 @@ export function LocationProvider({ children }: { children: ReactNode }) {
         throw new Error('Geolocation is not supported by your browser');
       }
 
+      // Update user's location tracking consent
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { error: consentError } = await supabase
+          .from('profiles')
+          .update({
+            location_tracking_enabled: true,
+            location_tracking_consent_date: new Date().toISOString()
+          })
+          .eq('id', user.id);
+
+        if (consentError) {
+          console.error('Error updating location consent:', consentError);
+        }
+      }
+
       // Start watching position
       const id = navigator.geolocation.watchPosition(
         async (position) => {
