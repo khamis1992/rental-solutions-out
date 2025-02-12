@@ -1,9 +1,8 @@
-
 import { 
   LayoutDashboard, CarFront, Users, FileText, Wrench, 
   DollarSign, AlertTriangle, BarChart3, Archive,
   Building2, Scale, HelpCircle, ChevronRight, 
-  ChevronLeft, Activity, Menu, MapPin
+  ChevronLeft, Activity, Menu, MapPin, Bot
 } from "lucide-react";
 import {
   Sidebar,
@@ -118,6 +117,12 @@ const menuGroups: MenuGroup[] = [
         label: "Chauffeur Service", 
         href: "/chauffeur-service",
         description: "Driver services"
+      },
+      { 
+        icon: Bot, 
+        label: "AI Help", 
+        href: "/ai-help",
+        description: "AI-powered assistance"
       },
     ]
   },
@@ -252,7 +257,7 @@ export const DashboardSidebar = () => {
                             >
                               <item.icon className={cn(
                                 "h-5 w-5 transition-transform group-hover:scale-110",
-                                isActive ? "text-orange-600" : "text-gray-500 group-hover:text-orange-500"
+                                isActive ? "text-orange-600" : "text-gray-500 group-hover:text-orange-50"
                               )} />
                               {!isCollapsed && (
                                 <span className={cn(
