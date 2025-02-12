@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { BusinessHealth } from "@/components/dashboard/BusinessHealth";
 import { SmartNotifications } from "@/components/dashboard/SmartNotifications";
 import { QuickActions } from "@/components/dashboard/QuickActions";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const Dashboard = () => {
   const { data: stats } = useQuery({
@@ -57,12 +58,16 @@ const Dashboard = () => {
 
       {/* Two Column Layout for Notifications and Activity */}
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
-        <Card className="bg-white/50 backdrop-blur-sm border-gray-200/50 hover:border-gray-300 transition-all duration-300">
-          <SmartNotifications />
+        <Card className="bg-white/50 backdrop-blur-sm border-gray-200/50 hover:border-gray-300 transition-all duration-300 h-[400px]">
+          <ScrollArea className="h-full">
+            <SmartNotifications />
+          </ScrollArea>
         </Card>
         
-        <Card className="bg-white/50 backdrop-blur-sm border-gray-200/50 hover:border-gray-300 transition-all duration-300">
-          <RecentActivity />
+        <Card className="bg-white/50 backdrop-blur-sm border-gray-200/50 hover:border-gray-300 transition-all duration-300 h-[400px]">
+          <ScrollArea className="h-full">
+            <RecentActivity />
+          </ScrollArea>
         </Card>
       </div>
 
