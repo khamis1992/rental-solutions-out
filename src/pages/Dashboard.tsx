@@ -7,6 +7,11 @@ import { DashboardAlerts } from "@/components/dashboard/DashboardAlerts";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { DashboardStats as DashboardStatsType } from "@/types/dashboard.types";
 import { Card } from "@/components/ui/card";
+import { VehicleStatusChart } from "@/components/dashboard/VehicleStatusChart";
+import { VehicleStatusList } from "@/components/dashboard/VehicleStatusList";
+import { BusinessHealth } from "@/components/dashboard/BusinessHealth";
+import { SmartNotifications } from "@/components/dashboard/SmartNotifications";
+import { QuickActions } from "@/components/dashboard/QuickActions";
 
 const Dashboard = () => {
   const { data: stats } = useQuery({
@@ -33,12 +38,14 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6 mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-[1400px] animate-fade-in">
+      {/* Welcome Header */}
       <Card className="bg-gradient-to-r from-purple-50/90 to-blue-50/90 dark:from-purple-900/20 dark:to-blue-900/20 border-none shadow-lg">
         <div className="p-6">
           <WelcomeHeader />
         </div>
       </Card>
 
+      {/* Dashboard Stats */}
       <div className="grid gap-6">
         <DashboardStats stats={stats || {
           totalVehicles: 0,
@@ -51,11 +58,33 @@ const Dashboard = () => {
         }} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-6">
-          <DashboardAlerts />
+      {/* Three Column Layout for Alerts, Chart, and Activity */}
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="bg-white/50 backdrop-blur-sm border-gray-200/50 hover:border-gray-300 transition-all duration-300">
+          <SmartNotifications />
+        </Card>
+        
+        <VehicleStatusChart />
+        
+        <Card className="bg-white/50 backdrop-blur-sm border-gray-200/50 hover:border-gray-300 transition-all duration-300">
           <RecentActivity />
-        </div>
+        </Card>
+      </div>
+
+      {/* Two Column Layout for Business Health and Vehicle Status */}
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+        <BusinessHealth />
+        <VehicleStatusList selectedStatus="all" />
+      </div>
+
+      {/* Quick Actions - Full Width */}
+      <div className="w-full">
+        <QuickActions />
+      </div>
+
+      {/* Alerts Section - Now at the bottom */}
+      <div className="grid gap-6 grid-cols-1">
+        <DashboardAlerts />
       </div>
     </div>
   );
