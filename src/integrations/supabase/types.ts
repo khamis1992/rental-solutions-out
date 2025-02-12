@@ -6255,6 +6255,7 @@ export type Database = {
           latitude: number
           longitude: number
           network_type: string | null
+          portal_user_id: string | null
           speed: number | null
           timestamp: string | null
           updated_at: string | null
@@ -6277,6 +6278,7 @@ export type Database = {
           latitude: number
           longitude: number
           network_type?: string | null
+          portal_user_id?: string | null
           speed?: number | null
           timestamp?: string | null
           updated_at?: string | null
@@ -6299,12 +6301,20 @@ export type Database = {
           latitude?: number
           longitude?: number
           network_type?: string | null
+          portal_user_id?: string | null
           speed?: number | null
           timestamp?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "user_locations_portal_user_id_fkey"
+            columns: ["portal_user_id"]
+            isOneToOne: false
+            referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_locations_user_id_fkey"
             columns: ["user_id"]
