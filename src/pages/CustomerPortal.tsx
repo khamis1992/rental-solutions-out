@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, LogOut } from "lucide-react";
+import { Loader2, LogOut, ArrowLeft } from "lucide-react";
 import { PaymentHistory } from '@/components/customers/portal/PaymentHistory';
 import { CustomerFeedback } from '@/components/customers/portal/CustomerFeedback';
 import { ProfileManagement } from '@/components/customers/portal/ProfileManagement';
@@ -76,18 +77,11 @@ export default function CustomerPortal() {
   };
 
   const handleLogout = () => {
-    // Clear authentication state
     setIsAuthenticated(false);
     setProfile(null);
-    
-    // Clear form data
     setAgreementNumber('');
     setPhoneNumber('');
-    
-    // Show success message
     toast.success('Logged out successfully');
-    
-    // Redirect to login page
     navigate('/customer-portal');
   };
 
@@ -95,7 +89,6 @@ export default function CustomerPortal() {
     return (
       <div className="min-h-screen bg-background-alt">
         <div className="container py-8 space-y-8">
-          {/* Header with Logout Button */}
           <div className="flex justify-between items-center">
             <div className="space-y-2">
               <h1 className="text-3xl font-bold text-secondary">Welcome, {profile?.full_name}</h1>
@@ -111,15 +104,12 @@ export default function CustomerPortal() {
             </Button>
           </div>
 
-          {/* Profile Management Section */}
           <ProfileManagement profile={profile} />
 
-          {/* Payment History Section */}
           {profile?.id && (
             <PaymentHistory customerId={profile.id} />
           )}
 
-          {/* Feedback Section */}
           <CustomerFeedback agreementId={agreementNumber} />
         </div>
       </div>
@@ -128,7 +118,15 @@ export default function CustomerPortal() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background-alt p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute left-4 top-4"
+          onClick={() => navigate('/auth')}
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
         <CardHeader>
           <CardTitle className="text-center">Customer Portal Login</CardTitle>
         </CardHeader>
