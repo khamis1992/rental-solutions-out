@@ -21,8 +21,8 @@ const Agreements = () => {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto space-y-6 px-4 py-8">
-        <div className="relative space-y-6 pb-4 rounded-2xl overflow-hidden">
+      <div className="mx-auto space-y-6 py-8">
+        <div className="relative space-y-6 pb-4 rounded-2xl overflow-hidden w-full">
           {/* Professional Gradient Background */}
           <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-blue-100 to-blue-50 shadow-md" />
           
@@ -45,7 +45,7 @@ const Agreements = () => {
           <div className="absolute inset-0 backdrop-blur-sm bg-white/[0.02]" />
           
           {/* Content Wrapper */}
-          <div className="relative px-6 py-8">
+          <div className="relative px-8 py-8 w-full max-w-[1600px] mx-auto">
             {/* Enhanced Breadcrumb Navigation */}
             <nav className="flex items-center gap-2 text-sm text-gray-600 mb-8">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-md border border-blue-100 hover:bg-blue-50 transition-all duration-300 shadow-sm">
@@ -59,16 +59,16 @@ const Agreements = () => {
             </nav>
 
             {/* Title Section with Enhanced Typography */}
-            <div className="space-y-4 mb-8">
+            <div className="space-y-4 mb-8 w-full">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg transform hover:scale-110 transition-transform duration-200">
                   <FileText className="h-8 w-8 text-white" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 text-transparent bg-clip-text">
                     Agreements Management
                   </h1>
-                  <p className="text-gray-600 text-lg max-w-2xl leading-relaxed mt-1">
+                  <p className="text-gray-600 text-lg leading-relaxed mt-1">
                     Manage and track all your agreements in one place efficiently
                   </p>
                 </div>
@@ -76,7 +76,7 @@ const Agreements = () => {
             </div>
             
             {/* Action Buttons with Professional Styling */}
-            <div className="flex justify-between items-start gap-6">
+            <div className="flex justify-between items-start gap-6 w-full">
               <div className="flex-1">
                 <AgreementListHeader 
                   onImportClick={handleImportClick}
@@ -92,12 +92,14 @@ const Agreements = () => {
         </div>
 
         {/* Enhanced Stats Section */}
-        <div className="relative">
+        <div className="relative px-4 md:px-8">
           <div className="absolute inset-0 bg-gradient-to-b from-blue-50/5 to-transparent pointer-events-none" />
           <AgreementStats />
         </div>
 
-        <AgreementList />
+        <div className="px-4 md:px-8">
+          <AgreementList />
+        </div>
         
         <CreateAgreementDialog 
           open={showCreateDialog} 
