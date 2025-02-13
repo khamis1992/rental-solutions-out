@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   Wrench, CreditCard, 
-  FileText 
+  UserPlus, FileText
 } from "lucide-react";
 import { CreateJobDialog } from "@/components/maintenance/CreateJobDialog";
 import { PaymentForm } from "@/components/payments/PaymentForm";
@@ -32,6 +32,12 @@ export const QuickActions = () => {
       color: "text-purple-500"
     },
     {
+      title: "Add Customer",
+      icon: UserPlus,
+      onClick: () => setShowCustomerDialog(true),
+      color: "text-pink-500"
+    },
+    {
       title: "Generate Contract",
       icon: FileText,
       onClick: () => setShowContractDialog(true),
@@ -46,7 +52,7 @@ export const QuickActions = () => {
           <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {actions.map((action, index) => (
               <Button
                 key={index}
