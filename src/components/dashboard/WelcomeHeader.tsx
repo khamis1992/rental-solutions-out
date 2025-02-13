@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -128,30 +129,22 @@ export const WelcomeHeader = () => {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                </TooltipTrigger>
+              </TooltipTrigger>
               <TooltipContent>
                 <p>Notifications</p>
               </TooltipContent>
             </Tooltip>
 
-            <UserProfileMenu 
-              trigger={
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-foreground/80 hover:text-foreground hover:bg-background/80 transition-colors"
-                    >
-                      <UserRound className="h-5 w-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Profile</p>
-                  </TooltipContent>
-                </Tooltip>
-              }
-            />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <UserProfileMenu />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Profile</p>
+              </TooltipContent>
+            </Tooltip>
 
             <Tooltip>
               <TooltipTrigger asChild>
