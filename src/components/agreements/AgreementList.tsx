@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -205,16 +206,6 @@ export const AgreementList = () => {
           />
           <div className="flex flex-wrap items-center gap-3">
             <AgreementPDFImport />
-            <CreateAgreementDialog>
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-primary hover:bg-primary/90 text-white"
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Create Agreement
-              </Button>
-            </CreateAgreementDialog>
           </div>
         </div>
         <div className="text-center py-4">
@@ -248,16 +239,6 @@ export const AgreementList = () => {
         />
         <div className="flex flex-wrap items-center gap-3">
           <AgreementPDFImport />
-          <CreateAgreementDialog>
-            <Button
-              variant="default"
-              size="sm"
-              className="bg-primary hover:bg-primary/90 text-white"
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              Create Agreement
-            </Button>
-          </CreateAgreementDialog>
         </div>
       </div>
       
