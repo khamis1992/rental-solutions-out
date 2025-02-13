@@ -50,7 +50,7 @@ export const AgreementListHeader = ({
               <Button 
                 variant="default"
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-white h-11"
+                className="bg-blue-600 hover:bg-blue-700 text-white h-11"
               >
                 <Upload className="h-5 w-5 mr-2" />
                 Create Agreement
