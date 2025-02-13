@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   Wrench, CreditCard, 
-  UserPlus, Calendar, FileText, Clock
+  UserPlus, FileText
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,22 +27,10 @@ const actions = [
     color: "text-pink-500"
   },
   {
-    title: "Book Appointment",
-    icon: Calendar,
-    onClick: () => toast.info("Appointment booking feature coming soon"),
-    color: "text-indigo-500"
-  },
-  {
     title: "Generate Contract",
     icon: FileText,
     onClick: () => toast.info("Contract generation feature coming soon"),
     color: "text-teal-500"
-  },
-  {
-    title: "View Schedule",
-    icon: Clock,
-    onClick: () => toast.info("Schedule view feature coming soon"),
-    color: "text-rose-500"
   }
 ];
 
