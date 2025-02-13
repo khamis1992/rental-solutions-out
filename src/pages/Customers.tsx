@@ -1,3 +1,4 @@
+
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { CustomerList } from "@/components/customers/CustomerList";
 import { CreateCustomerDialog } from "@/components/customers/CreateCustomerDialog";
@@ -14,6 +15,7 @@ import {
 const Customers = () => {
   return (
     <DashboardLayout>
+      {/* Enhanced Header Section with Interactive Gradient and Glass Effect */}
       <div className="mb-8 relative overflow-hidden">
         <Card className="border-0 bg-gradient-to-br from-blue-50/80 via-indigo-50/80 to-purple-50/80 dark:from-gray-800/80 dark:via-gray-900/80 dark:to-gray-800/80 backdrop-blur-sm">
           <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25"></div>
@@ -43,6 +45,20 @@ const Customers = () => {
                 
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2 p-1.5 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all duration-300">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="sm" className="gap-2 hover:bg-white/80 dark:hover:bg-gray-700/80">
+                            <Upload className="h-4 w-4 text-primary" />
+                            Import
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Import customer data</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -108,6 +124,7 @@ const Customers = () => {
                 </div>
               </div>
 
+              {/* Enhanced Stats Cards with Interactive Elements */}
               <div className="grid grid-cols-3 gap-4">
                 <Card className="group hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px] bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
                   <CardContent className="p-6">
@@ -192,6 +209,7 @@ const Customers = () => {
         </Card>
       </div>
       
+      {/* Customer List Section */}
       <Card className="bg-white/50 shadow-sm border-0 backdrop-blur-sm">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl font-semibold">Customer List</CardTitle>
@@ -208,3 +226,4 @@ const Customers = () => {
 };
 
 export default Customers;
+
