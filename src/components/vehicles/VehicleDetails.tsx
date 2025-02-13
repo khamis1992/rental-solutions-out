@@ -15,7 +15,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, Car, AlertTriangle, Gauge, Calendar, Wrench, AlertOctagon, Share2, Printer, Copy, CarTaxiFront, MapPin } from "lucide-react";
+import { 
+  ArrowLeft, 
+  Car, 
+  AlertTriangle,
+  Gauge,
+  Calendar,
+  AlertOctagon,
+  Share2,
+  Printer,
+  Copy,
+  CarTaxiFront,
+  MapPin
+} from "lucide-react";
+
 export const VehicleDetails = () => {
   const {
     id
@@ -96,11 +109,16 @@ export const VehicleDetails = () => {
         return 'bg-gray-100 text-gray-800';
     }
   };
-  return <div className="space-y-8 p-6">
+  return (
+    <div className="space-y-8 p-6">
       <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => navigate("/vehicles")} className="shrink-0">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate("/vehicles")}
+              className="shrink-0"
+            >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
@@ -122,14 +140,27 @@ export const VehicleDetails = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" onClick={handleCopyLicensePlate}>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleCopyLicensePlate}
+            >
               <Copy className="h-4 w-4 mr-2" />
               {vehicle.license_plate}
             </Button>
-            <Button variant="outline" size="icon" className="hidden sm:flex" onClick={() => window.print()}>
+            <Button
+              variant="outline"
+              size="icon"
+              className="hidden sm:flex"
+              onClick={() => window.print()}
+            >
               <Printer className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="icon" className="hidden sm:flex">
+            <Button
+              variant="outline"
+              size="icon"
+              className="hidden sm:flex"
+            >
               <Share2 className="h-4 w-4" />
             </Button>
           </div>
@@ -167,13 +198,19 @@ export const VehicleDetails = () => {
         </div>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-2">
-        <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
-          <VehicleQRCode make={vehicle.make} model={vehicle.model} vehicleId={id} year={vehicle.year} licensePlate={vehicle.license_plate} vin={vehicle.vin} />
-        </div>
-        <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
-          <VehicleStatus vehicleId={id} currentStatus={vehicle.status} />
-        </div>
+      <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+        <VehicleStatus vehicleId={id} currentStatus={vehicle.status} />
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+        <VehicleQRCode 
+          make={vehicle.make} 
+          model={vehicle.model}
+          vehicleId={id}
+          year={vehicle.year}
+          licensePlate={vehicle.license_plate}
+          vin={vehicle.vin}
+        />
       </div>
 
       <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4">
@@ -204,5 +241,6 @@ export const VehicleDetails = () => {
       <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
         <VehicleTimeline vehicleId={id} />
       </div>
-    </div>;
+    </div>
+  );
 };
