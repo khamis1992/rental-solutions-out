@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from "react-router-dom";
 import { VehicleOverview } from "./profile/VehicleOverview";
 import { VehicleDocuments } from "./profile/VehicleDocuments";
@@ -11,9 +12,23 @@ import { DocumentExpiryNotifications } from "./profile/DocumentExpiryNotificatio
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Car, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { 
+  ArrowLeft, 
+  Car, 
+  AlertTriangle,
+  Gauge,
+  Calendar,
+  Tool,
+  AlertOctagon,
+  Share2,
+  Printer,
+  Copy,
+  CarTaxiFront
+} from "lucide-react";
 
 export const VehicleDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -34,6 +49,13 @@ export const VehicleDetails = () => {
     },
     enabled: !!id
   });
+
+  const handleCopyLicensePlate = () => {
+    if (vehicle?.license_plate) {
+      navigator.clipboard.writeText(vehicle.license_plate);
+      toast.success("License plate copied to clipboard");
+    }
+  };
 
   if (!id) {
     return (
@@ -81,37 +103,115 @@ export const VehicleDetails = () => {
     );
   }
 
+  const getStatusColor = (status: string | null) => {
+    switch (status) {
+      case 'available':
+        return 'bg-green-100 text-green-800';
+      case 'maintenance':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'rented':
+        return 'bg-blue-100 text-blue-800';
+      case 'unavailable':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
     <div className="space-y-8 p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-background-alt rounded-lg p-4 shadow-sm">
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            onClick={() => navigate("/vehicles")}
-            className="shrink-0"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
+      {/* Enhanced Header Section */}
+      <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate("/vehicles")}
+              className="shrink-0"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Car className="h-6 w-6 text-primary" />
+                <CarTaxiFront className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">
+                  {vehicle.year} {vehicle.make} {vehicle.model}
+                </h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge className={getStatusColor(vehicle.status)}>
+                    {vehicle.status || 'Unknown Status'}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </div>
           <div className="flex items-center gap-3">
-            <Car className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold">
-              {vehicle.year} {vehicle.make} {vehicle.model}
-            </h1>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleCopyLicensePlate}
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              {vehicle.license_plate}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="hidden sm:flex"
+              onClick={() => window.print()}
+            >
+              <Printer className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="hidden sm:flex"
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">
-            License Plate:
-          </span>
-          <span className="font-medium">
-            {vehicle.license_plate}
-          </span>
+
+        {/* Quick Stats Section */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <Gauge className="h-5 w-5 text-blue-600" />
+            <div>
+              <p className="text-sm text-muted-foreground">Mileage</p>
+              <p className="font-medium">{vehicle.mileage?.toLocaleString() || 'N/A'} km</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <Calendar className="h-5 w-5 text-green-600" />
+            <div>
+              <p className="text-sm text-muted-foreground">Year</p>
+              <p className="font-medium">{vehicle.year}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <Tool className="h-5 w-5 text-orange-600" />
+            <div>
+              <p className="text-sm text-muted-foreground">Location</p>
+              <p className="font-medium">{vehicle.location || 'N/A'}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <AlertOctagon className="h-5 w-5 text-red-600" />
+            <div>
+              <p className="text-sm text-muted-foreground">Insurance</p>
+              <p className="font-medium">{vehicle.insurance_company || 'N/A'}</p>
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* Main Content */}
       <div className="grid gap-8 md:grid-cols-2">
-        <div className="bg-background rounded-lg shadow-card hover:shadow-card-hover transition-shadow">
+        <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
           <VehicleQRCode 
             make={vehicle.make} 
             model={vehicle.model}
@@ -121,7 +221,7 @@ export const VehicleDetails = () => {
             vin={vehicle.vin}
           />
         </div>
-        <div className="bg-background rounded-lg shadow-card hover:shadow-card-hover transition-shadow">
+        <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
           <VehicleStatus 
             vehicleId={id} 
             currentStatus={vehicle.status} 
@@ -129,32 +229,32 @@ export const VehicleDetails = () => {
         </div>
       </div>
 
-      <div className="bg-background-alt rounded-lg p-4">
+      <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4">
         <DocumentExpiryNotifications vehicleId={id} />
       </div>
       
-      <div className="bg-background rounded-lg shadow-card hover:shadow-card-hover transition-shadow">
+      <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
         <VehicleOverview vehicleId={id} />
       </div>
 
-      <div className="bg-background rounded-lg shadow-card hover:shadow-card-hover transition-shadow">
+      <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
         <VehicleInsurance vehicleId={id} />
       </div>
       
       <div className="grid gap-8 lg:grid-cols-2">
-        <div className="bg-background rounded-lg shadow-card hover:shadow-card-hover transition-shadow">
+        <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
           <VehicleDocuments vehicleId={id} />
         </div>
-        <div className="bg-background rounded-lg shadow-card hover:shadow-card-hover transition-shadow">
+        <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
           <MaintenanceHistory vehicleId={id} />
         </div>
       </div>
 
-      <div className="bg-background rounded-lg shadow-card hover:shadow-card-hover transition-shadow">
+      <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
         <DamageHistory vehicleId={id} />
       </div>
 
-      <div className="bg-background rounded-lg shadow-card hover:shadow-card-hover transition-shadow">
+      <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
         <VehicleTimeline vehicleId={id} />
       </div>
     </div>
