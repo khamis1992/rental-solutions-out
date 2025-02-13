@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -204,9 +203,6 @@ export const AgreementList = () => {
             onSearch={setSearchQuery}
             searchValue={searchQuery}
           />
-          <div className="flex flex-wrap items-center gap-3">
-            <AgreementPDFImport />
-          </div>
         </div>
         <div className="text-center py-4">
           {searchQuery ? (
@@ -237,9 +233,6 @@ export const AgreementList = () => {
           onSearch={setSearchQuery}
           searchValue={searchQuery}
         />
-        <div className="flex flex-wrap items-center gap-3">
-          <AgreementPDFImport />
-        </div>
       </div>
       
       <AgreementListContent
