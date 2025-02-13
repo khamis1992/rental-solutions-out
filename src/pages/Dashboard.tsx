@@ -7,7 +7,6 @@ import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { DashboardStats as DashboardStatsType } from "@/types/dashboard.types";
 import { Card } from "@/components/ui/card";
 import { SmartNotifications } from "@/components/dashboard/SmartNotifications";
-import { QuickActions } from "@/components/dashboard/QuickActions";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const Dashboard = () => {
@@ -60,11 +59,6 @@ const Dashboard = () => {
             <RecentActivity />
           </ScrollArea>
         </Card>
-      </div>
-
-      {/* Quick Actions - Full Width */}
-      <div className="w-full">
-        <QuickActions />
       </div>
     </div>
   );
