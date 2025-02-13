@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { VehicleTablePagination } from "../../vehicles/table/VehicleTablePagination";
 import type { Agreement } from "../hooks/useAgreements";
@@ -195,14 +194,14 @@ export const AgreementListContent = ({
                     <p className="font-medium text-gray-900 dark:text-gray-100">
                       {agreement.customer?.full_name}
                     </p>
-                    {agreement.total_amount && (
+                    {agreement.rent_amount > 0 && (
                       <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
                         <DollarSign className="h-3.5 w-3.5" />
                         <span>
                           {new Intl.NumberFormat('en-US', {
                             style: 'currency',
                             currency: 'USD'
-                          }).format(agreement.total_amount)}
+                          }).format(agreement.rent_amount)}/month
                         </span>
                       </div>
                     )}
@@ -310,4 +309,3 @@ export const AgreementListContent = ({
     </div>
   );
 };
-
