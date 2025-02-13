@@ -2,7 +2,7 @@ import {
   LayoutDashboard, CarFront, Users, FileText, Wrench, 
   DollarSign, AlertTriangle, BarChart3, Archive,
   Building2, Scale, HelpCircle, ChevronRight, 
-  ChevronLeft, Activity, Menu, MapPin, Bot
+  ChevronLeft, Activity, Menu, MapPin
 } from "lucide-react";
 import {
   Sidebar,
@@ -117,12 +117,6 @@ const menuGroups: MenuGroup[] = [
         label: "Chauffeur Service", 
         href: "/chauffeur-service",
         description: "Driver services"
-      },
-      { 
-        icon: Bot, 
-        label: "AI Help", 
-        href: "/ai-help",
-        description: "AI-powered assistance"
       },
     ]
   },

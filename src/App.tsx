@@ -118,7 +118,7 @@ export default function App() {
                 element={
                   <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
                     <LazyComponents.Agreements />
-                  </Suspense>
+                  Suspense>
                 }
               />
 
@@ -195,15 +195,6 @@ export default function App() {
               />
 
               <Route
-                path="/ai-help"
-                element={
-                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
-                    <LazyComponents.AIHelp />
-                  </Suspense>
-                }
-              />
-
-              <Route
                 path="/help"
                 element={
                   <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
@@ -226,7 +217,7 @@ export default function App() {
                 element={
                   <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
                     <LazyComponents.Audit />
-                  </Suspense>
+                  Suspense>
                 }
               />
 
