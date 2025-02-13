@@ -2,18 +2,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
-  Key, Wrench, CreditCard, 
+  Wrench, CreditCard, 
   UserPlus, Calendar, FileText, Clock
 } from "lucide-react";
 import { toast } from "sonner";
 
 const actions = [
-  {
-    title: "Check-out Vehicle",
-    icon: Key,
-    onClick: () => toast.info("Vehicle check-out feature coming soon"),
-    color: "text-green-500"
-  },
   {
     title: "Schedule Maintenance",
     icon: Wrench,
