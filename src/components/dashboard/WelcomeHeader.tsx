@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -6,6 +5,16 @@ import { useEffect, useState } from "react";
 import { Sun, Moon, CloudSun, Bell, UserRound, Settings, LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useNavigate } from "react-router-dom";
+import { UserProfileMenu } from "@/components/layout/UserProfileMenu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const motivationalQuotes = [
   "Success is not final, failure is not fatal: it is the courage to continue that counts.",
@@ -43,6 +52,7 @@ const getTimeConfig = (hour: number): { icon: LucideIcon; gradient: string; gree
 export const WelcomeHeader = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [quote, setQuote] = useState("");
+  const navigate = useNavigate();
 
   const { data: profile } = useQuery({
     queryKey: ['profile'],
@@ -88,33 +98,60 @@ export const WelcomeHeader = () => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-foreground/80 hover:text-foreground hover:bg-background/80 transition-colors"
-                >
-                  <Bell className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-foreground/80 hover:text-foreground hover:bg-background/80 transition-colors relative"
+                    >
+                      <Bell className="h-5 w-5" />
+                      <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
+                        2
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-72">
+                    <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="cursor-pointer">
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium">New maintenance request</span>
+                        <span className="text-sm text-muted-foreground">Vehicle inspection due for BMW X5</span>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="cursor-pointer">
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium">Payment received</span>
+                        <span className="text-sm text-muted-foreground">Monthly rent payment confirmed</span>
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                </TooltipTrigger>
               <TooltipContent>
                 <p>Notifications</p>
               </TooltipContent>
             </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-foreground/80 hover:text-foreground hover:bg-background/80 transition-colors"
-                >
-                  <UserRound className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Profile</p>
-              </TooltipContent>
-            </Tooltip>
+            <UserProfileMenu 
+              trigger={
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-foreground/80 hover:text-foreground hover:bg-background/80 transition-colors"
+                    >
+                      <UserRound className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Profile</p>
+                  </TooltipContent>
+                </Tooltip>
+              }
+            />
 
             <Tooltip>
               <TooltipTrigger asChild>
@@ -122,6 +159,7 @@ export const WelcomeHeader = () => {
                   variant="ghost" 
                   size="icon" 
                   className="text-foreground/80 hover:text-foreground hover:bg-background/80 transition-colors"
+                  onClick={() => navigate('/settings')}
                 >
                   <Settings className="h-5 w-5" />
                 </Button>
