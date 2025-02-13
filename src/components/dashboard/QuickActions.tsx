@@ -82,7 +82,12 @@ export const QuickActions = () => {
       </Dialog>
 
       {/* Customer Dialog */}
-      <CreateCustomerDialog open={showCustomerDialog} onOpenChange={setShowCustomerDialog} />
+      <CreateCustomerDialog 
+        open={showCustomerDialog} 
+        onOpenChange={setShowCustomerDialog}
+      >
+        <div className="hidden">Trigger</div>
+      </CreateCustomerDialog>
 
       {/* Contract Dialog */}
       <CreateAgreementDialog open={showContractDialog} onOpenChange={setShowContractDialog} />
