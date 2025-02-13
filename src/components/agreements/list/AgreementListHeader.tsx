@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { 
-  ChevronDown,
+  Upload,
   Download,
 } from "lucide-react";
 import {
@@ -10,6 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 
 interface AgreementListHeaderProps {
   onImportClick: () => void;
@@ -43,18 +44,19 @@ export const AgreementListHeader = ({
           </Tooltip>
         </TooltipProvider>
 
-        {/* Create Agreement Button with Enhanced Styling */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button 
-                variant="default"
-                size="sm"
-                className="bg-blue-500 hover:bg-blue-600 text-white gap-2 transition-all duration-300 hover:scale-105 shadow-md group"
-              >
-                Create Agreement
-                <ChevronDown className="h-4 w-4 group-hover:rotate-180 transition-transform duration-300" />
-              </Button>
+              <CreateAgreementDialog>
+                <Button 
+                  variant="default"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90 text-white"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Create Agreement
+                </Button>
+              </CreateAgreementDialog>
             </TooltipTrigger>
             <TooltipContent>
               <p>Create new agreement (⌘ N)</p>
