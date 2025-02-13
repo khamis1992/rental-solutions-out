@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { VehicleTablePagination } from "../../vehicles/table/VehicleTablePagination";
 import type { Agreement } from "../hooks/useAgreements";
@@ -31,6 +32,7 @@ import { AgreementEditor } from "../print/AgreementEditor";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/utils";
 
 interface AgreementListContentProps {
   agreements: Agreement[];
@@ -197,12 +199,7 @@ export const AgreementListContent = ({
                     {agreement.rent_amount > 0 && (
                       <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
                         <DollarSign className="h-3.5 w-3.5" />
-                        <span>
-                          {new Intl.NumberFormat('en-US', {
-                            style: 'currency',
-                            currency: 'USD'
-                          }).format(agreement.rent_amount)}/month
-                        </span>
+                        <span>{formatCurrency(agreement.rent_amount)}/month</span>
                       </div>
                     )}
                   </div>
