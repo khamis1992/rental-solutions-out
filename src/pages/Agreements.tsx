@@ -6,10 +6,18 @@ import { AgreementListHeader } from "@/components/agreements/list/AgreementListH
 import { AgreementStats } from "@/components/agreements/AgreementStats";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { PaymentImport } from "@/components/agreements/PaymentImport";
-import { ChevronRight, Building2, FileText } from "lucide-react";
+import { ChevronRight, Building2, FileText, Sparkles, Bell } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const Agreements = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const handleImportClick = () => {
     // Import handling logic
@@ -21,44 +29,72 @@ const Agreements = () => {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-        {/* Header Section with Professional Gradient */}
-        <div className="relative bg-gradient-to-r from-blue-50 via-blue-100 to-blue-50 border-b">
-          <div className="absolute inset-0 bg-white/40 backdrop-blur-sm" />
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+        {/* Enhanced Header Section with Wave Pattern */}
+        <div className="relative bg-gradient-to-r from-blue-500/90 via-blue-600/90 to-blue-700/90 border-b dark:border-blue-800">
+          <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]" />
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
           
           {/* Content Container */}
-          <div className="relative w-full max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
             {/* Enhanced Breadcrumb Navigation */}
-            <nav className="flex items-center gap-2 text-sm text-gray-600 mb-8">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-md border border-blue-100 hover:bg-blue-50 transition-all duration-300 shadow-sm">
-                <Building2 className="h-4 w-4 text-blue-500" />
+            <nav className="flex items-center gap-2 text-sm text-white/80 mb-8">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all duration-300 group">
+                <Building2 className="h-4 w-4 text-white" />
                 <span className="font-medium">Organization</span>
               </div>
-              <ChevronRight className="h-4 w-4 text-blue-300" />
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50/80 backdrop-blur-md border border-blue-200 shadow-sm">
-                <span className="font-medium text-blue-700">Agreements Management</span>
+              <ChevronRight className="h-4 w-4 text-white/60" />
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 shadow-sm">
+                <FileText className="h-4 w-4 text-white" />
+                <span className="font-medium text-white">Agreements Management</span>
               </div>
             </nav>
 
-            {/* Title Section */}
+            {/* Title Section with Enhanced Design */}
             <div className="mb-10">
-              <div className="flex items-center gap-6">
-                <div className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
-                  <FileText className="h-8 w-8 text-white" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-6">
+                  <div className="p-3 bg-white/10 rounded-xl shadow-inner border border-white/20">
+                    <FileText className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+                      Agreements Management
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-400/20 text-white border border-blue-300/30">
+                        <Sparkles className="w-3.5 h-3.5 mr-1" />
+                        Pro
+                      </span>
+                    </h1>
+                    <p className="text-white/80 text-lg">
+                      Manage and track all your agreements efficiently
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 text-transparent bg-clip-text mb-2">
-                    Agreements Management
-                  </h1>
-                  <p className="text-gray-600 text-lg">
-                    Manage and track all your agreements efficiently
-                  </p>
-                </div>
+
+                {/* Notification Button */}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="relative bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-300"
+                        onClick={() => setShowNotifications(!showNotifications)}
+                      >
+                        <Bell className="h-5 w-5 text-white" />
+                        <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>View Notifications</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-between items-center gap-6 max-w-screen-xl mx-auto">
+            {/* Action Buttons with Enhanced Design */}
+            <div className="flex justify-between items-center gap-6 backdrop-blur-sm">
               <div className="flex-1">
                 <AgreementListHeader
                   onImportClick={handleImportClick}
@@ -71,16 +107,23 @@ const Agreements = () => {
               </div>
             </div>
           </div>
+
+          {/* Decorative Wave Pattern */}
+          <div className="absolute bottom-0 left-0 right-0 transform translate-y-[1px]">
+            <svg className="w-full h-8" viewBox="0 0 1440 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0 48h1440V0c-211.415 32-461.415 48-750 48-288.585 0-538.585-16-750-48v48z" fill="currentColor" className="text-gray-50 dark:text-gray-900" />
+            </svg>
+          </div>
         </div>
 
-        {/* Main Content Area */}
-        <div className="w-full max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Stats Section */}
-          <div className="py-8">
+        {/* Main Content Area with Enhanced Spacing */}
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Stats Section with Animation */}
+          <div className="transform -translate-y-8">
             <AgreementStats />
           </div>
 
-          {/* Agreements List */}
+          {/* Agreements List with Enhanced Spacing */}
           <div className="pb-12">
             <AgreementList />
           </div>
