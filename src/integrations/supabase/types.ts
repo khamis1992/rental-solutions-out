@@ -5527,6 +5527,154 @@ export type Database = {
           },
         ]
       }
+      seeker_alerts: {
+        Row: {
+          alert_severity: string
+          alert_type: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          location_lat: number | null
+          location_lng: number | null
+          message: string
+          target_id: string | null
+        }
+        Insert: {
+          alert_severity: string
+          alert_type: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          location_lat?: number | null
+          location_lng?: number | null
+          message: string
+          target_id?: string | null
+        }
+        Update: {
+          alert_severity?: string
+          alert_type?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          location_lat?: number | null
+          location_lng?: number | null
+          message?: string
+          target_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seeker_alerts_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "seeker_targets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seeker_location_history: {
+        Row: {
+          accuracy: number | null
+          altitude: number | null
+          battery_level: number | null
+          device_info: Json | null
+          heading: number | null
+          id: string
+          latitude: number
+          longitude: number
+          network_type: string | null
+          speed: number | null
+          target_id: string | null
+          timestamp: string | null
+        }
+        Insert: {
+          accuracy?: number | null
+          altitude?: number | null
+          battery_level?: number | null
+          device_info?: Json | null
+          heading?: number | null
+          id?: string
+          latitude: number
+          longitude: number
+          network_type?: string | null
+          speed?: number | null
+          target_id?: string | null
+          timestamp?: string | null
+        }
+        Update: {
+          accuracy?: number | null
+          altitude?: number | null
+          battery_level?: number | null
+          device_info?: Json | null
+          heading?: number | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          network_type?: string | null
+          speed?: number | null
+          target_id?: string | null
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seeker_location_history_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "seeker_targets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seeker_targets: {
+        Row: {
+          battery_level: number | null
+          created_at: string | null
+          device_info: Json | null
+          id: string
+          last_location_lat: number | null
+          last_location_lng: number | null
+          last_seen_at: string | null
+          metadata: Json | null
+          network_type: string | null
+          status: Database["public"]["Enums"]["seeker_target_status"] | null
+          target_name: string
+          target_type: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          battery_level?: number | null
+          created_at?: string | null
+          device_info?: Json | null
+          id?: string
+          last_location_lat?: number | null
+          last_location_lng?: number | null
+          last_seen_at?: string | null
+          metadata?: Json | null
+          network_type?: string | null
+          status?: Database["public"]["Enums"]["seeker_target_status"] | null
+          target_name: string
+          target_type: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          battery_level?: number | null
+          created_at?: string | null
+          device_info?: Json | null
+          id?: string
+          last_location_lat?: number | null
+          last_location_lng?: number | null
+          last_seen_at?: string | null
+          metadata?: Json | null
+          network_type?: string | null
+          status?: Database["public"]["Enums"]["seeker_target_status"] | null
+          target_name?: string
+          target_type?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       service_communication_logs: {
         Row: {
           created_at: string | null
@@ -7708,6 +7856,7 @@ export type Database = {
       payment_status: "pending" | "completed" | "failed" | "refunded"
       payment_status_type: "pending" | "paid" | "overdue" | "cancelled"
       portal_user_status: "active" | "inactive" | "locked"
+      seeker_target_status: "active" | "inactive" | "paused"
       tax_filing_status:
         | "pending"
         | "in_progress"
