@@ -5,7 +5,6 @@ import { usePerformanceMonitoring } from "@/hooks/use-performance-monitoring";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Card } from "@/components/ui/card";
-import { QuickActions } from "@/components/dashboard/QuickActions";
 import { BusinessHealth } from "@/components/dashboard/BusinessHealth";
 import { SmartNotifications } from "@/components/dashboard/SmartNotifications";
 import { useVisitorTracking } from "@/hooks/use-visitor-tracking";
@@ -14,6 +13,7 @@ const DashboardStats = lazy(() => import("@/components/dashboard/DashboardStats"
 const WelcomeHeader = lazy(() => import("@/components/dashboard/WelcomeHeader").then(module => ({ default: module.WelcomeHeader })));
 const RecentActivity = lazy(() => import("@/components/dashboard/RecentActivity").then(module => ({ default: module.RecentActivity })));
 const SystemChatbot = lazy(() => import("@/components/chat/SystemChatbot").then(module => ({ default: module.SystemChatbot })));
+const QuickActions = lazy(() => import("@/components/dashboard/QuickActions").then(module => ({ default: module.QuickActions })));
 
 const ComponentLoader = ({ componentName }: { componentName: string }) => (
   <div className="w-full h-[200px] space-y-4 p-4">
@@ -70,7 +70,9 @@ const Index = () => {
               </div>
 
               <ErrorBoundary>
-                <QuickActions />
+                <Suspense fallback={<ComponentLoader componentName="Quick Actions" />}>
+                  <QuickActions />
+                </Suspense>
               </ErrorBoundary>
               
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
