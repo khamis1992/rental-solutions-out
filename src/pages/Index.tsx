@@ -36,9 +36,7 @@ const Index = () => {
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-background">
-        <div className="fixed top-0 left-0 right-0 h-[56px] border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50" />
-        
-        <div className="pt-[56px] pb-6">
+        <div className="pb-6">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl animate-fade-in">
             <div className="flex flex-col gap-6">
               <div className="w-full mt-6">
@@ -100,4 +98,3 @@ const Index = () => {
 };
 
 export default Index;
-
