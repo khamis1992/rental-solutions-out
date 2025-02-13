@@ -22,9 +22,9 @@ export const CustomerContent = ({
 }: CustomerContentProps) => {
   const [view, setView] = useState<"grid" | "table">(() => {
     if (typeof window !== "undefined") {
-      return (localStorage.getItem(VIEW_STORAGE_KEY) as "grid" | "table") || "table";
+      return (localStorage.getItem(VIEW_STORAGE_KEY) as "grid" | "table") || "grid";
     }
-    return "table";
+    return "grid";
   });
 
   useEffect(() => {
