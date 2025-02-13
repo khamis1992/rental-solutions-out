@@ -2,6 +2,7 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { CustomerList } from "@/components/customers/CustomerList";
 import { CreateCustomerDialog } from "@/components/customers/CreateCustomerDialog";
+import { ImportCustomerDialog } from "@/components/customers/ImportCustomerDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -148,10 +149,12 @@ const Customers = () => {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="sm" className="gap-2 hover:bg-white/80 dark:hover:bg-gray-700/80">
-                            <Upload className="h-4 w-4 text-primary" />
-                            Import
-                          </Button>
+                          <ImportCustomerDialog>
+                            <Button variant="ghost" size="sm" className="gap-2 hover:bg-white/80 dark:hover:bg-gray-700/80">
+                              <Upload className="h-4 w-4 text-primary" />
+                              Import
+                            </Button>
+                          </ImportCustomerDialog>
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Import customer data</p>
