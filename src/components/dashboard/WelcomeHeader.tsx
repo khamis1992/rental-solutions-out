@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
-import { Sun, Moon, CloudSun, Bell, Calendar, Settings, LucideIcon } from "lucide-react";
+import { Sun, Moon, CloudSun, Bell, UserRound, Settings, LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -108,11 +108,11 @@ export const WelcomeHeader = () => {
                   size="icon" 
                   className="text-foreground/80 hover:text-foreground hover:bg-background/80 transition-colors"
                 >
-                  <Calendar className="h-5 w-5" />
+                  <UserRound className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Calendar</p>
+                <p>Profile</p>
               </TooltipContent>
             </Tooltip>
 
