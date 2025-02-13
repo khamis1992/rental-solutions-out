@@ -14,7 +14,7 @@ interface StatsCardProps {
 }
 
 const iconStyles = cva(
-  "rounded-full p-3 transition-all duration-300 group-hover:scale-110",
+  "rounded-full p-4 transition-all duration-300 group-hover:scale-110",
   {
     variants: {
       variant: {
@@ -42,7 +42,7 @@ export const StatsCard = ({
 }: StatsCardProps) => {
   return (
     <Card className={cn(
-      "overflow-hidden transition-all duration-300 hover:shadow-lg group cursor-pointer",
+      "overflow-hidden transition-all duration-300 hover:shadow-lg group cursor-pointer p-6",
       "bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30",
       "backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50",
       "hover:border-gray-300 dark:hover:border-gray-600",
@@ -50,8 +50,8 @@ export const StatsCard = ({
       "animate-fade-in",
       className
     )}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <CardTitle className="text-base font-medium text-muted-foreground group-hover:text-foreground transition-colors">
           {title}
         </CardTitle>
         <div className={cn(
@@ -59,16 +59,16 @@ export const StatsCard = ({
           "animate-fade-in shadow-sm group-hover:shadow-md",
           "ring-1 ring-gray-200/50 dark:ring-gray-700/50"
         )}>
-          <Icon className="h-5 w-5" />
+          <Icon className="h-6 w-6" />
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-1">
-          <div className="text-2xl font-bold tracking-tight break-words animate-fade-in">
+        <div className="space-y-3">
+          <div className="text-3xl font-bold tracking-tight break-words animate-fade-in">
             {value}
           </div>
           {description && (
-            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 animate-fade-in group-hover:text-foreground/80 transition-colors">
+            <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1.5 animate-fade-in group-hover:text-foreground/80 transition-colors">
               {description}
             </p>
           )}
