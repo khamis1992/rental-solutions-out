@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { AgreementList } from "@/components/agreements/AgreementList";
@@ -7,27 +6,22 @@ import { AgreementStats } from "@/components/agreements/AgreementStats";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { PaymentImport } from "@/components/agreements/PaymentImport";
 import { ChevronRight, Building2, FileText } from "lucide-react";
-
 const Agreements = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-
   const handleImportClick = () => {
     // Import handling logic
   };
-
   const handleDeleteClick = () => {
     // Delete handling logic
   };
-
-  return (
-    <DashboardLayout>
+  return <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         {/* Header Section with Professional Gradient */}
         <div className="relative bg-gradient-to-r from-blue-50 via-blue-100 to-blue-50 border-b">
           <div className="absolute inset-0 bg-white/40 backdrop-blur-sm" />
           
           {/* Content Container */}
-          <div className="relative w-full max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="relative w-full max-w-screen-xl mx-auto px-4 lg:px-8 py-10 sm:px-[240px]">
             {/* Enhanced Breadcrumb Navigation */}
             <nav className="flex items-center gap-2 text-sm text-gray-600 mb-8">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-md border border-blue-100 hover:bg-blue-50 transition-all duration-300 shadow-sm">
@@ -60,11 +54,7 @@ const Agreements = () => {
             {/* Action Buttons */}
             <div className="flex justify-between items-center gap-6 max-w-screen-xl mx-auto">
               <div className="flex-1">
-                <AgreementListHeader
-                  onImportClick={handleImportClick}
-                  onDeleteClick={handleDeleteClick}
-                  isDeleting={false}
-                />
+                <AgreementListHeader onImportClick={handleImportClick} onDeleteClick={handleDeleteClick} isDeleting={false} />
               </div>
               <div className="flex-shrink-0">
                 <PaymentImport />
@@ -86,13 +76,8 @@ const Agreements = () => {
           </div>
         </div>
 
-        <CreateAgreementDialog
-          open={showCreateDialog}
-          onOpenChange={setShowCreateDialog}
-        />
+        <CreateAgreementDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
       </div>
-    </DashboardLayout>
-  );
+    </DashboardLayout>;
 };
-
 export default Agreements;
