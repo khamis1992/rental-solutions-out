@@ -11,8 +11,108 @@ import {
   ChevronRight, ExternalLink, Search, 
   ArrowUpRight, Sparkles, AlertCircle
 } from "lucide-react";
+import { useUserStats } from "@/components/customers/hooks/useUserStats";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Customers = () => {
+  const { data: stats, isLoading, error } = useUserStats();
+
+  const renderStatsCard = () => {
+    if (isLoading) {
+      return <div className="grid grid-cols-3 gap-4">
+        <Skeleton className="h-[156px]" />
+        <Skeleton className="h-[156px]" />
+        <Skeleton className="h-[156px]" />
+      </div>;
+    }
+
+    if (error) {
+      return <div>Error loading stats</div>;
+    }
+
+    return (
+      <div className="grid grid-cols-3 gap-4">
+        <Card className="group hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px] bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 group-hover:scale-110 transition-transform duration-300 relative">
+                <div className="absolute inset-0 rounded-lg bg-emerald-200/60 dark:bg-emerald-700/30 animate-pulse"></div>
+                <Wallet className="h-6 w-6 text-emerald-600 dark:text-emerald-400 relative z-10 transform group-hover:rotate-12 transition-transform" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Revenue</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-bold">$124.5k</p>
+                  <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
+                    <TrendingUp className="h-3 w-3" />
+                    <span>+12.5%</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                  <BarChart3 className="h-3 w-3" />
+                  <span>Monthly growth</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="group hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px] bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/30 group-hover:scale-110 transition-transform duration-300 relative">
+                <div className="absolute inset-0 rounded-lg bg-blue-200/60 dark:bg-blue-700/30 animate-pulse"></div>
+                <Sparkles className="h-6 w-6 text-blue-600 dark:text-blue-400 relative z-10 transform group-hover:rotate-12 transition-transform" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Active</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-bold">{stats?.customerCount || 0}</p>
+                  <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
+                    <Activity className="h-3 w-3" />
+                    <span>Now</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                  <UserPlus className="h-3 w-3" />
+                  <span>View all customers</span>
+                  <ExternalLink className="h-3 w-3" />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="group hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px] bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-lg bg-amber-100 dark:bg-amber-900/30 group-hover:scale-110 transition-transform duration-300 relative">
+                <div className="absolute inset-0 rounded-lg bg-amber-200/60 dark:bg-amber-700/30 animate-pulse"></div>
+                <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-400 relative z-10 transform group-hover:rotate-12 transition-transform" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Unverified</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-bold">{stats?.unverifiedCount || 0}</p>
+                  <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                    <Activity className="h-3 w-3" />
+                    <span>Needs Attention</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                  <BarChart3 className="h-3 w-3" />
+                  <span>{stats?.missingDocsCount || 0} missing docs</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
   return (
     <DashboardLayout>
       {/* Enhanced Header Section with Interactive Gradient and Glass Effect */}
@@ -125,85 +225,7 @@ const Customers = () => {
               </div>
 
               {/* Enhanced Stats Cards with Interactive Elements */}
-              <div className="grid grid-cols-3 gap-4">
-                <Card className="group hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px] bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 group-hover:scale-110 transition-transform duration-300 relative">
-                        <div className="absolute inset-0 rounded-lg bg-emerald-200/60 dark:bg-emerald-700/30 animate-pulse"></div>
-                        <Wallet className="h-6 w-6 text-emerald-600 dark:text-emerald-400 relative z-10 transform group-hover:rotate-12 transition-transform" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">Revenue</p>
-                        <div className="flex items-baseline gap-2">
-                          <p className="text-2xl font-bold">$124.5k</p>
-                          <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
-                            <TrendingUp className="h-3 w-3" />
-                            <span>+12.5%</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                          <BarChart3 className="h-3 w-3" />
-                          <span>Monthly growth</span>
-                          <ChevronRight className="h-3 w-3" />
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="group hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px] bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/30 group-hover:scale-110 transition-transform duration-300 relative">
-                        <div className="absolute inset-0 rounded-lg bg-blue-200/60 dark:bg-blue-700/30 animate-pulse"></div>
-                        <Sparkles className="h-6 w-6 text-blue-600 dark:text-blue-400 relative z-10 transform group-hover:rotate-12 transition-transform" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">Active</p>
-                        <div className="flex items-baseline gap-2">
-                          <p className="text-2xl font-bold">1,245</p>
-                          <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
-                            <Activity className="h-3 w-3" />
-                            <span>Now</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                          <UserPlus className="h-3 w-3" />
-                          <span>45 new this month</span>
-                          <ExternalLink className="h-3 w-3" />
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="group hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px] bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-lg bg-amber-100 dark:bg-amber-900/30 group-hover:scale-110 transition-transform duration-300 relative">
-                        <div className="absolute inset-0 rounded-lg bg-amber-200/60 dark:bg-amber-700/30 animate-pulse"></div>
-                        <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-400 relative z-10 transform group-hover:rotate-12 transition-transform" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">Unverified</p>
-                        <div className="flex items-baseline gap-2">
-                          <p className="text-2xl font-bold">450</p>
-                          <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
-                            <Activity className="h-3 w-3" />
-                            <span>Needs Attention</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                          <BarChart3 className="h-3 w-3" />
-                          <span>125 missing docs</span>
-                          <ChevronRight className="h-3 w-3" />
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              {renderStatsCard()}
             </div>
           </CardHeader>
         </Card>
@@ -226,4 +248,3 @@ const Customers = () => {
 };
 
 export default Customers;
-
