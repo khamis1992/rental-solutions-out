@@ -135,14 +135,14 @@ export const AgreementListContent = ({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 max-w-5xl mx-auto">
         {agreements.map((agreement) => {
           const statusConfig = getStatusConfig(agreement.status);
           
           return (
             <Card 
               key={agreement.id} 
-              className="group hover:shadow-lg transition-all duration-300 border-l-4 dark:bg-gray-800/50 backdrop-blur-sm"
+              className="group hover:shadow-lg transition-all duration-300 border-l-4 dark:bg-gray-800/50 backdrop-blur-sm w-full"
               style={{ 
                 borderLeftColor: agreement.status === 'active' ? '#10B981' 
                   : agreement.status === 'pending_payment' ? '#F59E0B'
