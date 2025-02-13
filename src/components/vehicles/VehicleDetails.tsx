@@ -100,7 +100,7 @@ export const VehicleDetails = () => {
       <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => navigate("/vehicles")} className="shrink-0 bg-red-600 hover:bg-red-500">
+            <Button variant="outline" onClick={() => navigate("/vehicles")} className="shrink-0 bg-red-600 hover:bg-red-500 text-gray-50">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
