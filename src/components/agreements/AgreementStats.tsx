@@ -46,23 +46,23 @@ export const AgreementStats = () => {
   });
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid gap-3 md:grid-cols-2">
       <StatsCard
         title="Active Agreements"
         value={stats?.active.toString() || "0"}
         icon={FileCheck}
         description={
           <div className="flex items-center gap-1">
-            <Activity className="h-3.5 w-3.5 text-green-500" />
+            <Activity className="h-3 w-3 text-green-500" />
             <span>Currently active</span>
-            <div className="flex items-center text-green-500 ml-2">
-              <TrendingUp className="h-3.5 w-3.5" />
-              <span className="text-xs ml-1">12%</span>
+            <div className="flex items-center text-green-500 ml-1">
+              <TrendingUp className="h-3 w-3" />
+              <span className="text-xs ml-0.5">12%</span>
             </div>
-            <div className="ml-2 h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+            <div className="ml-1 h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
           </div>
         }
-        className="bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-950/50 dark:to-emerald-950/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group min-h-[160px]"
+        className="bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-950/50 dark:to-emerald-950/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group min-h-[140px]"
         iconClassName="green"
       />
       <StatsCard
@@ -71,15 +71,15 @@ export const AgreementStats = () => {
         icon={FileClock}
         description={
           <div className="flex items-center gap-1">
-            <Clock className="h-3.5 w-3.5 text-orange-500" />
+            <Clock className="h-3 w-3 text-orange-500" />
             <span className="text-xs">Awaiting action</span>
-            <div className="flex items-center ml-2">
-              <AlertCircle className="h-3.5 w-3.5 text-orange-500 animate-pulse" />
-              <span className="text-xs ml-1 text-orange-500">{stats?.pending || 0} urgent</span>
+            <div className="flex items-center ml-1">
+              <AlertCircle className="h-3 w-3 text-orange-500 animate-pulse" />
+              <span className="text-xs ml-0.5 text-orange-500">{stats?.pending || 0} urgent</span>
             </div>
           </div>
         }
-        className="bg-gradient-to-br from-orange-50/50 to-amber-50/50 dark:from-orange-950/50 dark:to-amber-950/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group min-h-[160px]"
+        className="bg-gradient-to-br from-orange-50/50 to-amber-50/50 dark:from-orange-950/50 dark:to-amber-950/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group min-h-[140px]"
         iconClassName="orange"
       />
       <StatsCard
@@ -89,14 +89,14 @@ export const AgreementStats = () => {
         description={
           <div className="flex items-center gap-1">
             <span>Completed</span>
-            <div className="flex items-center text-red-500 ml-2">
-              <TrendingDown className="h-3.5 w-3.5" />
-              <span className="text-xs ml-1">5%</span>
+            <div className="flex items-center text-red-500 ml-1">
+              <TrendingDown className="h-3 w-3" />
+              <span className="text-xs ml-0.5">5%</span>
             </div>
-            <div className="ml-2 h-2 w-2 rounded-full bg-red-500" />
+            <div className="ml-1 h-1.5 w-1.5 rounded-full bg-red-500" />
           </div>
         }
-        className="bg-gradient-to-br from-red-50/50 to-rose-50/50 dark:from-red-950/50 dark:to-rose-950/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group min-h-[160px]"
+        className="bg-gradient-to-br from-red-50/50 to-rose-50/50 dark:from-red-950/50 dark:to-rose-950/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group min-h-[140px]"
         iconClassName="red"
       />
       <StatsCard
@@ -106,11 +106,11 @@ export const AgreementStats = () => {
         description={
           <div className="flex items-center gap-1">
             <span>All time</span>
-            <div className="flex items-center text-blue-500 ml-2">
-              <TrendingUp className="h-3.5 w-3.5" />
-              <span className="text-xs ml-1">8%</span>
+            <div className="flex items-center text-blue-500 ml-1">
+              <TrendingUp className="h-3 w-3" />
+              <span className="text-xs ml-0.5">8%</span>
             </div>
-            <div className="h-1.5 w-20 bg-gray-200 rounded-full ml-2 overflow-hidden">
+            <div className="h-1 w-16 bg-gray-200 rounded-full ml-1 overflow-hidden">
               <div 
                 className="h-full bg-blue-500 rounded-full transition-all duration-500" 
                 style={{ 
@@ -121,7 +121,7 @@ export const AgreementStats = () => {
             </div>
           </div>
         }
-        className="bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/50 dark:to-indigo-950/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group min-h-[160px]"
+        className="bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/50 dark:to-indigo-950/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group min-h-[140px]"
         iconClassName="blue"
       />
     </div>
