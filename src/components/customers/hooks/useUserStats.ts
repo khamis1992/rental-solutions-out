@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 interface UserStats {
-  customerCount: number;
+  verifiedCount: number;
   adminCount: number;
   unverifiedCount: number;
   missingDocsCount: number;
@@ -15,15 +15,22 @@ export const useUserStats = () => {
     queryFn: async (): Promise<UserStats> => {
       console.log('Fetching user stats...');
       
-      // Get customer count
-      const { count: customerCount, error: customerError } = await supabase
+      // Get verified count (customers with complete profiles)
+      const { count: verifiedCount, error: verifiedError } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true })
-        .eq('role', 'customer');
+        .eq('role', 'customer')
+        .not('status', 'eq', 'pending_review')
+        .not('full_name', 'is', null)
+        .not('phone_number', 'is', null)
+        .not('address', 'is', null)
+        .not('driver_license', 'is', null)
+        .not('id_document_url', 'is', null)
+        .not('license_document_url', 'is', null);
 
-      if (customerError) {
-        console.error('Error counting customers:', customerError);
-        throw customerError;
+      if (verifiedError) {
+        console.error('Error counting verified customers:', verifiedError);
+        throw verifiedError;
       }
 
       // Get admin count
@@ -62,7 +69,7 @@ export const useUserStats = () => {
       }
 
       return {
-        customerCount: customerCount || 0,
+        verifiedCount: verifiedCount || 0,
         adminCount: adminCount || 0,
         unverifiedCount: unverifiedCount || 0,
         missingDocsCount: missingDocsCount || 0

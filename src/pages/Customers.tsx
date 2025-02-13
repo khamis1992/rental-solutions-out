@@ -1,4 +1,3 @@
-
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { CustomerList } from "@/components/customers/CustomerList";
 import { CreateCustomerDialog } from "@/components/customers/CreateCustomerDialog";
@@ -9,7 +8,7 @@ import {
   Users, UserPlus, Download, Upload, Filter,
   BarChart3, Wallet, TrendingUp, UserCheck, Activity,
   ChevronRight, ExternalLink, Search, 
-  ArrowUpRight, Sparkles, AlertCircle
+  ArrowUpRight, Sparkles, AlertCircle, ClipboardCheck
 } from "lucide-react";
 import { useUserStats } from "@/components/customers/hooks/useUserStats";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -63,21 +62,21 @@ const Customers = () => {
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/30 group-hover:scale-110 transition-transform duration-300 relative">
                 <div className="absolute inset-0 rounded-lg bg-blue-200/60 dark:bg-blue-700/30 animate-pulse"></div>
-                <Sparkles className="h-6 w-6 text-blue-600 dark:text-blue-400 relative z-10 transform group-hover:rotate-12 transition-transform" />
+                <ClipboardCheck className="h-6 w-6 text-blue-600 dark:text-blue-400 relative z-10 transform group-hover:rotate-12 transition-transform" />
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Active</p>
+                <p className="text-sm font-medium text-muted-foreground">Verified</p>
                 <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold">{stats?.customerCount || 0}</p>
+                  <p className="text-2xl font-bold">{stats?.verifiedCount || 0}</p>
                   <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
-                    <Activity className="h-3 w-3" />
-                    <span>Now</span>
+                    <UserCheck className="h-3 w-3" />
+                    <span>Complete Profiles</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                  <UserPlus className="h-3 w-3" />
-                  <span>View all customers</span>
-                  <ExternalLink className="h-3 w-3" />
+                  <Activity className="h-3 w-3" />
+                  <span>All documents verified</span>
+                  <ChevronRight className="h-3 w-3" />
                 </div>
               </div>
             </div>
