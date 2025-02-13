@@ -21,7 +21,7 @@ const Agreements = () => {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto space-y-6 py-8">
+      <div className="w-full space-y-6 py-8">
         <div className="relative space-y-6 pb-4 rounded-2xl overflow-hidden w-full">
           {/* Professional Gradient Background */}
           <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-blue-100 to-blue-50 shadow-md" />
@@ -45,7 +45,7 @@ const Agreements = () => {
           <div className="absolute inset-0 backdrop-blur-sm bg-white/[0.02]" />
           
           {/* Content Wrapper */}
-          <div className="relative px-8 py-8 w-full max-w-[1600px] mx-auto">
+          <div className="relative w-full px-4 md:px-8 lg:px-12 py-8">
             {/* Enhanced Breadcrumb Navigation */}
             <nav className="flex items-center gap-2 text-sm text-gray-600 mb-8">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-md border border-blue-100 hover:bg-blue-50 transition-all duration-300 shadow-sm">
@@ -92,12 +92,12 @@ const Agreements = () => {
         </div>
 
         {/* Enhanced Stats Section */}
-        <div className="relative px-4 md:px-8">
+        <div className="relative px-4 md:px-8 lg:px-12">
           <div className="absolute inset-0 bg-gradient-to-b from-blue-50/5 to-transparent pointer-events-none" />
           <AgreementStats />
         </div>
 
-        <div className="px-4 md:px-8">
+        <div className="px-4 md:px-8 lg:px-12">
           <AgreementList />
         </div>
         
