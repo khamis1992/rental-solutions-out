@@ -15,51 +15,38 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { 
-  ArrowLeft, 
-  Car, 
-  AlertTriangle,
-  Gauge,
-  Calendar,
-  Wrench,
-  AlertOctagon,
-  Share2,
-  Printer,
-  Copy,
-  CarTaxiFront,
-  MapPin
-} from "lucide-react";
-
+import { ArrowLeft, Car, AlertTriangle, Gauge, Calendar, Wrench, AlertOctagon, Share2, Printer, Copy, CarTaxiFront, MapPin } from "lucide-react";
 export const VehicleDetails = () => {
-  const { id } = useParams<{ id: string }>();
+  const {
+    id
+  } = useParams<{
+    id: string;
+  }>();
   const navigate = useNavigate();
-
-  const { data: vehicle, isLoading } = useQuery({
+  const {
+    data: vehicle,
+    isLoading
+  } = useQuery({
     queryKey: ["vehicle", id],
     queryFn: async () => {
       if (!id) return null;
-      const { data, error } = await supabase
-        .from("vehicles")
-        .select("*")
-        .eq("id", id)
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from("vehicles").select("*").eq("id", id).single();
       if (error) throw error;
       return data;
     },
     enabled: !!id
   });
-
   const handleCopyLicensePlate = () => {
     if (vehicle?.license_plate) {
       navigator.clipboard.writeText(vehicle.license_plate);
       toast.success("License plate copied to clipboard");
     }
   };
-
   if (!id) {
-    return (
-      <Card className="mx-auto max-w-lg mt-8">
+    return <Card className="mx-auto max-w-lg mt-8">
         <CardContent className="flex flex-col items-center justify-center p-6">
           <AlertTriangle className="h-12 w-12 text-yellow-500 mb-4" />
           <h2 className="text-xl font-semibold mb-4">Vehicle ID is required</h2>
@@ -68,13 +55,10 @@ export const VehicleDetails = () => {
             Back to Vehicles
           </Button>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
   if (isLoading) {
-    return (
-      <div className="space-y-6 p-6">
+    return <div className="space-y-6 p-6">
         <div className="flex items-center space-x-4">
           <Skeleton className="h-10 w-10 rounded-full" />
           <Skeleton className="h-8 w-64" />
@@ -84,13 +68,10 @@ export const VehicleDetails = () => {
           <Skeleton className="h-[200px] rounded-lg" />
         </div>
         <Skeleton className="h-[300px] rounded-lg" />
-      </div>
-    );
+      </div>;
   }
-
   if (!vehicle) {
-    return (
-      <Card className="mx-auto max-w-lg mt-8">
+    return <Card className="mx-auto max-w-lg mt-8">
         <CardContent className="flex flex-col items-center justify-center p-6">
           <AlertTriangle className="h-12 w-12 text-yellow-500 mb-4" />
           <h2 className="text-xl font-semibold mb-4">Vehicle not found</h2>
@@ -99,10 +80,8 @@ export const VehicleDetails = () => {
             Back to Vehicles
           </Button>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
   const getStatusColor = (status: string | null) => {
     switch (status) {
       case 'available':
@@ -117,17 +96,11 @@ export const VehicleDetails = () => {
         return 'bg-gray-100 text-gray-800';
     }
   };
-
-  return (
-    <div className="space-y-8 p-6">
+  return <div className="space-y-8 p-6">
       <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="outline" 
-              onClick={() => navigate("/vehicles")}
-              className="shrink-0"
-            >
+            <Button variant="outline" onClick={() => navigate("/vehicles")} className="shrink-0">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
@@ -137,7 +110,7 @@ export const VehicleDetails = () => {
                 <CarTaxiFront className="h-5 w-5 text-muted-foreground" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">
+                <h1 className="text-sm py-[6px] font-extrabold text-blue-950 my-[12px]">
                   {vehicle.year} {vehicle.make} {vehicle.model}
                 </h1>
                 <div className="flex items-center gap-2 mt-1">
@@ -149,27 +122,14 @@ export const VehicleDetails = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleCopyLicensePlate}
-            >
+            <Button variant="outline" size="sm" onClick={handleCopyLicensePlate}>
               <Copy className="h-4 w-4 mr-2" />
               {vehicle.license_plate}
             </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="hidden sm:flex"
-              onClick={() => window.print()}
-            >
+            <Button variant="outline" size="icon" className="hidden sm:flex" onClick={() => window.print()}>
               <Printer className="h-4 w-4" />
             </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="hidden sm:flex"
-            >
+            <Button variant="outline" size="icon" className="hidden sm:flex">
               <Share2 className="h-4 w-4" />
             </Button>
           </div>
@@ -209,20 +169,10 @@ export const VehicleDetails = () => {
 
       <div className="grid gap-8 md:grid-cols-2">
         <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
-          <VehicleQRCode 
-            make={vehicle.make} 
-            model={vehicle.model}
-            vehicleId={id}
-            year={vehicle.year}
-            licensePlate={vehicle.license_plate}
-            vin={vehicle.vin}
-          />
+          <VehicleQRCode make={vehicle.make} model={vehicle.model} vehicleId={id} year={vehicle.year} licensePlate={vehicle.license_plate} vin={vehicle.vin} />
         </div>
         <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
-          <VehicleStatus 
-            vehicleId={id} 
-            currentStatus={vehicle.status} 
-          />
+          <VehicleStatus vehicleId={id} currentStatus={vehicle.status} />
         </div>
       </div>
 
@@ -254,6 +204,5 @@ export const VehicleDetails = () => {
       <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
         <VehicleTimeline vehicleId={id} />
       </div>
-    </div>
-  );
+    </div>;
 };
