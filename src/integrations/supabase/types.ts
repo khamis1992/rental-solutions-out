@@ -2283,6 +2283,7 @@ export type Database = {
         Row: {
           created_at: string | null
           event_type: string
+          full_name: string | null
           id: string
           location_lat: number | null
           location_lng: number | null
@@ -2292,6 +2293,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           event_type: string
+          full_name?: string | null
           id?: string
           location_lat?: number | null
           location_lng?: number | null
@@ -2301,6 +2303,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           event_type?: string
+          full_name?: string | null
           id?: string
           location_lat?: number | null
           location_lng?: number | null
@@ -4583,46 +4586,58 @@ export type Database = {
         Row: {
           actual_payment_date: string | null
           amount: number
+          balance: number | null
           created_at: string | null
           due_date: string
           id: string
+          is_recurring: boolean | null
           last_reminder_date: string | null
           late_fee_applied: number | null
           lease_id: string | null
           payment_reference: string | null
           reconciliation_status: string | null
           reminder_sent_at: string | null
+          security_deposit_id: string | null
           status: Database["public"]["Enums"]["payment_status"] | null
+          transaction_id: string | null
           updated_at: string | null
         }
         Insert: {
           actual_payment_date?: string | null
           amount: number
+          balance?: number | null
           created_at?: string | null
           due_date: string
           id?: string
+          is_recurring?: boolean | null
           last_reminder_date?: string | null
           late_fee_applied?: number | null
           lease_id?: string | null
           payment_reference?: string | null
           reconciliation_status?: string | null
           reminder_sent_at?: string | null
+          security_deposit_id?: string | null
           status?: Database["public"]["Enums"]["payment_status"] | null
+          transaction_id?: string | null
           updated_at?: string | null
         }
         Update: {
           actual_payment_date?: string | null
           amount?: number
+          balance?: number | null
           created_at?: string | null
           due_date?: string
           id?: string
+          is_recurring?: boolean | null
           last_reminder_date?: string | null
           late_fee_applied?: number | null
           lease_id?: string | null
           payment_reference?: string | null
           reconciliation_status?: string | null
           reminder_sent_at?: string | null
+          security_deposit_id?: string | null
           status?: Database["public"]["Enums"]["payment_status"] | null
+          transaction_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -7099,6 +7114,7 @@ export type Database = {
           color: string | null
           created_at: string
           description: string | null
+          device_type: string | null
           id: string
           image_url: string | null
           insurance_company: string | null
@@ -7117,6 +7133,7 @@ export type Database = {
           color?: string | null
           created_at?: string
           description?: string | null
+          device_type?: string | null
           id?: string
           image_url?: string | null
           insurance_company?: string | null
@@ -7135,6 +7152,7 @@ export type Database = {
           color?: string | null
           created_at?: string
           description?: string | null
+          device_type?: string | null
           id?: string
           image_url?: string | null
           insurance_company?: string | null
@@ -7159,6 +7177,7 @@ export type Database = {
           country: string | null
           created_at: string | null
           device_info: Json | null
+          device_type: string | null
           engagement_metrics: Json | null
           id: string
           latitude: number | null
@@ -7168,6 +7187,7 @@ export type Database = {
           performance_metrics: Json | null
           referrer: string | null
           session_id: string | null
+          time_on_page: unknown | null
           updated_at: string | null
           user_id: string | null
           utm_campaign: string | null
@@ -7182,6 +7202,7 @@ export type Database = {
           country?: string | null
           created_at?: string | null
           device_info?: Json | null
+          device_type?: string | null
           engagement_metrics?: Json | null
           id?: string
           latitude?: number | null
@@ -7191,6 +7212,7 @@ export type Database = {
           performance_metrics?: Json | null
           referrer?: string | null
           session_id?: string | null
+          time_on_page?: unknown | null
           updated_at?: string | null
           user_id?: string | null
           utm_campaign?: string | null
@@ -7205,6 +7227,7 @@ export type Database = {
           country?: string | null
           created_at?: string | null
           device_info?: Json | null
+          device_type?: string | null
           engagement_metrics?: Json | null
           id?: string
           latitude?: number | null
@@ -7214,6 +7237,7 @@ export type Database = {
           performance_metrics?: Json | null
           referrer?: string | null
           session_id?: string | null
+          time_on_page?: unknown | null
           updated_at?: string | null
           user_id?: string | null
           utm_campaign?: string | null
