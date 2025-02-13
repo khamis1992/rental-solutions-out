@@ -8,7 +8,7 @@ import { CreateVehicleDialog } from "@/components/vehicles/CreateVehicleDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Car, Plus, Import, Filter, Grid, List, Search, RefreshCw } from "lucide-react";
+import { Car, Plus, Filter, List, Search, RefreshCw } from "lucide-react";
 import { Vehicle } from "@/types/vehicle";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -94,33 +94,10 @@ const Vehicles = () => {
                 variant="outline" 
                 className="flex-1 md:flex-none items-center gap-2 hover:bg-secondary/10 transition-colors"
               >
-                <Import className="h-4 w-4" />
-                <span className="hidden sm:inline">Import</span>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="flex-1 md:flex-none items-center gap-2 hover:bg-secondary/10 transition-colors"
-              >
                 <Filter className="h-4 w-4" />
                 <span className="hidden sm:inline">Filters</span>
               </Button>
               
-              <Button
-                variant="outline"
-                className="flex-1 md:flex-none items-center gap-2 hover:bg-secondary/10 transition-colors"
-                onClick={() => setViewMode(viewMode === "list" ? "grid" : "list")}
-              >
-                {viewMode === "list" ? (
-                  <Grid className="h-4 w-4" />
-                ) : (
-                  <List className="h-4 w-4" />
-                )}
-                <span className="hidden sm:inline">
-                  {viewMode === "list" ? "Grid View" : "List View"}
-                </span>
-              </Button>
-
               <Button
                 variant="outline"
                 className={cn(
