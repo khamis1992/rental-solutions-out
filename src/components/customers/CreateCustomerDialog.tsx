@@ -84,7 +84,7 @@ export const CreateCustomerDialog = ({
   };
   return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        {children || <EnhancedButton className="text-gray-50">
+        {children || <EnhancedButton className="text-slate-50">
             <UserPlus className="mr-2 h-4 w-4" />
             Add Customer
           </EnhancedButton>}
