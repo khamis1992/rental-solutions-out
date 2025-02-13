@@ -51,6 +51,12 @@ const Index = () => {
                 </Card>
               </div>
 
+              <ErrorBoundary>
+                <Suspense fallback={<ComponentLoader componentName="Quick Actions" />}>
+                  <QuickActions />
+                </Suspense>
+              </ErrorBoundary>
+
               <div className="w-full">
                 <ErrorBoundary>
                   <Suspense fallback={<ComponentLoader componentName="Dashboard Stats" />}>
@@ -68,12 +74,6 @@ const Index = () => {
                   <SmartNotifications />
                 </ErrorBoundary>
               </div>
-
-              <ErrorBoundary>
-                <Suspense fallback={<ComponentLoader componentName="Quick Actions" />}>
-                  <QuickActions />
-                </Suspense>
-              </ErrorBoundary>
               
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
                 <div className="lg:col-span-4">
