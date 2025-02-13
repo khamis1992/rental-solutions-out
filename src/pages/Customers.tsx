@@ -1,3 +1,4 @@
+
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { CustomerList } from "@/components/customers/CustomerList";
 import { CreateCustomerDialog } from "@/components/customers/CreateCustomerDialog";
@@ -6,9 +7,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Button } from "@/components/ui/button";
 import { 
   Users, UserPlus, Download, Upload, Filter,
-  BarChart3, ChartLineUp, TrendingUp, UserCheck, Activity,
+  BarChart3, TrendingUp, UserCheck, Activity,
   ChevronRight, ExternalLink, Search, 
-  ArrowUpRight, Sparkles, AlertCircle, ClipboardCheck
+  ArrowUpRight, Sparkles, AlertCircle, ClipboardCheck,
+  LineChart
 } from "lucide-react";
 import { useUserStats } from "@/components/customers/hooks/useUserStats";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,7 +38,7 @@ const Customers = () => {
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/30 group-hover:scale-110 transition-transform duration-300 relative">
                 <div className="absolute inset-0 rounded-lg bg-purple-200/60 dark:bg-purple-700/30 animate-pulse"></div>
-                <ChartLineUp className="h-6 w-6 text-purple-600 dark:text-purple-400 relative z-10 transform group-hover:rotate-12 transition-transform" />
+                <LineChart className="h-6 w-6 text-purple-600 dark:text-purple-400 relative z-10 transform group-hover:rotate-12 transition-transform" />
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Growth</p>
