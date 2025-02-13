@@ -195,6 +195,15 @@ export default function App() {
               />
 
               <Route
+                path="/ai-help"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.AIHelp />
+                  </Suspense>
+                }
+              />
+
+              <Route
                 path="/help"
                 element={
                   <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
