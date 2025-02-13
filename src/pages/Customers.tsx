@@ -1,4 +1,3 @@
-
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { CustomerList } from "@/components/customers/CustomerList";
 import { CreateCustomerDialog } from "@/components/customers/CreateCustomerDialog";
@@ -16,6 +15,7 @@ import {
 } from "lucide-react";
 import { useUserStats } from "@/components/customers/hooks/useUserStats";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SearchBox } from "@/components/search/SearchBox";
 
 const Customers = () => {
   const { data: stats, isLoading, error } = useUserStats();
@@ -181,19 +181,7 @@ const Customers = () => {
                   </div>
 
                   <div className="flex items-center gap-2 p-1.5 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all duration-300">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="ghost" size="sm" className="gap-2 hover:bg-white/80 dark:hover:bg-gray-700/80">
-                            <Search className="h-4 w-4 text-primary" />
-                            Search
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Search customers</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <SearchBox />
 
                     <TooltipProvider>
                       <Tooltip>
