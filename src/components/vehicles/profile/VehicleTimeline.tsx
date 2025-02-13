@@ -107,7 +107,7 @@ export const VehicleTimeline = ({
               <span>Agreement #{event.agreement_number}</span>
             </button>
             <span className="text-muted-foreground mx-1">•</span>
-            <Badge variant={event.status === 'active' ? 'default' : 'outline'} className={event.status === 'closed' ? 'bg-neutral-100 text-neutral-600 border-neutral-200' : ''}>
+            <Badge variant={event.status === 'active' ? 'default' : 'outline'} className="bg-rose-600 hover:bg-rose-500">
               {event.status}
             </Badge>
           </div>;
