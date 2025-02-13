@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { 
-  Users, UserPlus, Download, Upload, Filter,
+  Users, UserPlus, Download, Upload,
   BarChart3, TrendingUp, UserCheck, Activity,
   ChevronRight, ExternalLink, Search, 
   ArrowUpRight, Sparkles, AlertCircle, ClipboardCheck,
@@ -182,20 +182,6 @@ const Customers = () => {
 
                   <div className="flex items-center gap-2 p-1.5 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all duration-300">
                     <SearchBox />
-
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="ghost" size="sm" className="gap-2 hover:bg-white/80 dark:hover:bg-gray-700/80">
-                            <Filter className="h-4 w-4 text-primary" />
-                            Filter
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Filter customer view</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
                   </div>
 
                   <TooltipProvider>
