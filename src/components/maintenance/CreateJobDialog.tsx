@@ -1,5 +1,6 @@
+
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { JobCardForm } from "./job-card/JobCardForm";
@@ -9,8 +10,12 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-export function CreateJobDialog() {
-  const [open, setOpen] = useState(false);
+interface CreateJobDialogProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function CreateJobDialog({ open, onOpenChange }: CreateJobDialogProps) {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -112,7 +117,7 @@ export function CreateJobDialog() {
       if (vehicleError) throw vehicleError;
 
       toast.success("Job card created successfully");
-      setOpen(false);
+      if (onOpenChange) onOpenChange(false);
       navigate(`/maintenance/${maintenance.id}/inspection`);
     } catch (error: any) {
       console.error("Error creating job card:", error);
@@ -123,13 +128,7 @@ export function CreateJobDialog() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Job Card
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create New Job Card</DialogTitle>
