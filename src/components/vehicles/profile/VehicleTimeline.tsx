@@ -91,7 +91,7 @@ export const VehicleTimeline = ({
       case 'maintenance':
         return <div className="flex items-center gap-2">
             <span>{event.service_type}</span>
-            <Badge variant="outline" className={event.status === 'completed' ? 'bg-neutral-100 text-neutral-600 border-neutral-200' : ''}>
+            <Badge variant="outline" className="bg-green-400 hover:bg-green-300">
               {event.status}
             </Badge>
           </div>;
