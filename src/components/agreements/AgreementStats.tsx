@@ -1,9 +1,8 @@
 
-import { FileCheck, FileClock, FileX, FileText, TrendingUp, TrendingDown, Clock, AlertCircle, Activity } from "lucide-react";
+import { FileCheck, FileClock, FileX, Activity, TrendingUp, TrendingDown, Clock, AlertCircle } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { cn } from "@/lib/utils";
 
 export const AgreementStats = () => {
   const { data: stats } = useQuery({
@@ -46,7 +45,7 @@ export const AgreementStats = () => {
   });
 
   return (
-    <div className="grid gap-3 md:grid-cols-2">
+    <div className="grid gap-4 md:grid-cols-3">
       <StatsCard
         title="Active Agreements"
         value={stats?.active.toString() || "0"}
@@ -98,31 +97,6 @@ export const AgreementStats = () => {
         }
         className="bg-gradient-to-br from-red-50/50 to-rose-50/50 dark:from-red-950/50 dark:to-rose-950/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group min-h-[140px]"
         iconClassName="red"
-      />
-      <StatsCard
-        title="Total Agreements"
-        value={stats?.total.toString() || "0"}
-        icon={FileText}
-        description={
-          <div className="flex items-center gap-1">
-            <span>All time</span>
-            <div className="flex items-center text-blue-500 ml-1">
-              <TrendingUp className="h-3 w-3" />
-              <span className="text-xs ml-0.5">8%</span>
-            </div>
-            <div className="h-1 w-16 bg-gray-200 rounded-full ml-1 overflow-hidden">
-              <div 
-                className="h-full bg-blue-500 rounded-full transition-all duration-500" 
-                style={{ 
-                  width: `${((stats?.active || 0) / (stats?.total || 1)) * 100}%`,
-                  boxShadow: '0 0 8px rgba(59, 130, 246, 0.5)' 
-                }}
-              />
-            </div>
-          </div>
-        }
-        className="bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/50 dark:to-indigo-950/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group min-h-[140px]"
-        iconClassName="blue"
       />
     </div>
   );
