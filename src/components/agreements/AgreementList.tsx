@@ -167,35 +167,35 @@ export const AgreementList = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow-sm border p-6">
         <AgreementFilters
           onStatusChange={setStatusFilter}
           onSortChange={setSortOrder}
           onSearch={setSearchQuery}
           searchValue={searchQuery}
         />
-        <div className="text-center py-4">Loading agreements...</div>
+        <div className="text-center py-8">Loading agreements...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow-sm border p-6">
         <AgreementFilters
           onStatusChange={setStatusFilter}
           onSortChange={setSortOrder}
           onSearch={setSearchQuery}
           searchValue={searchQuery}
         />
-        <div className="text-center py-4 text-red-500">Error loading agreements: {error.message}</div>
+        <div className="text-center py-8 text-red-500">Error loading agreements: {error.message}</div>
       </div>
     );
   }
 
   if (!agreements || agreements.length === 0) {
     return (
-      <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow-sm border p-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <AgreementFilters
             onStatusChange={setStatusFilter}
@@ -204,7 +204,7 @@ export const AgreementList = () => {
             searchValue={searchQuery}
           />
         </div>
-        <div className="text-center py-4">
+        <div className="text-center py-8">
           {searchQuery ? (
             <div className="space-y-2">
               <p>No agreements found matching your search.</p>
@@ -225,8 +225,8 @@ export const AgreementList = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="bg-white rounded-lg shadow-sm border">
+      <div className="p-6 border-b">
         <AgreementFilters
           onStatusChange={setStatusFilter}
           onSortChange={setSortOrder}
@@ -235,18 +235,20 @@ export const AgreementList = () => {
         />
       </div>
       
-      <AgreementListContent
-        agreements={agreements}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-        onViewContract={handleViewContractClick}
-        onPrintContract={handlePrintContract}
-        onAgreementClick={handleAgreementClick}
-        onNameClick={setSelectedDetailsId}
-        onDeleteClick={setAgreementToDelete}
-        onDeleted={refetch}
-      />
+      <div className="p-6">
+        <AgreementListContent
+          agreements={agreements}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          onViewContract={handleViewContractClick}
+          onPrintContract={handlePrintContract}
+          onAgreementClick={handleAgreementClick}
+          onNameClick={setSelectedDetailsId}
+          onDeleteClick={setAgreementToDelete}
+          onDeleted={refetch}
+        />
+      </div>
       
       <InvoiceDialog
         agreementId={selectedAgreementId || ""}
