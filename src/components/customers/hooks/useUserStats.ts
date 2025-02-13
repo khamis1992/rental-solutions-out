@@ -7,6 +7,8 @@ interface UserStats {
   adminCount: number;
   unverifiedCount: number;
   missingDocsCount: number;
+  newCustomersCount: number;
+  growthPercentage: number;
 }
 
 export const useUserStats = () => {
@@ -68,11 +70,47 @@ export const useUserStats = () => {
         throw missingDocsError;
       }
 
+      // Get new customers this month
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+
+      const { count: newCustomersCount, error: newCustomersError } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'customer')
+        .gte('created_at', startOfMonth.toISOString());
+
+      if (newCustomersError) {
+        console.error('Error counting new customers:', newCustomersError);
+        throw newCustomersError;
+      }
+
+      // Get last month's customer count for growth percentage
+      const startOfLastMonth = new Date(startOfMonth);
+      startOfLastMonth.setMonth(startOfLastMonth.getMonth() - 1);
+
+      const { count: lastMonthCount, error: lastMonthError } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'customer')
+        .lte('created_at', startOfMonth.toISOString());
+
+      if (lastMonthError) {
+        console.error('Error counting last month customers:', lastMonthError);
+        throw lastMonthError;
+      }
+
+      // Calculate growth percentage
+      const growthPercentage = lastMonthCount ? ((newCustomersCount || 0) / lastMonthCount) * 100 : 0;
+
       return {
         verifiedCount: verifiedCount || 0,
         adminCount: adminCount || 0,
         unverifiedCount: unverifiedCount || 0,
-        missingDocsCount: missingDocsCount || 0
+        missingDocsCount: missingDocsCount || 0,
+        newCustomersCount: newCustomersCount || 0,
+        growthPercentage
       };
     },
   });

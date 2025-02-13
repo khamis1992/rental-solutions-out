@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Button } from "@/components/ui/button";
 import { 
   Users, UserPlus, Download, Upload, Filter,
-  BarChart3, Wallet, TrendingUp, UserCheck, Activity,
+  BarChart3, ChartLineUp, TrendingUp, UserCheck, Activity,
   ChevronRight, ExternalLink, Search, 
   ArrowUpRight, Sparkles, AlertCircle, ClipboardCheck
 } from "lucide-react";
@@ -34,22 +34,22 @@ const Customers = () => {
         <Card className="group hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px] bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 group-hover:scale-110 transition-transform duration-300 relative">
-                <div className="absolute inset-0 rounded-lg bg-emerald-200/60 dark:bg-emerald-700/30 animate-pulse"></div>
-                <Wallet className="h-6 w-6 text-emerald-600 dark:text-emerald-400 relative z-10 transform group-hover:rotate-12 transition-transform" />
+              <div className="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/30 group-hover:scale-110 transition-transform duration-300 relative">
+                <div className="absolute inset-0 rounded-lg bg-purple-200/60 dark:bg-purple-700/30 animate-pulse"></div>
+                <ChartLineUp className="h-6 w-6 text-purple-600 dark:text-purple-400 relative z-10 transform group-hover:rotate-12 transition-transform" />
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Revenue</p>
+                <p className="text-sm font-medium text-muted-foreground">Growth</p>
                 <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold">$124.5k</p>
-                  <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
+                  <p className="text-2xl font-bold">{stats?.newCustomersCount || 0}</p>
+                  <div className="flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400">
                     <TrendingUp className="h-3 w-3" />
-                    <span>+12.5%</span>
+                    <span>This Month</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer">
                   <BarChart3 className="h-3 w-3" />
-                  <span>Monthly growth</span>
+                  <span>{stats?.growthPercentage.toFixed(1)}% growth rate</span>
                   <ChevronRight className="h-3 w-3" />
                 </div>
               </div>
@@ -114,7 +114,6 @@ const Customers = () => {
 
   return (
     <DashboardLayout>
-      {/* Enhanced Header Section with Interactive Gradient and Glass Effect */}
       <div className="mb-8 relative overflow-hidden">
         <Card className="border-0 bg-gradient-to-br from-blue-50/80 via-indigo-50/80 to-purple-50/80 dark:from-gray-800/80 dark:via-gray-900/80 dark:to-gray-800/80 backdrop-blur-sm">
           <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25"></div>
@@ -223,14 +222,12 @@ const Customers = () => {
                 </div>
               </div>
 
-              {/* Enhanced Stats Cards with Interactive Elements */}
               {renderStatsCard()}
             </div>
           </CardHeader>
         </Card>
       </div>
       
-      {/* Customer List Section */}
       <Card className="bg-white/50 shadow-sm border-0 backdrop-blur-sm">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl font-semibold">Customer List</CardTitle>
