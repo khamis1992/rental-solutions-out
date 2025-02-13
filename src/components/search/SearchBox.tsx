@@ -46,11 +46,11 @@ export const SearchBox = () => {
 
   return (
     <>
-      <div className="relative w-[200px]">
-        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+      <div className="relative w-[280px]">
+        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder={isMobile ? "Search..." : "Search..."}
-          className="pl-8 h-9"
+          placeholder={isMobile ? "Search..." : "Search vehicles, customers, agreements..."}
+          className="pl-10 h-10"
           onClick={() => setOpen(true)}
         />
       </div>
