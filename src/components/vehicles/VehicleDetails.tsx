@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { VehicleOverview } from "./profile/VehicleOverview";
 import { VehicleDocuments } from "./profile/VehicleDocuments";
@@ -22,12 +21,13 @@ import {
   AlertTriangle,
   Gauge,
   Calendar,
-  Tool,
+  Wrench,
   AlertOctagon,
   Share2,
   Printer,
   Copy,
-  CarTaxiFront
+  CarTaxiFront,
+  MapPin
 } from "lucide-react";
 
 export const VehicleDetails = () => {
@@ -120,7 +120,6 @@ export const VehicleDetails = () => {
 
   return (
     <div className="space-y-8 p-6">
-      {/* Enhanced Header Section */}
       <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -176,7 +175,6 @@ export const VehicleDetails = () => {
           </div>
         </div>
 
-        {/* Quick Stats Section */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
           <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
             <Gauge className="h-5 w-5 text-blue-600" />
@@ -193,7 +191,7 @@ export const VehicleDetails = () => {
             </div>
           </div>
           <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-            <Tool className="h-5 w-5 text-orange-600" />
+            <MapPin className="h-5 w-5 text-orange-600" />
             <div>
               <p className="text-sm text-muted-foreground">Location</p>
               <p className="font-medium">{vehicle.location || 'N/A'}</p>
@@ -209,7 +207,6 @@ export const VehicleDetails = () => {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="grid gap-8 md:grid-cols-2">
         <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
           <VehicleQRCode 
