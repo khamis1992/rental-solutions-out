@@ -6,20 +6,16 @@ import { ExportCustomerButton } from "@/components/customers/ExportCustomerButto
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { 
-  Users, UserPlus, Download, Upload,
-  BarChart3, TrendingUp, UserCheck, Activity,
-  ChevronRight, ExternalLink, Search, 
-  ArrowUpRight, Sparkles, AlertCircle, ClipboardCheck,
-  LineChart
-} from "lucide-react";
+import { Users, UserPlus, Download, Upload, BarChart3, TrendingUp, UserCheck, Activity, ChevronRight, ExternalLink, Search, ArrowUpRight, Sparkles, AlertCircle, ClipboardCheck, LineChart } from "lucide-react";
 import { useUserStats } from "@/components/customers/hooks/useUserStats";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SearchBox } from "@/components/search/SearchBox";
-
 const Customers = () => {
-  const { data: stats, isLoading, error } = useUserStats();
-
+  const {
+    data: stats,
+    isLoading,
+    error
+  } = useUserStats();
   const renderStatsCard = () => {
     if (isLoading) {
       return <div className="grid grid-cols-3 gap-4">
@@ -28,13 +24,10 @@ const Customers = () => {
         <Skeleton className="h-[156px]" />
       </div>;
     }
-
     if (error) {
       return <div>Error loading stats</div>;
     }
-
-    return (
-      <div className="grid grid-cols-3 gap-4">
+    return <div className="grid grid-cols-3 gap-4">
         <Card className="group hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px] bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
@@ -112,12 +105,9 @@ const Customers = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>;
   };
-
-  return (
-    <DashboardLayout>
+  return <DashboardLayout>
       <div className="mb-8 relative overflow-hidden">
         <Card className="border-0 bg-gradient-to-br from-blue-50/80 via-indigo-50/80 to-purple-50/80 dark:from-gray-800/80 dark:via-gray-900/80 dark:to-gray-800/80 backdrop-blur-sm">
           <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25"></div>
@@ -134,7 +124,7 @@ const Customers = () => {
                       </div>
                     </div>
                     <div>
-                      <CardTitle className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-gray-700 to-gray-800 bg-clip-text text-transparent dark:from-white dark:via-gray-200 dark:to-gray-300">
+                      <CardTitle className="font-bold bg-gradient-to-r from-gray-900 via-gray-700 to-gray-800 bg-clip-text text-transparent dark:from-white dark:via-gray-200 dark:to-gray-300 mx-[3px] my-0 text-2xl">
                         Customer Management
                       </CardTitle>
                       <CardDescription className="text-base text-muted-foreground mt-1 flex items-center gap-2">
@@ -146,7 +136,7 @@ const Customers = () => {
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 p-1.5 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all duration-300">
+                  <div className="flex items-center gap-2 p-1.5 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all duration-300 px-0 py-0 mx-[42px]">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -180,7 +170,7 @@ const Customers = () => {
                     </TooltipProvider>
                   </div>
 
-                  <div className="flex items-center gap-2 p-1.5 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all duration-300">
+                  <div className="flex items-center gap-2 p-1.5 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all duration-300 py-[6px] px-0 my-0 mx-0">
                     <SearchBox />
                   </div>
 
@@ -188,9 +178,7 @@ const Customers = () => {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <CreateCustomerDialog>
-                          <Button 
-                            className="bg-primary hover:bg-primary/90 text-white flex items-center gap-2 shadow-lg hover:shadow-xl hover:shadow-primary/25 transition-all duration-300 transform hover:-translate-y-0.5"
-                          >
+                          <Button className="bg-primary hover:bg-primary/90 text-white flex items-center gap-2 shadow-lg hover:shadow-xl hover:shadow-primary/25 transition-all duration-300 transform hover:-translate-y-0.5">
                             <UserPlus className="h-4 w-4" />
                             Add Customer
                           </Button>
@@ -221,8 +209,6 @@ const Customers = () => {
           <CustomerList />
         </CardContent>
       </Card>
-    </DashboardLayout>
-  );
+    </DashboardLayout>;
 };
-
 export default Customers;
