@@ -1,5 +1,6 @@
+
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useSessionContext } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
@@ -12,19 +13,23 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { session } = useSessionContext();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     const checkUserRole = async () => {
       try {
-        if (window.location.pathname === "/auth" || window.location.pathname === "/customer-portal") {
+        // Allow access to auth page
+        if (window.location.pathname === "/auth") {
           setIsLoading(false);
           return;
         }
 
+        // If no session, redirect to auth with return URL
         if (!session?.user) {
-          navigate("/auth");
+          const currentPath = `${location.pathname}${location.search}`;
+          navigate(`/auth?returnUrl=${encodeURIComponent(currentPath)}`);
           setIsLoading(false);
           return;
         }
@@ -44,6 +49,13 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
         setUserRole(profile?.role || null);
 
+        // Special handling for vehicle routes - allow both staff and customers
+        if (location.pathname.startsWith('/vehicles/')) {
+          setIsLoading(false);
+          return;
+        }
+
+        // For customer portal access
         if (profile?.role === "customer" && window.location.pathname !== "/customer-portal") {
           navigate("/customer-portal");
         }
@@ -57,7 +69,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     };
 
     checkUserRole();
-  }, [session, navigate]);
+  }, [session, navigate, location]);
 
   if (isLoading) {
     return (

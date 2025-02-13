@@ -2,11 +2,33 @@
 import { AuthContainer } from "@/components/auth/AuthContainer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { UserRound, LogIn, Building2, ArrowRight } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useEffect } from "react";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { session } = useAuth();
+  
+  // Parse return URL from query parameters
+  const params = new URLSearchParams(location.search);
+  const returnUrl = params.get('returnUrl');
+
+  useEffect(() => {
+    if (session) {
+      // If there's a return URL, navigate back to it after login
+      if (returnUrl) {
+        navigate(returnUrl);
+      } else {
+        navigate("/");
+      }
+    }
+  }, [session, navigate, returnUrl]);
+
+  // If user is trying to access a vehicle page, show a different message
+  const isVehicleAccess = returnUrl?.startsWith('/vehicles/');
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
@@ -15,8 +37,14 @@ const Auth = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-100 mb-4">
             <Building2 className="w-8 h-8 text-orange-600" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
-          <p className="text-gray-600">Choose how you want to access the system</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {isVehicleAccess ? 'Vehicle Information Access' : 'Welcome Back'}
+          </h1>
+          <p className="text-gray-600">
+            {isVehicleAccess 
+              ? 'Please sign in to view vehicle details and report issues'
+              : 'Choose how you want to access the system'}
+          </p>
         </div>
 
         <Card className="p-6 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
