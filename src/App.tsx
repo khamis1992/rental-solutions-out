@@ -1,3 +1,4 @@
+
 import { Suspense, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
@@ -118,7 +119,7 @@ export default function App() {
                 element={
                   <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
                     <LazyComponents.Agreements />
-                  Suspense>
+                  </Suspense>
                 }
               />
 
@@ -217,7 +218,7 @@ export default function App() {
                 element={
                   <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
                     <LazyComponents.Audit />
-                  Suspense>
+                  </Suspense>
                 }
               />
 
