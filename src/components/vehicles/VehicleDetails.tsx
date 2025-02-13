@@ -224,14 +224,13 @@ export const VehicleDetails = () => {
       <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
         <VehicleInsurance vehicleId={id} />
       </div>
+
+      <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+        <VehicleDocuments vehicleId={id} />
+      </div>
       
-      <div className="grid gap-8 lg:grid-cols-2">
-        <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
-          <VehicleDocuments vehicleId={id} />
-        </div>
-        <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
-          <MaintenanceHistory vehicleId={id} />
-        </div>
+      <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+        <MaintenanceHistory vehicleId={id} />
       </div>
 
       <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
