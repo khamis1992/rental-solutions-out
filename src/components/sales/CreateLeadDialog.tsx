@@ -107,9 +107,39 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
     setLoading(true);
 
     try {
+      // First, create or find the customer profile
+      const { data: existingProfiles, error: searchError } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .eq('full_name', formData.customerName)
+        .eq('role', 'customer')
+        .maybeSingle();
+
+      if (searchError) throw searchError;
+
+      let customerId;
+
+      if (existingProfiles) {
+        customerId = existingProfiles.id;
+      } else {
+        // Create new customer profile
+        const { data: newProfile, error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            full_name: formData.customerName,
+            phone_number: formData.phoneNumber,
+            role: 'customer'
+          })
+          .select()
+          .single();
+
+        if (profileError) throw profileError;
+        customerId = newProfile.id;
+      }
+
+      // Create the sales lead with the customer_id
       const { error } = await supabase.from("sales_leads").insert({
-        customer_name: formData.customerName,
-        phone_number: formData.phoneNumber,
+        customer_id: customerId,
         preferred_vehicle_type: formData.preferredVehicleType,
         budget_range_min: parseFloat(formData.budgetMin),
         budget_range_max: parseFloat(formData.budgetMax),
