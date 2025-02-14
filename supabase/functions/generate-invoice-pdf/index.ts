@@ -3,7 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 import { pdf } from 'https://esm.sh/@react-pdf/renderer'
 import React from 'https://esm.sh/react'
-import { renderToString } from 'https://esm.sh/react-dom/server'
+import { Document, Page, Text, StyleSheet } from 'https://esm.sh/@react-pdf/renderer'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -28,23 +28,38 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Convert HTML content to a simple text-based PDF structure
-    const pdfContent = {
-      content: [
-        { text: 'Invoice', style: 'header' },
-        { text: htmlContent.replace(/<[^>]*>/g, '\n').trim() },
-      ],
-      styles: {
-        header: {
-          fontSize: 18,
-          bold: true,
-          margin: [0, 0, 0, 10]
-        }
+    // Create styles
+    const styles = StyleSheet.create({
+      page: {
+        flexDirection: 'column',
+        backgroundColor: '#fff',
+        padding: 30
+      },
+      header: {
+        fontSize: 24,
+        marginBottom: 20
+      },
+      text: {
+        fontSize: 12,
+        marginBottom: 10
       }
-    };
+    });
+
+    // Clean HTML content
+    const cleanContent = htmlContent.replace(/<[^>]*>/g, '\n').trim();
+
+    // Create PDF Document
+    const MyDocument = () => (
+      <Document>
+        <Page size="A4" style={styles.page}>
+          <Text style={styles.header}>Invoice</Text>
+          <Text style={styles.text}>{cleanContent}</Text>
+        </Page>
+      </Document>
+    );
 
     // Generate PDF buffer
-    const pdfBuffer = await pdf(pdfContent).toBuffer();
+    const pdfBuffer = await pdf(<MyDocument />).toBuffer();
 
     // Generate unique filename
     const timestamp = new Date().toISOString()
