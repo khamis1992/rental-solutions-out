@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PaymentForm } from "./details/PaymentForm";
@@ -20,6 +21,23 @@ import { Input } from "@/components/ui/input";
 import { calculateDuration, calculateContractValue } from "./utils/agreementCalculations";
 import { AgreementStatusSelect } from "./details/AgreementStatusSelect";
 import { formatDateToDisplay, parseDateFromDisplay, formatDateForApi } from "@/lib/dateUtils";
+import { 
+  CalendarDays, 
+  Calendar, 
+  CreditCard, 
+  Receipt, 
+  FileText, 
+  ShieldAlert, 
+  Car, 
+  AlertTriangle,
+  Clock,
+  BadgeDollarSign,
+  Calendar as CalendarIcon,
+  CircleDollarSign
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 interface AgreementDetailsDialogProps {
   agreementId: string;
@@ -137,7 +155,7 @@ export const AgreementDetailsDialog = ({
   if (!open) return null;
 
   // Get the remaining amount from the view
-  const remainingAmount = agreement?.remainingAmount?.remaining_amount ?? 0;
+  const remainingAmount = agreement?.remainingAmount?.[0]?.remaining_amount ?? 0;
 
   const mappedAgreement = agreement ? {
     id: agreement.id,
@@ -154,17 +172,22 @@ export const AgreementDetailsDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Agreement Details</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <FileText className="h-5 w-5 text-blue-600" />
+            Agreement Details
+          </DialogTitle>
+          <DialogDescription className="text-base">
             View and manage agreement details, payments, and related information.
           </DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
-          <div>Loading agreement details...</div>
+          <div className="flex items-center justify-center p-8">
+            <Clock className="h-8 w-8 animate-spin text-blue-600" />
+          </div>
         ) : agreement ? (
           <div className="space-y-6">
-            <div className="flex justify-between items-start">
+            <div className="flex justify-between items-start gap-4">
               <AgreementHeader 
                 agreement={mappedAgreement}
                 remainingAmount={remainingAmount}
@@ -176,97 +199,155 @@ export const AgreementDetailsDialog = ({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <DateInput
-                label="Start Date"
-                value={startDate}
-                onChange={(e) => {
-                  setStartDate(e.target.value);
-                  handleDateChange(e.target.value, endDate);
-                }}
-              />
-              <DateInput
-                label="End Date"
-                value={endDate}
-                onChange={(e) => {
-                  setEndDate(e.target.value);
-                  handleDateChange(startDate, e.target.value);
-                }}
-              />
-            </div>
+            <Card className="border-blue-100">
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="h-5 w-5 text-blue-600" />
+                      <h3 className="font-semibold">Agreement Period</h3>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <DateInput
+                        label={
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-gray-500" />
+                            <span>Start Date</span>
+                          </div>
+                        }
+                        value={startDate}
+                        onChange={(e) => {
+                          setStartDate(e.target.value);
+                          handleDateChange(e.target.value, endDate);
+                        }}
+                      />
+                      <DateInput
+                        label={
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-gray-500" />
+                            <span>End Date</span>
+                          </div>
+                        }
+                        value={endDate}
+                        onChange={(e) => {
+                          setEndDate(e.target.value);
+                          handleDateChange(startDate, e.target.value);
+                        }}
+                      />
+                    </div>
+                  </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="rent_amount">Rent Amount (QAR)</Label>
-                <Input
-                  id="rent_amount"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={rentAmount}
-                  onChange={(e) => handleRentAmountChange(e.target.value)}
-                  className="bg-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Duration (Months)</Label>
-                <Input
-                  type="number"
-                  value={duration}
-                  disabled
-                  className="bg-gray-100"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Contract Value (QAR)</Label>
-                <Input
-                  type="number"
-                  value={contractValue}
-                  disabled
-                  className="bg-gray-100"
-                />
-              </div>
-            </div>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <CircleDollarSign className="h-5 w-5 text-blue-600" />
+                      <h3 className="font-semibold">Financial Details</h3>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="rent_amount" className="flex items-center gap-2">
+                          <BadgeDollarSign className="h-4 w-4 text-gray-500" />
+                          Rent Amount (QAR)
+                        </Label>
+                        <Input
+                          id="rent_amount"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={rentAmount}
+                          onChange={(e) => handleRentAmountChange(e.target.value)}
+                          className="bg-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2">
+                          <CalendarIcon className="h-4 w-4 text-gray-500" />
+                          Duration (Months)
+                        </Label>
+                        <Input
+                          type="number"
+                          value={duration}
+                          disabled
+                          className="bg-gray-50"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <CreditCard className="h-4 w-4 text-gray-500" />
+                        Contract Value (QAR)
+                      </Label>
+                      <Input
+                        type="number"
+                        value={contractValue}
+                        disabled
+                        className="bg-gray-50"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             <CustomerInfoCard customer={agreement.customer} />
-            
             <VehicleInfoCard 
               vehicle={agreement.vehicle}
               initialMileage={agreement.initial_mileage}
             />
 
             <Tabs defaultValue="payments" className="w-full">
-              <TabsList className="w-full">
-                <TabsTrigger value="payments">Payments</TabsTrigger>
-                <TabsTrigger value="payment-history">Payment History</TabsTrigger>
-                <TabsTrigger value="invoices">Invoices</TabsTrigger>
-                <TabsTrigger value="documents">Documents</TabsTrigger>
-                <TabsTrigger value="damages">Damages</TabsTrigger>
-                <TabsTrigger value="fines">Traffic Fines</TabsTrigger>
+              <TabsList className="w-full grid grid-cols-6 h-auto gap-2 bg-transparent">
+                <TabsTrigger value="payments" className="flex items-center gap-2 data-[state=active]:bg-blue-50">
+                  <CreditCard className="h-4 w-4" />
+                  Payments
+                </TabsTrigger>
+                <TabsTrigger value="payment-history" className="flex items-center gap-2 data-[state=active]:bg-blue-50">
+                  <Receipt className="h-4 w-4" />
+                  History
+                </TabsTrigger>
+                <TabsTrigger value="invoices" className="flex items-center gap-2 data-[state=active]:bg-blue-50">
+                  <FileText className="h-4 w-4" />
+                  Invoices
+                </TabsTrigger>
+                <TabsTrigger value="documents" className="flex items-center gap-2 data-[state=active]:bg-blue-50">
+                  <FileText className="h-4 w-4" />
+                  Documents
+                </TabsTrigger>
+                <TabsTrigger value="damages" className="flex items-center gap-2 data-[state=active]:bg-blue-50">
+                  <ShieldAlert className="h-4 w-4" />
+                  Damages
+                </TabsTrigger>
+                <TabsTrigger value="fines" className="flex items-center gap-2 data-[state=active]:bg-blue-50">
+                  <AlertTriangle className="h-4 w-4" />
+                  Fines
+                </TabsTrigger>
               </TabsList>
               
-              <TabsContent value="payments">
-                <PaymentForm agreementId={agreementId} />
-              </TabsContent>
-              <TabsContent value="payment-history">
-                <PaymentHistory agreementId={agreementId} />
-              </TabsContent>
-              <TabsContent value="invoices">
-                <InvoiceList agreementId={agreementId} />
-              </TabsContent>
-              <TabsContent value="documents">
-                <DocumentUpload agreementId={agreementId} />
-              </TabsContent>
-              <TabsContent value="damages">
-                <DamageAssessment agreementId={agreementId} />
-              </TabsContent>
-              <TabsContent value="fines">
-                <TrafficFines agreementId={agreementId} />
-              </TabsContent>
+              <div className="mt-6">
+                <TabsContent value="payments">
+                  <PaymentForm agreementId={agreementId} />
+                </TabsContent>
+                <TabsContent value="payment-history">
+                  <PaymentHistory agreementId={agreementId} />
+                </TabsContent>
+                <TabsContent value="invoices">
+                  <InvoiceList agreementId={agreementId} />
+                </TabsContent>
+                <TabsContent value="documents">
+                  <DocumentUpload agreementId={agreementId} />
+                </TabsContent>
+                <TabsContent value="damages">
+                  <DamageAssessment agreementId={agreementId} />
+                </TabsContent>
+                <TabsContent value="fines">
+                  <TrafficFines agreementId={agreementId} />
+                </TabsContent>
+              </div>
             </Tabs>
           </div>
         ) : (
-          <div>Agreement not found</div>
+          <div className="text-center py-8 text-gray-500">
+            Agreement not found
+          </div>
         )}
       </DialogContent>
     </Dialog>
