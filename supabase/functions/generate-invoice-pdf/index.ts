@@ -1,7 +1,9 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import puppeteer from 'https://deno.land/x/puppeteer@16.2.0/mod.ts'
+import { pdf } from 'https://esm.sh/@react-pdf/renderer'
+import React from 'https://esm.sh/react'
+import { renderToString } from 'https://esm.sh/react-dom/server'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -26,21 +28,23 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Launch browser
-    const browser = await puppeteer.launch()
-    const page = await browser.newPage()
-    
-    // Set content and wait for network idle
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' })
-    
-    // Generate PDF
-    const pdf = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: { top: '1cm', right: '1cm', bottom: '1cm', left: '1cm' }
-    })
+    // Convert HTML content to a simple text-based PDF structure
+    const pdfContent = {
+      content: [
+        { text: 'Invoice', style: 'header' },
+        { text: htmlContent.replace(/<[^>]*>/g, '\n').trim() },
+      ],
+      styles: {
+        header: {
+          fontSize: 18,
+          bold: true,
+          margin: [0, 0, 0, 10]
+        }
+      }
+    };
 
-    await browser.close()
+    // Generate PDF buffer
+    const pdfBuffer = await pdf(pdfContent).toBuffer();
 
     // Generate unique filename
     const timestamp = new Date().toISOString()
@@ -49,7 +53,7 @@ serve(async (req) => {
     // Upload to Storage
     const { error: uploadError } = await supabase.storage
       .from('invoices')
-      .upload(fileName, pdf, {
+      .upload(fileName, pdfBuffer, {
         contentType: 'application/pdf',
         cacheControl: '3600'
       })
@@ -88,6 +92,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
+    console.error('Error in generate-invoice-pdf:', error);
     return new Response(
       JSON.stringify({ 
         success: false,
