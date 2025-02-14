@@ -130,7 +130,7 @@ export const VehicleRecommendations = ({ leadId }: VehicleRecommendationsProps) 
                 </div>
               </div>
             ))}
-            {recommendations?.length === 0 && (
+            {(!recommendations || recommendations.length === 0) && (
               <div className="text-center text-muted-foreground py-8">
                 No vehicle recommendations available
               </div>
