@@ -1,3 +1,4 @@
+
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GeneralSettings } from "@/components/settings/GeneralSettings";
@@ -8,6 +9,7 @@ import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
 import { UserManagementSettings } from "@/components/settings/UserManagementSettings";
 import { VehicleStatusSettings } from "@/components/settings/VehicleStatusSettings";
 import { AgreementTemplateManagement } from "@/components/agreements/templates/AgreementTemplateManagement";
+import { LoyaltyProgramSettings } from "@/components/settings/LoyaltyProgramSettings";
 
 const Settings = () => {
   return (
@@ -30,6 +32,7 @@ const Settings = () => {
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="vehicle-status">Vehicle Status</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
+            <TabsTrigger value="loyalty">Loyalty Program</TabsTrigger>
           </TabsList>
           <TabsContent value="general">
             <GeneralSettings />
@@ -54,6 +57,9 @@ const Settings = () => {
           </TabsContent>
           <TabsContent value="templates">
             <AgreementTemplateManagement />
+          </TabsContent>
+          <TabsContent value="loyalty">
+            <LoyaltyProgramSettings />
           </TabsContent>
         </Tabs>
       </div>
