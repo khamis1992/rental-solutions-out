@@ -48,18 +48,16 @@ serve(async (req) => {
     // Clean HTML content
     const cleanContent = htmlContent.replace(/<[^>]*>/g, '\n').trim();
 
-    // Create PDF Document
-    const MyDocument = () => (
-      <Document>
-        <Page size="A4" style={styles.page}>
-          <Text style={styles.header}>Invoice</Text>
-          <Text style={styles.text}>{cleanContent}</Text>
-        </Page>
-      </Document>
+    // Create PDF Document using React.createElement instead of JSX
+    const doc = React.createElement(Document, {}, 
+      React.createElement(Page, { size: "A4", style: styles.page },
+        React.createElement(Text, { style: styles.header }, "Invoice"),
+        React.createElement(Text, { style: styles.text }, cleanContent)
+      )
     );
 
     // Generate PDF buffer
-    const pdfBuffer = await pdf(<MyDocument />).toBuffer();
+    const pdfBuffer = await pdf(doc).toBuffer();
 
     // Generate unique filename
     const timestamp = new Date().toISOString()
