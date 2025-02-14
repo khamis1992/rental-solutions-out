@@ -1,6 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { VehicleRecommendations } from "./VehicleRecommendations";
@@ -8,9 +9,7 @@ import { VehicleRecommendations } from "./VehicleRecommendations";
 interface SalesLead {
   id: string;
   status: string;
-  customer: {
-    full_name: string;
-  };
+  customer_name: string;
   lead_score: number;
   preferred_vehicle_type: string;
   budget_range_min: number;
@@ -27,12 +26,10 @@ export const SalesLeadList = () => {
           id,
           status,
           lead_score,
+          customer_name,
           preferred_vehicle_type,
           budget_range_min,
-          budget_range_max,
-          customer:customer_id (
-            full_name
-          )
+          budget_range_max
         `)
         .order("created_at", { ascending: false });
 
@@ -56,7 +53,7 @@ export const SalesLeadList = () => {
           <CardHeader>
             <div className="flex justify-between items-start">
               <div>
-                <CardTitle>{lead.customer.full_name}</CardTitle>
+                <CardTitle>{lead.customer_name}</CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">
                   Budget: ${lead.budget_range_min?.toLocaleString()} - ${lead.budget_range_max?.toLocaleString()}
                 </p>
