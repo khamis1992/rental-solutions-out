@@ -1,167 +1,127 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { CustomerDocumentSection } from "../profile/CustomerDocumentSection";
 
 interface ProfileManagementProps {
-  profile: {
-    full_name?: string | null;
-    phone_number?: string | null;
-    email?: string | null;
-    address?: string | null;
-    nationality?: string | null;
-  };
+  profile: any;
 }
 
-export const ProfileManagement = ({ profile }: ProfileManagementProps) => {
+export function ProfileManagement({ profile }: ProfileManagementProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    full_name: profile.full_name || "",
-    phone_number: profile.phone_number || "",
-    email: profile.email || "",
-    address: profile.address || "",
-    nationality: profile.nationality || ""
-  });
+  const [fullName, setFullName] = useState(profile?.full_name || '');
+  const [phoneNumber, setPhoneNumber] = useState(profile?.phone_number || '');
+  const [email, setEmail] = useState(profile?.email || '');
+  const [address, setAddress] = useState(profile?.address || '');
 
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
+  const handleUpdateProfile = async () => {
     try {
       const { error } = await supabase
-        .from("profiles")
-        .update(formData)
-        .eq("id", (await supabase.auth.getUser()).data.user?.id);
+        .from('profiles')
+        .update({
+          full_name: fullName,
+          phone_number: phoneNumber,
+          email: email,
+          address: address,
+        })
+        .eq('id', profile.id);
 
       if (error) throw error;
 
-      toast.success("Profile updated successfully");
+      toast.success('Profile updated successfully');
       setIsEditing(false);
     } catch (error: any) {
-      console.error("Error updating profile:", error);
-      toast.error("Failed to update profile");
-    } finally {
-      setIsSubmitting(false);
+      console.error('Error updating profile:', error);
+      toast.error(error.message || 'Failed to update profile');
     }
   };
 
-  if (!profile) return null;
-
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Profile Information</CardTitle>
-        {!isEditing && (
-          <Button variant="outline" onClick={() => setIsEditing(true)}>
-            Edit Profile
-          </Button>
-        )}
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div>
-            <Label>Full Name</Label>
-            {isEditing ? (
-              <Input
-                value={formData.full_name}
-                onChange={(e) =>
-                  setFormData({ ...formData, full_name: e.target.value })
-                }
-              />
-            ) : (
-              <p className="mt-1">{profile.full_name || "Not provided"}</p>
-            )}
-          </div>
-
-          <div>
-            <Label>Phone Number</Label>
-            {isEditing ? (
-              <Input
-                value={formData.phone_number}
-                onChange={(e) =>
-                  setFormData({ ...formData, phone_number: e.target.value })
-                }
-              />
-            ) : (
-              <p className="mt-1">{profile.phone_number || "Not provided"}</p>
-            )}
-          </div>
-
-          <div>
-            <Label>Email</Label>
-            {isEditing ? (
-              <Input
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-              />
-            ) : (
-              <p className="mt-1">{profile.email || "Not provided"}</p>
-            )}
-          </div>
-
-          <div>
-            <Label>Nationality</Label>
-            {isEditing ? (
-              <Input
-                value={formData.nationality}
-                onChange={(e) =>
-                  setFormData({ ...formData, nationality: e.target.value })
-                }
-              />
-            ) : (
-              <p className="mt-1">{profile.nationality || "Not provided"}</p>
-            )}
-          </div>
-
-          <div>
-            <Label>Address</Label>
-            {isEditing ? (
-              <Textarea
-                value={formData.address}
-                onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
-                }
-              />
-            ) : (
-              <p className="mt-1">{profile.address || "Not provided"}</p>
-            )}
-          </div>
-
-          {isEditing && (
-            <div className="flex gap-2 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsEditing(false);
-                  setFormData({
-                    full_name: profile.full_name || "",
-                    phone_number: profile.phone_number || "",
-                    email: profile.email || "",
-                    address: profile.address || "",
-                    nationality: profile.nationality || ""
-                  });
-                }}
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleSubmit} disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  "Save Changes"
-                )}
+    <div className="space-y-6">
+      {/* Profile Info Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isEditing ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  placeholder="Enter your full name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  placeholder="Enter your phone number"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="address">Address</Label>
+                <Input
+                  id="address"
+                  placeholder="Enter your address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="ghost" onClick={() => setIsEditing(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleUpdateProfile}>Update Profile</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Full Name</Label>
+                <p>{profile?.full_name}</p>
+              </div>
+              <div className="space-y-2">
+                <Label>Phone Number</Label>
+                <p>{profile?.phone_number}</p>
+              </div>
+              <div className="space-y-2">
+                <Label>Email Address</Label>
+                <p>{profile?.email}</p>
+              </div>
+              <div className="space-y-2">
+                <Label>Address</Label>
+                <p>{profile?.address}</p>
+              </div>
+              <Button variant="outline" onClick={() => setIsEditing(true)}>
+                Edit Profile
               </Button>
             </div>
           )}
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Document Upload Section */}
+      <CustomerDocumentSection profile={profile} />
+    </div>
   );
-};
+}
