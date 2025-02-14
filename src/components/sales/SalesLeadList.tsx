@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { VehicleRecommendations } from "./VehicleRecommendations";
 import { formatCurrency } from "@/lib/utils";
-
 interface SalesLead {
   id: string;
   status: string;
@@ -18,14 +16,17 @@ interface SalesLead {
   budget_range_min: number;
   budget_range_max: number;
 }
-
 export const SalesLeadList = () => {
-  const { data: leads, isLoading } = useQuery({
+  const {
+    data: leads,
+    isLoading
+  } = useQuery({
     queryKey: ["sales-leads"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("sales_leads")
-        .select(`
+      const {
+        data,
+        error
+      } = await supabase.from("sales_leads").select(`
           id,
           status,
           lead_score,
@@ -35,26 +36,20 @@ export const SalesLeadList = () => {
           customer:customer_id (
             full_name
           )
-        `)
-        .order("created_at", { ascending: false });
-
+        `).order("created_at", {
+        ascending: false
+      });
       if (error) throw error;
       return data as SalesLead[];
     }
   });
-
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-48">
+    return <div className="flex items-center justify-center h-48">
         <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="space-y-6">
-      {leads?.map((lead) => (
-        <Card key={lead.id}>
+  return <div className="space-y-6">
+      {leads?.map(lead => <Card key={lead.id}>
           <CardHeader>
             <div className="flex justify-between items-start">
               <div>
@@ -64,7 +59,7 @@ export const SalesLeadList = () => {
                 </p>
               </div>
               <div className="text-right">
-                <Badge variant={lead.lead_score >= 70 ? "default" : "secondary"}>
+                <Badge variant={lead.lead_score >= 70 ? "default" : "secondary"} className="bg-cyan-400 hover:bg-cyan-300">
                   Score: {lead.lead_score}
                 </Badge>
                 <p className="text-sm text-muted-foreground mt-1">
@@ -76,8 +71,6 @@ export const SalesLeadList = () => {
           <CardContent>
             <VehicleRecommendations leadId={lead.id} />
           </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
+        </Card>)}
+    </div>;
 };
