@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,17 +6,16 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Gift, Award, TrendingUp } from "lucide-react";
 import type { CustomerTier, LoyaltyPoints, Reward, PointHistory } from "@/types/loyalty";
+import { toast } from "sonner";
 
 interface LoyaltyDashboardProps {
   customerId: string;
 }
 
 export function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) {
-  // Fetch or initialize loyalty points
   const { data: loyaltyData } = useQuery({
     queryKey: ['loyalty-points', customerId],
     queryFn: async () => {
-      // First try to get existing loyalty points
       const { data: existingData, error: fetchError } = await supabase
         .from('loyalty_points')
         .select('*')
@@ -26,7 +24,6 @@ export function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) {
 
       if (fetchError) throw fetchError;
 
-      // If no loyalty points exist, initialize them
       if (!existingData) {
         const { data: newLoyaltyData, error: insertError } = await supabase
           .from('loyalty_points')
@@ -48,7 +45,6 @@ export function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) {
         };
       }
 
-      // Cast points_history to the correct type
       const pointsHistory = Array.isArray(existingData.points_history) 
         ? existingData.points_history.map((history: any) => ({
             points: history.points,
@@ -64,7 +60,6 @@ export function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) {
     }
   });
 
-  // Fetch available rewards
   const { data: rewards } = useQuery({
     queryKey: ['rewards-catalog'],
     queryFn: async () => {
@@ -78,7 +73,6 @@ export function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) {
     },
   });
 
-  // Fetch customer tier info
   const { data: tierInfo } = useQuery({
     queryKey: ['customer-tier', loyaltyData?.tier],
     queryFn: async () => {
@@ -90,7 +84,6 @@ export function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) {
 
       if (error) throw error;
       
-      // Cast benefits to the correct type
       const benefits = Array.isArray(data.benefits) 
         ? data.benefits.map((benefit: any) => ({
             name: benefit.name,
@@ -106,7 +99,6 @@ export function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) {
     enabled: !!loyaltyData?.tier,
   });
 
-  // Calculate progress to next tier
   const calculateNextTier = () => {
     if (!loyaltyData) return null;
 
@@ -131,9 +123,55 @@ export function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) {
 
   const nextTierInfo = calculateNextTier();
 
+  const handleRewardRedeem = async (reward: Reward) => {
+    try {
+      if (!loyaltyData || loyaltyData.points < reward.points_cost) {
+        toast.error('Insufficient points to redeem this reward');
+        return;
+      }
+
+      if (loyaltyData.tier !== reward.tier_requirement) {
+        toast.error(`This reward requires ${reward.tier_requirement} tier`);
+        return;
+      }
+
+      const { error: redemptionError } = await supabase
+        .from('customer_rewards')
+        .insert({
+          customer_id: customerId,
+          reward_id: reward.id,
+          status: 'active',
+          expiry_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days expiry
+        });
+
+      if (redemptionError) throw redemptionError;
+
+      const { error: pointsError } = await supabase
+        .from('loyalty_points')
+        .update({
+          points: loyaltyData.points - reward.points_cost,
+          points_history: [
+            ...loyaltyData.points_history,
+            {
+              points: -reward.points_cost,
+              reason: `Redeemed reward: ${reward.name}`,
+              date: new Date().toISOString()
+            }
+          ]
+        })
+        .eq('customer_id', customerId);
+
+      if (pointsError) throw pointsError;
+
+      toast.success('Reward redeemed successfully!');
+    } catch (error: any) {
+      console.error('Error redeeming reward:', error);
+      toast.error(error.message || 'Failed to redeem reward');
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Current Tier & Points */}
       <Card>
         <CardHeader>
           <CardTitle>Your Loyalty Status</CardTitle>
@@ -165,29 +203,25 @@ export function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) {
         </CardContent>
       </Card>
 
-      {/* Tier Benefits */}
-      {tierInfo && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Benefits</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4">
-              {tierInfo.benefits.map((benefit, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <Gift className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <h4 className="font-medium">{benefit.name}</h4>
-                    <p className="text-sm text-muted-foreground">{benefit.description}</p>
-                  </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Your Benefits</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
+            {tierInfo?.benefits.map((benefit, index) => (
+              <div key={index} className="flex items-start gap-3">
+                <Gift className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <h4 className="font-medium">{benefit.name}</h4>
+                  <p className="text-sm text-muted-foreground">{benefit.description}</p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Available Rewards */}
       <Card>
         <CardHeader>
           <CardTitle>Available Rewards</CardTitle>
@@ -202,7 +236,7 @@ export function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) {
                     <h4 className="font-medium">{reward.name}</h4>
                     <p className="text-sm text-muted-foreground">{reward.description}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="secondary" className="capitalize">
+                      <Badge variant={reward.tier_requirement === loyaltyData?.tier ? 'default' : 'secondary'}>
                         {reward.tier_requirement}
                       </Badge>
                       <Badge variant="outline">{reward.points_cost} points</Badge>
@@ -212,6 +246,7 @@ export function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) {
                 <Button
                   variant="secondary"
                   disabled={!loyaltyData || loyaltyData.points < reward.points_cost}
+                  onClick={() => handleRewardRedeem(reward)}
                 >
                   Redeem
                 </Button>
@@ -221,7 +256,6 @@ export function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) {
         </CardContent>
       </Card>
 
-      {/* Points History */}
       {loyaltyData?.points_history && loyaltyData.points_history.length > 0 && (
         <Card>
           <CardHeader>
@@ -238,8 +272,10 @@ export function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) {
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <TrendingUp className="h-4 w-4 text-green-500" />
-                    <span className="font-medium text-green-600">+{history.points}</span>
+                    <TrendingUp className={`h-4 w-4 ${history.points > 0 ? 'text-green-500' : 'text-red-500'}`} />
+                    <span className={`font-medium ${history.points > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {history.points > 0 ? '+' : ''}{history.points}
+                    </span>
                   </div>
                 </div>
               ))}
