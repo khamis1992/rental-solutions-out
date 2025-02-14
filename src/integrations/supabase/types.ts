@@ -5815,6 +5815,7 @@ export type Database = {
           budget_range_min: number | null
           created_at: string | null
           customer_id: string | null
+          document_url: string | null
           id: string
           last_contacted: string | null
           lead_score: number | null
@@ -5835,6 +5836,7 @@ export type Database = {
           budget_range_min?: number | null
           created_at?: string | null
           customer_id?: string | null
+          document_url?: string | null
           id?: string
           last_contacted?: string | null
           lead_score?: number | null
@@ -5855,6 +5857,7 @@ export type Database = {
           budget_range_min?: number | null
           created_at?: string | null
           customer_id?: string | null
+          document_url?: string | null
           id?: string
           last_contacted?: string | null
           lead_score?: number | null

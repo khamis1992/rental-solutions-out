@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Loader2, Upload } from "lucide-react";
 
 interface CreateLeadDialogProps {
   open: boolean;
@@ -15,6 +16,8 @@ interface CreateLeadDialogProps {
 
 export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) => {
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [documentUrl, setDocumentUrl] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     customerName: "",
     preferredVehicleType: "",
@@ -23,6 +26,52 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
     priority: "medium",
     agreementType: "short_term"
   });
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error('Please upload a PDF, JPEG, or PNG file');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        toast.error('File size must be less than 5MB');
+        return;
+      }
+
+      setUploading(true);
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+
+      const { error: uploadError, data } = await supabase.storage
+        .from('sales_documents')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('sales_documents')
+        .getPublicUrl(fileName);
+
+      setDocumentUrl(publicUrl);
+      toast.success('Document uploaded successfully');
+    } catch (error: any) {
+      console.error('Error uploading document:', error);
+      toast.error(error.message || 'Error uploading document');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +84,7 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
         budget_range_max: parseFloat(formData.budgetMax),
         priority: formData.priority,
         preferred_agreement_type: formData.agreementType,
+        document_url: documentUrl,
         status: "new"
       });
 
@@ -132,6 +182,24 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
                   <SelectItem value="lease_to_own">Lease to Own</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="document">Document Upload</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="document"
+                  type="file"
+                  onChange={handleFileUpload}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  disabled={uploading}
+                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                />
+                {uploading && <Loader2 className="h-4 w-4 animate-spin" />}
+              </div>
+              {documentUrl && (
+                <p className="text-sm text-green-600">Document uploaded successfully</p>
+              )}
             </div>
           </div>
 
