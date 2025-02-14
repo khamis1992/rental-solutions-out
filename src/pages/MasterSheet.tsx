@@ -19,10 +19,10 @@ const MasterSheet = () => {
   const [headers, setHeaders] = useState<string[]>([]);
 
   const downloadTemplate = () => {
-    // Create a sample CSV template
+    // Create a sample CSV template with the new structure
     const csvContent = [
-      'Category,Amount,Date,Description,Type',
-      'Income,1000,25/01/2024,Monthly Revenue,INCOME'
+      'Agreement No,Car No.,Customer Name,Phone Number,ID No.,Rent Amount,Payment,Payment Date,Delay Fines,Pending Amount,Traffic Fine,Note,Insurance Company,Supervisor,Legal Action',
+      'AGR-202401-0001,ABC123,John Doe,+974123456789,ID12345,5000,2500,25/01/2024,120,2500,350,Payment pending,ABC Insurance,John Smith,No Action'
     ].join('\n');
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -114,7 +114,7 @@ const MasterSheet = () => {
         </Card>
 
         {importedData.length > 0 && (
-          <Card className="mt-6">
+          <Card className="mt-6 overflow-x-auto">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Imported Data</CardTitle>
               <div className="text-sm text-muted-foreground">
@@ -127,7 +127,7 @@ const MasterSheet = () => {
                   <TableHeader>
                     <TableRow>
                       {headers.map((header) => (
-                        <TableHead key={header}>{header}</TableHead>
+                        <TableHead key={header} className="whitespace-nowrap">{header}</TableHead>
                       ))}
                     </TableRow>
                   </TableHeader>
@@ -135,7 +135,7 @@ const MasterSheet = () => {
                     {importedData.map((row, index) => (
                       <TableRow key={index}>
                         {headers.map((header) => (
-                          <TableCell key={`${index}-${header}`}>
+                          <TableCell key={`${index}-${header}`} className="whitespace-nowrap">
                             {row[header]}
                           </TableCell>
                         ))}
