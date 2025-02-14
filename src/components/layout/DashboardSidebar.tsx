@@ -1,9 +1,9 @@
-
 import { 
   LayoutDashboard, CarFront, Users, FileText, Wrench, 
   DollarSign, AlertTriangle, BarChart3, Archive,
   Building2, Scale, HelpCircle, ChevronRight, 
-  ChevronLeft, Activity, Menu, MapPin
+  ChevronLeft, Activity, Menu, MapPin,
+  Banknote
 } from "lucide-react";
 import {
   Sidebar,
@@ -84,6 +84,12 @@ const menuGroups: MenuGroup[] = [
         label: "Agreements", 
         href: "/agreements",
         description: "Rental agreements"
+      },
+      { 
+        icon: Banknote, 
+        label: "Sales", 
+        href: "/sales",
+        description: "Sales management"
       },
     ]
   },
