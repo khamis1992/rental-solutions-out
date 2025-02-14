@@ -7922,16 +7922,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
-      simulate_all_vehicles_sensor_data: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      simulate_vehicle_sensor_data: {
-        Args: {
-          vehicle_id: string
-        }
-        Returns: undefined
-      }
       swap_day_month: {
         Args: {
           input_date: string

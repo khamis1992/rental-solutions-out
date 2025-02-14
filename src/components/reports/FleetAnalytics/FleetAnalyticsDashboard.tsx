@@ -1,12 +1,9 @@
-
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/utils";
 import { Car, TrendingUp, Wrench, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FleetSensorDashboard } from "@/components/vehicles/sensor/FleetSensorDashboard";
-import { MaintenancePredictions } from "@/components/vehicles/sensor/MaintenancePredictions";
 
 export const FleetAnalyticsDashboard = () => {
   const { data: fleetStats, isLoading, error } = useQuery({
@@ -107,18 +104,6 @@ export const FleetAnalyticsDashboard = () => {
           className="bg-white p-8 shadow-lg hover:shadow-xl transition-shadow"
           iconClassName="text-blue-500 h-6 w-6"
         />
-      </div>
-
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">Fleet Sensor Dashboard</h2>
-        <FleetSensorDashboard />
-      </div>
-
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">Vehicle Maintenance Predictions</h2>
-        {fleetStats?.totalVehicles > 0 && (
-          <MaintenancePredictions vehicleId={fleetStats.totalVehicles[0]?.id} />
-        )}
       </div>
     </div>
   );
