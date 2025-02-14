@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { formatDateToDisplay } from "@/lib/dateUtils";
@@ -78,6 +77,7 @@ export const MaintenanceList = () => {
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<string>("all");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { data: records = [], isLoading, error } = useQuery({
     queryKey: ["maintenance-and-accidents"],
@@ -234,19 +234,19 @@ export const MaintenanceList = () => {
             </div>
             
             <div className="flex items-center gap-2">
-              <Button 
-                size="lg" 
-                className="shadow-lg hover:shadow-xl transition-shadow"
-                onClick={() => document.getElementById('create-job-dialog')?.click()}
+              <CreateJobDialog 
+                open={isDialogOpen} 
+                onOpenChange={setIsDialogOpen}
               >
-                <Plus className="h-5 w-5 mr-2" />
-                Open New Job Card
-              </Button>
-              <div className="hidden">
-                <CreateJobDialog>
-                  <button id="create-job-dialog"></button>
-                </CreateJobDialog>
-              </div>
+                <Button 
+                  size="lg" 
+                  className="shadow-lg hover:shadow-xl transition-shadow"
+                  onClick={() => setIsDialogOpen(true)}
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  Open New Job Card
+                </Button>
+              </CreateJobDialog>
             </div>
           </div>
         </div>
