@@ -1,5 +1,5 @@
 
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -10,20 +10,26 @@ interface VehicleSensorDataProps {
   vehicleId: string;
 }
 
-interface SensorData {
-  battery_health: number;
-  fuel_level: number;
-  tire_pressure: {
-    front_left: number;
-    front_right: number;
-    rear_left: number;
-    rear_right: number;
-  };
+interface TirePressure {
+  front_left: number;
+  front_right: number;
+  rear_left: number;
+  rear_right: number;
+}
+
+interface SensorDataResponse {
+  id: string;
+  vehicle_id: string;
+  tire_pressure: TirePressure;
   brake_pad_wear: number;
-  engine_temperature: number;
-  mileage: number;
   oil_life_remaining: number;
   check_engine_status: boolean;
+  battery_health: number;
+  fuel_level: number;
+  engine_temperature: number;
+  mileage: number;
+  timestamp: string;
+  created_at: string;
 }
 
 export const VehicleSensorData = ({ vehicleId }: VehicleSensorDataProps) => {
@@ -39,16 +45,14 @@ export const VehicleSensorData = ({ vehicleId }: VehicleSensorDataProps) => {
         .limit(1)
         .single();
 
-      if (error) throw error;
-      return data as SensorData;
+      if (error) {
+        toast.error("Failed to fetch sensor data");
+        throw error;
+      }
+      return data as SensorDataResponse;
     },
     refetchInterval: 30000, // Refresh every 30 seconds
   });
-
-  // Alert configuration
-  const getAlertStatus = (value: number, threshold: number) => {
-    return value < threshold ? "warning" : "success";
-  };
 
   if (isLoading) {
     return <Card className="p-6">
