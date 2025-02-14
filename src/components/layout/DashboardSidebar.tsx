@@ -1,3 +1,4 @@
+
 import { 
   LayoutDashboard, CarFront, Users, FileText, Wrench, 
   DollarSign, AlertTriangle, BarChart3, Archive,
@@ -200,7 +201,7 @@ export const DashboardSidebar = () => {
     <SidebarContent className="flex flex-col h-full">
       <div className="flex h-14 items-center border-b px-4 justify-between bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         {!isCollapsed && (
-          <span className="font-semibold text-lg bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
+          <span className="font-semibold text-lg bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
             Rental Solutions
           </span>
         )}
@@ -239,9 +240,9 @@ export const DashboardSidebar = () => {
                             asChild
                             className={cn(
                               "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200",
-                              "hover:bg-orange-50 active:bg-orange-100 group",
+                              "hover:bg-gray-100 active:bg-gray-200 group",
                               "touch-manipulation",
-                              isActive && "bg-orange-100 text-orange-600"
+                              isActive && "bg-gray-100 text-gray-900"
                             )}
                           >
                             <Link 
@@ -251,12 +252,12 @@ export const DashboardSidebar = () => {
                             >
                               <item.icon className={cn(
                                 "h-5 w-5 transition-transform group-hover:scale-110",
-                                isActive ? "text-orange-600" : "text-gray-500 group-hover:text-orange-50"
+                                isActive ? "text-gray-900" : "text-gray-500 group-hover:text-gray-700"
                               )} />
                               {!isCollapsed && (
                                 <span className={cn(
                                   "font-medium text-sm transition-colors",
-                                  isActive ? "text-orange-600" : "text-gray-700 group-hover:text-orange-500"
+                                  isActive ? "text-gray-900" : "text-gray-700"
                                 )}>
                                   {item.label}
                                 </span>
