@@ -1,5 +1,5 @@
 
-export type MaintenanceStatus = 'cancelled' | 'scheduled' | 'in_progress' | 'completed' | 'urgent';
+export type MaintenanceStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'urgent';
 
 export interface MaintenanceRecord {
   id: string;

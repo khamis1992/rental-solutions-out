@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { formatDateToDisplay } from "@/lib/dateUtils";
 import { 
   Wrench, Clock, AlertTriangle, CheckCircle, XCircle, Car, 
   Calendar, User, DollarSign, Info, FileText, Settings, 
-  Gauge, Cable, Filter, RefreshCw, Clipboard, CircuitBoard
+  Gauge, Cable, Filter, RefreshCw, Clipboard, CircuitBoard, Plus
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
@@ -232,7 +233,14 @@ export const MaintenanceList = () => {
               </div>
             </div>
             
-            <CreateJobDialog />
+            <div className="flex items-center gap-2">
+              <CreateJobDialog>
+                <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow">
+                  <Plus className="h-5 w-5 mr-2" />
+                  Open New Job Card
+                </Button>
+              </CreateJobDialog>
+            </div>
           </div>
         </div>
       </div>
