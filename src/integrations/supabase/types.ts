@@ -1633,6 +1633,61 @@ export type Database = {
           },
         ]
       }
+      customer_rewards: {
+        Row: {
+          created_at: string
+          customer_id: string
+          expiry_date: string | null
+          id: string
+          redeemed_at: string
+          reward_id: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          expiry_date?: string | null
+          id?: string
+          redeemed_at?: string
+          reward_id: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          expiry_date?: string | null
+          id?: string
+          redeemed_at?: string
+          reward_id?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_rewards_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_rewards_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_rewards_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "rewards_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_segments: {
         Row: {
           confidence_score: number | null
@@ -1731,6 +1786,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      customer_tiers: {
+        Row: {
+          benefits: Json
+          created_at: string
+          id: string
+          name: Database["public"]["Enums"]["loyalty_tier_type"]
+          points_required: number
+          updated_at: string
+        }
+        Insert: {
+          benefits?: Json
+          created_at?: string
+          id?: string
+          name: Database["public"]["Enums"]["loyalty_tier_type"]
+          points_required: number
+          updated_at?: string
+        }
+        Update: {
+          benefits?: Json
+          created_at?: string
+          id?: string
+          name?: Database["public"]["Enums"]["loyalty_tier_type"]
+          points_required?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       damages: {
         Row: {
@@ -3478,6 +3560,51 @@ export type Database = {
           {
             foreignKeyName: "legal_templates_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loyalty_points: {
+        Row: {
+          created_at: string
+          customer_id: string
+          id: string
+          points: number
+          points_history: Json[] | null
+          tier: Database["public"]["Enums"]["loyalty_tier_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          id?: string
+          points?: number
+          points_history?: Json[] | null
+          tier?: Database["public"]["Enums"]["loyalty_tier_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          id?: string
+          points?: number
+          points_history?: Json[] | null
+          tier?: Database["public"]["Enums"]["loyalty_tier_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_points_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loyalty_points_customer_id_fkey"
+            columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -5386,6 +5513,48 @@ export type Database = {
           id?: string
           model_version?: string | null
           predicted_revenue?: number | null
+        }
+        Relationships: []
+      }
+      rewards_catalog: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          points_cost: number
+          reward_type: string
+          tier_requirement:
+            | Database["public"]["Enums"]["loyalty_tier_type"]
+            | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          points_cost: number
+          reward_type: string
+          tier_requirement?:
+            | Database["public"]["Enums"]["loyalty_tier_type"]
+            | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          points_cost?: number
+          reward_type?: string
+          tier_requirement?:
+            | Database["public"]["Enums"]["loyalty_tier_type"]
+            | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -7733,6 +7902,14 @@ export type Database = {
       }
     }
     Functions: {
+      add_loyalty_points: {
+        Args: {
+          p_customer_id: string
+          p_points: number
+          p_reason: string
+        }
+        Returns: undefined
+      }
       analyze_vehicle_maintenance: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -8009,6 +8186,7 @@ export type Database = {
         | "in_legal_process"
         | "resolved"
         | "escalated"
+      loyalty_tier_type: "bronze" | "silver" | "gold" | "platinum"
       maintenance_status:
         | "scheduled"
         | "in_progress"
