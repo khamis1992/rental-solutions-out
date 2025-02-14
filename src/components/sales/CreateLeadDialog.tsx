@@ -34,7 +34,7 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
     budgetMin: "",
     budgetMax: "",
     priority: "medium",
-    agreementType: "short_term" as "short_term" | "lease_to_own" // Add type assertion here
+    agreementType: "short_term" as "short_term" | "lease_to_own"
   });
 
   useEffect(() => {
@@ -133,11 +133,11 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] h-[90vh]">
+      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[425px] h-[90vh] mx-auto">
         <DialogHeader>
           <DialogTitle>Create New Sales Lead</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="h-full max-h-[calc(90vh-8rem)] pr-4">
+        <ScrollArea className="h-full max-h-[calc(90vh-8rem)] px-1 sm:pr-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid gap-4">
               <div className="grid gap-2">
@@ -147,6 +147,7 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
                   value={formData.customerName}
                   onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
                   required
+                  className="w-full min-h-[44px]"
                 />
               </div>
 
@@ -159,6 +160,7 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
                   type="tel"
                   placeholder="+974 XXXX XXXX"
                   required
+                  className="w-full min-h-[44px]"
                 />
               </div>
 
@@ -168,7 +170,7 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
                   value={formData.preferredVehicleType}
                   onValueChange={(value) => setFormData({ ...formData, preferredVehicleType: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full min-h-[44px]">
                     <SelectValue placeholder="Select a vehicle" />
                   </SelectTrigger>
                   <SelectContent>
@@ -181,7 +183,7 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
                 </Select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="budgetMin">Minimum Budget</Label>
                   <Input
@@ -190,6 +192,7 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
                     value={formData.budgetMin}
                     onChange={(e) => setFormData({ ...formData, budgetMin: e.target.value })}
                     required
+                    className="w-full min-h-[44px]"
                   />
                 </div>
                 <div className="grid gap-2">
@@ -200,6 +203,7 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
                     value={formData.budgetMax}
                     onChange={(e) => setFormData({ ...formData, budgetMax: e.target.value })}
                     required
+                    className="w-full min-h-[44px]"
                   />
                 </div>
               </div>
@@ -210,7 +214,7 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
                   value={formData.priority}
                   onValueChange={(value) => setFormData({ ...formData, priority: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full min-h-[44px]">
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
                   <SelectContent>
@@ -227,7 +231,7 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
                   value={formData.agreementType}
                   onValueChange={(value) => setFormData({ ...formData, agreementType: value as "short_term" | "lease_to_own" })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full min-h-[44px]">
                     <SelectValue placeholder="Select agreement type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -281,11 +285,19 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => onOpenChange(false)}
+                className="w-full sm:w-auto min-h-[44px]"
+              >
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button 
+                type="submit" 
+                disabled={loading}
+                className="w-full sm:w-auto min-h-[44px]"
+              >
                 {loading ? "Creating..." : "Create Lead"}
               </Button>
             </div>
