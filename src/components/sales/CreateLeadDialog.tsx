@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -33,7 +34,7 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
     budgetMin: "",
     budgetMax: "",
     priority: "medium",
-    agreementType: "short_term"
+    agreementType: "short_term" as "short_term" | "lease_to_own" // Add type assertion here
   });
 
   useEffect(() => {
@@ -132,162 +133,164 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] h-[90vh]">
         <DialogHeader>
           <DialogTitle>Create New Sales Lead</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="customerName">Customer Name</Label>
-              <Input
-                id="customerName"
-                value={formData.customerName}
-                onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="phoneNumber">Phone Number</Label>
-              <Input
-                id="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                type="tel"
-                placeholder="+974 XXXX XXXX"
-                required
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="vehicleType">Preferred Vehicle</Label>
-              <Select
-                value={formData.preferredVehicleType}
-                onValueChange={(value) => setFormData({ ...formData, preferredVehicleType: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a vehicle" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableVehicles.map((vehicle) => (
-                    <SelectItem key={vehicle.id} value={`${vehicle.make} ${vehicle.model} ${vehicle.year}`}>
-                      {vehicle.make} {vehicle.model} {vehicle.year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+        <ScrollArea className="h-full max-h-[calc(90vh-8rem)] pr-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="budgetMin">Minimum Budget</Label>
+                <Label htmlFor="customerName">Customer Name</Label>
                 <Input
-                  id="budgetMin"
-                  type="number"
-                  value={formData.budgetMin}
-                  onChange={(e) => setFormData({ ...formData, budgetMin: e.target.value })}
+                  id="customerName"
+                  value={formData.customerName}
+                  onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
                   required
                 />
               </div>
+
               <div className="grid gap-2">
-                <Label htmlFor="budgetMax">Maximum Budget</Label>
+                <Label htmlFor="phoneNumber">Phone Number</Label>
                 <Input
-                  id="budgetMax"
-                  type="number"
-                  value={formData.budgetMax}
-                  onChange={(e) => setFormData({ ...formData, budgetMax: e.target.value })}
+                  id="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                  type="tel"
+                  placeholder="+974 XXXX XXXX"
                   required
                 />
               </div>
-            </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="priority">Priority</Label>
-              <Select
-                value={formData.priority}
-                onValueChange={(value) => setFormData({ ...formData, priority: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="agreementType">Agreement Type</Label>
-              <Select
-                value={formData.agreementType}
-                onValueChange={(value) => setFormData({ ...formData, agreementType: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select agreement type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="short_term">Short Term</SelectItem>
-                  <SelectItem value="lease_to_own">Lease to Own</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="document">Document Upload</Label>
-              <div className="flex flex-col gap-2">
-                <Input
-                  id="document"
-                  type="file"
-                  onChange={handleFileUpload}
-                  accept="image/*"
-                  capture="environment"
-                  disabled={uploading}
-                  className="hidden"
-                />
-                <Button
-                  type="button"
-                  onClick={() => document.getElementById('document')?.click()}
-                  className="w-full py-8 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary"
-                  variant="outline"
-                  disabled={uploading}
+              <div className="grid gap-2">
+                <Label htmlFor="vehicleType">Preferred Vehicle</Label>
+                <Select
+                  value={formData.preferredVehicleType}
+                  onValueChange={(value) => setFormData({ ...formData, preferredVehicleType: value })}
                 >
-                  {uploading ? (
-                    <>
-                      <Loader2 className="h-6 w-6 animate-spin" />
-                      <span>Uploading...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-6 w-6" />
-                      <span>Take a Photo with Camera</span>
-                      <p className="text-xs text-muted-foreground">
-                        Click to capture document image
-                      </p>
-                    </>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a vehicle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableVehicles.map((vehicle) => (
+                      <SelectItem key={vehicle.id} value={`${vehicle.make} ${vehicle.model} ${vehicle.year}`}>
+                        {vehicle.make} {vehicle.model} {vehicle.year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="budgetMin">Minimum Budget</Label>
+                  <Input
+                    id="budgetMin"
+                    type="number"
+                    value={formData.budgetMin}
+                    onChange={(e) => setFormData({ ...formData, budgetMin: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="budgetMax">Maximum Budget</Label>
+                  <Input
+                    id="budgetMax"
+                    type="number"
+                    value={formData.budgetMax}
+                    onChange={(e) => setFormData({ ...formData, budgetMax: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="priority">Priority</Label>
+                <Select
+                  value={formData.priority}
+                  onValueChange={(value) => setFormData({ ...formData, priority: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="agreementType">Agreement Type</Label>
+                <Select
+                  value={formData.agreementType}
+                  onValueChange={(value) => setFormData({ ...formData, agreementType: value as "short_term" | "lease_to_own" })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select agreement type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="short_term">Short Term</SelectItem>
+                    <SelectItem value="lease_to_own">Lease to Own</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="document">Document Upload</Label>
+                <div className="flex flex-col gap-2">
+                  <Input
+                    id="document"
+                    type="file"
+                    onChange={handleFileUpload}
+                    accept="image/*"
+                    capture="environment"
+                    disabled={uploading}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => document.getElementById('document')?.click()}
+                    className="w-full py-8 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary"
+                    variant="outline"
+                    disabled={uploading}
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                        <span>Uploading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-6 w-6" />
+                        <span>Take a Photo with Camera</span>
+                        <p className="text-xs text-muted-foreground">
+                          Click to capture document image
+                        </p>
+                      </>
+                    )}
+                  </Button>
+                  {documentUrl && (
+                    <div className="bg-green-50 text-green-600 p-2 rounded-md text-sm flex items-center justify-center">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Document uploaded successfully
+                    </div>
                   )}
-                </Button>
-                {documentUrl && (
-                  <div className="bg-green-50 text-green-600 p-2 rounded-md text-sm flex items-center justify-center">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Document uploaded successfully
-                  </div>
-                )}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create Lead"}
-            </Button>
-          </div>
-        </form>
+            <div className="flex justify-end gap-3 pt-4">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Creating..." : "Create Lead"}
+              </Button>
+            </div>
+          </form>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
