@@ -234,12 +234,19 @@ export const MaintenanceList = () => {
             </div>
             
             <div className="flex items-center gap-2">
-              <CreateJobDialog>
-                <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow">
-                  <Plus className="h-5 w-5 mr-2" />
-                  Open New Job Card
-                </Button>
-              </CreateJobDialog>
+              <Button 
+                size="lg" 
+                className="shadow-lg hover:shadow-xl transition-shadow"
+                onClick={() => document.getElementById('create-job-dialog')?.click()}
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Open New Job Card
+              </Button>
+              <div className="hidden">
+                <CreateJobDialog>
+                  <button id="create-job-dialog"></button>
+                </CreateJobDialog>
+              </div>
             </div>
           </div>
         </div>
