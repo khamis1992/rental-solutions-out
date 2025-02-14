@@ -5683,6 +5683,202 @@ export type Database = {
         }
         Relationships: []
       }
+      sales_documents: {
+        Row: {
+          created_at: string | null
+          document_type: string
+          document_url: string | null
+          id: string
+          lead_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_type: string
+          document_url?: string | null
+          id?: string
+          lead_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_type?: string
+          document_url?: string | null
+          id?: string
+          lead_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_documents_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_leads: {
+        Row: {
+          assigned_to: string | null
+          budget_range_max: number | null
+          budget_range_min: number | null
+          created_at: string | null
+          customer_id: string | null
+          id: string
+          notes: string | null
+          preferred_agreement_type:
+            | Database["public"]["Enums"]["agreement_type"]
+            | null
+          preferred_vehicle_type: string | null
+          priority: string | null
+          status: Database["public"]["Enums"]["sales_lead_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          budget_range_max?: number | null
+          budget_range_min?: number | null
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          notes?: string | null
+          preferred_agreement_type?:
+            | Database["public"]["Enums"]["agreement_type"]
+            | null
+          preferred_vehicle_type?: string | null
+          priority?: string | null
+          status?: Database["public"]["Enums"]["sales_lead_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          budget_range_max?: number | null
+          budget_range_min?: number | null
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          notes?: string | null
+          preferred_agreement_type?:
+            | Database["public"]["Enums"]["agreement_type"]
+            | null
+          preferred_vehicle_type?: string | null
+          priority?: string | null
+          status?: Database["public"]["Enums"]["sales_lead_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_leads_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_leads_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_tasks: {
+        Row: {
+          assigned_to: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          lead_id: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          lead_id?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          lead_id?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_tasks_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_vehicle_reservations: {
+        Row: {
+          created_at: string | null
+          id: string
+          lead_id: string | null
+          reserved_from: string
+          reserved_until: string
+          status: string | null
+          updated_at: string | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          reserved_from: string
+          reserved_until: string
+          status?: string | null
+          updated_at?: string | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          reserved_from?: string
+          reserved_until?: string
+          status?: string | null
+          updated_at?: string | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_vehicle_reservations_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_vehicle_reservations_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schedule_conflicts: {
         Row: {
           conflict_type: string
@@ -8241,6 +8437,14 @@ export type Database = {
       payment_status: "pending" | "completed" | "failed" | "refunded"
       payment_status_type: "pending" | "paid" | "overdue" | "cancelled"
       portal_user_status: "active" | "inactive" | "locked"
+      sales_lead_status:
+        | "new"
+        | "document_collection"
+        | "vehicle_selection"
+        | "agreement_draft"
+        | "ready_for_signature"
+        | "completed"
+        | "cancelled"
       seeker_target_status: "active" | "inactive" | "paused"
       tax_filing_status:
         | "pending"
