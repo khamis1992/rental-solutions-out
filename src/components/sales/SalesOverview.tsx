@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserPlus, Car, FileText, CheckCircle } from "lucide-react";
+import { UserPlus, Car, FileText, CheckCircle, Target, Star, Clock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,6 +12,9 @@ interface SalesMetrics {
   newLeadsThisWeek: number;
   pendingApprovals: number;
   readyForSignature: number;
+  highPriorityLeads: number;
+  avgLeadScore: number;
+  followUpsToday: number;
 }
 
 export const SalesOverview = () => {
@@ -21,7 +24,7 @@ export const SalesOverview = () => {
       // Get active leads count and new leads from last week
       const { data: activeLeads, error: leadsError } = await supabase
         .from("sales_leads")
-        .select("id, created_at, status")
+        .select("id, created_at, status, priority, lead_score, next_follow_up")
         .not("status", "in", '("completed","cancelled")');
 
       if (leadsError) throw leadsError;
@@ -71,6 +74,22 @@ export const SalesOverview = () => {
 
       if (pendingError) throw pendingError;
 
+      // Calculate new metrics
+      const highPriorityLeads = activeLeads.filter(lead => lead.priority === 'A').length;
+      const avgLeadScore = activeLeads.reduce((sum, lead) => sum + (lead.lead_score || 0), 0) / activeLeads.length || 0;
+      
+      // Count follow-ups due today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      const followUpsToday = activeLeads.filter(
+        lead => lead.next_follow_up && 
+        new Date(lead.next_follow_up) >= today && 
+        new Date(lead.next_follow_up) < tomorrow
+      ).length;
+
       return {
         activeLeads: activeLeads.length,
         vehicleAssignments: vehicleAssignments.length,
@@ -78,7 +97,10 @@ export const SalesOverview = () => {
         completedSales: completedSales.length,
         newLeadsThisWeek,
         pendingApprovals: pendingAssignments.length,
-        readyForSignature
+        readyForSignature,
+        highPriorityLeads,
+        avgLeadScore,
+        followUpsToday
       };
     }
   });
@@ -86,7 +108,7 @@ export const SalesOverview = () => {
   if (isLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[...Array(4)].map((_, i) => (
+        {[...Array(8)].map((_, i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Loading...</CardTitle>
@@ -150,6 +172,39 @@ export const SalesOverview = () => {
         <CardContent>
           <div className="text-2xl font-bold">{metrics?.completedSales || 0}</div>
           <p className="text-xs text-muted-foreground">This month</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">High Priority Leads</CardTitle>
+          <Star className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{metrics?.highPriorityLeads || 0}</div>
+          <p className="text-xs text-muted-foreground">Priority A leads</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Average Lead Score</CardTitle>
+          <Target className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{Math.round(metrics?.avgLeadScore || 0)}</div>
+          <p className="text-xs text-muted-foreground">Overall lead quality</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Follow-ups Today</CardTitle>
+          <Clock className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{metrics?.followUpsToday || 0}</div>
+          <p className="text-xs text-muted-foreground">Scheduled follow-ups</p>
         </CardContent>
       </Card>
     </div>

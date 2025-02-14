@@ -5683,6 +5683,60 @@ export type Database = {
         }
         Relationships: []
       }
+      sales_communications: {
+        Row: {
+          completed_at: string | null
+          content: string | null
+          created_at: string | null
+          id: string
+          lead_id: string | null
+          scheduled_at: string | null
+          status: string | null
+          team_member_id: string | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          scheduled_at?: string | null
+          status?: string | null
+          team_member_id?: string | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          scheduled_at?: string | null
+          status?: string | null
+          team_member_id?: string | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_communications_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_communications_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "sales_team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sales_documents: {
         Row: {
           created_at: string | null
@@ -5729,6 +5783,10 @@ export type Database = {
           created_at: string | null
           customer_id: string | null
           id: string
+          last_contacted: string | null
+          lead_score: number | null
+          lead_source: string | null
+          next_follow_up: string | null
           notes: string | null
           preferred_agreement_type:
             | Database["public"]["Enums"]["agreement_type"]
@@ -5745,6 +5803,10 @@ export type Database = {
           created_at?: string | null
           customer_id?: string | null
           id?: string
+          last_contacted?: string | null
+          lead_score?: number | null
+          lead_source?: string | null
+          next_follow_up?: string | null
           notes?: string | null
           preferred_agreement_type?:
             | Database["public"]["Enums"]["agreement_type"]
@@ -5761,6 +5823,10 @@ export type Database = {
           created_at?: string | null
           customer_id?: string | null
           id?: string
+          last_contacted?: string | null
+          lead_score?: number | null
+          lead_source?: string | null
+          next_follow_up?: string | null
           notes?: string | null
           preferred_agreement_type?:
             | Database["public"]["Enums"]["agreement_type"]
@@ -5783,6 +5849,44 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_performance_metrics: {
+        Row: {
+          created_at: string | null
+          id: string
+          metric_type: string
+          period_end: string | null
+          period_start: string | null
+          team_member_id: string | null
+          value: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          metric_type: string
+          period_end?: string | null
+          period_start?: string | null
+          team_member_id?: string | null
+          value?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          metric_type?: string
+          period_end?: string | null
+          period_start?: string | null
+          team_member_id?: string | null
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_performance_metrics_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "sales_team_members"
             referencedColumns: ["id"]
           },
         ]
@@ -5827,6 +5931,51 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_team_members: {
+        Row: {
+          created_at: string | null
+          hire_date: string | null
+          id: string
+          role: string
+          targets: Json | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          hire_date?: string | null
+          id?: string
+          role: string
+          targets?: Json | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          hire_date?: string | null
+          id?: string
+          role?: string
+          targets?: Json | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -7320,6 +7469,54 @@ export type Database = {
           },
           {
             foreignKeyName: "vehicle_parts_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_recommendations: {
+        Row: {
+          created_at: string | null
+          id: string
+          lead_id: string | null
+          match_score: number | null
+          notes: string | null
+          status: string | null
+          updated_at: string | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          match_score?: number | null
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          match_score?: number | null
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_recommendations_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_recommendations_vehicle_id_fkey"
             columns: ["vehicle_id"]
             isOneToOne: false
             referencedRelation: "vehicles"
