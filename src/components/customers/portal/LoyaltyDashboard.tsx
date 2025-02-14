@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Gift, Award, TrendingUp } from "lucide-react";
-import type { CustomerTier, LoyaltyPoints, Reward } from "@/types/loyalty";
+import type { CustomerTier, LoyaltyPoints, Reward, PointHistory } from "@/types/loyalty";
 
 interface LoyaltyDashboardProps {
   customerId: string;
 }
 
 export function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) {
-  // Fetch loyalty points
+  // Fetch or initialize loyalty points
   const { data: loyaltyData } = useQuery({
     queryKey: ['loyalty-points', customerId],
     queryFn: async () => {
@@ -21,10 +21,35 @@ export function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) {
         .from('loyalty_points')
         .select('*')
         .eq('customer_id', customerId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
-      return data as LoyaltyPoints;
+
+      // If no loyalty points exist, initialize them
+      if (!data) {
+        const { data: newLoyaltyData, error: insertError } = await supabase
+          .from('loyalty_points')
+          .insert({
+            customer_id: customerId,
+            points: 0,
+            tier: 'bronze',
+            points_history: []
+          })
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+        
+        return {
+          ...newLoyaltyData,
+          points_history: newLoyaltyData.points_history as PointHistory[]
+        } as LoyaltyPoints;
+      }
+
+      return {
+        ...data,
+        points_history: (data.points_history || []) as PointHistory[]
+      } as LoyaltyPoints;
     },
   });
 
@@ -53,7 +78,10 @@ export function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) {
         .single();
 
       if (error) throw error;
-      return data as CustomerTier;
+      return {
+        ...data,
+        benefits: data.benefits as CustomerTier['benefits']
+      } as CustomerTier;
     },
     enabled: !!loyaltyData?.tier,
   });
