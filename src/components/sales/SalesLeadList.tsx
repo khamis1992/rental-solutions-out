@@ -1,102 +1,81 @@
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Badge } from "@/components/ui/badge";
-import { formatDistanceToNow } from "date-fns";
+import { Loader2 } from "lucide-react";
+import { VehicleRecommendations } from "./VehicleRecommendations";
 
 interface SalesLead {
   id: string;
+  status: string;
+  customer: {
+    full_name: string;
+  };
+  lead_score: number;
   preferred_vehicle_type: string;
   budget_range_min: number;
   budget_range_max: number;
-  status: string;
-  priority: string;
-  created_at: string;
 }
 
 export const SalesLeadList = () => {
-  const [leads, setLeads] = useState<SalesLead[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchLeads();
-  }, []);
-
-  const fetchLeads = async () => {
-    try {
+  const { data: leads, isLoading } = useQuery({
+    queryKey: ["sales-leads"],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("sales_leads")
-        .select("*")
+        .select(`
+          id,
+          status,
+          lead_score,
+          preferred_vehicle_type,
+          budget_range_min,
+          budget_range_max,
+          customer:customer_id (
+            full_name
+          )
+        `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setLeads(data || []);
-    } catch (error) {
-      console.error("Error fetching leads:", error);
-    } finally {
-      setLoading(false);
+      return data as SalesLead[];
     }
-  };
+  });
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      new: "bg-blue-100 text-blue-800",
-      document_collection: "bg-purple-100 text-purple-800",
-      vehicle_selection: "bg-yellow-100 text-yellow-800",
-      agreement_draft: "bg-orange-100 text-orange-800",
-      ready_for_signature: "bg-green-100 text-green-800",
-      completed: "bg-gray-100 text-gray-800",
-      cancelled: "bg-red-100 text-red-800",
-    };
-    return colors[status] || "bg-gray-100 text-gray-800";
-  };
-
-  if (loading) {
-    return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-48">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Vehicle Type</TableHead>
-            <TableHead>Budget Range</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Created</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {leads.map((lead) => (
-            <TableRow key={lead.id}>
-              <TableCell>{lead.preferred_vehicle_type}</TableCell>
-              <TableCell>
-                {lead.budget_range_min} - {lead.budget_range_max} QAR
-              </TableCell>
-              <TableCell>
-                <Badge variant="secondary" className={getStatusColor(lead.status)}>
-                  {lead.status.replace("_", " ")}
+    <div className="space-y-6">
+      {leads?.map((lead) => (
+        <Card key={lead.id}>
+          <CardHeader>
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle>{lead.customer.full_name}</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Budget: ${lead.budget_range_min?.toLocaleString()} - ${lead.budget_range_max?.toLocaleString()}
+                </p>
+              </div>
+              <div className="text-right">
+                <Badge variant={lead.lead_score >= 70 ? "default" : "secondary"}>
+                  Score: {lead.lead_score}
                 </Badge>
-              </TableCell>
-              <TableCell>
-                <Badge variant="outline">{lead.priority}</Badge>
-              </TableCell>
-              <TableCell>
-                {formatDistanceToNow(new Date(lead.created_at), { addSuffix: true })}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Preferred: {lead.preferred_vehicle_type || "Any"}
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <VehicleRecommendations leadId={lead.id} />
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };
