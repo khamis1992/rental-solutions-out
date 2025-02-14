@@ -234,19 +234,14 @@ export const MaintenanceList = () => {
             </div>
             
             <div className="flex items-center gap-2">
-              <CreateJobDialog 
-                open={isDialogOpen} 
-                onOpenChange={setIsDialogOpen}
+              <Button 
+                size="lg" 
+                className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 animate-fade-in"
+                onClick={() => setIsDialogOpen(true)}
               >
-                <Button 
-                  size="lg" 
-                  className="shadow-lg hover:shadow-xl transition-shadow"
-                  onClick={() => setIsDialogOpen(true)}
-                >
-                  <Plus className="h-5 w-5 mr-2" />
-                  Open New Job Card
-                </Button>
-              </CreateJobDialog>
+                <Plus className="h-5 w-5 mr-2" />
+                Open New Job Card
+              </Button>
             </div>
           </div>
         </div>
@@ -285,6 +280,11 @@ export const MaintenanceList = () => {
             </Button>
           ))}
         </div>
+
+        <CreateJobDialog 
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+        />
 
         {records.length === 0 ? (
           <Card className="p-4 md:p-8 bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
