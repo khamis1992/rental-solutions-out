@@ -6,6 +6,7 @@ import { SalesOverview } from "@/components/sales/SalesOverview";
 import { SalesLeadList } from "@/components/sales/SalesLeadList";
 import { SalesPipeline } from "@/components/sales/SalesPipeline";
 import { LeadScoring } from "@/components/sales/LeadScoring";
+import { TeamPerformance } from "@/components/sales/TeamPerformance";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { CreateLeadDialog } from "@/components/sales/CreateLeadDialog";
@@ -30,6 +31,7 @@ const Sales = () => {
             <TabsTrigger value="leads">Leads</TabsTrigger>
             <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
             <TabsTrigger value="scoring">Lead Scoring</TabsTrigger>
+            <TabsTrigger value="team">Team Performance</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
@@ -46,6 +48,10 @@ const Sales = () => {
 
           <TabsContent value="scoring">
             <LeadScoring />
+          </TabsContent>
+
+          <TabsContent value="team">
+            <TeamPerformance />
           </TabsContent>
         </Tabs>
 
