@@ -17,40 +17,51 @@ export function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) {
   const { data: loyaltyData } = useQuery({
     queryKey: ['loyalty-points', customerId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First try to get existing loyalty points
+      const { data: existingData, error: fetchError } = await supabase
         .from('loyalty_points')
         .select('*')
         .eq('customer_id', customerId)
         .maybeSingle();
 
-      if (error) throw error;
+      if (fetchError) throw fetchError;
 
       // If no loyalty points exist, initialize them
-      if (!data) {
+      if (!existingData) {
         const { data: newLoyaltyData, error: insertError } = await supabase
           .from('loyalty_points')
-          .insert({
+          .insert([{
             customer_id: customerId,
             points: 0,
             tier: 'bronze',
             points_history: []
-          })
+          }])
           .select()
-          .single();
+          .maybeSingle();
 
         if (insertError) throw insertError;
-        
+        if (!newLoyaltyData) throw new Error('Failed to create loyalty points');
+
         return {
           ...newLoyaltyData,
-          points_history: newLoyaltyData.points_history as PointHistory[]
-        } as LoyaltyPoints;
+          points_history: []
+        };
       }
 
+      // Cast points_history to the correct type
+      const pointsHistory = Array.isArray(existingData.points_history) 
+        ? existingData.points_history.map((history: any) => ({
+            points: history.points,
+            reason: history.reason,
+            date: history.date
+          }))
+        : [];
+
       return {
-        ...data,
-        points_history: (data.points_history || []) as PointHistory[]
-      } as LoyaltyPoints;
-    },
+        ...existingData,
+        points_history: pointsHistory
+      };
+    }
   });
 
   // Fetch available rewards
@@ -78,9 +89,18 @@ export function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) {
         .single();
 
       if (error) throw error;
+      
+      // Cast benefits to the correct type
+      const benefits = Array.isArray(data.benefits) 
+        ? data.benefits.map((benefit: any) => ({
+            name: benefit.name,
+            description: benefit.description
+          }))
+        : [];
+
       return {
         ...data,
-        benefits: data.benefits as CustomerTier['benefits']
+        benefits
       } as CustomerTier;
     },
     enabled: !!loyaltyData?.tier,
