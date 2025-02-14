@@ -2361,6 +2361,44 @@ export type Database = {
           },
         ]
       }
+      generated_invoices: {
+        Row: {
+          agreement_id: string | null
+          created_at: string | null
+          file_name: string
+          file_path: string
+          id: string
+          is_latest: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          agreement_id?: string | null
+          created_at?: string | null
+          file_name: string
+          file_path: string
+          id?: string
+          is_latest?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          agreement_id?: string | null
+          created_at?: string | null
+          file_name?: string
+          file_path?: string
+          id?: string
+          is_latest?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_invoices_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "leases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       geofence_events: {
         Row: {
           created_at: string | null
