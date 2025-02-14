@@ -1,4 +1,3 @@
-
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
@@ -9,6 +8,7 @@ import { Loader2, Upload, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import Papa from "papaparse";
 import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface MasterSheetData {
   id: string;
@@ -31,15 +31,57 @@ interface MasterSheetData {
   updated_at: string;
 }
 
+interface ActiveAgreement {
+  lease_id: string;
+  agreement_number: string;
+  car_no: string;
+  customer_name: string;
+  phone_number: string | null;
+}
+
 const MasterSheet = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [importedData, setImportedData] = useState<MasterSheetData[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
+  const [activeAgreements, setActiveAgreements] = useState<ActiveAgreement[]>([]);
+  const [selectedAgreement, setSelectedAgreement] = useState<string>("");
+  const [formData, setFormData] = useState<Partial<MasterSheetData>>({});
 
   useEffect(() => {
     loadMasterSheetData();
+    loadActiveAgreements();
   }, []);
+
+  const loadActiveAgreements = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('active_agreements_view')
+        .select('*');
+
+      if (error) throw error;
+
+      if (data) {
+        setActiveAgreements(data);
+      }
+    } catch (error) {
+      console.error('Error loading active agreements:', error);
+      toast.error('Failed to load active agreements');
+    }
+  };
+
+  const handleAgreementChange = (value: string) => {
+    setSelectedAgreement(value);
+    const agreement = activeAgreements.find(a => a.agreement_number === value);
+    if (agreement) {
+      setFormData({
+        agreement_no: agreement.agreement_number,
+        car_no: agreement.car_no,
+        customer_name: agreement.customer_name,
+        phone_number: agreement.phone_number || undefined
+      });
+    }
+  };
 
   const loadMasterSheetData = async () => {
     try {
@@ -139,6 +181,29 @@ const MasterSheet = () => {
     }
   };
 
+  const handleSingleEntry = async () => {
+    if (!formData.agreement_no || !formData.car_no || !formData.customer_name) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('master_sheet_data')
+        .insert([formData]);
+
+      if (error) throw error;
+
+      toast.success('Entry added successfully');
+      await loadMasterSheetData();
+      setFormData({});
+      setSelectedAgreement("");
+    } catch (error) {
+      console.error('Error adding entry:', error);
+      toast.error('Failed to add entry');
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="container mx-auto p-6">
@@ -146,9 +211,65 @@ const MasterSheet = () => {
           <h1 className="text-2xl font-bold">Master Sheet</h1>
         </div>
 
+        <Card className="bg-white shadow-sm mb-6">
+          <CardHeader>
+            <CardTitle>Add Single Entry</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Agreement Number</label>
+                  <Select value={selectedAgreement} onValueChange={handleAgreementChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Agreement" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {activeAgreements.map((agreement) => (
+                        <SelectItem key={agreement.lease_id} value={agreement.agreement_number}>
+                          {agreement.agreement_number} - {agreement.customer_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Car Number</label>
+                  <Input
+                    value={formData.car_no || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, car_no: e.target.value }))}
+                    placeholder="Car Number"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Customer Name</label>
+                  <Input
+                    value={formData.customer_name || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, customer_name: e.target.value }))}
+                    placeholder="Customer Name"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Phone Number</label>
+                  <Input
+                    value={formData.phone_number || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone_number: e.target.value }))}
+                    placeholder="Phone Number"
+                  />
+                </div>
+              </div>
+              <Button onClick={handleSingleEntry} className="w-full">
+                Add Entry
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="bg-white shadow-sm">
           <CardHeader>
-            <CardTitle>Business Intelligence Master Sheet</CardTitle>
+            <CardTitle>Import from CSV</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
