@@ -1,10 +1,9 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Upload } from "lucide-react";
@@ -14,10 +13,18 @@ interface CreateLeadDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+interface Vehicle {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+}
+
 export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [documentUrl, setDocumentUrl] = useState<string | null>(null);
+  const [availableVehicles, setAvailableVehicles] = useState<Vehicle[]>([]);
   const [formData, setFormData] = useState({
     customerName: "",
     preferredVehicleType: "",
@@ -26,6 +33,25 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
     priority: "medium",
     agreementType: "short_term"
   });
+
+  useEffect(() => {
+    const fetchAvailableVehicles = async () => {
+      const { data, error } = await supabase
+        .from('vehicles')
+        .select('id, make, model, year')
+        .eq('status', 'available')
+        .order('make');
+
+      if (error) {
+        console.error('Error fetching vehicles:', error);
+        return;
+      }
+
+      setAvailableVehicles(data);
+    };
+
+    fetchAvailableVehicles();
+  }, []);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -119,13 +145,22 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="vehicleType">Preferred Vehicle Type</Label>
-              <Input
-                id="vehicleType"
+              <Label htmlFor="vehicleType">Preferred Vehicle</Label>
+              <Select
                 value={formData.preferredVehicleType}
-                onChange={(e) => setFormData({ ...formData, preferredVehicleType: e.target.value })}
-                required
-              />
+                onValueChange={(value) => setFormData({ ...formData, preferredVehicleType: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a vehicle" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableVehicles.map((vehicle) => (
+                    <SelectItem key={vehicle.id} value={`${vehicle.make} ${vehicle.model} ${vehicle.year}`}>
+                      {vehicle.make} {vehicle.model} {vehicle.year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
