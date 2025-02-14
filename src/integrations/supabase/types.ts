@@ -2687,6 +2687,39 @@ export type Database = {
           },
         ]
       }
+      lead_scoring_rules: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          points: number
+          rule_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          points: number
+          rule_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          points?: number
+          rule_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       leases: {
         Row: {
           agreement_duration: unknown
