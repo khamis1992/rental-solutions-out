@@ -44,7 +44,7 @@ import {
   Mail,
   Phone,
   Hourglass,
-  BankNote
+  Banknote // Changed from BankNote to Banknote
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -265,7 +265,7 @@ export const AgreementDetailsDialog = ({
 
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                      <BankNote className="h-5 w-5 text-blue-600" />
+                      <Banknote className="h-5 w-5 text-blue-600" />
                       <h3 className="font-semibold">Financial Details</h3>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
