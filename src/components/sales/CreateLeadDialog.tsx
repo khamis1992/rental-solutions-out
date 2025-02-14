@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
   const [availableVehicles, setAvailableVehicles] = useState<Vehicle[]>([]);
   const [formData, setFormData] = useState({
     customerName: "",
+    phoneNumber: "",
     preferredVehicleType: "",
     budgetMin: "",
     budgetMax: "",
@@ -105,6 +107,8 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
 
     try {
       const { error } = await supabase.from("sales_leads").insert({
+        customer_name: formData.customerName,
+        phone_number: formData.phoneNumber,
         preferred_vehicle_type: formData.preferredVehicleType,
         budget_range_min: parseFloat(formData.budgetMin),
         budget_range_max: parseFloat(formData.budgetMax),
@@ -140,6 +144,18 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
                 id="customerName"
                 value={formData.customerName}
                 onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+                required
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="phoneNumber">Phone Number</Label>
+              <Input
+                id="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                type="tel"
+                placeholder="+974 XXXX XXXX"
                 required
               />
             </div>
