@@ -37,6 +37,8 @@ interface ActiveAgreement {
   car_no: string;
   customer_name: string;
   phone_number: string | null;
+  id_no: string | null;
+  rent_amount: number;
 }
 
 const MasterSheet = () => {
@@ -78,7 +80,9 @@ const MasterSheet = () => {
         agreement_no: agreement.agreement_number,
         car_no: agreement.car_no,
         customer_name: agreement.customer_name,
-        phone_number: agreement.phone_number || undefined
+        phone_number: agreement.phone_number || undefined,
+        id_no: agreement.id_no || undefined,
+        rent_amount: agreement.rent_amount
       });
     }
   };
@@ -242,7 +246,7 @@ const MasterSheet = () => {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-1 block">Customer Name</label>
                   <Input
@@ -257,6 +261,25 @@ const MasterSheet = () => {
                     value={formData.phone_number || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, phone_number: e.target.value }))}
                     placeholder="Phone Number"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">ID Number</label>
+                  <Input
+                    value={formData.id_no || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, id_no: e.target.value }))}
+                    placeholder="ID Number"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Rent Amount</label>
+                  <Input
+                    type="number"
+                    value={formData.rent_amount || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, rent_amount: parseFloat(e.target.value) }))}
+                    placeholder="Rent Amount"
                   />
                 </div>
               </div>

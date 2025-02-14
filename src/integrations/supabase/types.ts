@@ -8279,8 +8279,10 @@ export type Database = {
           agreement_number: string | null
           car_no: string | null
           customer_name: string | null
+          id_no: string | null
           lease_id: string | null
           phone_number: string | null
+          rent_amount: number | null
           status: Database["public"]["Enums"]["lease_status"] | null
         }
         Relationships: []
