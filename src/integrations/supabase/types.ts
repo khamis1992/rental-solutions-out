@@ -3967,6 +3967,69 @@ export type Database = {
           },
         ]
       }
+      master_sheet_data: {
+        Row: {
+          agreement_no: string
+          car_no: string
+          created_at: string
+          customer_name: string
+          delay_fines: number | null
+          id: string
+          id_no: string | null
+          insurance_company: string | null
+          legal_action: string | null
+          note: string | null
+          payment: number | null
+          payment_date: string | null
+          pending_amount: number | null
+          phone_number: string | null
+          rent_amount: number | null
+          supervisor: string | null
+          traffic_fine: number | null
+          updated_at: string
+        }
+        Insert: {
+          agreement_no: string
+          car_no: string
+          created_at?: string
+          customer_name: string
+          delay_fines?: number | null
+          id?: string
+          id_no?: string | null
+          insurance_company?: string | null
+          legal_action?: string | null
+          note?: string | null
+          payment?: number | null
+          payment_date?: string | null
+          pending_amount?: number | null
+          phone_number?: string | null
+          rent_amount?: number | null
+          supervisor?: string | null
+          traffic_fine?: number | null
+          updated_at?: string
+        }
+        Update: {
+          agreement_no?: string
+          car_no?: string
+          created_at?: string
+          customer_name?: string
+          delay_fines?: number | null
+          id?: string
+          id_no?: string | null
+          insurance_company?: string | null
+          legal_action?: string | null
+          note?: string | null
+          payment?: number | null
+          payment_date?: string | null
+          pending_amount?: number | null
+          phone_number?: string | null
+          rent_amount?: number | null
+          supervisor?: string | null
+          traffic_fine?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       new_unified_payments: {
         Row: {
           amount: number
