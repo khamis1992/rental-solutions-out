@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { VehicleRecommendations } from "./VehicleRecommendations";
+import { formatCurrency } from "@/lib/utils";
 
 interface SalesLead {
   id: string;
@@ -59,7 +60,7 @@ export const SalesLeadList = () => {
               <div>
                 <CardTitle>{lead.customer?.full_name || "Unnamed Lead"}</CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Budget: ${lead.budget_range_min?.toLocaleString()} - ${lead.budget_range_max?.toLocaleString()}
+                  Budget: {formatCurrency(lead.budget_range_min)} - {formatCurrency(lead.budget_range_max)}
                 </p>
               </div>
               <div className="text-right">
