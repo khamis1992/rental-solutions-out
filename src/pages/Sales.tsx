@@ -10,7 +10,6 @@ import { TeamPerformance } from "@/components/sales/TeamPerformance";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { CreateLeadDialog } from "@/components/sales/CreateLeadDialog";
-import { BusinessIntelligence } from "@/components/sales/BusinessIntelligence";
 
 const Sales = () => {
   const [createLeadOpen, setCreateLeadOpen] = useState(false);
@@ -33,7 +32,6 @@ const Sales = () => {
             <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
             <TabsTrigger value="scoring">Lead Scoring</TabsTrigger>
             <TabsTrigger value="team">Team Performance</TabsTrigger>
-            <TabsTrigger value="business-intelligence">Business Intelligence</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
@@ -54,10 +52,6 @@ const Sales = () => {
 
           <TabsContent value="team">
             <TeamPerformance />
-          </TabsContent>
-
-          <TabsContent value="business-intelligence">
-            <BusinessIntelligence />
           </TabsContent>
         </Tabs>
 
