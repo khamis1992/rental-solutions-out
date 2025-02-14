@@ -9,7 +9,7 @@ import { VehicleRecommendations } from "./VehicleRecommendations";
 interface SalesLead {
   id: string;
   status: string;
-  customer_name: string;
+  customer_name: string | null;
   lead_score: number;
   preferred_vehicle_type: string;
   budget_range_min: number;
@@ -53,7 +53,7 @@ export const SalesLeadList = () => {
           <CardHeader>
             <div className="flex justify-between items-start">
               <div>
-                <CardTitle>{lead.customer_name}</CardTitle>
+                <CardTitle>{lead.customer_name || "Unnamed Lead"}</CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">
                   Budget: ${lead.budget_range_min?.toLocaleString()} - ${lead.budget_range_max?.toLocaleString()}
                 </p>
