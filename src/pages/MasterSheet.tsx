@@ -19,10 +19,10 @@ const MasterSheet = () => {
   const [headers, setHeaders] = useState<string[]>([]);
 
   const downloadTemplate = () => {
-    // Create a sample CSV template with the new structure
+    // Create a sample CSV template
     const csvContent = [
-      'Agreement No,Car No.,Customer Name,Phone Number,ID No.,Rent Amount,Payment,Payment Date,Delay Fines,Pending Amount,Traffic Fine,Note,Insurance Company,Supervisor,Legal Action',
-      'AGR-2024-0001,ABC123,John Doe,+971501234567,784-1234-5678901-1,5000,3000,25/01/2024,200,2200,500,Payment pending,AXA Insurance,Mohammed,No Action'
+      'Category,Amount,Date,Description,Type',
+      'Income,1000,25/01/2024,Monthly Revenue,INCOME'
     ].join('\n');
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
