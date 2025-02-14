@@ -186,20 +186,32 @@ export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) 
 
             <div className="grid gap-2">
               <Label htmlFor="document">Document Upload</Label>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-2">
                 <Input
                   id="document"
                   type="file"
                   onChange={handleFileUpload}
-                  accept=".pdf,.jpg,.jpeg,.png"
+                  accept="image/*"
+                  capture="environment"
                   disabled={uploading}
                   className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                 />
-                {uploading && <Loader2 className="h-4 w-4 animate-spin" />}
+                <p className="text-xs text-muted-foreground">
+                  Take a photo or select an image from your device
+                </p>
+                {uploading && (
+                  <div className="flex items-center gap-2 justify-center py-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm">Uploading...</span>
+                  </div>
+                )}
+                {documentUrl && (
+                  <div className="bg-green-50 text-green-600 p-2 rounded-md text-sm flex items-center justify-center">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Document uploaded successfully
+                  </div>
+                )}
               </div>
-              {documentUrl && (
-                <p className="text-sm text-green-600">Document uploaded successfully</p>
-              )}
             </div>
           </div>
 
