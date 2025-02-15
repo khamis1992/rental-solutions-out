@@ -10,8 +10,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { LeadFormData } from "@/types/sales.types";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQueryClient } from "@tanstack/react-query";
+
+interface LeadFormData {
+  full_name: string;
+  phone_number: string;
+  email?: string;
+  preferred_vehicle_type?: string;
+  preferred_agreement_type?: string;
+  budget_range_min?: number;
+  budget_range_max?: number;
+  notes?: string;
+}
 
 export const CreateLeadDialog = () => {
   const [open, setOpen] = useState(false);
@@ -76,88 +87,91 @@ export const CreateLeadDialog = () => {
           New Lead
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Create New Lead</DialogTitle>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="full_name">Full Name</Label>
-            <Input
-              id="full_name"
-              {...form.register("full_name", { required: true })}
-              placeholder="Enter customer's full name"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="phone_number">Phone Number</Label>
-            <Input
-              id="phone_number"
-              {...form.register("phone_number", { required: true })}
-              placeholder="Enter phone number"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              {...form.register("email")}
-              placeholder="Enter email address"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="preferred_vehicle_type">Preferred Vehicle Type</Label>
-            <Select onValueChange={(value) => form.setValue("preferred_vehicle_type", value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select vehicle type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="sedan">Sedan</SelectItem>
-                <SelectItem value="suv">SUV</SelectItem>
-                <SelectItem value="luxury">Luxury</SelectItem>
-                <SelectItem value="commercial">Commercial</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+        <ScrollArea className="max-h-[80vh] overflow-y-auto px-1">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-1">
             <div className="space-y-2">
-              <Label htmlFor="budget_range_min">Minimum Budget</Label>
+              <Label htmlFor="full_name">Full Name</Label>
               <Input
-                id="budget_range_min"
-                type="number"
-                {...form.register("budget_range_min", { valueAsNumber: true })}
-                placeholder="Min budget"
+                id="full_name"
+                {...form.register("full_name", { required: true })}
+                placeholder="Enter customer's full name"
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="budget_range_max">Maximum Budget</Label>
+              <Label htmlFor="phone_number">Phone Number</Label>
               <Input
-                id="budget_range_max"
-                type="number"
-                {...form.register("budget_range_max", { valueAsNumber: true })}
-                placeholder="Max budget"
+                id="phone_number"
+                {...form.register("phone_number", { required: true })}
+                placeholder="Enter phone number"
               />
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              {...form.register("notes")}
-              placeholder="Enter any additional notes"
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                {...form.register("email")}
+                placeholder="Enter email address"
+              />
+            </div>
 
-          <Button type="submit" className="w-full">
-            Create Lead
-          </Button>
-        </form>
+            <div className="space-y-2">
+              <Label htmlFor="preferred_vehicle_type">Preferred Vehicle Type</Label>
+              <Select onValueChange={(value) => form.setValue("preferred_vehicle_type", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select vehicle type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sedan">Sedan</SelectItem>
+                  <SelectItem value="suv">SUV</SelectItem>
+                  <SelectItem value="luxury">Luxury</SelectItem>
+                  <SelectItem value="commercial">Commercial</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="budget_range_min">Minimum Budget</Label>
+                <Input
+                  id="budget_range_min"
+                  type="number"
+                  {...form.register("budget_range_min", { valueAsNumber: true })}
+                  placeholder="Min budget"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="budget_range_max">Maximum Budget</Label>
+                <Input
+                  id="budget_range_max"
+                  type="number"
+                  {...form.register("budget_range_max", { valueAsNumber: true })}
+                  placeholder="Max budget"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                {...form.register("notes")}
+                placeholder="Enter any additional notes"
+                className="min-h-[100px]"
+              />
+            </div>
+
+            <Button type="submit" className="w-full mt-6">
+              Create Lead
+            </Button>
+          </form>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
