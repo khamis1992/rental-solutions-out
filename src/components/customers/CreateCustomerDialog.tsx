@@ -1,4 +1,5 @@
-import { useState, ReactNode } from "react";
+
+import React, { useState, ReactNode, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
@@ -40,7 +41,7 @@ export const CreateCustomerDialog = ({
     }
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchLeadData = async () => {
       if (!leadId) return;
 
