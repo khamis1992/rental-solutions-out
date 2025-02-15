@@ -34,6 +34,26 @@ export const SalesLeadList = () => {
     }
   });
 
+  // Query for available vehicles to populate the preferred vehicle types
+  const { data: availableVehicles } = useQuery({
+    queryKey: ["available-vehicles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("vehicles")
+        .select("make, model")
+        .eq("status", "available");
+
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
+
+      // Create unique vehicle types from make+model combinations
+      const uniqueTypes = [...new Set(data.map(v => `${v.make} ${v.model}`))];
+      return uniqueTypes;
+    }
+  });
+
   const scrollToBottom = () => {
     listEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -119,7 +139,9 @@ export const SalesLeadList = () => {
                 </Badge>
                 <p className="text-sm text-muted-foreground animate-fade-in"
                    style={{ animationDelay: `${index * 300}ms` }}>
-                  Preferred: {lead.preferred_vehicle_type || "Any"}
+                  Preferred: {availableVehicles?.includes(lead.preferred_vehicle_type || "") 
+                    ? lead.preferred_vehicle_type 
+                    : "Any available vehicle"}
                 </p>
                 <div className="flex gap-2">
                   {lead.status !== "onboarding" && (
