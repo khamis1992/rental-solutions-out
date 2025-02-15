@@ -31,6 +31,8 @@ export const replaceTemplateVariables = (template: string, data: TemplateData): 
   const formatCurrency = (value: number) => 
     `${value?.toLocaleString()} QAR`;
 
+  const defaultLateFee = 120; // Default value for daily_late_fee if not present
+
   // Define variable mappings
   const variableMappings: Record<string, string> = {
     // Agreement variables
@@ -40,7 +42,7 @@ export const replaceTemplateVariables = (template: string, data: TemplateData): 
     'agreement.end_date': agreement.end_date ? new Date(agreement.end_date).toLocaleDateString('en-GB') : '',
     'agreement.rent_amount': formatCurrency(agreement.rent_amount || 0),
     'agreement.total_amount': formatCurrency(agreement.total_amount || 0),
-    'agreement.daily_late_fee': formatCurrency(agreement.daily_late_fee || 120),
+    'agreement.daily_late_fee': formatCurrency(agreement.daily_late_fee || defaultLateFee),
 
     // Vehicle variables
     'vehicle.make': vehicle?.make || '',

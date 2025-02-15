@@ -12,7 +12,12 @@ export interface MaintenanceRecord {
   completed_date?: string;
   performed_by?: string;
   notes?: string;
+  maintenance_type?: string;
+  category_id?: string;
+  created_at?: string;
+  updated_at?: string;
   vehicles?: {
+    id: string;
     make: string;
     model: string;
     year: number;

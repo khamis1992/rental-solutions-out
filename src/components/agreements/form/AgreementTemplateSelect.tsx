@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -33,11 +34,18 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
 
       if (!data || data.length === 0) {
         console.log("No templates found in database");
-        return [];
+        return [] as Template[];
       }
 
-      console.log("Fetched templates:", data);
-      return data as Template[];
+      // Cast the data to Template[] type
+      const templatesWithTypes = data.map(template => ({
+        ...template,
+        template_structure: template.template_structure as Template["template_structure"],
+        text_style: template.text_style as Template["text_style"],
+      })) as Template[];
+
+      console.log("Fetched templates:", templatesWithTypes);
+      return templatesWithTypes;
     },
   });
 
