@@ -8,21 +8,26 @@ import { UserPlus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CustomerFormFields } from "./CustomerFormFields";
 import { EnhancedButton } from "@/components/ui/enhanced-button";
+
 interface CreateCustomerDialogProps {
   children?: ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  leadId?: string;
 }
+
 export const CreateCustomerDialog = ({
   children,
   open,
-  onOpenChange
+  onOpenChange,
+  leadId
 }: CreateCustomerDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(false);
   const [customerId, setCustomerId] = useState<string | null>(null);
   const queryClient = useQueryClient();
+
   const form = useForm({
     defaultValues: {
       full_name: "",
@@ -34,16 +39,48 @@ export const CreateCustomerDialog = ({
       contract_document_url: ""
     }
   });
+
+  React.useEffect(() => {
+    const fetchLeadData = async () => {
+      if (!leadId) return;
+
+      try {
+        const { data: lead, error } = await supabase
+          .from('sales_leads')
+          .select('*')
+          .eq('id', leadId)
+          .single();
+
+        if (error) throw error;
+
+        if (lead) {
+          form.reset({
+            full_name: lead.full_name,
+            phone_number: lead.phone_number,
+            email: lead.email,
+            address: "",
+            driver_license: "",
+            id_document_url: "",
+            license_document_url: "",
+            contract_document_url: ""
+          });
+        }
+      } catch (error: any) {
+        console.error('Error fetching lead data:', error);
+        toast.error(error.message || "Failed to fetch lead data");
+      }
+    };
+
+    fetchLeadData();
+  }, [leadId, form]);
+
   const onSubmit = async (values: any) => {
     console.log("Submitting form with values:", values);
     setIsLoading(true);
     setSuccess(false);
     setError(false);
     try {
-      // Generate a new UUID for the customer if not already set
       const newCustomerId = customerId || crypto.randomUUID();
-
-      // Prepare the customer data
       const customerData = {
         id: newCustomerId,
         ...values,
@@ -53,22 +90,52 @@ export const CreateCustomerDialog = ({
         status: 'pending_review'
       };
       console.log("Inserting customer with data:", customerData);
-      const {
-        error: supabaseError
-      } = await supabase.from("profiles").insert(customerData);
+      const { error: supabaseError } = await supabase
+        .from("profiles")
+        .insert(customerData);
+
       if (supabaseError) {
         console.error("Supabase error:", supabaseError);
         throw supabaseError;
       }
+
+      if (leadId) {
+        const { error: leadError } = await supabase
+          .from('sales_leads')
+          .update({
+            status: 'onboarding',
+            customer_id: newCustomerId,
+            onboarding_progress: {
+              customer_conversion: true,
+              agreement_creation: false,
+              initial_payment: false
+            }
+          })
+          .eq('id', leadId);
+
+        if (leadError) throw leadError;
+
+        const { error: eventError } = await supabase
+          .from('sales_conversion_events')
+          .insert({
+            lead_id: leadId,
+            event_type: 'customer_conversion',
+            metadata: {
+              customer_id: newCustomerId,
+              conversion_date: new Date().toISOString()
+            }
+          });
+
+        if (eventError) throw eventError;
+      }
+
       setSuccess(true);
       toast.success("Customer created successfully");
 
-      // Invalidate and refetch customers query
       await queryClient.invalidateQueries({
         queryKey: ["customers"]
       });
 
-      // Reset form and close dialog after success animation
       setTimeout(() => {
         form.reset();
         onOpenChange?.(false);
@@ -82,12 +149,16 @@ export const CreateCustomerDialog = ({
       setIsLoading(false);
     }
   };
-  return <Dialog open={open} onOpenChange={onOpenChange}>
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        {children || <EnhancedButton className="text-slate-50">
+        {children || (
+          <EnhancedButton className="text-slate-50">
             <UserPlus className="mr-2 h-4 w-4" />
             Add Customer
-          </EnhancedButton>}
+          </EnhancedButton>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -100,12 +171,21 @@ export const CreateCustomerDialog = ({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <CustomerFormFields form={form} />
             <DialogFooter>
-              <EnhancedButton type="submit" loading={isLoading} success={success} error={error} loadingText="Creating..." successText="Customer Created!" errorText="Failed to Create">
+              <EnhancedButton
+                type="submit"
+                loading={isLoading}
+                success={success}
+                error={error}
+                loadingText="Creating..."
+                successText="Customer Created!"
+                errorText="Failed to Create"
+              >
                 Create Customer
               </EnhancedButton>
             </DialogFooter>
           </form>
         </Form>
       </DialogContent>
-    </Dialog>;
+    </Dialog>
+  );
 };

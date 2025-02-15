@@ -3,16 +3,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserPlus, FileText, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { CreateCustomerDialog } from "../customers/CreateCustomerDialog";
+import { useSearchParams } from "react-router-dom";
 
 export const SalesPipeline = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const leadId = searchParams.get('leadId');
 
   const onboardingStages = [
     {
       title: "Convert Lead to Customer",
       description: "Transform qualified leads into customers by completing their profile",
       icon: <UserPlus className="h-6 w-6 text-primary" />,
-      action: () => navigate("/customers/new")
+      action: leadId ? <CreateCustomerDialog leadId={leadId} /> : null
     },
     {
       title: "Create Agreement",
@@ -45,13 +49,19 @@ export const SalesPipeline = () => {
             <p className="text-sm text-muted-foreground">
               {stage.description}
             </p>
-            <Button 
-              variant="outline" 
-              className="w-full hover:bg-primary hover:text-white transition-colors"
-              onClick={stage.action}
-            >
-              Get Started
-            </Button>
+            {stage.action && (
+              typeof stage.action === 'function' ? (
+                <Button 
+                  variant="outline" 
+                  className="w-full hover:bg-primary hover:text-white transition-colors"
+                  onClick={stage.action}
+                >
+                  Get Started
+                </Button>
+              ) : (
+                stage.action
+              )
+            )}
           </CardContent>
         </Card>
       ))}
