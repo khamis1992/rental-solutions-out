@@ -11,10 +11,12 @@ import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { SalesLead } from "@/types/sales.types";
 import { DeleteLeadButton } from "./DeleteLeadButton";
+import { useEffect, useRef } from "react";
 
 export const SalesLeadList = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const listEndRef = useRef<HTMLDivElement>(null);
   
   const { data: leads, isLoading, refetch } = useQuery({
     queryKey: ["sales-leads"],
@@ -31,6 +33,17 @@ export const SalesLeadList = () => {
       return data as SalesLead[];
     }
   });
+
+  const scrollToBottom = () => {
+    listEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Scroll to bottom when new leads are added
+  useEffect(() => {
+    if (leads && leads.length > 0) {
+      scrollToBottom();
+    }
+  }, [leads]);
 
   const handleTransferToOnboarding = async (leadId: string) => {
     try {
@@ -149,6 +162,8 @@ export const SalesLeadList = () => {
           No leads available
         </div>
       )}
+      <div ref={listEndRef} />
     </div>
   );
 };
+
