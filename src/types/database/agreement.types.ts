@@ -1,3 +1,4 @@
+
 import { Database } from "./database.types";
 
 export type LeaseStatus = Database['public']['Enums']['lease_status'];

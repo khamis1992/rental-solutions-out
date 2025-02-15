@@ -1,5 +1,5 @@
 
-export type MaintenanceStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'urgent';
+export type MaintenanceStatus = "scheduled" | "in_progress" | "completed" | "cancelled" | "urgent" | "accident";
 
 export interface MaintenanceRecord {
   id: string;
@@ -9,15 +9,13 @@ export interface MaintenanceRecord {
   status: MaintenanceStatus;
   cost?: number;
   scheduled_date: string;
-  completed_date?: string | null;
-  performed_by?: string | null;
-  notes?: string | null;
-  category_id?: string | null;
-  created_at: string;
-  updated_at: string;
+  completed_date?: string;
+  performed_by?: string;
+  notes?: string;
   vehicles?: {
     make: string;
     model: string;
+    year: number;
     license_plate: string;
   };
 }
