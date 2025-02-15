@@ -8,38 +8,17 @@ import { Loader2, ArrowRightCircle } from "lucide-react";
 import { VehicleRecommendations } from "./VehicleRecommendations";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
-
-interface SalesLead {
-  id: string;
-  status: string;
-  customer: {
-    full_name: string;
-  };
-  lead_score: number;
-  preferred_vehicle_type: string;
-  budget_range_min: number;
-  budget_range_max: number;
-  onboarding_date: string | null;
-}
+import { useNavigate } from "react-router-dom";
+import type { SalesLead } from "@/types/sales.types";
 
 export const SalesLeadList = () => {
+  const navigate = useNavigate();
   const { data: leads, isLoading, refetch } = useQuery({
     queryKey: ["sales-leads"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("sales_leads")
-        .select(`
-          id,
-          status,
-          lead_score,
-          preferred_vehicle_type,
-          budget_range_min,
-          budget_range_max,
-          onboarding_date,
-          customer:customer_id (
-            full_name
-          )
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
       
       if (error) throw error;
@@ -49,25 +28,25 @@ export const SalesLeadList = () => {
 
   const handleTransferToOnboarding = async (leadId: string) => {
     try {
-      console.log("Transferring lead:", leadId);
-      
       const { error } = await supabase
         .from("sales_leads")
         .update({
           status: "onboarding",
-          onboarding_date: new Date().toISOString()
+          onboarding_progress: {
+            customer_conversion: false,
+            agreement_creation: false,
+            initial_payment: false
+          }
         })
         .eq("id", leadId)
         .select();
 
-      if (error) {
-        console.error("Supabase error:", error);
-        throw error;
-      }
+      if (error) throw error;
 
       toast.success("Lead transferred to onboarding");
+      navigate(`/sales/onboarding?leadId=${leadId}`);
       refetch();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error transferring lead:", error);
       toast.error("Failed to transfer lead to onboarding");
     }
@@ -88,17 +67,17 @@ export const SalesLeadList = () => {
           <CardHeader>
             <div className="flex justify-between items-start">
               <div>
-                <CardTitle>{lead.customer?.full_name || "Unnamed Lead"}</CardTitle>
+                <CardTitle>{lead.full_name}</CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Budget: {formatCurrency(lead.budget_range_min)} - {formatCurrency(lead.budget_range_max)}
+                  Budget: {formatCurrency(lead.budget_range_min || 0)} - {formatCurrency(lead.budget_range_max || 0)}
                 </p>
               </div>
               <div className="flex flex-col items-end gap-2">
                 <Badge 
-                  variant={lead.lead_score >= 70 ? "default" : "secondary"} 
+                  variant={lead.lead_score && lead.lead_score >= 70 ? "default" : "secondary"} 
                   className="bg-cyan-400 hover:bg-cyan-300"
                 >
-                  Score: {lead.lead_score}
+                  Score: {lead.lead_score || 0}
                 </Badge>
                 <p className="text-sm text-muted-foreground">
                   Preferred: {lead.preferred_vehicle_type || "Any"}
