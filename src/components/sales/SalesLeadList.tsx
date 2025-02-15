@@ -10,7 +10,6 @@ import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { SalesLead } from "@/types/sales.types";
-import { DeleteLeadButton } from "./DeleteLeadButton";
 
 export const SalesLeadList = () => {
   const navigate = useNavigate();
@@ -122,10 +121,6 @@ export const SalesLeadList = () => {
                       Transfer to Onboarding
                     </Button>
                   )}
-                  <DeleteLeadButton 
-                    leadId={lead.id}
-                    className="mt-2 animate-fade-in"
-                  />
                 </div>
                 {lead.status === "onboarding" && (
                   <Badge 
