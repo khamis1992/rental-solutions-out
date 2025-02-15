@@ -1,5 +1,5 @@
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { performanceMetrics } from "@/services/performanceMonitoring";
 import { toast } from "sonner";
 import type { ExtendedPerformance } from "@/services/performance/types";
@@ -8,6 +8,7 @@ import {
   MEMORY_THRESHOLD,
   DEBOUNCE_DELAY
 } from "@/services/performance/constants";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 // Define monitoring intervals based on actual needs
 // CPU is checked less frequently as it's less critical for web apps
@@ -17,27 +18,38 @@ const MONITOR_MEMORY_INTERVAL = 10000;  // Every 10 seconds
 // Disk is checked rarely as it changes slowly
 const MONITOR_DISK_INTERVAL = 300000;   // Every 5 minutes
 
-export const usePerformanceMonitoring = () => {
+// Maximum number of retries for failed operations
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
+const MonitoringComponent = () => {
   const intervals = useRef<Array<NodeJS.Timeout>>([]);
   const lastUpdate = useRef<number>(0);
+  const [hasError, setHasError] = useState(false);
+  const retryCount = useRef(0);
 
   const measureCPUUsage = async (): Promise<number> => {
-    const performance = window.performance as ExtendedPerformance;
-    if (!performance?.memory) return 0;
+    try {
+      const performance = window.performance as ExtendedPerformance;
+      if (!performance?.memory) return 0;
 
-    const startTime = performance.now();
-    const startUsage = performance.memory.usedJSHeapSize;
-    
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    const endTime = performance.now();
-    const endUsage = performance.memory.usedJSHeapSize;
-    
-    const duration = endTime - startTime;
-    const memoryDiff = endUsage - startUsage;
-    const cpuUsage = (memoryDiff / duration) * 100;
-    
-    return Math.min(Math.max(cpuUsage, 0), 100);
+      const startTime = performance.now();
+      const startUsage = performance.memory.usedJSHeapSize;
+      
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const endTime = performance.now();
+      const endUsage = performance.memory.usedJSHeapSize;
+      
+      const duration = endTime - startTime;
+      const memoryDiff = endUsage - startUsage;
+      const cpuUsage = (memoryDiff / duration) * 100;
+      
+      return Math.min(Math.max(cpuUsage, 0), 100);
+    } catch (error) {
+      console.error('Error measuring CPU usage:', error);
+      return 0;
+    }
   };
 
   // Debounced monitor update to prevent too frequent updates
@@ -46,6 +58,24 @@ export const usePerformanceMonitoring = () => {
     if (now - lastUpdate.current >= DEBOUNCE_DELAY) {
       lastUpdate.current = now;
       void callback();
+    }
+  };
+
+  const retryOperation = async <T,>(
+    operation: () => Promise<T>,
+    errorMessage: string
+  ): Promise<T | null> => {
+    try {
+      return await operation();
+    } catch (error) {
+      console.error(errorMessage, error);
+      if (retryCount.current < MAX_RETRIES) {
+        retryCount.current++;
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+        return retryOperation(operation, errorMessage);
+      }
+      setHasError(true);
+      return null;
     }
   };
 
@@ -65,7 +95,10 @@ export const usePerformanceMonitoring = () => {
                 description: `Memory utilization is at ${memoryUsage.toFixed(1)}%`
               });
             }
-            await performanceMetrics.trackMemoryUsage();
+            await retryOperation(
+              () => performanceMetrics.trackMemoryUsage(),
+              'Failed to track memory usage'
+            );
           }
         });
       };
@@ -79,7 +112,10 @@ export const usePerformanceMonitoring = () => {
               description: `Current CPU utilization is ${cpuUsage.toFixed(1)}%`
             });
           }
-          await performanceMetrics.trackCPUUtilization(cpuUsage);
+          await retryOperation(
+            () => performanceMetrics.trackCPUUtilization(cpuUsage),
+            'Failed to track CPU utilization'
+          );
         });
       };
 
@@ -95,7 +131,10 @@ export const usePerformanceMonitoring = () => {
                 description: `Storage utilization is at ${usagePercentage.toFixed(1)}%`
               });
             }
-            await performanceMetrics.trackDiskIO();
+            await retryOperation(
+              () => performanceMetrics.trackDiskIO(),
+              'Failed to track disk I/O'
+            );
           }
         });
       };
@@ -109,14 +148,35 @@ export const usePerformanceMonitoring = () => {
 
     } catch (error) {
       console.error('Performance monitoring error:', error);
+      setHasError(true);
     }
   };
 
   useEffect(() => {
-    void monitorPerformance();
+    if (!hasError) {
+      void monitorPerformance();
+    }
     return () => {
       intervals.current.forEach(clearInterval);
       intervals.current = [];
     };
-  }, []);
+  }, [hasError]);
+
+  if (hasError) {
+    return (
+      <div className="text-sm text-red-500">
+        Performance monitoring temporarily unavailable. Retrying...
+      </div>
+    );
+  }
+
+  return null;
+};
+
+export const usePerformanceMonitoring = () => {
+  return (
+    <ErrorBoundary>
+      <MonitoringComponent />
+    </ErrorBoundary>
+  );
 };
