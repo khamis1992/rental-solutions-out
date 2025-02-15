@@ -7,22 +7,15 @@ import { SalesLeadList } from "@/components/sales/SalesLeadList";
 import { SalesPipeline } from "@/components/sales/SalesPipeline";
 import { LeadScoring } from "@/components/sales/LeadScoring";
 import { TeamPerformance } from "@/components/sales/TeamPerformance";
-import { Button } from "@/components/ui/button";
-import { Plus, UserPlus } from "lucide-react";
 import { CreateLeadDialog } from "@/components/sales/CreateLeadDialog";
 
 const Sales = () => {
-  const [createLeadOpen, setCreateLeadOpen] = useState(false);
-
   return (
     <DashboardLayout>
       <div className="container mx-auto p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Sales Management</h1>
-          <Button onClick={() => setCreateLeadOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Lead
-          </Button>
+          <CreateLeadDialog />
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
@@ -54,8 +47,6 @@ const Sales = () => {
             <TeamPerformance />
           </TabsContent>
         </Tabs>
-
-        <CreateLeadDialog open={createLeadOpen} onOpenChange={setCreateLeadOpen} />
       </div>
     </DashboardLayout>
   );
