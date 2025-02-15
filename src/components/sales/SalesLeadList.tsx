@@ -15,15 +15,23 @@ export const SalesLeadList = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   
+  // Add detailed logging for debugging
+  console.log("Rendering SalesLeadList");
+  
   const { data: leads, isLoading, refetch } = useQuery({
     queryKey: ["sales-leads"],
     queryFn: async () => {
+      console.log("Fetching sales leads");
       const { data, error } = await supabase
         .from("sales_leads")
         .select("*")
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
+      console.log("Fetched leads:", data);
       return data as SalesLead[];
     }
   });
@@ -31,6 +39,10 @@ export const SalesLeadList = () => {
   const handleTransferToOnboarding = async (leadId: string) => {
     try {
       console.log("Attempting to transfer lead:", leadId);
+      console.log("Current leads state:", leads);
+
+      const lead = leads?.find(l => l.id === leadId);
+      console.log("Found lead:", lead);
 
       const { data, error } = await supabase
         .from("sales_leads")
@@ -52,10 +64,10 @@ export const SalesLeadList = () => {
       console.log("Transfer successful:", data);
       toast.success("Lead transferred to onboarding");
       
-      // Update both the URL and search params
+      console.log("Setting search params to onboarding tab");
       setSearchParams({ tab: 'onboarding' });
       
-      // Force a refetch to update the list
+      console.log("Initiating refetch");
       await refetch();
       
     } catch (error: any) {
@@ -74,24 +86,39 @@ export const SalesLeadList = () => {
 
   return (
     <div className="space-y-6">
-      {leads?.map(lead => (
-        <Card key={lead.id}>
+      {leads?.map((lead, index) => (
+        <Card 
+          key={lead.id}
+          className="transition-all duration-300 hover:shadow-lg animate-fade-in"
+          style={{ 
+            animationDelay: `${index * 100}ms`,
+            opacity: 0,
+            animation: "fade-in 0.5s ease forwards"
+          }}
+        >
           <CardHeader>
             <div className="flex justify-between items-start">
-              <div>
-                <CardTitle>{lead.full_name}</CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
+              <div className="animate-fade-in" style={{ animationDelay: `${index * 150}ms` }}>
+                <CardTitle className="group">
+                  <span className="transition-colors duration-300 group-hover:text-primary">
+                    {lead.full_name}
+                  </span>
+                </CardTitle>
+                <p className="text-sm text-muted-foreground mt-1 animate-fade-in" 
+                   style={{ animationDelay: `${index * 200}ms` }}>
                   Budget: {formatCurrency(lead.budget_range_min || 0)} - {formatCurrency(lead.budget_range_max || 0)}
                 </p>
               </div>
               <div className="flex flex-col items-end gap-2">
                 <Badge 
                   variant={lead.lead_score && lead.lead_score >= 70 ? "default" : "secondary"} 
-                  className="bg-cyan-400 hover:bg-cyan-300"
+                  className="bg-cyan-400 hover:bg-cyan-300 transition-colors duration-300 animate-fade-in"
+                  style={{ animationDelay: `${index * 250}ms` }}
                 >
                   Score: {lead.lead_score || 0}
                 </Badge>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground animate-fade-in"
+                   style={{ animationDelay: `${index * 300}ms` }}>
                   Preferred: {lead.preferred_vehicle_type || "Any"}
                 </p>
                 {lead.status !== "onboarding" && (
@@ -99,27 +126,33 @@ export const SalesLeadList = () => {
                     variant="secondary"
                     size="sm"
                     onClick={() => handleTransferToOnboarding(lead.id)}
-                    className="mt-2 bg-primary hover:bg-primary/90 text-white"
+                    className="mt-2 bg-primary hover:bg-primary/90 text-white transition-all duration-300 
+                             hover:scale-105 active:scale-95 animate-fade-in"
+                    style={{ animationDelay: `${index * 350}ms` }}
                   >
-                    <ArrowRightCircle className="h-4 w-4 mr-2" />
+                    <ArrowRightCircle className="h-4 w-4 mr-2 transition-transform group-hover:translate-x-1" />
                     Transfer to Onboarding
                   </Button>
                 )}
                 {lead.status === "onboarding" && (
-                  <Badge variant="outline" className="mt-2">
+                  <Badge 
+                    variant="outline" 
+                    className="mt-2 animate-fade-in"
+                    style={{ animationDelay: `${index * 350}ms` }}
+                  >
                     In Onboarding
                   </Badge>
                 )}
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="animate-fade-in" style={{ animationDelay: `${index * 400}ms` }}>
             <VehicleRecommendations leadId={lead.id} />
           </CardContent>
         </Card>
       ))}
       {(!leads || leads.length === 0) && (
-        <div className="text-center text-muted-foreground py-8">
+        <div className="text-center text-muted-foreground py-8 animate-fade-in">
           No leads available
         </div>
       )}
