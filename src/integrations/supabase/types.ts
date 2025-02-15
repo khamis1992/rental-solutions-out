@@ -232,6 +232,13 @@ export type Database = {
             foreignKeyName: "agreement_documents_lease_id_fkey"
             columns: ["lease_id"]
             isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
+          {
+            foreignKeyName: "agreement_documents_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
             referencedRelation: "leases"
             referencedColumns: ["id"]
           },
@@ -786,6 +793,13 @@ export type Database = {
           promo_code_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "applied_discounts_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
           {
             foreignKeyName: "applied_discounts_lease_id_fkey"
             columns: ["lease_id"]
@@ -1558,6 +1572,13 @@ export type Database = {
             foreignKeyName: "customer_feedback_agreement_id_fkey"
             columns: ["agreement_id"]
             isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
+          {
+            foreignKeyName: "customer_feedback_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
             referencedRelation: "leases"
             referencedColumns: ["id"]
           },
@@ -1858,6 +1879,13 @@ export type Database = {
           vehicle_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "damages_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
           {
             foreignKeyName: "damages_lease_id_fkey"
             columns: ["lease_id"]
@@ -2238,6 +2266,13 @@ export type Database = {
             foreignKeyName: "financial_imports_lease_id_fkey"
             columns: ["lease_id"]
             isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
+          {
+            foreignKeyName: "financial_imports_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
             referencedRelation: "leases"
             referencedColumns: ["id"]
           },
@@ -2390,6 +2425,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "generated_invoices_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
           {
             foreignKeyName: "generated_invoices_agreement_id_fkey"
             columns: ["agreement_id"]
@@ -2678,6 +2720,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "installment_analytics_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
           {
             foreignKeyName: "installment_analytics_lease_id_fkey"
             columns: ["lease_id"]
@@ -3967,6 +4016,69 @@ export type Database = {
           },
         ]
       }
+      master_sheet_data: {
+        Row: {
+          agreement_no: string
+          car_no: string
+          created_at: string
+          customer_name: string
+          delay_fines: number | null
+          id: string
+          id_no: string | null
+          insurance_company: string | null
+          legal_action: string | null
+          note: string | null
+          payment: number | null
+          payment_date: string | null
+          pending_amount: number | null
+          phone_number: string | null
+          rent_amount: number | null
+          supervisor: string | null
+          traffic_fine: number | null
+          updated_at: string
+        }
+        Insert: {
+          agreement_no: string
+          car_no: string
+          created_at?: string
+          customer_name: string
+          delay_fines?: number | null
+          id?: string
+          id_no?: string | null
+          insurance_company?: string | null
+          legal_action?: string | null
+          note?: string | null
+          payment?: number | null
+          payment_date?: string | null
+          pending_amount?: number | null
+          phone_number?: string | null
+          rent_amount?: number | null
+          supervisor?: string | null
+          traffic_fine?: number | null
+          updated_at?: string
+        }
+        Update: {
+          agreement_no?: string
+          car_no?: string
+          created_at?: string
+          customer_name?: string
+          delay_fines?: number | null
+          id?: string
+          id_no?: string | null
+          insurance_company?: string | null
+          legal_action?: string | null
+          note?: string | null
+          payment?: number | null
+          payment_date?: string | null
+          pending_amount?: number | null
+          phone_number?: string | null
+          rent_amount?: number | null
+          supervisor?: string | null
+          traffic_fine?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       new_unified_payments: {
         Row: {
           amount: number
@@ -4053,6 +4165,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "accounting_invoices"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "new_unified_payments_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
           },
           {
             foreignKeyName: "new_unified_payments_lease_id_fkey"
@@ -4230,6 +4349,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "overdue_payments_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: true
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
           {
             foreignKeyName: "overdue_payments_agreement_id_fkey"
             columns: ["agreement_id"]
@@ -4843,6 +4969,13 @@ export type Database = {
             foreignKeyName: "simplified_payment_schedules_lease_id_fkey"
             columns: ["lease_id"]
             isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
+          {
+            foreignKeyName: "simplified_payment_schedules_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
             referencedRelation: "leases"
             referencedColumns: ["id"]
           },
@@ -4883,6 +5016,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "penalties_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
           {
             foreignKeyName: "penalties_lease_id_fkey"
             columns: ["lease_id"]
@@ -5346,6 +5486,13 @@ export type Database = {
             foreignKeyName: "recurring_revenue_lease_id_fkey"
             columns: ["lease_id"]
             isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
+          {
+            foreignKeyName: "recurring_revenue_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
             referencedRelation: "leases"
             referencedColumns: ["id"]
           },
@@ -5469,6 +5616,13 @@ export type Database = {
             foreignKeyName: "remaining_amounts_lease_id_fkey"
             columns: ["lease_id"]
             isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
+          {
+            foreignKeyName: "remaining_amounts_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
             referencedRelation: "leases"
             referencedColumns: ["id"]
           },
@@ -5509,6 +5663,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "rent_payments_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
           {
             foreignKeyName: "rent_payments_lease_id_fkey"
             columns: ["lease_id"]
@@ -6212,6 +6373,13 @@ export type Database = {
             foreignKeyName: "security_deposits_lease_id_fkey"
             columns: ["lease_id"]
             isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
+          {
+            foreignKeyName: "security_deposits_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
             referencedRelation: "leases"
             referencedColumns: ["id"]
           },
@@ -6637,6 +6805,13 @@ export type Database = {
             foreignKeyName: "traffic_fines_lease_id_fkey"
             columns: ["lease_id"]
             isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
+          {
+            foreignKeyName: "traffic_fines_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
             referencedRelation: "leases"
             referencedColumns: ["id"]
           },
@@ -6791,6 +6966,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "transaction_imports"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaction_import_items_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
           },
           {
             foreignKeyName: "transaction_import_items_lease_id_fkey"
@@ -6966,6 +7148,13 @@ export type Database = {
             foreignKeyName: "unified_import_tracking_matched_agreement_id_fkey"
             columns: ["matched_agreement_id"]
             isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
+          {
+            foreignKeyName: "unified_import_tracking_matched_agreement_id_fkey"
+            columns: ["matched_agreement_id"]
+            isOneToOne: false
             referencedRelation: "leases"
             referencedColumns: ["id"]
           },
@@ -7080,6 +7269,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "accounting_invoices"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unified_payments_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
           },
           {
             foreignKeyName: "unified_payments_lease_id_fkey"
@@ -7379,6 +7575,13 @@ export type Database = {
           vehicle_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "vehicle_inspections_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
           {
             foreignKeyName: "vehicle_inspections_lease_id_fkey"
             columns: ["lease_id"]
@@ -8071,6 +8274,19 @@ export type Database = {
       }
     }
     Views: {
+      active_agreements_view: {
+        Row: {
+          agreement_number: string | null
+          car_no: string | null
+          customer_name: string | null
+          id_no: string | null
+          lease_id: string | null
+          phone_number: string | null
+          rent_amount: number | null
+          status: Database["public"]["Enums"]["lease_status"] | null
+        }
+        Relationships: []
+      }
       audit_logs_with_users: {
         Row: {
           action: string | null
@@ -8184,6 +8400,13 @@ export type Database = {
             foreignKeyName: "unified_payments_lease_id_fkey"
             columns: ["agreement_id"]
             isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
+          {
+            foreignKeyName: "unified_payments_lease_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
             referencedRelation: "leases"
             referencedColumns: ["id"]
           },
@@ -8241,6 +8464,13 @@ export type Database = {
             foreignKeyName: "unified_payments_lease_id_fkey"
             columns: ["lease_id"]
             isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
+          {
+            foreignKeyName: "unified_payments_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
             referencedRelation: "leases"
             referencedColumns: ["id"]
           },
@@ -8293,6 +8523,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "unified_payments_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
           {
             foreignKeyName: "unified_payments_lease_id_fkey"
             columns: ["lease_id"]

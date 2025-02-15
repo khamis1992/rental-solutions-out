@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Car, ThumbsUp, ThumbsDown } from "lucide-react";
 import { toast } from "sonner";
@@ -56,6 +57,20 @@ export const VehicleRecommendations = ({ leadId }: VehicleRecommendationsProps) 
     }
   });
 
+  const { data: availableVehicles } = useQuery({
+    queryKey: ["available-vehicles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("vehicles")
+        .select("id, make, model, year, color, license_plate")
+        .eq("status", "available")
+        .order("make", { ascending: true });
+
+      if (error) throw error;
+      return data as Vehicle[];
+    }
+  });
+
   const updateRecommendationStatus = async (recommendationId: string, status: string) => {
     const { error } = await supabase
       .from("vehicle_recommendations")
@@ -68,6 +83,27 @@ export const VehicleRecommendations = ({ leadId }: VehicleRecommendationsProps) 
     }
 
     toast.success("Recommendation status updated");
+    refetch();
+  };
+
+  const updateRecommendedVehicle = async (recommendationId: string, vehicleId: string) => {
+    const selectedVehicle = availableVehicles?.find(v => v.id === vehicleId);
+    if (!selectedVehicle) {
+      toast.error("Vehicle not found");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("vehicle_recommendations")
+      .update({ vehicle: vehicleId })
+      .eq("id", recommendationId);
+
+    if (error) {
+      toast.error("Failed to update recommended vehicle");
+      return;
+    }
+
+    toast.success("Recommended vehicle updated");
     refetch();
   };
 
@@ -96,10 +132,27 @@ export const VehicleRecommendations = ({ leadId }: VehicleRecommendationsProps) 
                   <div className="p-2 bg-primary/10 rounded-lg">
                     <Car className="h-5 w-5 text-primary" />
                   </div>
-                  <div>
-                    <h4 className="font-medium">
-                      {recommendation.vehicle.make} {recommendation.vehicle.model} {recommendation.vehicle.year}
-                    </h4>
+                  <div className="space-y-2">
+                    <Select
+                      defaultValue={recommendation.vehicle.id}
+                      onValueChange={(value) => updateRecommendedVehicle(recommendation.id, value)}
+                    >
+                      <SelectTrigger className="w-[300px]">
+                        <SelectValue 
+                          placeholder="Select vehicle"
+                          defaultValue={recommendation.vehicle.id}
+                        >
+                          {recommendation.vehicle.make} {recommendation.vehicle.model} {recommendation.vehicle.year}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableVehicles?.map((vehicle) => (
+                          <SelectItem key={vehicle.id} value={vehicle.id}>
+                            {vehicle.make} {vehicle.model} {vehicle.year} - {vehicle.license_plate}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <p className="text-sm text-muted-foreground">
                       {recommendation.vehicle.color} • {recommendation.vehicle.license_plate}
                     </p>
