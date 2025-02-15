@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,7 @@ import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { SalesLead } from "@/types/sales.types";
+import { DeleteLeadButton } from "./DeleteLeadButton";
 
 export const SalesLeadList = () => {
   const navigate = useNavigate();
@@ -180,18 +182,5 @@ export const SalesLeadList = () => {
         </div>
       )}
     </div>
-  );
-};
-
-const DeleteLeadButton = ({ leadId, onDelete, className }) => {
-  return (
-    <Button 
-      variant="secondary"
-      size="sm"
-      onClick={() => onDelete(leadId)}
-      className={className}
-    >
-      Delete
-    </Button>
   );
 };
