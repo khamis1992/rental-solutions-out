@@ -7,10 +7,14 @@ import { LeadCommunication } from "./LeadCommunication";
 import { LeadTasks } from "./LeadTasks";
 import { Loader2 } from "lucide-react";
 import type { SalesLead } from "@/types/sales.types";
+import { useSearchParams } from "react-router-dom";
 
 export const SalesPipeline = () => {
+  const [searchParams] = useSearchParams();
+  const currentTab = searchParams.get("tab");
+
   const { data: onboardingLeads, isLoading } = useQuery({
-    queryKey: ["onboarding-leads"],
+    queryKey: ["onboarding-leads", currentTab],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("sales_leads")
@@ -20,7 +24,8 @@ export const SalesPipeline = () => {
       
       if (error) throw error;
       return data as SalesLead[];
-    }
+    },
+    enabled: currentTab === "onboarding"
   });
 
   if (isLoading) {

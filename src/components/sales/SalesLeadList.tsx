@@ -1,5 +1,5 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,9 @@ export const SalesLeadList = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const listEndRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
   
-  const { data: leads, isLoading, refetch } = useQuery({
+  const { data: leads, isLoading } = useQuery({
     queryKey: ["sales-leads"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -86,9 +87,16 @@ export const SalesLeadList = () => {
         throw error;
       }
 
+      // Invalidate both queries to ensure both lists are updated
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["sales-leads"] }),
+        queryClient.invalidateQueries({ queryKey: ["onboarding-leads"] })
+      ]);
+
       toast.success("Lead transferred to onboarding");
+      
+      // Switch to the onboarding tab
       setSearchParams({ tab: 'onboarding' });
-      await refetch();
       
     } catch (error: any) {
       console.error("Error transferring lead to onboarding:", error);
@@ -188,4 +196,3 @@ export const SalesLeadList = () => {
     </div>
   );
 };
-
