@@ -27,23 +27,33 @@ export function DeleteLeadButton({ leadId, className }: DeleteLeadButtonProps) {
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from("sales_leads")
         .delete()
-        .eq("id", leadId);
+        .eq("id", leadId)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
+      return data;
     },
     onSuccess: () => {
       toast.success("Lead deleted successfully");
+      // Immediately invalidate and refetch the leads query
       queryClient.invalidateQueries({ queryKey: ["sales-leads"] });
       setShowConfirmDialog(false);
     },
     onError: (error) => {
       console.error("Error deleting lead:", error);
       toast.error("Failed to delete lead. Please try again.");
+      setShowConfirmDialog(false);
     }
   });
+
+  const handleDelete = () => {
+    deleteMutation.mutate();
+  };
 
   return (
     <>
@@ -68,7 +78,7 @@ export function DeleteLeadButton({ leadId, className }: DeleteLeadButtonProps) {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteMutation.mutate()}
+              onClick={handleDelete}
               disabled={deleteMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
