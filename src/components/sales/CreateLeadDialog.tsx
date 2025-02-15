@@ -66,7 +66,7 @@ export const CreateLeadDialog = () => {
 
       if (profileError) throw profileError;
 
-      // Then create the sales lead
+      // Then create the sales lead with the proper typing for agreement_type
       const { error: leadError } = await supabase
         .from('sales_leads')
         .insert({
@@ -75,7 +75,7 @@ export const CreateLeadDialog = () => {
           phone_number: data.phone_number,
           email: data.email,
           preferred_vehicle_type: data.preferred_vehicle_type,
-          preferred_agreement_type: data.preferred_agreement_type,
+          preferred_agreement_type: data.preferred_agreement_type as "short_term" | "lease_to_own" | null,
           budget_range_min: data.budget_range_min,
           budget_range_max: data.budget_range_max,
           notes: data.notes,
@@ -89,10 +89,12 @@ export const CreateLeadDialog = () => {
 
       if (leadError) throw leadError;
 
+      // Immediately invalidate and refetch the leads query
+      await queryClient.invalidateQueries({ queryKey: ['sales-leads'] });
+      
       toast.success("Lead created successfully");
       setOpen(false);
       form.reset();
-      queryClient.invalidateQueries({ queryKey: ['sales-leads'] });
     } catch (error: any) {
       console.error('Error creating lead:', error);
       toast.error(error.message || "Failed to create lead");
