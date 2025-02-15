@@ -1,3 +1,4 @@
+
 import { AgreementWithRelations } from "@/types/agreement.types";
 import { Vehicle } from "@/types/vehicle";
 import { Customer } from "@/types/customer";
