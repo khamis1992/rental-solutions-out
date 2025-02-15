@@ -9,12 +9,25 @@ import { UserPlus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CustomerFormFields } from "./CustomerFormFields";
 import { EnhancedButton } from "@/components/ui/enhanced-button";
+import type { SalesLead } from "@/types/sales.types";
 
 interface CreateCustomerDialogProps {
   children?: ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   leadId?: string;
+}
+
+interface CustomerFormData {
+  full_name: string;
+  phone_number: string;
+  email?: string;
+  address: string;
+  driver_license: string;
+  id_document_url: string;
+  license_document_url: string;
+  contract_document_url: string;
+  nationality?: string;
 }
 
 export const CreateCustomerDialog = ({
@@ -29,15 +42,17 @@ export const CreateCustomerDialog = ({
   const [customerId, setCustomerId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const form = useForm({
+  const form = useForm<CustomerFormData>({
     defaultValues: {
       full_name: "",
       phone_number: "",
+      email: "",
       address: "",
       driver_license: "",
       id_document_url: "",
       license_document_url: "",
-      contract_document_url: ""
+      contract_document_url: "",
+      nationality: ""
     }
   });
 
@@ -55,15 +70,17 @@ export const CreateCustomerDialog = ({
         if (error) throw error;
 
         if (lead) {
+          const typedLead = lead as SalesLead;
           form.reset({
-            full_name: lead.full_name,
-            phone_number: lead.phone_number,
-            email: lead.email,
+            full_name: typedLead.full_name,
+            phone_number: typedLead.phone_number,
+            email: typedLead.email || "",
             address: "",
             driver_license: "",
             id_document_url: "",
             license_document_url: "",
-            contract_document_url: ""
+            contract_document_url: "",
+            nationality: ""
           });
         }
       } catch (error: any) {

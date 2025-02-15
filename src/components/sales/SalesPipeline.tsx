@@ -1,6 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { UserPlus, FileText, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { CreateCustomerDialog } from "../customers/CreateCustomerDialog";
@@ -21,7 +22,15 @@ export const SalesPipeline = () => {
       if (!leadId) return null;
       const { data, error } = await supabase
         .from("sales_leads")
-        .select("*")
+        .select(`
+          *,
+          customer:customer_id (
+            id,
+            full_name,
+            phone_number,
+            email
+          )
+        `)
         .eq("id", leadId)
         .single();
 
@@ -107,7 +116,7 @@ export const SalesPipeline = () => {
               )
             )}
             {stage.completed && (
-              <Badge variant="success" className="w-full justify-center">
+              <Badge variant="default" className="w-full justify-center bg-green-500">
                 Completed
               </Badge>
             )}
