@@ -49,15 +49,22 @@ export const SalesLeadList = () => {
 
   const handleTransferToOnboarding = async (leadId: string) => {
     try {
+      console.log("Transferring lead:", leadId); // Debug log
+      
       const { error } = await supabase
         .from("sales_leads")
         .update({
           status: "onboarding",
           onboarding_date: new Date().toISOString()
         })
-        .eq("id", leadId);
+        .eq("id", leadId)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error); // Debug log
+        throw error;
+      }
+
       toast.success("Lead transferred to onboarding");
       refetch();
     } catch (error) {
@@ -96,7 +103,7 @@ export const SalesLeadList = () => {
                 <p className="text-sm text-muted-foreground">
                   Preferred: {lead.preferred_vehicle_type || "Any"}
                 </p>
-                {!lead.onboarding_date && (
+                {lead.status !== "onboarding" && (
                   <Button 
                     variant="secondary"
                     size="sm"
@@ -107,7 +114,7 @@ export const SalesLeadList = () => {
                     Transfer to Onboarding
                   </Button>
                 )}
-                {lead.onboarding_date && (
+                {lead.status === "onboarding" && (
                   <Badge variant="outline" className="mt-2">
                     In Onboarding
                   </Badge>
