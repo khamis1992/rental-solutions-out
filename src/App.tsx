@@ -1,4 +1,3 @@
-
 import { Suspense, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
@@ -246,16 +245,6 @@ export default function App() {
                 element={
                   <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
                     <LazyComponents.Sales />
-                  </Suspense>
-                }
-              />
-
-              {/* New Master Sheet Route */}
-              <Route
-                path="/master-sheet"
-                element={
-                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
-                    <LazyComponents.MasterSheet />
                   </Suspense>
                 }
               />

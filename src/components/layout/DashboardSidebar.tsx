@@ -3,7 +3,7 @@ import {
   DollarSign, AlertTriangle, BarChart3, Archive,
   Building2, Scale, HelpCircle, ChevronRight, 
   ChevronLeft, Activity, Menu, MapPin,
-  Banknote, ClipboardList
+  Banknote
 } from "lucide-react";
 import {
   Sidebar,
@@ -147,12 +147,6 @@ const menuGroups: MenuGroup[] = [
         label: "Audit", 
         href: "/audit",
         description: "System audit logs"
-      },
-      { 
-        icon: ClipboardList, 
-        label: "Master Sheet", 
-        href: "/master-sheet",
-        description: "Business intelligence master data"
       },
     ]
   },

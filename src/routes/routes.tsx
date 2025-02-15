@@ -21,5 +21,4 @@ export const ChauffeurService = lazy(() => import("@/pages/ChauffeurService"));
 export const CustomerPortal = lazy(() => import("@/pages/CustomerPortal"));
 export const CarInstallmentDetails = lazy(() => import("@/pages/CarInstallmentDetails"));
 export const LocationTracking = lazy(() => import("@/pages/LocationTracking"));
-export const Sales = lazy(() => import("@/pages/Sales"));
-export const MasterSheet = lazy(() => import("@/pages/MasterSheet"));
+export const Sales = lazy(() => import("@/pages/Sales")); // Add this line
