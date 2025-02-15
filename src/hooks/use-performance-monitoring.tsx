@@ -9,12 +9,6 @@ import {
   DEBOUNCE_DELAY
 } from "@/services/performance/constants";
 
-const MONITORING_INTERVALS = {
-  CPU: 10000,    // 10 seconds
-  MEMORY: 15000, // 15 seconds
-  DISK: 60000    // 1 minute
-} as const;
-
 export const usePerformanceMonitoring = () => {
   const intervals = useRef<Array<NodeJS.Timeout>>([]);
   const lastUpdate = useRef<number>(0);
@@ -100,9 +94,9 @@ export const usePerformanceMonitoring = () => {
 
       // Set up monitoring intervals with cleanup
       intervals.current = [
-        setInterval(() => void monitorCPU(), MONITORING_INTERVALS.CPU),
-        setInterval(() => void monitorMemory(), MONITORING_INTERVALS.MEMORY),
-        setInterval(() => void monitorDisk(), MONITORING_INTERVALS.DISK)
+        setInterval(() => void monitorCPU(), 10000),     // Every 10 seconds
+        setInterval(() => void monitorMemory(), 15000),  // Every 15 seconds
+        setInterval(() => void monitorDisk(), 60000)     // Every minute
       ];
 
     } catch (error) {
