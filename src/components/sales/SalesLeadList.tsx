@@ -28,8 +28,9 @@ export const SalesLeadList = () => {
 
   const handleTransferToOnboarding = async (leadId: string) => {
     try {
-      // First update the lead status
-      const { error: updateError } = await supabase
+      console.log("Attempting to transfer lead:", leadId);
+
+      const { data, error } = await supabase
         .from("sales_leads")
         .update({
           status: "onboarding",
@@ -41,27 +42,18 @@ export const SalesLeadList = () => {
         })
         .eq("id", leadId);
 
-      if (updateError) throw updateError;
-
-      // Verify the update was successful
-      const { data: updatedLead, error: verifyError } = await supabase
-        .from("sales_leads")
-        .select("*")
-        .eq("id", leadId)
-        .single();
-
-      if (verifyError) throw verifyError;
-
-      if (updatedLead.status === "onboarding") {
-        toast.success("Lead transferred to onboarding");
-        navigate(`/sales?tab=onboarding&leadId=${leadId}`);
-        refetch();
-      } else {
-        throw new Error("Failed to update lead status");
+      if (error) {
+        console.error("Database error:", error);
+        throw error;
       }
+
+      console.log("Transfer successful:", data);
+      toast.success("Lead transferred to onboarding");
+      navigate(`/sales?tab=onboarding`);
+      refetch();
     } catch (error: any) {
-      console.error("Error transferring lead:", error);
-      toast.error("Failed to transfer lead to onboarding");
+      console.error("Error transferring lead to onboarding:", error);
+      toast.error(error.message || "Failed to transfer lead to onboarding");
     }
   };
 
