@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -76,6 +75,23 @@ export const SalesLeadList = () => {
     }
   };
 
+  const handleDeleteLead = async (leadId: string) => {
+    try {
+      console.log("Deleting lead:", leadId);
+      const { error } = await supabase
+        .from("sales_leads")
+        .delete()
+        .eq("id", leadId);
+
+      if (error) throw error;
+      
+      await refetch();
+    } catch (error) {
+      console.error("Error deleting lead:", error);
+      throw error;
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-48">
@@ -121,19 +137,26 @@ export const SalesLeadList = () => {
                    style={{ animationDelay: `${index * 300}ms` }}>
                   Preferred: {lead.preferred_vehicle_type || "Any"}
                 </p>
-                {lead.status !== "onboarding" && (
-                  <Button 
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => handleTransferToOnboarding(lead.id)}
-                    className="mt-2 bg-primary hover:bg-primary/90 text-white transition-all duration-300 
-                             hover:scale-105 active:scale-95 animate-fade-in"
-                    style={{ animationDelay: `${index * 350}ms` }}
-                  >
-                    <ArrowRightCircle className="h-4 w-4 mr-2 transition-transform group-hover:translate-x-1" />
-                    Transfer to Onboarding
-                  </Button>
-                )}
+                <div className="flex gap-2">
+                  {lead.status !== "onboarding" && (
+                    <Button 
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleTransferToOnboarding(lead.id)}
+                      className="mt-2 bg-primary hover:bg-primary/90 text-white transition-all duration-300 
+                               hover:scale-105 active:scale-95 animate-fade-in"
+                      style={{ animationDelay: `${index * 350}ms` }}
+                    >
+                      <ArrowRightCircle className="h-4 w-4 mr-2 transition-transform group-hover:translate-x-1" />
+                      Transfer to Onboarding
+                    </Button>
+                  )}
+                  <DeleteLeadButton 
+                    leadId={lead.id}
+                    onDelete={handleDeleteLead}
+                    className="mt-2 animate-fade-in"
+                  />
+                </div>
                 {lead.status === "onboarding" && (
                   <Badge 
                     variant="outline" 
@@ -157,5 +180,18 @@ export const SalesLeadList = () => {
         </div>
       )}
     </div>
+  );
+};
+
+const DeleteLeadButton = ({ leadId, onDelete, className }) => {
+  return (
+    <Button 
+      variant="secondary"
+      size="sm"
+      onClick={() => onDelete(leadId)}
+      className={className}
+    >
+      Delete
+    </Button>
   );
 };
