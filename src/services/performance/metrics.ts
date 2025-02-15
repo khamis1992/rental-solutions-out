@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { metricsCache } from './cache';
@@ -6,8 +7,12 @@ import {
   RESPONSE_TIME_THRESHOLD, 
   ERROR_RATE_THRESHOLD,
   CPU_THRESHOLD,
-  MEMORY_THRESHOLD 
+  MEMORY_THRESHOLD,
+  QUERY_CACHE_TIME
 } from './constants';
+
+// Implement request deduplication
+const pendingRequests = new Map<string, Promise<any>>();
 
 export const performanceMetrics = {
   async trackPageLoad(route: string, loadTime: number) {
@@ -16,6 +21,10 @@ export const performanceMetrics = {
         description: `Page ${route} took ${(loadTime / 1000).toFixed(1)}s to load`
       });
     }
+
+    // Use cache to prevent duplicate tracking
+    const cacheKey = `pageload-${route}-${Math.floor(Date.now() / QUERY_CACHE_TIME)}`;
+    if (metricsCache.get(cacheKey)) return;
 
     const { data, error } = await supabase
       .from("performance_metrics")
@@ -29,6 +38,7 @@ export const performanceMetrics = {
       .single();
     
     if (error) throw error;
+    metricsCache.set(cacheKey, data);
     return data;
   },
 
@@ -42,7 +52,13 @@ export const performanceMetrics = {
       });
     }
 
-    const { data, error: dbError } = await supabase
+    // Deduplicate error tracking
+    const errorKey = `error-${error.component}-${error.timestamp}`;
+    if (pendingRequests.has(errorKey)) {
+      return pendingRequests.get(errorKey);
+    }
+
+    const request = supabase
       .from("performance_metrics")
       .insert({
         metric_type: 'error',
@@ -52,9 +68,16 @@ export const performanceMetrics = {
       })
       .select()
       .single();
-    
-    if (dbError) throw dbError;
-    return data;
+
+    pendingRequests.set(errorKey, request);
+
+    try {
+      const { data, error: dbError } = await request;
+      if (dbError) throw dbError;
+      return data;
+    } finally {
+      pendingRequests.delete(errorKey);
+    }
   },
 
   async getRecentErrors() {
@@ -71,11 +94,14 @@ export const performanceMetrics = {
     if (error) throw error;
     
     const result = data || [];
-    metricsCache.set('recent-errors', result);
+    metricsCache.set('recent-errors', result, QUERY_CACHE_TIME);
     return result;
   },
 
   async trackCPUUtilization(cpuUsage: number) {
+    const cacheKey = `cpu-${Math.floor(Date.now() / 1000)}`;
+    if (metricsCache.get(cacheKey)) return;
+
     const { data, error } = await supabase
       .from("performance_metrics")
       .insert({
@@ -94,13 +120,17 @@ export const performanceMetrics = {
     }
 
     if (error) throw error;
+    metricsCache.set(cacheKey, data);
     return data;
   },
 
   async trackMemoryUsage() {
     const performance = window.performance as ExtendedPerformance;
     
-    if (performance.memory) {
+    if (performance?.memory) {
+      const cacheKey = `memory-${Math.floor(Date.now() / 1000)}`;
+      if (metricsCache.get(cacheKey)) return;
+
       const usedMemory = performance.memory.usedJSHeapSize;
       const totalMemory = performance.memory.totalJSHeapSize;
       const memoryUsage = (usedMemory / totalMemory) * 100;
@@ -127,6 +157,7 @@ export const performanceMetrics = {
       }
 
       if (error) throw error;
+      metricsCache.set(cacheKey, data);
       return data;
     }
     return null;
@@ -134,8 +165,10 @@ export const performanceMetrics = {
 
   async trackDiskIO() {
     if ('storage' in navigator && 'estimate' in navigator.storage) {
-      const estimate = await navigator.storage.estimate();
-      const { quota = 0, usage = 0 } = estimate;
+      const cacheKey = `disk-${Math.floor(Date.now() / 1000)}`;
+      if (metricsCache.get(cacheKey)) return;
+
+      const { quota = 0, usage = 0 } = await navigator.storage.estimate();
       const usagePercentage = (usage / quota) * 100;
 
       const { data, error } = await supabase
@@ -154,13 +187,19 @@ export const performanceMetrics = {
         .single();
 
       if (error) throw error;
+      metricsCache.set(cacheKey, data);
       return data;
     }
     return null;
   },
 
   async triggerAnalysis() {
-    const { data, error } = await supabase.functions.invoke(
+    const cacheKey = 'analysis-trigger';
+    if (pendingRequests.has(cacheKey)) {
+      return pendingRequests.get(cacheKey);
+    }
+
+    const request = supabase.functions.invoke(
       'analyze-performance',
       {
         body: { includesDiskMetrics: true },
@@ -169,8 +208,15 @@ export const performanceMetrics = {
         }
       }
     );
-    
-    if (error) throw error;
-    return data;
+
+    pendingRequests.set(cacheKey, request);
+
+    try {
+      const { data, error } = await request;
+      if (error) throw error;
+      return data;
+    } finally {
+      pendingRequests.delete(cacheKey);
+    }
   }
 };

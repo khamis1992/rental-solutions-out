@@ -1,7 +1,13 @@
+
 import { useRef, useEffect } from 'react';
 import { performanceMetrics } from "@/services/performanceMonitoring";
 import { toast } from "sonner";
 import type { ExtendedPerformance } from "@/services/performance/types";
+import { 
+  CPU_THRESHOLD, 
+  MEMORY_THRESHOLD,
+  DEBOUNCE_DELAY
+} from "@/services/performance/constants";
 
 const MONITORING_INTERVALS = {
   CPU: 10000,    // 10 seconds
@@ -9,14 +15,9 @@ const MONITORING_INTERVALS = {
   DISK: 60000    // 1 minute
 } as const;
 
-const PERFORMANCE_THRESHOLDS = {
-  CPU: 80,    // 80% CPU usage
-  MEMORY: 90, // 90% memory usage
-  DISK: 90    // 90% disk usage
-} as const;
-
 export const usePerformanceMonitoring = () => {
   const intervals = useRef<Array<NodeJS.Timeout>>([]);
+  const lastUpdate = useRef<number>(0);
 
   const measureCPUUsage = async (): Promise<number> => {
     const performance = window.performance as ExtendedPerformance;
@@ -37,57 +38,72 @@ export const usePerformanceMonitoring = () => {
     return Math.min(Math.max(cpuUsage, 0), 100);
   };
 
+  // Debounced monitor update to prevent too frequent updates
+  const debouncedMonitorUpdate = (callback: () => Promise<void>) => {
+    const now = Date.now();
+    if (now - lastUpdate.current >= DEBOUNCE_DELAY) {
+      lastUpdate.current = now;
+      void callback();
+    }
+  };
+
   const monitorPerformance = async () => {
     try {
-      // Monitor CPU
+      // Monitor CPU with debouncing
       const monitorCPU = async () => {
-        const cpuUsage = await measureCPUUsage();
-        if (cpuUsage > PERFORMANCE_THRESHOLDS.CPU) {
-          toast.warning("High CPU Usage", {
-            description: `Current CPU utilization is ${cpuUsage.toFixed(1)}%`
-          });
-        }
-        await performanceMetrics.trackCPUUtilization(cpuUsage);
+        debouncedMonitorUpdate(async () => {
+          const cpuUsage = await measureCPUUsage();
+          if (cpuUsage > CPU_THRESHOLD) {
+            toast.warning("High CPU Usage", {
+              description: `Current CPU utilization is ${cpuUsage.toFixed(1)}%`
+            });
+          }
+          await performanceMetrics.trackCPUUtilization(cpuUsage);
+        });
       };
 
-      // Monitor Memory
+      // Monitor Memory with debouncing
       const monitorMemory = async () => {
-        const performance = window.performance as ExtendedPerformance;
-        if (performance?.memory) {
-          const usedMemory = performance.memory.usedJSHeapSize;
-          const totalMemory = performance.memory.totalJSHeapSize;
-          const memoryUsage = (usedMemory / totalMemory) * 100;
+        debouncedMonitorUpdate(async () => {
+          const performance = window.performance as ExtendedPerformance;
+          if (performance?.memory) {
+            const usedMemory = performance.memory.usedJSHeapSize;
+            const totalMemory = performance.memory.totalJSHeapSize;
+            const memoryUsage = (usedMemory / totalMemory) * 100;
 
-          if (memoryUsage > PERFORMANCE_THRESHOLDS.MEMORY) {
-            toast.warning("High Memory Usage", {
-              description: `Memory utilization is at ${memoryUsage.toFixed(1)}%`
-            });
+            if (memoryUsage > MEMORY_THRESHOLD) {
+              toast.warning("High Memory Usage", {
+                description: `Memory utilization is at ${memoryUsage.toFixed(1)}%`
+              });
+            }
+            await performanceMetrics.trackMemoryUsage();
           }
-          await performanceMetrics.trackMemoryUsage();
-        }
+        });
       };
 
-      // Monitor Disk
+      // Monitor Disk with debouncing
       const monitorDisk = async () => {
-        if ('storage' in navigator && 'estimate' in navigator.storage) {
-          const { quota = 0, usage = 0 } = await navigator.storage.estimate();
-          const usagePercentage = (usage / quota) * 100;
+        debouncedMonitorUpdate(async () => {
+          if ('storage' in navigator && 'estimate' in navigator.storage) {
+            const { quota = 0, usage = 0 } = await navigator.storage.estimate();
+            const usagePercentage = (usage / quota) * 100;
 
-          if (usagePercentage > PERFORMANCE_THRESHOLDS.DISK) {
-            toast.warning("High Disk Usage", {
-              description: `Storage utilization is at ${usagePercentage.toFixed(1)}%`
-            });
+            if (usagePercentage > 90) {
+              toast.warning("High Disk Usage", {
+                description: `Storage utilization is at ${usagePercentage.toFixed(1)}%`
+              });
+            }
+            await performanceMetrics.trackDiskIO();
           }
-          await performanceMetrics.trackDiskIO();
-        }
+        });
       };
 
-      // Set up monitoring intervals
-      intervals.current.push(
-        setInterval(monitorCPU, MONITORING_INTERVALS.CPU),
-        setInterval(monitorMemory, MONITORING_INTERVALS.MEMORY),
-        setInterval(monitorDisk, MONITORING_INTERVALS.DISK)
-      );
+      // Set up monitoring intervals with cleanup
+      intervals.current = [
+        setInterval(() => void monitorCPU(), MONITORING_INTERVALS.CPU),
+        setInterval(() => void monitorMemory(), MONITORING_INTERVALS.MEMORY),
+        setInterval(() => void monitorDisk(), MONITORING_INTERVALS.DISK)
+      ];
 
     } catch (error) {
       console.error('Performance monitoring error:', error);
@@ -95,7 +111,7 @@ export const usePerformanceMonitoring = () => {
   };
 
   useEffect(() => {
-    monitorPerformance();
+    void monitorPerformance();
     return () => {
       intervals.current.forEach(clearInterval);
       intervals.current = [];
