@@ -13,22 +13,33 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface DeleteLeadButtonProps {
   leadId: string;
-  onDelete: (leadId: string) => void;
   className?: string;
 }
 
-export function DeleteLeadButton({ leadId, onDelete, className }: DeleteLeadButtonProps) {
+export function DeleteLeadButton({ leadId, className }: DeleteLeadButtonProps) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleDelete = async () => {
     try {
       setIsDeleting(true);
-      await onDelete(leadId);
+      
+      const { error } = await supabase
+        .from("sales_leads")
+        .delete()
+        .eq("id", leadId);
+
+      if (error) throw error;
+
       toast.success("Lead deleted successfully");
+      // Invalidate and refetch the sales-leads query
+      await queryClient.invalidateQueries({ queryKey: ["sales-leads"] });
       setShowConfirmDialog(false);
     } catch (error) {
       console.error("Error deleting lead:", error);

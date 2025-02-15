@@ -16,13 +16,9 @@ export const SalesLeadList = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   
-  // Add detailed logging for debugging
-  console.log("Rendering SalesLeadList");
-  
   const { data: leads, isLoading, refetch } = useQuery({
     queryKey: ["sales-leads"],
     queryFn: async () => {
-      console.log("Fetching sales leads");
       const { data, error } = await supabase
         .from("sales_leads")
         .select("*")
@@ -32,18 +28,13 @@ export const SalesLeadList = () => {
         console.error("Supabase error:", error);
         throw error;
       }
-      console.log("Fetched leads:", data);
       return data as SalesLead[];
     }
   });
 
   const handleTransferToOnboarding = async (leadId: string) => {
     try {
-      console.log("Attempting to transfer lead:", leadId);
-      console.log("Current leads state:", leads);
-
       const lead = leads?.find(l => l.id === leadId);
-      console.log("Found lead:", lead);
 
       const { data, error } = await supabase
         .from("sales_leads")
@@ -62,35 +53,13 @@ export const SalesLeadList = () => {
         throw error;
       }
 
-      console.log("Transfer successful:", data);
       toast.success("Lead transferred to onboarding");
-      
-      console.log("Setting search params to onboarding tab");
       setSearchParams({ tab: 'onboarding' });
-      
-      console.log("Initiating refetch");
       await refetch();
       
     } catch (error: any) {
       console.error("Error transferring lead to onboarding:", error);
       toast.error(error.message || "Failed to transfer lead to onboarding");
-    }
-  };
-
-  const handleDeleteLead = async (leadId: string) => {
-    try {
-      console.log("Deleting lead:", leadId);
-      const { error } = await supabase
-        .from("sales_leads")
-        .delete()
-        .eq("id", leadId);
-
-      if (error) throw error;
-      
-      await refetch();
-    } catch (error) {
-      console.error("Error deleting lead:", error);
-      throw error;
     }
   };
 
@@ -155,7 +124,6 @@ export const SalesLeadList = () => {
                   )}
                   <DeleteLeadButton 
                     leadId={lead.id}
-                    onDelete={handleDeleteLead}
                     className="mt-2 animate-fade-in"
                   />
                 </div>
