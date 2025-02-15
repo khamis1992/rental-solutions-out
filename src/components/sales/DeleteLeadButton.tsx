@@ -43,7 +43,7 @@ export function DeleteLeadButton({ leadId, onDelete, className }: DeleteLeadButt
       <Button
         variant="destructive"
         size="sm"
-        className={className}
+        className={`bg-[#ea384c] hover:bg-[#ea384c]/90 ${className}`}
         onClick={() => setShowConfirmDialog(true)}
       >
         <Trash2 className="h-4 w-4 mr-2" />
@@ -63,7 +63,7 @@ export function DeleteLeadButton({ leadId, onDelete, className }: DeleteLeadButt
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-[#ea384c] text-white hover:bg-[#ea384c]/90"
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
