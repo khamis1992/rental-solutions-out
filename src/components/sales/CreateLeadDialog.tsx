@@ -1,338 +1,163 @@
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import { Loader2, Upload } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { LeadFormData } from "@/types/sales.types";
+import { useQueryClient } from "@tanstack/react-query";
 
-interface CreateLeadDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+export const CreateLeadDialog = () => {
+  const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const form = useForm<LeadFormData>();
 
-interface Vehicle {
-  id: string;
-  make: string;
-  model: string;
-  year: number;
-}
-
-export const CreateLeadDialog = ({ open, onOpenChange }: CreateLeadDialogProps) => {
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [documentUrl, setDocumentUrl] = useState<string | null>(null);
-  const [availableVehicles, setAvailableVehicles] = useState<Vehicle[]>([]);
-  const [formData, setFormData] = useState({
-    customerName: "",
-    phoneNumber: "",
-    preferredVehicleType: "",
-    budgetMin: "",
-    budgetMax: "",
-    priority: "medium",
-    agreementType: "short_term" as "short_term" | "lease_to_own"
-  });
-
-  useEffect(() => {
-    const fetchAvailableVehicles = async () => {
-      const { data, error } = await supabase
-        .from('vehicles')
-        .select('id, make, model, year')
-        .eq('status', 'available')
-        .order('make');
-
-      if (error) {
-        console.error('Error fetching vehicles:', error);
-        return;
-      }
-
-      setAvailableVehicles(data);
-    };
-
-    fetchAvailableVehicles();
-  }, []);
-
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const onSubmit = async (data: LeadFormData) => {
     try {
-      const file = event.target.files?.[0];
-      if (!file) return;
-
-      // Validate file type
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-      if (!allowedTypes.includes(file.type)) {
-        toast.error('Please upload a PDF, JPEG, or PNG file');
-        return;
-      }
-
-      // Validate file size (max 5MB)
-      const maxSize = 5 * 1024 * 1024;
-      if (file.size > maxSize) {
-        toast.error('File size must be less than 5MB');
-        return;
-      }
-
-      setUploading(true);
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
-
-      const { error: uploadError, data } = await supabase.storage
-        .from('sales_documents')
-        .upload(fileName, file);
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('sales_documents')
-        .getPublicUrl(fileName);
-
-      setDocumentUrl(publicUrl);
-      toast.success('Document uploaded successfully');
-    } catch (error: any) {
-      console.error('Error uploading document:', error);
-      toast.error(error.message || 'Error uploading document');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      // First, create or find the customer profile
-      const { data: existingProfiles, error: searchError } = await supabase
+      // First create a basic profile
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('id, full_name')
-        .eq('full_name', formData.customerName)
-        .eq('role', 'customer')
-        .maybeSingle();
+        .insert({
+          full_name: data.full_name,
+          phone_number: data.phone_number,
+          email: data.email,
+          role: 'customer',
+          status: 'pending_review'
+        })
+        .select()
+        .single();
 
-      if (searchError) throw searchError;
+      if (profileError) throw profileError;
 
-      let customerId;
+      // Then create the sales lead
+      const { error: leadError } = await supabase
+        .from('sales_leads')
+        .insert({
+          customer_id: profile.id,
+          full_name: data.full_name,
+          phone_number: data.phone_number,
+          email: data.email,
+          preferred_vehicle_type: data.preferred_vehicle_type,
+          preferred_agreement_type: data.preferred_agreement_type,
+          budget_range_min: data.budget_range_min,
+          budget_range_max: data.budget_range_max,
+          notes: data.notes,
+          status: 'new',
+          onboarding_progress: {
+            customer_conversion: false,
+            agreement_creation: false,
+            initial_payment: false
+          }
+        });
 
-      if (existingProfiles) {
-        customerId = existingProfiles.id;
-      } else {
-        // Create new customer profile
-        const { data: newProfile, error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            full_name: formData.customerName,
-            phone_number: formData.phoneNumber,
-            role: 'customer'
-          })
-          .select()
-          .single();
+      if (leadError) throw leadError;
 
-        if (profileError) throw profileError;
-        customerId = newProfile.id;
-      }
-
-      // Create the sales lead with the customer_id
-      const { error } = await supabase.from("sales_leads").insert({
-        customer_id: customerId,
-        preferred_vehicle_type: formData.preferredVehicleType,
-        budget_range_min: parseFloat(formData.budgetMin),
-        budget_range_max: parseFloat(formData.budgetMax),
-        priority: formData.priority,
-        preferred_agreement_type: formData.agreementType,
-        document_url: documentUrl,
-        status: "new"
-      });
-
-      if (error) throw error;
-
-      toast.success("Sales lead created successfully");
-      onOpenChange(false);
-    } catch (error) {
-      toast.error("Error creating sales lead");
-      console.error("Error:", error);
-    } finally {
-      setLoading(false);
+      toast.success("Lead created successfully");
+      setOpen(false);
+      form.reset();
+      queryClient.invalidateQueries({ queryKey: ['sales-leads'] });
+    } catch (error: any) {
+      console.error('Error creating lead:', error);
+      toast.error(error.message || "Failed to create lead");
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[425px] h-[90vh] mx-auto">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className="w-4 h-4 mr-2" />
+          New Lead
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create New Sales Lead</DialogTitle>
+          <DialogTitle>Create New Lead</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="h-full max-h-[calc(90vh-8rem)] px-1 sm:pr-4">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="customerName">Customer Name</Label>
-                <Input
-                  id="customerName"
-                  value={formData.customerName}
-                  onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                  required
-                  className="w-full min-h-[44px]"
-                />
-              </div>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="full_name">Full Name</Label>
+            <Input
+              id="full_name"
+              {...form.register("full_name", { required: true })}
+              placeholder="Enter customer's full name"
+            />
+          </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="phoneNumber">Phone Number</Label>
-                <Input
-                  id="phoneNumber"
-                  value={formData.phoneNumber}
-                  onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                  type="tel"
-                  placeholder="+974 XXXX XXXX"
-                  required
-                  className="w-full min-h-[44px]"
-                />
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="phone_number">Phone Number</Label>
+            <Input
+              id="phone_number"
+              {...form.register("phone_number", { required: true })}
+              placeholder="Enter phone number"
+            />
+          </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="vehicleType">Preferred Vehicle</Label>
-                <Select
-                  value={formData.preferredVehicleType}
-                  onValueChange={(value) => setFormData({ ...formData, preferredVehicleType: value })}
-                >
-                  <SelectTrigger className="w-full min-h-[44px]">
-                    <SelectValue placeholder="Select a vehicle" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableVehicles.map((vehicle) => (
-                      <SelectItem key={vehicle.id} value={`${vehicle.make} ${vehicle.model} ${vehicle.year}`}>
-                        {vehicle.make} {vehicle.model} {vehicle.year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              {...form.register("email")}
+              placeholder="Enter email address"
+            />
+          </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="budgetMin">Minimum Budget</Label>
-                  <Input
-                    id="budgetMin"
-                    type="number"
-                    value={formData.budgetMin}
-                    onChange={(e) => setFormData({ ...formData, budgetMin: e.target.value })}
-                    required
-                    className="w-full min-h-[44px]"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="budgetMax">Maximum Budget</Label>
-                  <Input
-                    id="budgetMax"
-                    type="number"
-                    value={formData.budgetMax}
-                    onChange={(e) => setFormData({ ...formData, budgetMax: e.target.value })}
-                    required
-                    className="w-full min-h-[44px]"
-                  />
-                </div>
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="preferred_vehicle_type">Preferred Vehicle Type</Label>
+            <Select onValueChange={(value) => form.setValue("preferred_vehicle_type", value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select vehicle type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sedan">Sedan</SelectItem>
+                <SelectItem value="suv">SUV</SelectItem>
+                <SelectItem value="luxury">Luxury</SelectItem>
+                <SelectItem value="commercial">Commercial</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="priority">Priority</Label>
-                <Select
-                  value={formData.priority}
-                  onValueChange={(value) => setFormData({ ...formData, priority: value })}
-                >
-                  <SelectTrigger className="w-full min-h-[44px]">
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="agreementType">Agreement Type</Label>
-                <Select
-                  value={formData.agreementType}
-                  onValueChange={(value) => setFormData({ ...formData, agreementType: value as "short_term" | "lease_to_own" })}
-                >
-                  <SelectTrigger className="w-full min-h-[44px]">
-                    <SelectValue placeholder="Select agreement type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="short_term">Short Term</SelectItem>
-                    <SelectItem value="lease_to_own">Lease to Own</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="document">Document Upload</Label>
-                <div className="flex flex-col gap-2">
-                  <Input
-                    id="document"
-                    type="file"
-                    onChange={handleFileUpload}
-                    accept="image/*"
-                    capture="environment"
-                    disabled={uploading}
-                    className="hidden"
-                  />
-                  <Button
-                    type="button"
-                    onClick={() => document.getElementById('document')?.click()}
-                    className="w-full py-8 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary"
-                    variant="outline"
-                    disabled={uploading}
-                  >
-                    {uploading ? (
-                      <>
-                        <Loader2 className="h-6 w-6 animate-spin" />
-                        <span>Uploading...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="h-6 w-6" />
-                        <span>Take a Photo with Camera</span>
-                        <p className="text-xs text-muted-foreground">
-                          Click to capture document image
-                        </p>
-                      </>
-                    )}
-                  </Button>
-                  {documentUrl && (
-                    <div className="bg-green-50 text-green-600 p-2 rounded-md text-sm flex items-center justify-center">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Document uploaded successfully
-                    </div>
-                  )}
-                </div>
-              </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="budget_range_min">Minimum Budget</Label>
+              <Input
+                id="budget_range_min"
+                type="number"
+                {...form.register("budget_range_min", { valueAsNumber: true })}
+                placeholder="Min budget"
+              />
             </div>
-
-            <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
-              <Button 
-                variant="outline" 
-                onClick={() => onOpenChange(false)}
-                className="w-full sm:w-auto min-h-[44px]"
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={loading}
-                className="w-full sm:w-auto min-h-[44px]"
-              >
-                {loading ? "Creating..." : "Create Lead"}
-              </Button>
+            <div className="space-y-2">
+              <Label htmlFor="budget_range_max">Maximum Budget</Label>
+              <Input
+                id="budget_range_max"
+                type="number"
+                {...form.register("budget_range_max", { valueAsNumber: true })}
+                placeholder="Max budget"
+              />
             </div>
-          </form>
-        </ScrollArea>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              {...form.register("notes")}
+              placeholder="Enter any additional notes"
+            />
+          </div>
+
+          <Button type="submit" className="w-full">
+            Create Lead
+          </Button>
+        </form>
       </DialogContent>
     </Dialog>
   );
