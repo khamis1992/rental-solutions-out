@@ -5983,6 +5983,7 @@ export type Database = {
           lead_source: string | null
           next_follow_up: string | null
           notes: string | null
+          onboarding_date: string | null
           preferred_agreement_type:
             | Database["public"]["Enums"]["agreement_type"]
             | null
@@ -6004,6 +6005,7 @@ export type Database = {
           lead_source?: string | null
           next_follow_up?: string | null
           notes?: string | null
+          onboarding_date?: string | null
           preferred_agreement_type?:
             | Database["public"]["Enums"]["agreement_type"]
             | null
@@ -6025,6 +6027,7 @@ export type Database = {
           lead_source?: string | null
           next_follow_up?: string | null
           notes?: string | null
+          onboarding_date?: string | null
           preferred_agreement_type?:
             | Database["public"]["Enums"]["agreement_type"]
             | null
