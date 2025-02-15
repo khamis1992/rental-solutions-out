@@ -49,7 +49,7 @@ export const SalesLeadList = () => {
 
   const handleTransferToOnboarding = async (leadId: string) => {
     try {
-      console.log("Transferring lead:", leadId); // Debug log
+      console.log("Transferring lead:", leadId);
       
       const { error } = await supabase
         .from("sales_leads")
@@ -61,7 +61,7 @@ export const SalesLeadList = () => {
         .select();
 
       if (error) {
-        console.error("Supabase error:", error); // Debug log
+        console.error("Supabase error:", error);
         throw error;
       }
 

@@ -1,16 +1,19 @@
+
 import { TableCell, TableRow } from "@/components/ui/table";
-import { MaintenanceStatusSelect } from "./MaintenanceStatusSelect";
-import { DeleteMaintenanceDialog } from "./DeleteMaintenanceDialog";
 import { EditMaintenanceDialog } from "../EditMaintenanceDialog";
+import { DeleteMaintenanceDialog } from "../DeleteMaintenanceDialog";
+import { MaintenanceStatusSelect } from "../MaintenanceStatusSelect";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+
+type MaintenanceStatus = "scheduled" | "in_progress" | "completed" | "cancelled" | "urgent" | "accident";
 
 interface MaintenanceRecord {
   id: string;
   vehicle_id: string;
   service_type: string;
   description?: string;
-  status: "scheduled" | "in_progress" | "completed" | "cancelled" | "accident";
+  status: MaintenanceStatus;
   cost?: number;
   scheduled_date: string;
   completed_date?: string;

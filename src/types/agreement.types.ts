@@ -50,6 +50,7 @@ export interface Template {
   text_style: TextStyle;
   template_sections: any[];
   variable_mappings: Record<string, any>;
+  template_id?: string;
 }
 
 export interface Agreement {
@@ -68,6 +69,7 @@ export interface Agreement {
   rent_amount: number;
   rent_due_day: number | null;
   remainingAmount: number;
+  template_id?: string;
   customer?: {
     id: string;
     full_name: string | null;
@@ -82,6 +84,11 @@ export interface Agreement {
     year: number;
     license_plate: string;
   };
+}
+
+export interface AgreementWithRelations extends Agreement {
+  template?: Template;
+  payments?: Payment[];
 }
 
 export interface Payment {
