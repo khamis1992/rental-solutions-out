@@ -8918,6 +8918,7 @@ export type Database = {
         | "ready_for_signature"
         | "completed"
         | "cancelled"
+        | "onboarding"
       seeker_target_status: "active" | "inactive" | "paused"
       tax_filing_status:
         | "pending"
