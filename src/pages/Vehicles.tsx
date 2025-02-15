@@ -85,7 +85,7 @@ const Vehicles = () => {
 
   return (
     <DashboardLayout>
-      <div className="content-container">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         {/* Enhanced Header Section with Gradient */}
         <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 p-4 sm:p-6 lg:p-8 border border-gray-200/50 dark:border-gray-700/50">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">
