@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface DeleteLeadButtonProps {
   leadId: string;
@@ -23,31 +23,27 @@ interface DeleteLeadButtonProps {
 
 export function DeleteLeadButton({ leadId, className }: DeleteLeadButtonProps) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
 
-  const handleDelete = async () => {
-    try {
-      setIsDeleting(true);
-      
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
       const { error } = await supabase
         .from("sales_leads")
         .delete()
         .eq("id", leadId);
 
       if (error) throw error;
-
+    },
+    onSuccess: () => {
       toast.success("Lead deleted successfully");
-      // Invalidate and refetch the sales-leads query
-      await queryClient.invalidateQueries({ queryKey: ["sales-leads"] });
+      queryClient.invalidateQueries({ queryKey: ["sales-leads"] });
       setShowConfirmDialog(false);
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error("Error deleting lead:", error);
       toast.error("Failed to delete lead. Please try again.");
-    } finally {
-      setIsDeleting(false);
     }
-  };
+  });
 
   return (
     <>
@@ -70,13 +66,13 @@ export function DeleteLeadButton({ leadId, className }: DeleteLeadButtonProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
-              disabled={isDeleting}
+              onClick={() => deleteMutation.mutate()}
+              disabled={deleteMutation.isPending}
               className="bg-[#ea384c] text-white hover:bg-[#ea384c]/90"
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
