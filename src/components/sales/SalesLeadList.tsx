@@ -8,11 +8,13 @@ import { Loader2, ArrowRightCircle } from "lucide-react";
 import { VehicleRecommendations } from "./VehicleRecommendations";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import type { SalesLead } from "@/types/sales.types";
 
 export const SalesLeadList = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
   const { data: leads, isLoading, refetch } = useQuery({
     queryKey: ["sales-leads"],
     queryFn: async () => {
@@ -49,8 +51,13 @@ export const SalesLeadList = () => {
 
       console.log("Transfer successful:", data);
       toast.success("Lead transferred to onboarding");
-      navigate(`/sales?tab=onboarding`);
-      refetch();
+      
+      // Update both the URL and search params
+      setSearchParams({ tab: 'onboarding' });
+      
+      // Force a refetch to update the list
+      await refetch();
+      
     } catch (error: any) {
       console.error("Error transferring lead to onboarding:", error);
       toast.error(error.message || "Failed to transfer lead to onboarding");
