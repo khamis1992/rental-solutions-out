@@ -1,7 +1,9 @@
 
-export type SalesLeadStatus = 
+import { Database } from "@/integrations/supabase/types";
+
+export type SalesPipelineStage = 
   | "new"
-  | "document_collection" 
+  | "document_collection"
   | "vehicle_selection"
   | "agreement_draft"
   | "ready_for_signature"
@@ -9,42 +11,47 @@ export type SalesLeadStatus =
   | "completed"
   | "cancelled";
 
-export interface SalesLead {
+export type SalesLead = {
   id: string;
-  customer_id?: string;
-  full_name: string;
-  phone_number: string;
-  email?: string;
-  preferred_vehicle_type?: string;
-  preferred_agreement_type?: string;
-  budget_range_min?: number;
-  budget_range_max?: number;
-  notes?: string;
-  lead_score?: number;
-  status: SalesLeadStatus;
-  assigned_to?: string;
-  created_at: string;
-  updated_at: string;
-  onboarding_progress?: {
+  full_name: string | null;
+  email: string | null;
+  phone_number: string | null;
+  status: SalesPipelineStage;
+  lead_score: number | null;
+  notes: string | null;
+  created_at: string | null;
+  last_contacted: string | null;
+  assigned_to: string | null;
+  customer_id: string | null;
+  document_url: string | null;
+  onboarding_date: string | null;
+  preferred_agreement_type: Database["public"]["Enums"]["agreement_type"] | null;
+  budget_range_min: number | null;
+  budget_range_max: number | null;
+  preferred_vehicle_type: string | null;
+  onboarding_progress: {
     customer_conversion: boolean;
     agreement_creation: boolean;
     initial_payment: boolean;
-  };
-  customer?: {
-    id: string;
-    full_name: string;
-    phone_number: string;
-    email?: string;
-  };
-}
+  } | null;
+};
 
-export interface LeadFormData {
-  full_name: string;
-  phone_number: string;
-  email?: string;
-  preferred_vehicle_type?: string;
-  preferred_agreement_type?: string;
-  budget_range_min?: number;
-  budget_range_max?: number;
-  notes?: string;
-}
+export type SalesCommunication = {
+  id: string;
+  lead_id: string;
+  content: string;
+  type: string;
+  status: string;
+  created_at: string;
+  team_member?: {
+    full_name: string;
+  };
+};
+
+export type SalesTask = {
+  id: string;
+  lead_id: string;
+  title: string;
+  status: 'pending' | 'completed';
+  created_at: string;
+};
