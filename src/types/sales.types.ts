@@ -33,7 +33,7 @@ export type SalesLead = {
     customer_conversion: boolean;
     agreement_creation: boolean;
     initial_payment: boolean;
-  } | null;
+  } | null | unknown; // Added unknown to handle JSON type from Supabase
 };
 
 export type SalesCommunication = {
