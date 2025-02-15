@@ -11,7 +11,7 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 
 interface LeadFormData {
   full_name: string;
@@ -28,6 +28,26 @@ export const CreateLeadDialog = () => {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
   const form = useForm<LeadFormData>();
+
+  // Query for available vehicles
+  const { data: availableVehicles } = useQuery({
+    queryKey: ["available-vehicles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("vehicles")
+        .select("make, model")
+        .eq("status", "available");
+
+      if (error) {
+        console.error("Error fetching available vehicles:", error);
+        throw error;
+      }
+
+      // Create unique vehicle types from make+model combinations
+      const uniqueTypes = [...new Set(data.map(v => `${v.make} ${v.model}`))];
+      return uniqueTypes;
+    }
+  });
 
   const onSubmit = async (data: LeadFormData) => {
     try {
@@ -128,10 +148,11 @@ export const CreateLeadDialog = () => {
                   <SelectValue placeholder="Select vehicle type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sedan">Sedan</SelectItem>
-                  <SelectItem value="suv">SUV</SelectItem>
-                  <SelectItem value="luxury">Luxury</SelectItem>
-                  <SelectItem value="commercial">Commercial</SelectItem>
+                  {availableVehicles?.map((vehicle) => (
+                    <SelectItem key={vehicle} value={vehicle}>
+                      {vehicle}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
