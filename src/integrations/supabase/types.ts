@@ -321,6 +321,7 @@ export type Database = {
           rent_amount: number | null
           template_sections: Json[] | null
           template_structure: Json | null
+          text_style: Json | null
           updated_at: string | null
           variable_mappings: Json | null
         }
@@ -341,6 +342,7 @@ export type Database = {
           rent_amount?: number | null
           template_sections?: Json[] | null
           template_structure?: Json | null
+          text_style?: Json | null
           updated_at?: string | null
           variable_mappings?: Json | null
         }
@@ -361,6 +363,7 @@ export type Database = {
           rent_amount?: number | null
           template_sections?: Json[] | null
           template_structure?: Json | null
+          text_style?: Json | null
           updated_at?: string | null
           variable_mappings?: Json | null
         }
@@ -3739,6 +3742,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          maintenance_type: string | null
           notes: string | null
           performed_by: string | null
           scheduled_date: string
@@ -3754,6 +3758,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          maintenance_type?: string | null
           notes?: string | null
           performed_by?: string | null
           scheduled_date: string
@@ -3769,6 +3774,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          maintenance_type?: string | null
           notes?: string | null
           performed_by?: string | null
           scheduled_date?: string
@@ -5119,6 +5125,36 @@ export type Database = {
           id?: string
           resource?: string
           role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: []
+      }
+      points_earning_rules: {
+        Row: {
+          condition: Json | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          points: number
+          updated_at: string | null
+        }
+        Insert: {
+          condition?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          points: number
+          updated_at?: string | null
+        }
+        Update: {
+          condition?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          points?: number
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -7966,6 +8002,7 @@ export type Database = {
           make: string
           mileage: number | null
           model: string
+          rent_amount: number | null
           status: Database["public"]["Enums"]["vehicle_status"] | null
           updated_at: string
           vin: string
@@ -7985,6 +8022,7 @@ export type Database = {
           make: string
           mileage?: number | null
           model: string
+          rent_amount?: number | null
           status?: Database["public"]["Enums"]["vehicle_status"] | null
           updated_at?: string
           vin: string
@@ -8004,6 +8042,7 @@ export type Database = {
           make?: string
           mileage?: number | null
           model?: string
+          rent_amount?: number | null
           status?: Database["public"]["Enums"]["vehicle_status"] | null
           updated_at?: string
           vin?: string
