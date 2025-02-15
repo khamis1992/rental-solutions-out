@@ -1,35 +1,16 @@
 
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Phone, Mail, Calendar } from "lucide-react";
-import type { SalesLead } from "@/types/sales.types";
 import { format } from "date-fns";
+import { useLeadDetails } from "@/hooks/sales/useLeadDetails";
 
 interface LeadDetailsProps {
   leadId: string;
 }
 
 export const LeadDetails = ({ leadId }: LeadDetailsProps) => {
-  const { data: lead, isLoading } = useQuery({
-    queryKey: ["lead-details", leadId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("sales_leads")
-        .select(`
-          *,
-          assigned_to:profiles(full_name),
-          communications:sales_communications(*)
-        `)
-        .eq("id", leadId)
-        .single();
-      
-      if (error) throw error;
-      return data as SalesLead;
-    }
-  });
+  const { lead, isLoading } = useLeadDetails(leadId);
 
   if (isLoading) {
     return (

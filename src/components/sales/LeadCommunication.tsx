@@ -1,12 +1,10 @@
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Send } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { useCommunications } from "@/hooks/sales/useCommunications";
 
 interface LeadCommunicationProps {
   leadId: string;
@@ -14,52 +12,14 @@ interface LeadCommunicationProps {
 
 export const LeadCommunication = ({ leadId }: LeadCommunicationProps) => {
   const [message, setMessage] = useState("");
-  const queryClient = useQueryClient();
-
-  const { data: communications, isLoading } = useQuery({
-    queryKey: ["lead-communications", leadId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("sales_communications")
-        .select(`
-          *,
-          team_member:profiles(full_name)
-        `)
-        .eq("lead_id", leadId)
-        .order("created_at", { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  const addCommunication = useMutation({
-    mutationFn: async (content: string) => {
-      const { error } = await supabase
-        .from("sales_communications")
-        .insert({
-          lead_id: leadId,
-          type: "note",
-          content,
-          status: "completed"
-        });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      setMessage("");
-      queryClient.invalidateQueries({ queryKey: ["lead-communications"] });
-      toast.success("Communication added successfully");
-    },
-    onError: () => {
-      toast.error("Failed to add communication");
-    }
-  });
+  const { communications, isLoading, addCommunication } = useCommunications(leadId);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
-    addCommunication.mutate(message);
+    addCommunication.mutate(message, {
+      onSuccess: () => setMessage("")
+    });
   };
 
   if (isLoading) {
