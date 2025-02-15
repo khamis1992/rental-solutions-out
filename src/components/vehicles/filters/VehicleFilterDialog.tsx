@@ -92,6 +92,9 @@ export const VehicleFilterDialog = ({
                 <SelectItem value="rented">Rented</SelectItem>
                 <SelectItem value="reserved">Reserved</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="police_station">Police Station</SelectItem>
+                <SelectItem value="accident">Accident</SelectItem>
+                <SelectItem value="stolen">Stolen</SelectItem>
               </SelectContent>
             </Select>
           </div>
