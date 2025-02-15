@@ -5967,6 +5967,38 @@ export type Database = {
           },
         ]
       }
+      sales_conversion_events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          lead_id: string | null
+          metadata: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          lead_id?: string | null
+          metadata?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          lead_id?: string | null
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_conversion_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sales_documents: {
         Row: {
           created_at: string | null
@@ -6020,6 +6052,7 @@ export type Database = {
           next_follow_up: string | null
           notes: string | null
           onboarding_date: string | null
+          onboarding_progress: Json | null
           preferred_agreement_type:
             | Database["public"]["Enums"]["agreement_type"]
             | null
@@ -6042,6 +6075,7 @@ export type Database = {
           next_follow_up?: string | null
           notes?: string | null
           onboarding_date?: string | null
+          onboarding_progress?: Json | null
           preferred_agreement_type?:
             | Database["public"]["Enums"]["agreement_type"]
             | null
@@ -6064,6 +6098,7 @@ export type Database = {
           next_follow_up?: string | null
           notes?: string | null
           onboarding_date?: string | null
+          onboarding_progress?: Json | null
           preferred_agreement_type?:
             | Database["public"]["Enums"]["agreement_type"]
             | null
