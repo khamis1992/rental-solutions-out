@@ -6045,6 +6045,8 @@ export type Database = {
           created_at: string | null
           customer_id: string | null
           document_url: string | null
+          email: string | null
+          full_name: string | null
           id: string
           last_contacted: string | null
           lead_score: number | null
@@ -6053,6 +6055,7 @@ export type Database = {
           notes: string | null
           onboarding_date: string | null
           onboarding_progress: Json | null
+          phone_number: string | null
           preferred_agreement_type:
             | Database["public"]["Enums"]["agreement_type"]
             | null
@@ -6068,6 +6071,8 @@ export type Database = {
           created_at?: string | null
           customer_id?: string | null
           document_url?: string | null
+          email?: string | null
+          full_name?: string | null
           id?: string
           last_contacted?: string | null
           lead_score?: number | null
@@ -6076,6 +6081,7 @@ export type Database = {
           notes?: string | null
           onboarding_date?: string | null
           onboarding_progress?: Json | null
+          phone_number?: string | null
           preferred_agreement_type?:
             | Database["public"]["Enums"]["agreement_type"]
             | null
@@ -6091,6 +6097,8 @@ export type Database = {
           created_at?: string | null
           customer_id?: string | null
           document_url?: string | null
+          email?: string | null
+          full_name?: string | null
           id?: string
           last_contacted?: string | null
           lead_score?: number | null
@@ -6099,6 +6107,7 @@ export type Database = {
           notes?: string | null
           onboarding_date?: string | null
           onboarding_progress?: Json | null
+          phone_number?: string | null
           preferred_agreement_type?:
             | Database["public"]["Enums"]["agreement_type"]
             | null
