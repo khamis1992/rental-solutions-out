@@ -8,6 +8,7 @@ import { CreateCustomerDialog } from "../customers/CreateCustomerDialog";
 import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { PaymentEntryDialog } from "./PaymentEntryDialog";
 import type { SalesLead } from "@/types/sales.types";
 
 export const SalesPipeline = () => {
@@ -40,12 +41,49 @@ export const SalesPipeline = () => {
     enabled: !!leadId
   });
 
+  const { data: agreement } = useQuery({
+    queryKey: ["lead-agreement", leadId],
+    queryFn: async () => {
+      if (!leadId) return null;
+      const { data, error } = await supabase
+        .from("leases")
+        .select("*")
+        .eq("customer_id", lead?.customer_id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!lead?.customer_id
+  });
+
   const handleCreateAgreement = () => {
     // If we have lead data, pass it to the agreement creation page
     if (lead && lead.customer_id) {
       navigate(`/agreements/new?customerId=${lead.customer_id}&leadId=${lead.id}`);
     } else {
       navigate("/agreements/new");
+    }
+  };
+
+  const handlePaymentComplete = async () => {
+    if (!leadId) return;
+
+    try {
+      const { error } = await supabase
+        .from("sales_leads")
+        .update({
+          status: "completed",
+          onboarding_progress: {
+            ...lead?.onboarding_progress,
+            initial_payment: true
+          }
+        })
+        .eq("id", leadId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error updating lead status:", error);
     }
   };
 
@@ -69,7 +107,12 @@ export const SalesPipeline = () => {
       title: "Enter First Payment",
       description: "Record the initial payment for the agreement",
       icon: <DollarSign className="h-6 w-6 text-primary" />,
-      action: () => navigate("/finance"),
+      action: agreement ? (
+        <PaymentEntryDialog
+          agreementId={agreement.id}
+          onPaymentComplete={handlePaymentComplete}
+        />
+      ) : () => navigate("/finance"),
       completed: lead?.onboarding_progress?.initial_payment,
       disabled: !lead?.onboarding_progress?.agreement_creation
     }
