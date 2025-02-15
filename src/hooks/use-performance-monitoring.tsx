@@ -9,10 +9,13 @@ import {
   DEBOUNCE_DELAY
 } from "@/services/performance/constants";
 
-// Define monitoring intervals as constants
-const MONITOR_CPU_INTERVAL = 10000;    // Every 10 seconds
-const MONITOR_MEMORY_INTERVAL = 15000; // Every 15 seconds
-const MONITOR_DISK_INTERVAL = 60000;   // Every minute
+// Define monitoring intervals based on actual needs
+// CPU is checked less frequently as it's less critical for web apps
+const MONITOR_CPU_INTERVAL = 30000;     // Every 30 seconds
+// Memory is checked more frequently as it's critical for app performance
+const MONITOR_MEMORY_INTERVAL = 10000;  // Every 10 seconds 
+// Disk is checked rarely as it changes slowly
+const MONITOR_DISK_INTERVAL = 300000;   // Every 5 minutes
 
 export const usePerformanceMonitoring = () => {
   const intervals = useRef<Array<NodeJS.Timeout>>([]);
@@ -48,20 +51,7 @@ export const usePerformanceMonitoring = () => {
 
   const monitorPerformance = async () => {
     try {
-      // Monitor CPU with debouncing
-      const monitorCPU = async () => {
-        debouncedMonitorUpdate(async () => {
-          const cpuUsage = await measureCPUUsage();
-          if (cpuUsage > CPU_THRESHOLD) {
-            toast.warning("High CPU Usage", {
-              description: `Current CPU utilization is ${cpuUsage.toFixed(1)}%`
-            });
-          }
-          await performanceMetrics.trackCPUUtilization(cpuUsage);
-        });
-      };
-
-      // Monitor Memory with debouncing
+      // Monitor Memory with debouncing (highest priority)
       const monitorMemory = async () => {
         debouncedMonitorUpdate(async () => {
           const performance = window.performance as ExtendedPerformance;
@@ -80,7 +70,20 @@ export const usePerformanceMonitoring = () => {
         });
       };
 
-      // Monitor Disk with debouncing
+      // Monitor CPU with debouncing (medium priority)
+      const monitorCPU = async () => {
+        debouncedMonitorUpdate(async () => {
+          const cpuUsage = await measureCPUUsage();
+          if (cpuUsage > CPU_THRESHOLD) {
+            toast.warning("High CPU Usage", {
+              description: `Current CPU utilization is ${cpuUsage.toFixed(1)}%`
+            });
+          }
+          await performanceMetrics.trackCPUUtilization(cpuUsage);
+        });
+      };
+
+      // Monitor Disk with debouncing (lowest priority)
       const monitorDisk = async () => {
         debouncedMonitorUpdate(async () => {
           if ('storage' in navigator && 'estimate' in navigator.storage) {
@@ -99,8 +102,8 @@ export const usePerformanceMonitoring = () => {
 
       // Set up monitoring intervals with cleanup
       intervals.current = [
-        setInterval(() => void monitorCPU(), MONITOR_CPU_INTERVAL),
         setInterval(() => void monitorMemory(), MONITOR_MEMORY_INTERVAL),
+        setInterval(() => void monitorCPU(), MONITOR_CPU_INTERVAL),
         setInterval(() => void monitorDisk(), MONITOR_DISK_INTERVAL)
       ];
 
