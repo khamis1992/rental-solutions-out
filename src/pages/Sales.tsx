@@ -8,8 +8,16 @@ import { SalesPipeline } from "@/components/sales/SalesPipeline";
 import { LeadScoring } from "@/components/sales/LeadScoring";
 import { TeamPerformance } from "@/components/sales/TeamPerformance";
 import { CreateLeadDialog } from "@/components/sales/CreateLeadDialog";
+import { useSearchParams } from "react-router-dom";
 
 const Sales = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentTab = searchParams.get("tab") || "overview";
+
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value });
+  };
+
   return (
     <DashboardLayout>
       <div className="container mx-auto p-6">
@@ -18,7 +26,7 @@ const Sales = () => {
           <CreateLeadDialog />
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="leads">Leads</TabsTrigger>
