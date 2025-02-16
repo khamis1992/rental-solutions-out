@@ -12,8 +12,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ActivityTimeline } from "./ActivityTimeline";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { LeadNotes } from "./LeadNotes";
+import { LeadCommunications } from "../email/LeadCommunications";
 
 interface LeadDetailsProps {
   leadId: string;
@@ -105,11 +106,16 @@ export function LeadDetails({ leadId, open, onOpenChange }: LeadDetailsProps) {
           <Tabs defaultValue="activity" className="w-full">
             <TabsList>
               <TabsTrigger value="activity">Activity</TabsTrigger>
+              <TabsTrigger value="communications">Communications</TabsTrigger>
               <TabsTrigger value="notes">Notes</TabsTrigger>
             </TabsList>
 
             <TabsContent value="activity" className="mt-4">
               <ActivityTimeline leadId={leadId} />
+            </TabsContent>
+
+            <TabsContent value="communications" className="mt-4">
+              <LeadCommunications leadId={leadId} leadEmail={lead?.email} />
             </TabsContent>
 
             <TabsContent value="notes" className="mt-4">
