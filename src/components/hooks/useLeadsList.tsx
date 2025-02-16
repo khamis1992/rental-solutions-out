@@ -1,4 +1,5 @@
 
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SalesLead, LeadStatus } from "@/types/sales-lead";
@@ -40,7 +41,7 @@ export function useLeadsList({
     isLoading,
     isError,
     error,
-    refetch
+    refetch: queryRefetch
   } = useQuery({
     queryKey: ["leads", page, perPage, filters],
     queryFn: async () => {
@@ -75,7 +76,7 @@ export function useLeadsList({
   });
 
   // Setup real-time subscription
-  React.useEffect(() => {
+  useEffect(() => {
     const subscription = supabase
       .channel("sales_leads_changes")
       .on(
@@ -87,7 +88,7 @@ export function useLeadsList({
         },
         () => {
           // Refetch data when changes occur
-          refetch();
+          queryRefetch();
         }
       )
       .subscribe();
@@ -95,7 +96,7 @@ export function useLeadsList({
     return () => {
       subscription.unsubscribe();
     };
-  }, [refetch]);
+  }, [queryRefetch]);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -133,14 +134,27 @@ export function useLeadsList({
     },
   });
 
+  // Wrap mutation functions to return Promises
+  const wrappedDeleteLead = async (id: string): Promise<void> => {
+    await deleteMutation.mutateAsync(id);
+  };
+
+  const wrappedUpdateLead = async (lead: Partial<SalesLead> & { id: string }): Promise<void> => {
+    await updateMutation.mutateAsync(lead);
+  };
+
+  const wrappedRefetch = async (): Promise<void> => {
+    await queryRefetch();
+  };
+
   return {
     leads: data?.leads || [],
     totalCount: data?.totalCount || 0,
     isLoading,
     isError,
     error,
-    refetch,
-    deleteLead: deleteMutation.mutate,
-    updateLead: updateMutation.mutate,
+    refetch: wrappedRefetch,
+    deleteLead: wrappedDeleteLead,
+    updateLead: wrappedUpdateLead,
   };
 }
