@@ -1,7 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { PreregisteredForm } from "@/components/sales/PreregisteredForm";
-import { Button } from "@/components/ui/button";
+import { LeadList } from "@/components/sales/LeadList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { VehicleType } from "@/types/sales.types";
@@ -16,7 +16,7 @@ export default function Sales() {
         .order("name");
 
       if (error) throw error;
-      return data;
+      return data as VehicleType[];
     },
   });
 
@@ -41,7 +41,7 @@ export default function Sales() {
 
             <div className="space-y-4">
               <h2 className="text-2xl font-semibold">Lead List</h2>
-              {/* LeadList component will be added here */}
+              <LeadList />
             </div>
           </div>
         </TabsContent>
