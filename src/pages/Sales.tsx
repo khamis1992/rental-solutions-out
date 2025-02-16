@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PreregisteredForm } from "@/components/sales/PreregisteredForm";
@@ -12,9 +12,34 @@ export default function Sales() {
   const navigate = useNavigate();
   const [leads, setLeads] = useState<SalesLead[]>([]);
 
-  const handleLeadCreated = async (newLead: SalesLead) => {
-    setLeads([...leads, newLead]);
+  useEffect(() => {
+    fetchLeads();
+  }, []);
+
+  const fetchLeads = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("sales_leads")
+        .select("*")
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setLeads(data as SalesLead[]);
+    } catch (error) {
+      toast.error("Error fetching leads");
+      console.error("Error:", error);
+    }
+  };
+
+  const handleLeadCreated = (newLead: SalesLead) => {
+    setLeads([newLead, ...leads]);
     toast.success("Lead created successfully");
+  };
+
+  const handleLeadUpdated = (updatedLead: SalesLead) => {
+    setLeads(leads.map(lead => 
+      lead.id === updatedLead.id ? updatedLead : lead
+    ));
   };
 
   const handleLeadDeleted = async (leadId: string) => {
@@ -59,6 +84,7 @@ export default function Sales() {
               leads={leads}
               onDelete={handleLeadDeleted}
               onTransferToOnboarding={handleTransferToOnboarding}
+              onLeadUpdated={handleLeadUpdated}
             />
           </div>
         </div>

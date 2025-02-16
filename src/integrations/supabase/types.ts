@@ -5912,6 +5912,67 @@ export type Database = {
           },
         ]
       }
+      sales_lead_history: {
+        Row: {
+          changed_by: string | null
+          changes: Json
+          created_at: string | null
+          id: string
+          lead_id: string | null
+          new_status: Database["public"]["Enums"]["sales_lead_status"] | null
+          notes: string | null
+          previous_status:
+            | Database["public"]["Enums"]["sales_lead_status"]
+            | null
+        }
+        Insert: {
+          changed_by?: string | null
+          changes: Json
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          new_status?: Database["public"]["Enums"]["sales_lead_status"] | null
+          notes?: string | null
+          previous_status?:
+            | Database["public"]["Enums"]["sales_lead_status"]
+            | null
+        }
+        Update: {
+          changed_by?: string | null
+          changes?: Json
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          new_status?: Database["public"]["Enums"]["sales_lead_status"] | null
+          notes?: string | null
+          previous_status?:
+            | Database["public"]["Enums"]["sales_lead_status"]
+            | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_lead_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_lead_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_lead_history_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sales_leads: {
         Row: {
           budget_max: number | null

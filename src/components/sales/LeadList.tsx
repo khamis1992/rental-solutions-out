@@ -12,23 +12,19 @@ import {
 import { SalesLead } from "@/types/sales.types";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Edit, Trash2 } from "lucide-react";
+import { EditLeadDialog } from "./EditLeadDialog";
 
 interface LeadListProps {
   leads: SalesLead[];
   onDelete: (id: string) => void;
   onTransferToOnboarding: (id: string) => void;
+  onLeadUpdated: (lead: SalesLead) => void;
 }
 
-export function LeadList({ leads, onDelete, onTransferToOnboarding }: LeadListProps) {
+export function LeadList({ leads, onDelete, onTransferToOnboarding, onLeadUpdated }: LeadListProps) {
   const [selectedLead, setSelectedLead] = useState<SalesLead | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -68,19 +64,16 @@ export function LeadList({ leads, onDelete, onTransferToOnboarding }: LeadListPr
                 <TableCell>{formatDate(new Date(lead.created_at))}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={() => setSelectedLead(lead)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Edit Lead</DialogTitle>
-                        </DialogHeader>
-                        {/* Edit form will go here */}
-                      </DialogContent>
-                    </Dialog>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => {
+                        setSelectedLead(lead);
+                        setEditDialogOpen(true);
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
                     
                     <Button
                       variant="ghost"
@@ -103,6 +96,15 @@ export function LeadList({ leads, onDelete, onTransferToOnboarding }: LeadListPr
           </TableBody>
         </Table>
       </div>
+
+      {selectedLead && (
+        <EditLeadDialog
+          lead={selectedLead}
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          onLeadUpdated={onLeadUpdated}
+        />
+      )}
     </div>
   );
 }
