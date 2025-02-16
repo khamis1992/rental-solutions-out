@@ -5880,6 +5880,135 @@ export type Database = {
         }
         Relationships: []
       }
+      sales_communications: {
+        Row: {
+          communication_type: string
+          content: string | null
+          created_at: string
+          id: string
+          lead_id: string | null
+        }
+        Insert: {
+          communication_type: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+        }
+        Update: {
+          communication_type?: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_communications_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_leads: {
+        Row: {
+          budget_max: number | null
+          budget_min: number
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          nationality: string
+          notes: string | null
+          onboarding_progress: Json | null
+          phone_number: string
+          preferred_vehicle_type: string | null
+          status: Database["public"]["Enums"]["sales_lead_status"] | null
+          updated_at: string
+        }
+        Insert: {
+          budget_max?: number | null
+          budget_min?: number
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          nationality: string
+          notes?: string | null
+          onboarding_progress?: Json | null
+          phone_number: string
+          preferred_vehicle_type?: string | null
+          status?: Database["public"]["Enums"]["sales_lead_status"] | null
+          updated_at?: string
+        }
+        Update: {
+          budget_max?: number | null
+          budget_min?: number
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          nationality?: string
+          notes?: string | null
+          onboarding_progress?: Json | null
+          phone_number?: string
+          preferred_vehicle_type?: string | null
+          status?: Database["public"]["Enums"]["sales_lead_status"] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_leads_preferred_vehicle_type_fkey"
+            columns: ["preferred_vehicle_type"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_tasks: {
+        Row: {
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          lead_id: string | null
+          status: string | null
+          task_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          lead_id?: string | null
+          status?: string | null
+          task_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          lead_id?: string | null
+          status?: string | null
+          task_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_tasks_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schedule_conflicts: {
         Row: {
           conflict_type: string
@@ -8517,6 +8646,14 @@ export type Database = {
       payment_status: "pending" | "completed" | "failed" | "refunded"
       payment_status_type: "pending" | "paid" | "overdue" | "cancelled"
       portal_user_status: "active" | "inactive" | "locked"
+      sales_lead_status:
+        | "new"
+        | "contacted"
+        | "qualified"
+        | "negotiating"
+        | "converted"
+        | "lost"
+        | "in_onboarding"
       seeker_target_status: "active" | "inactive" | "paused"
       tax_filing_status:
         | "pending"

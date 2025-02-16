@@ -71,8 +71,14 @@ const menuGroups: MenuGroup[] = [
     ]
   },
   {
-    label: "Customer Management",
+    label: "Sales & Customers",
     items: [
+      { 
+        icon: Users, 
+        label: "Sales", 
+        href: "/sales",
+        description: "Lead Management"
+      },
       { 
         icon: Users, 
         label: "Customers", 
