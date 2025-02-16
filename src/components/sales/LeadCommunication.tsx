@@ -1,26 +1,39 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Send } from "lucide-react";
-import { useState } from "react";
-import { useCommunications } from "@/hooks/sales/useCommunications";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import type { LeadCommunication as LeadCommunicationType } from "@/types/sales.types";
+import { Loader2 } from "lucide-react";
 
 interface LeadCommunicationProps {
   leadId: string;
 }
 
 export const LeadCommunication = ({ leadId }: LeadCommunicationProps) => {
-  const [message, setMessage] = useState("");
-  const { communications, isLoading, addCommunication } = useCommunications(leadId);
+  const { data: communications, isLoading } = useQuery({
+    queryKey: ["lead-communications", leadId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("sales_communications")
+        .select(`
+          *,
+          profiles:team_member_id (
+            full_name
+          )
+        `)
+        .eq("lead_id", leadId)
+        .order("created_at", { ascending: false });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!message.trim()) return;
-    addCommunication.mutate(message, {
-      onSuccess: () => setMessage("")
-    });
-  };
+      if (error) {
+        console.error("Error fetching communications:", error);
+        throw error;
+      }
+
+      return data as LeadCommunicationType[];
+    }
+  });
 
   if (isLoading) {
     return (
@@ -30,47 +43,34 @@ export const LeadCommunication = ({ leadId }: LeadCommunicationProps) => {
     );
   }
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Communications</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Textarea
-            placeholder="Add a note..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-          />
-          <Button 
-            type="submit" 
-            disabled={addCommunication.isPending || !message.trim()}
-          >
-            {addCommunication.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4 mr-2" />
-            )}
-            Add Note
-          </Button>
-        </form>
+  if (!communications || communications.length === 0) {
+    return (
+      <div className="text-center text-muted-foreground py-8">
+        No communication history found
+      </div>
+    );
+  }
 
-        <div className="mt-6 space-y-4">
-          {communications?.map((comm) => (
-            <div key={comm.id} className="border-b pb-4">
-              <div className="flex justify-between items-start">
-                <p className="font-medium">
-                  {comm.team_member?.full_name || "System"}
-                </p>
-                <span className="text-sm text-muted-foreground">
-                  {new Date(comm.created_at).toLocaleString()}
-                </span>
+  return (
+    <div className="space-y-4">
+      {communications.map((comm) => (
+        <Card key={comm.id}>
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <div className="font-medium">
+                  {comm.profiles?.full_name || "System"}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {format(new Date(comm.created_at!), "PPp")}
+                </div>
+                <div className="mt-2">{comm.content}</div>
               </div>
-              <p className="mt-2 text-sm">{comm.content}</p>
+              <Badge>{comm.type}</Badge>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 };

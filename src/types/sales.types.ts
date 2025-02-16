@@ -1,7 +1,5 @@
 
-import { Database } from "@/integrations/supabase/types";
-
-export type SalesPipelineStage = 
+export type SalesLeadStatus = 
   | "new"
   | "document_collection"
   | "vehicle_selection"
@@ -11,47 +9,77 @@ export type SalesPipelineStage =
   | "completed"
   | "cancelled";
 
-export type SalesLead = {
-  id: string;
-  full_name: string | null;
-  email: string | null;
-  phone_number: string | null;
-  status: SalesPipelineStage;
-  lead_score: number | null;
-  notes: string | null;
-  created_at: string | null;
-  last_contacted: string | null;
-  assigned_to: string | null;
-  customer_id: string | null;
-  document_url: string | null;
-  onboarding_date: string | null;
-  preferred_agreement_type: Database["public"]["Enums"]["agreement_type"] | null;
-  budget_range_min: number | null;
-  budget_range_max: number | null;
-  preferred_vehicle_type: string | null;
-  onboarding_progress: {
-    customer_conversion: boolean;
-    agreement_creation: boolean;
-    initial_payment: boolean;
-  } | null | unknown; // Added unknown to handle JSON type from Supabase
-};
+export interface LeadProgress {
+  customer_conversion: boolean;
+  agreement_creation: boolean;
+  initial_payment: boolean;
+}
 
-export type SalesCommunication = {
+export interface SalesLead {
   id: string;
-  lead_id: string;
-  content: string;
-  type: string;
-  status: string;
-  created_at: string;
-  team_member?: {
+  customer_id?: string;
+  full_name?: string;
+  phone_number?: string;
+  email?: string;
+  preferred_vehicle_type?: string;
+  preferred_agreement_type?: "short_term" | "lease_to_own" | null;
+  budget_range_min?: number;
+  budget_range_max?: number;
+  notes?: string;
+  status: SalesLeadStatus;
+  assigned_to?: string;
+  created_at?: string;
+  updated_at?: string;
+  lead_score?: number;
+  next_follow_up?: string;
+  onboarding_date?: string;
+  onboarding_progress?: LeadProgress;
+  document_url?: string;
+  lead_source?: string;
+  priority?: string;
+  last_contacted?: string;
+}
+
+export interface LeadScore {
+  id: string;
+  lead_score: number;
+  full_name: string;
+  status: SalesLeadStatus;
+  customer?: {
     full_name: string;
   };
-};
+}
 
-export type SalesTask = {
+export interface LeadCommunication {
   id: string;
   lead_id: string;
-  title: string;
-  status: 'pending' | 'completed';
-  created_at: string;
-};
+  type: string;
+  content?: string;
+  scheduled_at?: string;
+  completed_at?: string;
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
+  team_member_id?: string;
+  profiles?: {
+    full_name: string;
+  };
+}
+
+export interface VehicleRecommendation {
+  id?: string;
+  lead_id?: string;
+  vehicle_id?: string;
+  match_score?: number;
+  notes?: string;
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
+  vehicle?: {
+    id: string;
+    make: string;
+    model: string;
+    year: number;
+    license_plate: string;
+  };
+}
