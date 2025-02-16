@@ -8,12 +8,13 @@ import { LeadTasks } from "./LeadTasks";
 import { Loader2 } from "lucide-react";
 import type { SalesLead } from "@/types/sales.types";
 import { useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 
 export const SalesPipeline = () => {
   const [searchParams] = useSearchParams();
   const currentTab = searchParams.get("tab");
 
-  const { data: onboardingLeads, isLoading } = useQuery({
+  const { data: onboardingLeads, isLoading, error } = useQuery({
     queryKey: ["onboarding-leads", currentTab],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -22,11 +23,23 @@ export const SalesPipeline = () => {
         .eq("status", "onboarding")
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching onboarding leads:", error);
+        throw error;
+      }
       return data as SalesLead[];
     },
     enabled: currentTab === "onboarding"
   });
+
+  if (error) {
+    toast.error("Failed to load onboarding leads");
+    return (
+      <div className="text-center text-red-500 py-8">
+        Error loading onboarding leads. Please try again.
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -39,7 +52,7 @@ export const SalesPipeline = () => {
   return (
     <div className="space-y-6">
       {onboardingLeads?.map((lead) => (
-        <div key={lead.id} className="space-y-6">
+        <div key={lead.id} className="space-y-6 animate-fade-in">
           <Tabs defaultValue="details" className="w-full">
             <TabsList>
               <TabsTrigger value="details">Details</TabsTrigger>

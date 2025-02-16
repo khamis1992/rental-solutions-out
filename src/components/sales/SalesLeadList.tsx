@@ -11,15 +11,16 @@ import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { SalesLead } from "@/types/sales.types";
 import { DeleteLeadButton } from "./DeleteLeadButton";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const SalesLeadList = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const listEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
+  const [isTransferring, setIsTransferring] = useState<string | null>(null);
   
-  const { data: leads, isLoading } = useQuery({
+  const { data: leads, isLoading, error } = useQuery({
     queryKey: ["sales-leads"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -68,9 +69,14 @@ export const SalesLeadList = () => {
 
   const handleTransferToOnboarding = async (leadId: string) => {
     try {
+      setIsTransferring(leadId);
       const lead = leads?.find(l => l.id === leadId);
 
-      const { data, error } = await supabase
+      if (!lead) {
+        throw new Error("Lead not found");
+      }
+
+      const { error } = await supabase
         .from("sales_leads")
         .update({
           status: "onboarding",
@@ -93,7 +99,7 @@ export const SalesLeadList = () => {
         queryClient.invalidateQueries({ queryKey: ["onboarding-leads"] })
       ]);
 
-      toast.success("Lead transferred to onboarding");
+      toast.success(`Lead ${lead.full_name} transferred to onboarding`);
       
       // Switch to the onboarding tab
       setSearchParams({ tab: 'onboarding' });
@@ -101,8 +107,18 @@ export const SalesLeadList = () => {
     } catch (error: any) {
       console.error("Error transferring lead to onboarding:", error);
       toast.error(error.message || "Failed to transfer lead to onboarding");
+    } finally {
+      setIsTransferring(null);
     }
   };
+
+  if (error) {
+    return (
+      <div className="text-center text-red-500 py-8">
+        Error loading leads. Please try again.
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -157,11 +173,16 @@ export const SalesLeadList = () => {
                       variant="secondary"
                       size="sm"
                       onClick={() => handleTransferToOnboarding(lead.id)}
+                      disabled={isTransferring === lead.id}
                       className="mt-2 bg-primary hover:bg-primary/90 text-white transition-all duration-300 
                                hover:scale-105 active:scale-95 animate-fade-in"
                       style={{ animationDelay: `${index * 350}ms` }}
                     >
-                      <ArrowRightCircle className="h-4 w-4 mr-2 transition-transform group-hover:translate-x-1" />
+                      {isTransferring === lead.id ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <ArrowRightCircle className="h-4 w-4 mr-2 transition-transform group-hover:translate-x-1" />
+                      )}
                       Transfer to Onboarding
                     </Button>
                   )}
