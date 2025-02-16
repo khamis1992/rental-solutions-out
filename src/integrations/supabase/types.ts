@@ -5934,6 +5934,66 @@ export type Database = {
         }
         Relationships: []
       }
+      sales_leads: {
+        Row: {
+          assigned_to: string | null
+          budget_max: number | null
+          budget_min: number | null
+          created_at: string | null
+          email: string | null
+          full_name: string
+          id: string
+          notes: string | null
+          phone_number: string | null
+          preferred_vehicle_type: string | null
+          status: Database["public"]["Enums"]["lead_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          notes?: string | null
+          phone_number?: string | null
+          preferred_vehicle_type?: string | null
+          status?: Database["public"]["Enums"]["lead_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          notes?: string | null
+          phone_number?: string | null
+          preferred_vehicle_type?: string | null
+          status?: Database["public"]["Enums"]["lead_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_leads_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_leads_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schedule_conflicts: {
         Row: {
           conflict_type: string
@@ -8593,6 +8653,12 @@ export type Database = {
         | "failed"
         | "completed"
       import_type: "payments" | "customers" | "agreements"
+      lead_status:
+        | "new"
+        | "contacted"
+        | "qualified"
+        | "unqualified"
+        | "converted"
       lease_status:
         | "pending_payment"
         | "pending_deposit"
