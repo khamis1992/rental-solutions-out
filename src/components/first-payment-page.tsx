@@ -33,11 +33,31 @@ export function FirstPaymentPage() {
   const onSubmit = async (values: PaymentFormValues) => {
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from("first_payments").insert({
+      // First store the payment record
+      const { error: firstPaymentError } = await supabase.from("first_payments").insert({
         amount: parseFloat(values.amount),
       });
 
-      if (error) throw error;
+      if (firstPaymentError) throw firstPaymentError;
+
+      // Process the payment through the Edge Function
+      const { data: processedPayment, error: processError } = await supabase.functions.invoke(
+        'payment-service',
+        {
+          body: {
+            operation: 'process_payment',
+            data: {
+              leaseId: null, // This will be linked later in the flow
+              amount: parseFloat(values.amount),
+              paymentMethod: 'Cash', // Default to cash for now
+              description: 'Initial payment',
+              type: 'Initial'
+            }
+          }
+        }
+      );
+
+      if (processError) throw processError;
 
       toast.success("Payment amount submitted successfully");
       form.reset();
