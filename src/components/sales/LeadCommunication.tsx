@@ -19,9 +19,7 @@ export const LeadCommunication = ({ leadId }: LeadCommunicationProps) => {
         .from("sales_communications")
         .select(`
           *,
-          profiles:team_member_id (
-            full_name
-          )
+          profiles:team_member_id(*)
         `)
         .eq("lead_id", leadId)
         .order("created_at", { ascending: false });
@@ -31,7 +29,13 @@ export const LeadCommunication = ({ leadId }: LeadCommunicationProps) => {
         throw error;
       }
 
-      return data as LeadCommunicationType[];
+      // Transform the data to match our type
+      return data.map(comm => ({
+        ...comm,
+        profiles: comm.profiles ? {
+          full_name: comm.profiles.full_name || "Unknown"
+        } : undefined
+      })) as LeadCommunicationType[];
     }
   });
 

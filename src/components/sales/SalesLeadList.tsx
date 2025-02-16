@@ -1,4 +1,3 @@
-
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,15 +32,18 @@ export const SalesLeadList = () => {
         throw error;
       }
 
-      // Convert the Supabase JSON data to our frontend type
-      return (data || []).map(lead => ({
-        ...lead,
-        onboarding_progress: lead.onboarding_progress as LeadProgress || {
-          customer_conversion: false,
-          agreement_creation: false,
-          initial_payment: false
-        }
-      })) as SalesLead[];
+      // Convert the Supabase JSON data to our frontend type with validation
+      return (data || []).map(lead => {
+        const progress = lead.onboarding_progress as unknown;
+        const validatedProgress = isValidLeadProgress(progress)
+          ? progress
+          : DEFAULT_LEAD_PROGRESS;
+
+        return {
+          ...lead,
+          onboarding_progress: validatedProgress
+        };
+      }) as SalesLead[];
     }
   });
 
@@ -193,4 +195,18 @@ export const SalesLeadList = () => {
       <div ref={listEndRef} />
     </div>
   );
+};
+
+const isValidLeadProgress = (progress: any): progress is LeadProgress => {
+  return (
+    typeof progress.customer_conversion === "boolean" &&
+    typeof progress.agreement_creation === "boolean" &&
+    typeof progress.initial_payment === "boolean"
+  );
+};
+
+const DEFAULT_LEAD_PROGRESS: LeadProgress = {
+  customer_conversion: false,
+  agreement_creation: false,
+  initial_payment: false
 };
