@@ -19,7 +19,6 @@ export interface Vehicle {
   updated_at: string;
   location: string | null;
   insurance_company: string | null;
-  is_test_data?: boolean;
 }
 
 export interface VehicleTableItem extends Vehicle {

@@ -9,15 +9,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Car, Plus, Search, RefreshCw } from "lucide-react";
-import { Vehicle } from "@/types/vehicle";
+import { Vehicle, VehicleFilterParams } from "@/types/vehicle";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { VehicleFilterDialog } from "@/components/vehicles/filters/VehicleFilterDialog";
 
 const Vehicles = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [filterParams, setFilterParams] = useState<VehicleFilterParams>({});
 
   const { data: vehicles = [], isLoading, refetch } = useQuery({
     queryKey: ["vehicles"],
@@ -35,16 +37,21 @@ const Vehicles = () => {
     },
   });
 
-  // Filter vehicles based on search query
+  // Filter vehicles based on search query and filter parameters
   const filteredVehicles = vehicles.filter(vehicle => {
     const searchLower = searchQuery.toLowerCase();
-    return (
-      !searchQuery ||
+    const matchesSearch = !searchQuery || 
       vehicle.make?.toLowerCase().includes(searchLower) ||
       vehicle.model?.toLowerCase().includes(searchLower) ||
       vehicle.license_plate?.toLowerCase().includes(searchLower) ||
-      vehicle.vin?.toLowerCase().includes(searchLower)
-    );
+      vehicle.vin?.toLowerCase().includes(searchLower);
+
+    const matchesStatus = !filterParams.status || vehicle.status === filterParams.status;
+    const matchesMake = !filterParams.make || vehicle.make.toLowerCase().includes(filterParams.make.toLowerCase());
+    const matchesModel = !filterParams.model || vehicle.model.toLowerCase().includes(filterParams.model.toLowerCase());
+    const matchesYear = !filterParams.year || vehicle.year === filterParams.year;
+
+    return matchesSearch && matchesStatus && matchesMake && matchesModel && matchesYear;
   });
 
   const handleRefresh = async () => {
@@ -57,6 +64,10 @@ const Vehicles = () => {
     } finally {
       setIsRefreshing(false);
     }
+  };
+
+  const getTotalActiveFilters = () => {
+    return Object.values(filterParams).filter(value => value !== undefined).length;
   };
 
   return (
@@ -102,6 +113,12 @@ const Vehicles = () => {
                 <RefreshCw className="h-4 w-4" />
                 <span className="hidden sm:inline">Refresh</span>
               </Button>
+
+              <VehicleFilterDialog
+                activeFilters={filterParams}
+                onFilterChange={setFilterParams}
+                totalFilters={getTotalActiveFilters()}
+              />
             </div>
           </div>
           
