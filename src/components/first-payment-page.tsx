@@ -10,6 +10,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { GuidanceTooltip } from "@/components/guidance-tooltip";
 
 const paymentSchema = z.object({
   amount: z.string().refine((val) => {
@@ -73,7 +74,14 @@ export function FirstPaymentPage() {
     <div className="container mx-auto max-w-xl py-8">
       <Card className="w-full">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">First Payment</CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-2xl font-bold">First Payment</CardTitle>
+            <GuidanceTooltip
+              content="This initial payment will be recorded and processed. You'll be able to link it to a lease agreement later."
+              icon="help"
+              variant="info"
+            />
+          </div>
           <CardDescription>
             Please enter the payment amount to continue
           </CardDescription>
@@ -86,7 +94,13 @@ export function FirstPaymentPage() {
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Payment Amount</FormLabel>
+                    <div className="flex items-center gap-2">
+                      <FormLabel>Payment Amount</FormLabel>
+                      <GuidanceTooltip
+                        content="Enter the amount received from the customer. This can be modified later if needed."
+                        icon="info"
+                      />
+                    </div>
                     <FormControl>
                       <div className="relative">
                         <DollarSign className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
