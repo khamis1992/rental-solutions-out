@@ -6127,6 +6127,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "preferred_vehicle_type_fk"
+            columns: ["preferred_vehicle_type"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "sales_leads_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false

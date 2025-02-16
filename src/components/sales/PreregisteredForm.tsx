@@ -25,26 +25,37 @@ import {
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { VehicleType } from "@/types/sales.types";
+import { Vehicle } from "@/types/vehicle";
+import { useQuery } from "@tanstack/react-query";
 
 const formSchema = z.object({
   full_name: z.string().min(2, "Name must be at least 2 characters"),
   phone_number: z.string().min(8, "Phone number must be at least 8 characters"),
   nationality: z.string().min(2, "Nationality is required"),
   email: z.string().email("Invalid email address"),
-  preferred_vehicle_type: z.string().min(1, "Vehicle type is required"),
+  preferred_vehicle_type: z.string().min(1, "Vehicle is required"),
   budget_min: z.number().min(1400, "Minimum budget must be at least 1400"),
   budget_max: z.number().optional(),
   notes: z.string().optional(),
 });
 
-interface PreregisteredFormProps {
-  vehicleTypes: VehicleType[];
-}
-
-export function PreregisteredForm({ vehicleTypes }: PreregisteredFormProps) {
+export function PreregisteredForm() {
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { data: vehicles = [] } = useQuery<Vehicle[]>({
+    queryKey: ['available-vehicles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('vehicles')
+        .select('*')
+        .eq('status', 'available')
+        .order('make', { ascending: true });
+
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -150,21 +161,20 @@ export function PreregisteredForm({ vehicleTypes }: PreregisteredFormProps) {
               name="preferred_vehicle_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Preferred Vehicle Type</FormLabel>
+                  <FormLabel>Preferred Vehicle</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select vehicle type" />
+                        <SelectValue placeholder="Select vehicle" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {vehicleTypes.map((type) => (
+                      {vehicles.map((vehicle) => (
                         <SelectItem
-                          key={type.id}
-                          value={type.id}
-                          disabled={type.status === "inactive"}
+                          key={vehicle.id}
+                          value={vehicle.id}
                         >
-                          {type.name}
+                          {vehicle.year} {vehicle.make} {vehicle.model} - {vehicle.license_plate}
                         </SelectItem>
                       ))}
                     </SelectContent>
