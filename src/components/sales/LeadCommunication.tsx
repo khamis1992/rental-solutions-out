@@ -11,6 +11,17 @@ interface LeadCommunicationProps {
   leadId: string;
 }
 
+interface TeamMemberProfile {
+  id: string;
+  full_name: string;
+  hire_date: string;
+  role: string;
+  user_id: string;
+  targets: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
 export const LeadCommunication = ({ leadId }: LeadCommunicationProps) => {
   const { data: communications, isLoading } = useQuery({
     queryKey: ["lead-communications", leadId],
@@ -19,7 +30,16 @@ export const LeadCommunication = ({ leadId }: LeadCommunicationProps) => {
         .from("sales_communications")
         .select(`
           *,
-          profiles:team_member_id(*)
+          profiles:team_member_id (
+            id,
+            full_name,
+            hire_date,
+            role,
+            user_id,
+            targets,
+            created_at,
+            updated_at
+          )
         `)
         .eq("lead_id", leadId)
         .order("created_at", { ascending: false });
@@ -29,11 +49,11 @@ export const LeadCommunication = ({ leadId }: LeadCommunicationProps) => {
         throw error;
       }
 
-      // Transform the data to match our type
+      // Transform the data to match our type, handling the profiles relationship
       return data.map(comm => ({
         ...comm,
         profiles: comm.profiles ? {
-          full_name: comm.profiles.full_name || "Unknown"
+          full_name: (comm.profiles as TeamMemberProfile).full_name
         } : undefined
       })) as LeadCommunicationType[];
     }
