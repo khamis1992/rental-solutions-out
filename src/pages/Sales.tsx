@@ -46,12 +46,12 @@ export default function Sales() {
         }
 
         // Create unique vehicle types from makes and models
-        const types = Array.from(new Set(data.map(v => `${v.make} ${v.model}`)))
-          .map((name, index) => ({
-            id: index.toString(),
-            name,
-            status: 'active'
-          }));
+        const uniqueTypes = Array.from(new Set(data.map(v => `${v.make} ${v.model}`)));
+        const types = uniqueTypes.map(name => ({
+          id: name, // Use the full name as the ID
+          name,
+          status: 'active'
+        }));
 
         setVehicleTypes(types);
       } catch (error) {
