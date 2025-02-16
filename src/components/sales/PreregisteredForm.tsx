@@ -33,7 +33,7 @@ const formSchema = z.object({
   phone_number: z.string().min(8, "Phone number must be at least 8 characters"),
   nationality: z.string().min(2, "Nationality is required"),
   email: z.string().email("Invalid email address"),
-  preferred_vehicle_type: z.string().min(1, "Vehicle is required"),
+  preferred_vehicle_type: z.string().uuid("Invalid vehicle selection"),
   budget_min: z.number().min(1400, "Minimum budget must be at least 1400"),
   budget_max: z.number().optional(),
   notes: z.string().optional(),
@@ -242,7 +242,7 @@ export function PreregisteredForm() {
                   />
                 </FormControl>
                 <FormMessage />
-              </FormItem>
+                </FormItem>
             )}
           />
 
