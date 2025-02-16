@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,9 +11,10 @@ import {
 import { SalesLead } from "@/types/sales.types";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Edit, History, Trash2 } from "lucide-react";
+import { Edit, History, Trash2, FileText } from "lucide-react";
 import { EditLeadDialog } from "./EditLeadDialog";
 import { LeadHistoryDialog } from "./LeadHistoryDialog";
+import { LeadDocuments } from "./LeadDocuments";
 
 interface LeadListProps {
   leads: SalesLead[];
@@ -27,6 +27,7 @@ export function LeadList({ leads, onDelete, onTransferToOnboarding, onLeadUpdate
   const [selectedLead, setSelectedLead] = useState<SalesLead | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [documentsDialogOpen, setDocumentsDialogOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -82,6 +83,17 @@ export function LeadList({ leads, onDelete, onTransferToOnboarding, onLeadUpdate
                       size="icon"
                       onClick={() => {
                         setSelectedLead(lead);
+                        setDocumentsDialogOpen(true);
+                      }}
+                    >
+                      <FileText className="h-4 w-4" />
+                    </Button>
+
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => {
+                        setSelectedLead(lead);
                         setEditDialogOpen(true);
                       }}
                     >
@@ -122,6 +134,11 @@ export function LeadList({ leads, onDelete, onTransferToOnboarding, onLeadUpdate
             lead={selectedLead}
             open={historyDialogOpen}
             onOpenChange={setHistoryDialogOpen}
+          />
+          <LeadDocuments
+            lead={selectedLead}
+            open={documentsDialogOpen}
+            onOpenChange={setDocumentsDialogOpen}
           />
         </>
       )}

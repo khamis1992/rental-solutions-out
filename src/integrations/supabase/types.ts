@@ -5912,6 +5912,73 @@ export type Database = {
           },
         ]
       }
+      sales_lead_documents: {
+        Row: {
+          content_type: string | null
+          created_at: string | null
+          document_type: string
+          document_url: string
+          file_name: string
+          file_size: number | null
+          id: string
+          lead_id: string | null
+          notes: string | null
+          status: string | null
+          updated_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string | null
+          document_type: string
+          document_url: string
+          file_name: string
+          file_size?: number | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string | null
+          document_type?: string
+          document_url?: string
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_lead_documents_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_lead_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_lead_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sales_lead_history: {
         Row: {
           changed_by: string | null
