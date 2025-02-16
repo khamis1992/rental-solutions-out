@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ export interface Agreement {
   last_payment_date: string | null;
   next_payment_date: string | null;
   payment_frequency: string | null;
+  rent_amount: number;
   customer?: {
     id: string;
     full_name: string | null;
