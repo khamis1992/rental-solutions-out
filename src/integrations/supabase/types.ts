@@ -7556,6 +7556,53 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicle_alerts: {
+        Row: {
+          alert_type: string | null
+          conditions: Json | null
+          created_at: string | null
+          frequency: string | null
+          id: string
+          is_active: boolean | null
+          last_sent_at: string | null
+          lead_id: string | null
+          notification_method: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          alert_type?: string | null
+          conditions?: Json | null
+          created_at?: string | null
+          frequency?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          lead_id?: string | null
+          notification_method?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          alert_type?: string | null
+          conditions?: Json | null
+          created_at?: string | null
+          frequency?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          lead_id?: string | null
+          notification_method?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_alerts_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicle_documents: {
         Row: {
           category: Database["public"]["Enums"]["document_category"] | null
@@ -7780,6 +7827,101 @@ export type Database = {
           },
         ]
       }
+      vehicle_lead_preferences: {
+        Row: {
+          availability_needed_from: string | null
+          availability_needed_until: string | null
+          created_at: string | null
+          id: string
+          lead_id: string | null
+          max_year: number | null
+          min_year: number | null
+          preferred_colors: string[] | null
+          required_features: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          availability_needed_from?: string | null
+          availability_needed_until?: string | null
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          max_year?: number | null
+          min_year?: number | null
+          preferred_colors?: string[] | null
+          required_features?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          availability_needed_from?: string | null
+          availability_needed_until?: string | null
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          max_year?: number | null
+          min_year?: number | null
+          preferred_colors?: string[] | null
+          required_features?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_lead_preferences_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_matches: {
+        Row: {
+          created_at: string | null
+          id: string
+          lead_id: string | null
+          match_score: number | null
+          notes: string | null
+          status: string | null
+          updated_at: string | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          match_score?: number | null
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          match_score?: number | null
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_matches_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_matches_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicle_parts: {
         Row: {
           created_at: string | null
@@ -7977,6 +8119,60 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      vehicle_test_drives: {
+        Row: {
+          created_at: string | null
+          duration_minutes: number | null
+          feedback: string | null
+          id: string
+          interest_level: string | null
+          lead_id: string | null
+          scheduled_at: string
+          status: string | null
+          updated_at: string | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          duration_minutes?: number | null
+          feedback?: string | null
+          id?: string
+          interest_level?: string | null
+          lead_id?: string | null
+          scheduled_at: string
+          status?: string | null
+          updated_at?: string | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          duration_minutes?: number | null
+          feedback?: string | null
+          id?: string
+          interest_level?: string | null
+          lead_id?: string | null
+          scheduled_at?: string
+          status?: string | null
+          updated_at?: string | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_test_drives_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_test_drives_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vehicle_types: {
         Row: {

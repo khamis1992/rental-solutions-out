@@ -15,6 +15,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { LeadNotes } from "./LeadNotes";
 import { LeadCommunications } from "../email/LeadCommunications";
+import { VehiclePreferences } from "./VehiclePreferences";
+import { MatchedVehicles } from "./MatchedVehicles";
+import { toast } from "sonner";
 
 interface LeadDetailsProps {
   leadId: string;
@@ -36,6 +39,11 @@ export function LeadDetails({ leadId, open, onOpenChange }: LeadDetailsProps) {
       return data as SalesLead;
     },
   });
+
+  const handleScheduleTestDrive = (vehicleId: string) => {
+    // For now, just show a toast - we'll implement this in the next phase
+    toast.info("Test drive scheduling coming soon!");
+  };
 
   if (isLoading) {
     return null;
@@ -106,12 +114,21 @@ export function LeadDetails({ leadId, open, onOpenChange }: LeadDetailsProps) {
           <Tabs defaultValue="activity" className="w-full">
             <TabsList>
               <TabsTrigger value="activity">Activity</TabsTrigger>
+              <TabsTrigger value="vehicles">Vehicles</TabsTrigger>
               <TabsTrigger value="communications">Communications</TabsTrigger>
               <TabsTrigger value="notes">Notes</TabsTrigger>
             </TabsList>
 
             <TabsContent value="activity" className="mt-4">
               <ActivityTimeline leadId={leadId} />
+            </TabsContent>
+
+            <TabsContent value="vehicles" className="mt-4 space-y-6">
+              <VehiclePreferences leadId={leadId} />
+              <MatchedVehicles 
+                leadId={leadId} 
+                onScheduleTestDrive={handleScheduleTestDrive} 
+              />
             </TabsContent>
 
             <TabsContent value="communications" className="mt-4">
