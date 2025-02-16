@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -40,8 +41,8 @@ interface CreateCustomerDialogProps {
 }
 
 export function CreateCustomerDialog() {
-  const [open, setOpen] = React.useState(false);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<CustomerFormData>({

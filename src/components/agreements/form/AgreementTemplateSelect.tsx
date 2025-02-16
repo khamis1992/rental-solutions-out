@@ -11,42 +11,69 @@ import {
 import { Label } from "@/components/ui/label";
 import { UseFormSetValue } from "react-hook-form";
 import { AgreementFormData } from "../hooks/useAgreementForm";
-import { Template } from "@/types/agreement.types";
+import { Template, TextStyle, Table } from "@/types/agreement.types";
 
 interface AgreementTemplateSelectProps {
   setValue: UseFormSetValue<AgreementFormData>;
 }
 
+interface TemplateResponse {
+  id: string;
+  name: string;
+  description: string;
+  content: string;
+  language: string;
+  agreement_type: "lease_to_own" | "short_term";
+  rent_amount: number;
+  final_price: number;
+  agreement_duration: string;
+  template_structure: string;
+  text_style: string;
+}
+
+const defaultTextStyle: TextStyle = {
+  bold: false,
+  italic: false,
+  underline: false,
+  fontSize: 14,
+  alignment: 'left'
+};
+
 export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectProps) => {
   const { data: templates, isLoading } = useQuery({
     queryKey: ["agreement-templates"],
     queryFn: async () => {
-      console.log("Fetching templates...");
       const { data, error } = await supabase
         .from("agreement_templates")
         .select("*")
         .eq("is_active", true);
 
-      if (error) {
-        console.error("Error fetching templates:", error);
-        throw error;
-      }
+      if (error) throw error;
 
-      if (!data || data.length === 0) {
-        console.log("No templates found in database");
-        return [] as Template[];
-      }
+      // Safely parse the JSON fields
+      return (data || []).map(template => {
+        let templateStructure;
+        let textStyle;
 
-      // Cast the data to Template[] type
-      const templatesWithTypes = data.map(template => ({
-        ...template,
-        template_structure: template.template_structure as Template["template_structure"],
-        text_style: template.text_style as Template["text_style"],
-      })) as Template[];
+        try {
+          templateStructure = JSON.parse(template.template_structure as string);
+        } catch (e) {
+          templateStructure = { textStyle: defaultTextStyle, tables: [] };
+        }
 
-      console.log("Fetched templates:", templatesWithTypes);
-      return templatesWithTypes;
-    },
+        try {
+          textStyle = JSON.parse(template.text_style as string);
+        } catch (e) {
+          textStyle = defaultTextStyle;
+        }
+
+        return {
+          ...template,
+          template_structure: templateStructure,
+          text_style: textStyle
+        } as Template;
+      });
+    }
   });
 
   const handleTemplateSelect = (templateId: string) => {

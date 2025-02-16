@@ -30,7 +30,7 @@ export const LeadCommunication = ({ leadId }: LeadCommunicationProps) => {
         .from("sales_communications")
         .select(`
           *,
-          profiles:team_member_id (
+          profiles (
             id,
             full_name,
             hire_date,
@@ -49,7 +49,7 @@ export const LeadCommunication = ({ leadId }: LeadCommunicationProps) => {
         throw error;
       }
 
-      // Transform the data to match our type, handling the profiles relationship
+      // Transform the data to match our type, handling the profiles relationship safely
       return data.map(comm => ({
         ...comm,
         profiles: comm.profiles ? {
