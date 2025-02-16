@@ -20,15 +20,19 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { CallLog } from "../communications/CallLog";
+import { SMSLog } from "../communications/SMSLog";
 
 interface LeadCommunicationsProps {
   leadId: string;
   leadEmail: string | null;
+  phoneNumber: string | null;
 }
 
-export function LeadCommunications({ leadId, leadEmail }: LeadCommunicationsProps) {
+export function LeadCommunications({ leadId, leadEmail, phoneNumber }: LeadCommunicationsProps) {
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -87,67 +91,85 @@ export function LeadCommunications({ leadId, leadEmail }: LeadCommunicationsProp
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Communications</CardTitle>
-        <CardDescription>Email communications with this lead</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button disabled={!leadEmail}>
-                Send New Email
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Send Email</DialogTitle>
-                <DialogDescription>
-                  Compose a new email to send to this lead
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 mt-4">
-                <Input
-                  placeholder="Subject"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                />
-                <Textarea
-                  placeholder="Email content..."
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  className="min-h-[200px]"
-                />
-                <Button
-                  onClick={() => sendEmailMutation.mutate()}
-                  disabled={sendEmailMutation.isPending}
-                >
-                  Send Email
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+    <Tabs defaultValue="email" className="w-full">
+      <TabsList>
+        <TabsTrigger value="email">Email</TabsTrigger>
+        <TabsTrigger value="calls">Calls</TabsTrigger>
+        <TabsTrigger value="sms">SMS</TabsTrigger>
+      </TabsList>
 
-          <div className="space-y-4 mt-6">
-            {communications?.map((comm) => (
-              <Card key={comm.id}>
-                <CardContent className="pt-6">
-                  <div>
-                    <h4 className="font-medium">{comm.subject}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Sent: {format(new Date(comm.sent_at), "PPp")}
-                    </p>
-                    <p className="mt-2 text-sm whitespace-pre-wrap">
-                      {comm.content}
-                    </p>
+      <TabsContent value="email">
+        <Card>
+          <CardHeader>
+            <CardTitle>Email Communications</CardTitle>
+            <CardDescription>Email communications with this lead</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button disabled={!leadEmail}>
+                    Send New Email
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Send Email</DialogTitle>
+                    <DialogDescription>
+                      Compose a new email to send to this lead
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <Input
+                      placeholder="Subject"
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                    />
+                    <Textarea
+                      placeholder="Email content..."
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      className="min-h-[200px]"
+                    />
+                    <Button
+                      onClick={() => sendEmailMutation.mutate()}
+                      disabled={sendEmailMutation.isPending}
+                    >
+                      Send Email
+                    </Button>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+                </DialogContent>
+              </Dialog>
+
+              <div className="space-y-4 mt-6">
+                {communications?.map((comm) => (
+                  <Card key={comm.id}>
+                    <CardContent className="pt-6">
+                      <div>
+                        <h4 className="font-medium">{comm.subject}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Sent: {format(new Date(comm.sent_at), "PPp")}
+                        </p>
+                        <p className="mt-2 text-sm whitespace-pre-wrap">
+                          {comm.content}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="calls">
+        <CallLog leadId={leadId} />
+      </TabsContent>
+
+      <TabsContent value="sms">
+        <SMSLog leadId={leadId} phoneNumber={phoneNumber} />
+      </TabsContent>
+    </Tabs>
   );
 }

@@ -115,7 +115,11 @@ export function LeadDetails({ leadId, open, onOpenChange }: LeadDetailsProps) {
             </TabsContent>
 
             <TabsContent value="communications" className="mt-4">
-              <LeadCommunications leadId={leadId} leadEmail={lead?.email} />
+              <LeadCommunications
+                leadId={leadId}
+                leadEmail={lead?.email}
+                phoneNumber={lead?.phone_number}
+              />
             </TabsContent>
 
             <TabsContent value="notes" className="mt-4">

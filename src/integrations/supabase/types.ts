@@ -936,6 +936,62 @@ export type Database = {
         }
         Relationships: []
       }
+      call_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          duration: number | null
+          follow_up_date: string | null
+          follow_up_needed: boolean | null
+          id: string
+          lead_id: string | null
+          notes: string | null
+          performed_by: string | null
+          scheduled_for: string | null
+          status: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          duration?: number | null
+          follow_up_date?: string | null
+          follow_up_needed?: boolean | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          performed_by?: string | null
+          scheduled_for?: string | null
+          status: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          duration?: number | null
+          follow_up_date?: string | null
+          follow_up_needed?: boolean | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          performed_by?: string | null
+          scheduled_for?: string | null
+          status?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_logs_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       car_installment_contracts: {
         Row: {
           amount_paid: number | null
@@ -6655,6 +6711,53 @@ export type Database = {
             columns: ["settlement_id"]
             isOneToOne: false
             referencedRelation: "legal_settlements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sms_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          delivered_at: string | null
+          direction: string
+          id: string
+          lead_id: string | null
+          sent_at: string | null
+          sent_by: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          delivered_at?: string | null
+          direction: string
+          id?: string
+          lead_id?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          status: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          delivered_at?: string | null
+          direction?: string
+          id?: string
+          lead_id?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sms_messages_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
             referencedColumns: ["id"]
           },
         ]
