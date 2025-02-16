@@ -39,6 +39,8 @@ const formSchema = z.object({
   notes: z.string().optional(),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 export function PreregisteredForm() {
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,16 +59,21 @@ export function PreregisteredForm() {
     },
   });
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       budget_min: 1400,
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: FormValues) {
     setIsSubmitting(true);
     try {
+      // Make sure we have a valid UUID for preferred_vehicle_type
+      if (!values.preferred_vehicle_type || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(values.preferred_vehicle_type)) {
+        throw new Error("Invalid vehicle selection");
+      }
+
       const { error } = await supabase.from("sales_leads").insert({
         ...values,
         status: "new",
@@ -162,7 +169,10 @@ export function PreregisteredForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Preferred Vehicle</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select vehicle" />
@@ -242,7 +252,7 @@ export function PreregisteredForm() {
                   />
                 </FormControl>
                 <FormMessage />
-                </FormItem>
+              </FormItem>
             )}
           />
 
