@@ -84,13 +84,7 @@ const menuGroups: MenuGroup[] = [
         label: "Agreements", 
         href: "/agreements",
         description: "Rental agreements"
-      },
-      { 
-        icon: Banknote, 
-        label: "Sales", 
-        href: "/sales",
-        description: "Sales management"
-      },
+      }
     ]
   },
   {
