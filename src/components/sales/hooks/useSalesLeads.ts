@@ -13,7 +13,12 @@ export const useSalesLeads = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as SalesLead[];
+
+      // Transform the data to match our SalesLead type
+      return data.map(lead => ({
+        ...lead,
+        onboarding_progress: lead.onboarding_progress as SalesLead['onboarding_progress']
+      })) as SalesLead[];
     },
   });
 };

@@ -19,6 +19,12 @@ export interface SalesLead {
   };
   onboarding_date: string | null;
   customer_id: string | null;
+  assigned_to: string | null;
+  lead_score: number | null;
+  lead_source: string | null;
+  last_contacted: string | null;
+  next_follow_up: string | null;
+  document_url: string | null;
 }
 
 export interface VehicleType {

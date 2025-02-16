@@ -59,6 +59,11 @@ export function PreregisteredForm({ vehicleTypes }: PreregisteredFormProps) {
       const { error } = await supabase.from("sales_leads").insert({
         ...values,
         status: "new",
+        onboarding_progress: {
+          initial_payment: false,
+          agreement_creation: false,
+          customer_conversion: false,
+        }
       });
 
       if (error) throw error;
