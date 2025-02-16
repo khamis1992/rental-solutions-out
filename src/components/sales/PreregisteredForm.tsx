@@ -40,9 +40,9 @@ export function PreregisteredForm({ onLeadCreated }: PreregisteredFormProps) {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
-      const inputData: CreateLeadInput = {
+      const inputData = {
         ...values,
-        status: "new",
+        status: "new" as const,
         onboarding_progress: {
           initial_payment: false,
           agreement_creation: false,
