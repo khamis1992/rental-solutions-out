@@ -5167,6 +5167,60 @@ export type Database = {
         }
         Relationships: []
       }
+      pre_registrations: {
+        Row: {
+          assigned_to: string | null
+          budget_max: number | null
+          budget_min: number | null
+          comments: string | null
+          created_at: string | null
+          email: string | null
+          follow_up_date: string | null
+          full_name: string
+          id: string
+          phone_number: string
+          preferred_color: string | null
+          preferred_installment_period: string | null
+          preferred_vehicle_type: string | null
+          status: Database["public"]["Enums"]["pre_registration_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          comments?: string | null
+          created_at?: string | null
+          email?: string | null
+          follow_up_date?: string | null
+          full_name: string
+          id?: string
+          phone_number: string
+          preferred_color?: string | null
+          preferred_installment_period?: string | null
+          preferred_vehicle_type?: string | null
+          status?: Database["public"]["Enums"]["pre_registration_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          comments?: string | null
+          created_at?: string | null
+          email?: string | null
+          follow_up_date?: string | null
+          full_name?: string
+          id?: string
+          phone_number?: string
+          preferred_color?: string | null
+          preferred_installment_period?: string | null
+          preferred_vehicle_type?: string | null
+          status?: Database["public"]["Enums"]["pre_registration_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       predictive_maintenance_analytics: {
         Row: {
           confidence_score: number | null
@@ -8570,6 +8624,7 @@ export type Database = {
       payment_status: "pending" | "completed" | "failed" | "refunded"
       payment_status_type: "pending" | "paid" | "overdue" | "cancelled"
       portal_user_status: "active" | "inactive" | "locked"
+      pre_registration_status: "pending" | "approved" | "rejected" | "waitlist"
       seeker_target_status: "active" | "inactive" | "paused"
       tax_filing_status:
         | "pending"
