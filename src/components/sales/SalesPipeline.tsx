@@ -6,7 +6,7 @@ import { LeadDetails } from "./LeadDetails";
 import { LeadCommunication } from "./LeadCommunication";
 import { LeadTasks } from "./LeadTasks";
 import { Loader2 } from "lucide-react";
-import type { SalesLead } from "@/types/sales.types";
+import type { SalesLead, LeadProgress } from "@/types/sales.types";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -27,7 +27,16 @@ export const SalesPipeline = () => {
         console.error("Error fetching onboarding leads:", error);
         throw error;
       }
-      return data as SalesLead[];
+
+      // Convert the Supabase JSON data to our frontend type
+      return (data || []).map(lead => ({
+        ...lead,
+        onboarding_progress: lead.onboarding_progress as LeadProgress || {
+          customer_conversion: false,
+          agreement_creation: false,
+          initial_payment: false
+        }
+      })) as SalesLead[];
     },
     enabled: currentTab === "onboarding"
   });
@@ -74,7 +83,6 @@ export const SalesPipeline = () => {
           </Tabs>
         </div>
       ))}
-
       {(!onboardingLeads || onboardingLeads.length === 0) && (
         <div className="text-center text-muted-foreground py-8">
           No leads in onboarding

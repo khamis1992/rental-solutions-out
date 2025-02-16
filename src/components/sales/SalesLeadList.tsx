@@ -1,3 +1,4 @@
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,17 +9,18 @@ import { VehicleRecommendations } from "./VehicleRecommendations";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import type { SalesLead } from "@/types/sales.types";
+import type { SalesLead, LeadProgress } from "@/types/sales.types";
 import { DeleteLeadButton } from "./DeleteLeadButton";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const SalesLeadList = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const listEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
+  const [isTransferring, setIsTransferring] = useState<string | null>(null);
   
-  const { data: leads, isLoading } = useQuery({
+  const { data: leads, isLoading, error } = useQuery({
     queryKey: ["sales-leads"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -55,7 +57,12 @@ export const SalesLeadList = () => {
 
   const handleTransferToOnboarding = async (leadId: string) => {
     try {
+      setIsTransferring(leadId);
       const lead = leads?.find(l => l.id === leadId);
+
+      if (!lead) {
+        throw new Error("Lead not found");
+      }
 
       const { error } = await supabase
         .from("sales_leads")
@@ -79,14 +86,24 @@ export const SalesLeadList = () => {
         queryClient.invalidateQueries({ queryKey: ["onboarding-leads"] })
       ]);
 
-      toast.success(`Lead ${lead?.full_name} transferred to onboarding`);
+      toast.success(`Lead ${lead.full_name} transferred to onboarding`);
       setSearchParams({ tab: 'onboarding' });
       
     } catch (error: any) {
       console.error("Error transferring lead to onboarding:", error);
       toast.error(error.message || "Failed to transfer lead to onboarding");
+    } finally {
+      setIsTransferring(null);
     }
   };
+
+  if (error) {
+    return (
+      <div className="text-center text-red-500 py-8">
+        Error loading leads. Please try again.
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
