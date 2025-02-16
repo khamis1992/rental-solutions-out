@@ -18,3 +18,22 @@ export interface SalesLead {
   lead_source: string | null;
   last_contacted_at: string | null;
 }
+
+export interface LeadActivity {
+  id: string;
+  lead_id: string;
+  activity_type: 'status_changed' | 'note_added' | 'email_sent' | 'call_made' | 'updated';
+  description: string | null;
+  performed_by: string | null;
+  metadata: Record<string, any>;
+  created_at: string;
+}
+
+export interface LeadNote {
+  id: string;
+  lead_id: string;
+  content: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
