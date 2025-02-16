@@ -23,7 +23,7 @@ export type LeadStatus =
   | "vehicle_selection"
   | "agreement_draft"
   | "ready_for_signature"
-  | "onboarding"
+  | "in_onboarding"
   | "completed"
   | "cancelled";
 
@@ -43,3 +43,5 @@ export interface SalesTask {
   created_at: string;
   updated_at: string;
 }
+
+export type CreateLeadInput = Omit<SalesLead, 'id' | 'created_at' | 'updated_at' | 'customer_id' | 'onboarding_date'>;

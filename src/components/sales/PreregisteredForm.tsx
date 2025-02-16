@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { SalesLead } from "@/types/sales.types";
+import { SalesLead, CreateLeadInput } from "@/types/sales.types";
 
 const formSchema = z.object({
   full_name: z.string().min(2, "Name must be at least 2 characters"),
@@ -39,17 +39,19 @@ export function PreregisteredForm({ onLeadCreated }: PreregisteredFormProps) {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
+      const inputData: CreateLeadInput = {
+        ...values,
+        status: "new",
+        onboarding_progress: {
+          initial_payment: false,
+          agreement_creation: false,
+          customer_conversion: false
+        }
+      };
+
       const { data, error } = await supabase
         .from("sales_leads")
-        .insert([{
-          ...values,
-          status: "new",
-          onboarding_progress: {
-            initial_payment: false,
-            agreement_creation: false,
-            customer_conversion: false
-          }
-        }])
+        .insert([inputData])
         .select()
         .single();
 
