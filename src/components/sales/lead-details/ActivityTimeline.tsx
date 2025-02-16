@@ -1,6 +1,6 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { Timeline } from "lucide-react";
+import { Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Card,
@@ -64,7 +64,7 @@ export function ActivityTimeline({ leadId }: ActivityTimelineProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Timeline className="h-5 w-5" />
+          <Clock className="h-5 w-5" />
           Activity Timeline
         </CardTitle>
         <CardDescription>Recent activities and updates for this lead</CardDescription>
