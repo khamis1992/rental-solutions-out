@@ -1,6 +1,5 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Edit, Trash2, Loader2, Search, Filter } from "lucide-react";
+import { Edit, Trash2, Loader2, Search, Filter, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import { SalesLead, LeadStatus } from "@/types/sales-lead";
@@ -40,6 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { LeadDetails } from "./lead-details/LeadDetails";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -50,9 +50,9 @@ export function LeadListComponent() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<LeadStatus | "all">("all");
+  const [selectedLeadForDetails, setSelectedLeadForDetails] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  // Enhanced query with filters
   const { data: leads, isLoading, error } = useQuery({
     queryKey: ["leads", currentPage, searchQuery, statusFilter],
     queryFn: async () => {
@@ -119,6 +119,10 @@ export function LeadListComponent() {
     if (selectedLead) {
       deleteMutation.mutate(selectedLead.id);
     }
+  };
+
+  const handleViewDetails = (leadId: string) => {
+    setSelectedLeadForDetails(leadId);
   };
 
   const getStatusBadgeVariant = (status: LeadStatus) => {
@@ -239,6 +243,13 @@ export function LeadListComponent() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        onClick={() => handleViewDetails(lead.id)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleEdit(lead)}
                       >
                         <Edit className="h-4 w-4" />
@@ -276,6 +287,16 @@ export function LeadListComponent() {
             Next
           </Button>
         </div>
+      )}
+
+      {selectedLeadForDetails && (
+        <LeadDetails
+          leadId={selectedLeadForDetails}
+          open={!!selectedLeadForDetails}
+          onOpenChange={(open) => {
+            if (!open) setSelectedLeadForDetails(null);
+          }}
+        />
       )}
 
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
