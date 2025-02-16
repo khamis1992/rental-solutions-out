@@ -12,8 +12,9 @@ import {
 import { SalesLead } from "@/types/sales.types";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, History, Trash2 } from "lucide-react";
 import { EditLeadDialog } from "./EditLeadDialog";
+import { LeadHistoryDialog } from "./LeadHistoryDialog";
 
 interface LeadListProps {
   leads: SalesLead[];
@@ -25,6 +26,7 @@ interface LeadListProps {
 export function LeadList({ leads, onDelete, onTransferToOnboarding, onLeadUpdated }: LeadListProps) {
   const [selectedLead, setSelectedLead] = useState<SalesLead | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -69,6 +71,17 @@ export function LeadList({ leads, onDelete, onTransferToOnboarding, onLeadUpdate
                       size="icon"
                       onClick={() => {
                         setSelectedLead(lead);
+                        setHistoryDialogOpen(true);
+                      }}
+                    >
+                      <History className="h-4 w-4" />
+                    </Button>
+
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => {
+                        setSelectedLead(lead);
                         setEditDialogOpen(true);
                       }}
                     >
@@ -98,12 +111,19 @@ export function LeadList({ leads, onDelete, onTransferToOnboarding, onLeadUpdate
       </div>
 
       {selectedLead && (
-        <EditLeadDialog
-          lead={selectedLead}
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          onLeadUpdated={onLeadUpdated}
-        />
+        <>
+          <EditLeadDialog
+            lead={selectedLead}
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            onLeadUpdated={onLeadUpdated}
+          />
+          <LeadHistoryDialog
+            lead={selectedLead}
+            open={historyDialogOpen}
+            onOpenChange={setHistoryDialogOpen}
+          />
+        </>
       )}
     </div>
   );
