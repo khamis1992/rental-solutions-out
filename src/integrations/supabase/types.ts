@@ -2314,6 +2314,48 @@ export type Database = {
         }
         Relationships: []
       }
+      first_payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          customer_id: string | null
+          id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "first_payments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "first_payments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fleet_optimization_recommendations: {
         Row: {
           confidence_score: number | null
