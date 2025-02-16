@@ -47,7 +47,7 @@ serve(async (req) => {
     const { leaseId, amount, paymentMethod = 'Cash', description = '', type } = data;
 
     // Validate required parameters
-    if (!leaseId || !amount || !type) {
+    if (!amount || !type) {
       console.error('Missing required parameters:', { leaseId, amount, type });
       return new Response(
         JSON.stringify({
