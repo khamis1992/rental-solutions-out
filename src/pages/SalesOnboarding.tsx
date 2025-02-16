@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -35,7 +34,7 @@ export default function SalesOnboarding() {
       const { error: updateError } = await supabase
         .from("sales_leads")
         .update({
-          status: "onboarding",
+          status: "in_onboarding",
           onboarding_date: new Date().toISOString(),
           onboarding_progress: {
             initial_payment: true,
@@ -47,20 +46,22 @@ export default function SalesOnboarding() {
 
       if (updateError) throw updateError;
 
-      // Create onboarding record
-      const { error: onboardingError } = await supabase
-        .from("sales_onboarding")
+      // Create record in unified_payments for first payment
+      const { error: paymentError } = await supabase
+        .from("unified_payments")
         .insert([
           {
-            lead_id: leadId,
-            agreement_name: values.agreement_name,
-            first_payment_amount: values.first_payment_amount,
+            lease_id: null, // Will be updated when agreement is created
+            amount: values.first_payment_amount,
+            amount_paid: values.first_payment_amount,
             payment_date: new Date().toISOString(),
-            status: "in_progress",
+            status: "completed",
+            type: "ONBOARDING_PAYMENT",
+            description: `Initial payment for agreement: ${values.agreement_name}`,
           },
         ]);
 
-      if (onboardingError) throw onboardingError;
+      if (paymentError) throw paymentError;
 
       toast.success("Onboarding started successfully");
       navigate("/sales");

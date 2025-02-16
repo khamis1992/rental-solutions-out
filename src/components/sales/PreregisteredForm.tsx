@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -42,13 +41,21 @@ export function PreregisteredForm({ onLeadCreated }: PreregisteredFormProps) {
     try {
       const { data, error } = await supabase
         .from("sales_leads")
-        .insert([values])
+        .insert([{
+          ...values,
+          status: "new",
+          onboarding_progress: {
+            initial_payment: false,
+            agreement_creation: false,
+            customer_conversion: false
+          }
+        }])
         .select()
         .single();
 
       if (error) throw error;
       
-      onLeadCreated(data);
+      onLeadCreated(data as SalesLead);
       form.reset();
       toast.success("Lead created successfully");
     } catch (error) {
