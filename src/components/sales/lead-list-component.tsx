@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Edit, Trash2, Loader2, Search, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
-import { SalesLead } from "@/types/sales-lead";
+import { SalesLead, LeadStatus } from "@/types/sales-lead";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
@@ -49,7 +49,7 @@ export function LeadListComponent() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<LeadStatus | "all">("all");
   const queryClient = useQueryClient();
 
   // Enhanced query with filters
@@ -121,7 +121,7 @@ export function LeadListComponent() {
     }
   };
 
-  const getStatusBadgeVariant = (status: string) => {
+  const getStatusBadgeVariant = (status: LeadStatus) => {
     switch (status) {
       case "converted":
         return "success";
@@ -161,7 +161,7 @@ export function LeadListComponent() {
           </div>
           <Select
             value={statusFilter}
-            onValueChange={setStatusFilter}
+            onValueChange={(value: LeadStatus | "all") => setStatusFilter(value)}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by status" />
