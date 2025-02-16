@@ -1,182 +1,104 @@
-
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import { performanceMetrics } from "@/services/performanceMonitoring";
 import { toast } from "sonner";
 import type { ExtendedPerformance } from "@/services/performance/types";
-import { 
-  CPU_THRESHOLD, 
-  MEMORY_THRESHOLD,
-  DEBOUNCE_DELAY
-} from "@/services/performance/constants";
-import { ErrorBoundary } from "@/components/ui/error-boundary";
 
-// Define monitoring intervals based on actual needs
-// CPU is checked less frequently as it's less critical for web apps
-const MONITOR_CPU_INTERVAL = 30000;     // Every 30 seconds
-// Memory is checked more frequently as it's critical for app performance
-const MONITOR_MEMORY_INTERVAL = 10000;  // Every 10 seconds 
-// Disk is checked rarely as it changes slowly
-const MONITOR_DISK_INTERVAL = 300000;   // Every 5 minutes
+const MONITORING_INTERVALS = {
+  CPU: 10000,    // 10 seconds
+  MEMORY: 15000, // 15 seconds
+  DISK: 60000    // 1 minute
+} as const;
 
-// Maximum number of retries for failed operations
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1 second
+const PERFORMANCE_THRESHOLDS = {
+  CPU: 80,    // 80% CPU usage
+  MEMORY: 90, // 90% memory usage
+  DISK: 90    // 90% disk usage
+} as const;
 
-const MonitoringComponent = () => {
+export const usePerformanceMonitoring = () => {
   const intervals = useRef<Array<NodeJS.Timeout>>([]);
-  const lastUpdate = useRef<number>(0);
-  const [hasError, setHasError] = useState(false);
-  const retryCount = useRef(0);
 
   const measureCPUUsage = async (): Promise<number> => {
-    try {
-      const performance = window.performance as ExtendedPerformance;
-      if (!performance?.memory) return 0;
+    const performance = window.performance as ExtendedPerformance;
+    if (!performance?.memory) return 0;
 
-      const startTime = performance.now();
-      const startUsage = performance.memory.usedJSHeapSize;
-      
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const endTime = performance.now();
-      const endUsage = performance.memory.usedJSHeapSize;
-      
-      const duration = endTime - startTime;
-      const memoryDiff = endUsage - startUsage;
-      const cpuUsage = (memoryDiff / duration) * 100;
-      
-      return Math.min(Math.max(cpuUsage, 0), 100);
-    } catch (error) {
-      console.error('Error measuring CPU usage:', error);
-      return 0;
-    }
-  };
-
-  // Debounced monitor update to prevent too frequent updates
-  const debouncedMonitorUpdate = (callback: () => Promise<void>) => {
-    const now = Date.now();
-    if (now - lastUpdate.current >= DEBOUNCE_DELAY) {
-      lastUpdate.current = now;
-      void callback();
-    }
-  };
-
-  const retryOperation = async <T,>(
-    operation: () => Promise<T>,
-    errorMessage: string
-  ): Promise<T | null> => {
-    try {
-      return await operation();
-    } catch (error) {
-      console.error(errorMessage, error);
-      if (retryCount.current < MAX_RETRIES) {
-        retryCount.current++;
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-        return retryOperation(operation, errorMessage);
-      }
-      setHasError(true);
-      return null;
-    }
+    const startTime = performance.now();
+    const startUsage = performance.memory.usedJSHeapSize;
+    
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    const endTime = performance.now();
+    const endUsage = performance.memory.usedJSHeapSize;
+    
+    const duration = endTime - startTime;
+    const memoryDiff = endUsage - startUsage;
+    const cpuUsage = (memoryDiff / duration) * 100;
+    
+    return Math.min(Math.max(cpuUsage, 0), 100);
   };
 
   const monitorPerformance = async () => {
     try {
-      // Monitor Memory with debouncing (highest priority)
-      const monitorMemory = async () => {
-        debouncedMonitorUpdate(async () => {
-          const performance = window.performance as ExtendedPerformance;
-          if (performance?.memory) {
-            const usedMemory = performance.memory.usedJSHeapSize;
-            const totalMemory = performance.memory.totalJSHeapSize;
-            const memoryUsage = (usedMemory / totalMemory) * 100;
-
-            if (memoryUsage > MEMORY_THRESHOLD) {
-              toast.warning("High Memory Usage", {
-                description: `Memory utilization is at ${memoryUsage.toFixed(1)}%`
-              });
-            }
-            await retryOperation(
-              () => performanceMetrics.trackMemoryUsage(),
-              'Failed to track memory usage'
-            );
-          }
-        });
+      // Monitor CPU
+      const monitorCPU = async () => {
+        const cpuUsage = await measureCPUUsage();
+        if (cpuUsage > PERFORMANCE_THRESHOLDS.CPU) {
+          toast.warning("High CPU Usage", {
+            description: `Current CPU utilization is ${cpuUsage.toFixed(1)}%`
+          });
+        }
+        await performanceMetrics.trackCPUUtilization(cpuUsage);
       };
 
-      // Monitor CPU with debouncing (medium priority)
-      const monitorCPU = async () => {
-        debouncedMonitorUpdate(async () => {
-          const cpuUsage = await measureCPUUsage();
-          if (cpuUsage > CPU_THRESHOLD) {
-            toast.warning("High CPU Usage", {
-              description: `Current CPU utilization is ${cpuUsage.toFixed(1)}%`
+      // Monitor Memory
+      const monitorMemory = async () => {
+        const performance = window.performance as ExtendedPerformance;
+        if (performance?.memory) {
+          const usedMemory = performance.memory.usedJSHeapSize;
+          const totalMemory = performance.memory.totalJSHeapSize;
+          const memoryUsage = (usedMemory / totalMemory) * 100;
+
+          if (memoryUsage > PERFORMANCE_THRESHOLDS.MEMORY) {
+            toast.warning("High Memory Usage", {
+              description: `Memory utilization is at ${memoryUsage.toFixed(1)}%`
             });
           }
-          await retryOperation(
-            () => performanceMetrics.trackCPUUtilization(cpuUsage),
-            'Failed to track CPU utilization'
-          );
-        });
+          await performanceMetrics.trackMemoryUsage();
+        }
       };
 
-      // Monitor Disk with debouncing (lowest priority)
+      // Monitor Disk
       const monitorDisk = async () => {
-        debouncedMonitorUpdate(async () => {
-          if ('storage' in navigator && 'estimate' in navigator.storage) {
-            const { quota = 0, usage = 0 } = await navigator.storage.estimate();
-            const usagePercentage = (usage / quota) * 100;
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+          const { quota = 0, usage = 0 } = await navigator.storage.estimate();
+          const usagePercentage = (usage / quota) * 100;
 
-            if (usagePercentage > 90) {
-              toast.warning("High Disk Usage", {
-                description: `Storage utilization is at ${usagePercentage.toFixed(1)}%`
-              });
-            }
-            await retryOperation(
-              () => performanceMetrics.trackDiskIO(),
-              'Failed to track disk I/O'
-            );
+          if (usagePercentage > PERFORMANCE_THRESHOLDS.DISK) {
+            toast.warning("High Disk Usage", {
+              description: `Storage utilization is at ${usagePercentage.toFixed(1)}%`
+            });
           }
-        });
+          await performanceMetrics.trackDiskIO();
+        }
       };
 
-      // Set up monitoring intervals with cleanup
-      intervals.current = [
-        setInterval(() => void monitorMemory(), MONITOR_MEMORY_INTERVAL),
-        setInterval(() => void monitorCPU(), MONITOR_CPU_INTERVAL),
-        setInterval(() => void monitorDisk(), MONITOR_DISK_INTERVAL)
-      ];
+      // Set up monitoring intervals
+      intervals.current.push(
+        setInterval(monitorCPU, MONITORING_INTERVALS.CPU),
+        setInterval(monitorMemory, MONITORING_INTERVALS.MEMORY),
+        setInterval(monitorDisk, MONITORING_INTERVALS.DISK)
+      );
 
     } catch (error) {
       console.error('Performance monitoring error:', error);
-      setHasError(true);
     }
   };
 
   useEffect(() => {
-    if (!hasError) {
-      void monitorPerformance();
-    }
+    monitorPerformance();
     return () => {
       intervals.current.forEach(clearInterval);
       intervals.current = [];
     };
-  }, [hasError]);
-
-  if (hasError) {
-    return (
-      <div className="text-sm text-red-500">
-        Performance monitoring temporarily unavailable. Retrying...
-      </div>
-    );
-  }
-
-  return null;
-};
-
-export const usePerformanceMonitoring = () => {
-  return (
-    <ErrorBoundary>
-      <MonitoringComponent />
-    </ErrorBoundary>
-  );
+  }, []);
 };

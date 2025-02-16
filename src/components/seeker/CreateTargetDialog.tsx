@@ -1,22 +1,22 @@
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { useSeekerTargets } from "@/hooks/use-seeker-targets";
+} from '@/components/ui/select';
+import { useSeekerTargets } from '@/hooks/use-seeker-targets';
 
 interface CreateTargetDialogProps {
   open: boolean;

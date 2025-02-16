@@ -18,12 +18,14 @@ import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { DateInput } from "@/components/ui/date-input";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { calculateDuration, calculateContractValue } from "./utils/agreementCalculations";
 import { AgreementStatusSelect } from "./details/AgreementStatusSelect";
 import { formatDateToDisplay, parseDateFromDisplay, formatDateForApi } from "@/lib/dateUtils";
 import { 
   CalendarDays, 
-  Calendar, 
+  Calendar,
   CreditCard, 
   Receipt, 
   FileText, 
@@ -32,12 +34,22 @@ import {
   AlertTriangle,
   Clock,
   BadgeDollarSign,
-  Calendar as CalendarIcon,
-  CircleDollarSign
+  CalendarIcon,
+  CircleDollarSign,
+  UserCheck,
+  FileCheck,
+  Activity,
+  TrendingUp,
+  Timer,
+  Mail,
+  Phone,
+  Hourglass,
+  Banknote // Changed from BankNote to Banknote
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface AgreementDetailsDialogProps {
   agreementId: string;
@@ -154,8 +166,8 @@ export const AgreementDetailsDialog = ({
 
   if (!open) return null;
 
-  // Get the remaining amount from the view
   const remainingAmount = agreement?.remainingAmount?.[0]?.remaining_amount ?? 0;
+  const paymentProgress = agreement ? ((contractValue - remainingAmount) / contractValue) * 100 : 0;
 
   const mappedAgreement = agreement ? {
     id: agreement.id,
@@ -173,7 +185,7 @@ export const AgreementDetailsDialog = ({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <FileText className="h-5 w-5 text-blue-600" />
+            <FileText className="h-6 w-6 text-blue-600" />
             Agreement Details
           </DialogTitle>
           <DialogDescription className="text-base">
@@ -200,11 +212,25 @@ export const AgreementDetailsDialog = ({
             </div>
 
             <Card className="border-blue-100">
-              <CardContent className="pt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-blue-600" />
+                  Agreement Progress
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Payment Progress</span>
+                    <span>{paymentProgress.toFixed(1)}%</span>
+                  </div>
+                  <Progress value={paymentProgress} className="h-2" />
+                </div>
+
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                      <CalendarDays className="h-5 w-5 text-blue-600" />
+                      <Timer className="h-5 w-5 text-blue-600" />
                       <h3 className="font-semibold">Agreement Period</h3>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -239,28 +265,35 @@ export const AgreementDetailsDialog = ({
 
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                      <CircleDollarSign className="h-5 w-5 text-blue-600" />
+                      <Banknote className="h-5 w-5 text-blue-600" />
                       <h3 className="font-semibold">Financial Details</h3>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="rent_amount" className="flex items-center gap-2">
-                          <BadgeDollarSign className="h-4 w-4 text-gray-500" />
-                          Rent Amount (QAR)
-                        </Label>
-                        <Input
-                          id="rent_amount"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={rentAmount}
-                          onChange={(e) => handleRentAmountChange(e.target.value)}
-                          className="bg-white"
-                        />
-                      </div>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="space-y-2">
+                            <Label htmlFor="rent_amount" className="flex items-center gap-2">
+                              <BadgeDollarSign className="h-4 w-4 text-gray-500" />
+                              Rent Amount (QAR)
+                            </Label>
+                            <Input
+                              id="rent_amount"
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={rentAmount}
+                              onChange={(e) => handleRentAmountChange(e.target.value)}
+                              className="bg-white"
+                            />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Monthly rent amount
+                        </TooltipContent>
+                      </Tooltip>
                       <div className="space-y-2">
                         <Label className="flex items-center gap-2">
-                          <CalendarIcon className="h-4 w-4 text-gray-500" />
+                          <Hourglass className="h-4 w-4 text-gray-500" />
                           Duration (Months)
                         </Label>
                         <Input
@@ -273,7 +306,7 @@ export const AgreementDetailsDialog = ({
                     </div>
                     <div className="space-y-2">
                       <Label className="flex items-center gap-2">
-                        <CreditCard className="h-4 w-4 text-gray-500" />
+                        <TrendingUp className="h-4 w-4 text-gray-500" />
                         Contract Value (QAR)
                       </Label>
                       <Input
@@ -288,11 +321,13 @@ export const AgreementDetailsDialog = ({
               </CardContent>
             </Card>
 
-            <CustomerInfoCard customer={agreement.customer} />
-            <VehicleInfoCard 
-              vehicle={agreement.vehicle}
-              initialMileage={agreement.initial_mileage}
-            />
+            <div className="grid md:grid-cols-2 gap-6">
+              <CustomerInfoCard customer={agreement.customer} />
+              <VehicleInfoCard 
+                vehicle={agreement.vehicle}
+                initialMileage={agreement.initial_mileage}
+              />
+            </div>
 
             <Tabs defaultValue="payments" className="w-full">
               <TabsList className="w-full grid grid-cols-6 h-auto gap-2 bg-transparent">
@@ -305,7 +340,7 @@ export const AgreementDetailsDialog = ({
                   History
                 </TabsTrigger>
                 <TabsTrigger value="invoices" className="flex items-center gap-2 data-[state=active]:bg-blue-50">
-                  <FileText className="h-4 w-4" />
+                  <FileCheck className="h-4 w-4" />
                   Invoices
                 </TabsTrigger>
                 <TabsTrigger value="documents" className="flex items-center gap-2 data-[state=active]:bg-blue-50">

@@ -1,41 +1,251 @@
 
-import { Suspense } from "react";
-import { Route, Routes } from "react-router-dom";
-import { LoadingOverlay } from "@/components/ui/loading/LoadingOverlay";
+import { Suspense, useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
-import * as Pages from "@/routes/routes";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ThemeProvider } from "@/components/theme/theme-provider";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { useSessionContext } from "@supabase/auth-helpers-react";
+import { toast } from "sonner";
+import * as LazyComponents from "@/routes/routes";
+import { supabase } from "@/integrations/supabase/client";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { LocationProvider } from "@/contexts/LocationContext";
 
 export default function App() {
+  const { session, isLoading, error } = useSessionContext();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
+      if (event === 'SIGNED_OUT') {
+        navigate('/auth');
+      } else if (event === 'SIGNED_IN') {
+        supabase.auth.refreshSession();
+      }
+    });
+
+    if (error) {
+      console.error('Session error:', error);
+      if (error.message?.includes('refresh_token_not_found') || 
+          error.message?.includes('session_not_found')) {
+        toast.error('Your session has expired. Please sign in again.');
+        supabase.auth.signOut().then(() => {
+          navigate('/auth');
+        });
+      }
+    }
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [error, navigate]);
+
+  if (isLoading) {
+    return <Skeleton className="h-screen w-screen" />;
+  }
+
   return (
-    <>
-      <Suspense fallback={<LoadingOverlay />}>
-        <Routes>
-          <Route path="/" element={<Pages.Dashboard />} />
-          <Route path="/auth" element={<Pages.Auth />} />
-          <Route path="/vehicles" element={<Pages.Vehicles />} />
-          <Route path="/vehicle-types" element={<Pages.VehicleTypes />} />
-          <Route path="/vehicles/:id" element={<Pages.VehicleDetails />} />
-          <Route path="/customers" element={<Pages.Customers />} />
-          <Route path="/customers/:id" element={<Pages.CustomerProfile />} />
-          <Route path="/agreements" element={<Pages.Agreements />} />
-          <Route path="/remaining-amount" element={<Pages.RemainingAmount />} />
-          <Route path="/settings" element={<Pages.Settings />} />
-          <Route path="/maintenance" element={<Pages.Maintenance />} />
-          <Route path="/traffic-fines" element={<Pages.TrafficFines />} />
-          <Route path="/reports" element={<Pages.Reports />} />
-          <Route path="/finance" element={<Pages.Finance />} />
-          <Route path="/help" element={<Pages.Help />} />
-          <Route path="/legal" element={<Pages.Legal />} />
-          <Route path="/audit" element={<Pages.Audit />} />
-          <Route path="/chauffeur" element={<Pages.ChauffeurService />} />
-          <Route path="/customer-portal" element={<Pages.CustomerPortal />} />
-          <Route path="/car-installment-details" element={<Pages.CarInstallmentDetails />} />
-          <Route path="/location-tracking" element={<Pages.LocationTracking />} />
-          <Route path="/sales" element={<Pages.Sales />} />
-          <Route path="/sales/onboarding" element={<Pages.SalesOnboarding />} />
-        </Routes>
-      </Suspense>
-      <Toaster />
-    </>
+    <ThemeProvider defaultTheme="light" storageKey="rental-solutions-theme">
+      <LocationProvider>
+        <div className="min-h-screen bg-background">
+          <Toaster />
+          <Routes>
+            {/* Public Routes - No Layout */}
+            <Route
+              path="/auth"
+              element={
+                <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                  <LazyComponents.Auth />
+                </Suspense>
+              }
+            />
+
+            {/* Customer Portal Route - Public */}
+            <Route
+              path="/customer-portal"
+              element={
+                <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                  <LazyComponents.CustomerPortal />
+                </Suspense>
+              }
+            />
+
+            {/* Protected Routes - With Dashboard Layout */}
+            <Route
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route
+                path="/"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.Dashboard />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/vehicles"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.Vehicles />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/vehicles/:id"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.VehicleDetails />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/customers"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.Customers />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/customers/:id"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.CustomerProfile />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/agreements"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.Agreements />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/remaining-amount"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.RemainingAmount />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/settings"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.Settings />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/maintenance/*"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.Maintenance />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/chauffeur-service"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.ChauffeurService />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/traffic-fines"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.TrafficFines />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/reports"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.Reports />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/finance/*"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.Finance />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/finance/car-installments/:id"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.CarInstallmentDetails />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/help"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.Help />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/legal"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.Legal />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/audit"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.Audit />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/location-tracking"
+                element={
+                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                    <LazyComponents.LocationTracking />
+                  </Suspense>
+                }
+              />
+            </Route>
+
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </LocationProvider>
+    </ThemeProvider>
   );
 }

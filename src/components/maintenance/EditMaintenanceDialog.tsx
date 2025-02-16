@@ -1,147 +1,153 @@
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Edit } from "lucide-react";
 import { useState } from "react";
-import { MaintenanceRecord, MaintenanceStatus } from "@/types/maintenance";
-import { useForm } from "react-hook-form";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { MaintenanceStatusSelect } from "./MaintenanceStatusSelect";
-import { useQueryClient } from "@tanstack/react-query";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
+import { JobCardForm } from "./job-card/JobCardForm";
+import { MaintenanceDocumentUpload } from "./job-card/MaintenanceDocumentUpload";
+import VehicleInspectionDialog from "./inspection/VehicleInspectionDialog";
+import type { MaintenanceStatus } from "@/types/maintenance";
 
 interface EditMaintenanceDialogProps {
-  record: MaintenanceRecord;
+  record: {
+    id: string;
+    vehicle_id: string;
+    service_type: string;
+    description?: string;
+    status: MaintenanceStatus;
+    cost?: number;
+    scheduled_date: string;
+    notes?: string;
+    category_id?: string;
+  };
 }
 
-export const EditMaintenanceDialog = ({ record }: EditMaintenanceDialogProps) => {
+export function EditMaintenanceDialog({ record }: EditMaintenanceDialogProps) {
   const [open, setOpen] = useState(false);
+  const [showInspection, setShowInspection] = useState(false);
+  const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
-  const { register, handleSubmit, formState: { errors } } = useForm<MaintenanceRecord>({
-    defaultValues: record
+
+  const [formData, setFormData] = useState({
+    vehicle_id: record.vehicle_id,
+    category_id: record.category_id || "",
+    service_type: record.service_type,
+    description: record.description || "",
+    scheduled_date: record.scheduled_date,
+    cost: record.cost?.toString() || "",
+    status: record.status
   });
 
-  const onSubmit = async (data: MaintenanceRecord) => {
+  const { data: vehicles = [] } = useQuery({
+    queryKey: ["vehicles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("vehicles")
+        .select("id, make, model, license_plate");
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ["maintenance-categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("maintenance_categories")
+        .select("*")
+        .eq('is_active', true)
+        .order('name');
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
     try {
       const { error } = await supabase
         .from("maintenance")
         .update({
-          service_type: data.service_type,
-          description: data.description,
-          status: data.status,
-          cost: data.cost,
-          scheduled_date: data.scheduled_date,
-          completed_date: data.completed_date,
-          performed_by: data.performed_by,
-          notes: data.notes
+          vehicle_id: formData.vehicle_id,
+          category_id: formData.category_id,
+          service_type: formData.service_type,
+          description: formData.description,
+          scheduled_date: formData.scheduled_date,
+          cost: formData.cost ? parseFloat(formData.cost) : null,
+          status: formData.status,
+          updated_at: new Date().toISOString(),
         })
         .eq("id", record.id);
 
       if (error) throw error;
 
+      await queryClient.invalidateQueries({ queryKey: ["maintenance"] });
       toast.success("Maintenance record updated successfully");
-      queryClient.invalidateQueries(["maintenance"]);
-      setOpen(false);
-    } catch (error) {
-      console.error("Error updating maintenance:", error);
+      
+      // Show inspection dialog after successful update
+      setShowInspection(true);
+    } catch (error: any) {
+      console.error("Error updating maintenance record:", error);
       toast.error("Failed to update maintenance record");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleInspectionComplete = () => {
+    setShowInspection(false);
+    setOpen(false);
   };
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setOpen(true)}
-        className="hover:bg-blue-50 transition-colors duration-300"
-      >
-        <Edit className="h-4 w-4 text-blue-600 hover:text-blue-700 transition-colors duration-300" />
-      </Button>
-
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <Pencil className="h-4 w-4" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Maintenance Record</DialogTitle>
+            <DialogTitle>Edit Job Card</DialogTitle>
           </DialogHeader>
           
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="service_type">Service Type</Label>
-              <Input
-                id="service_type"
-                {...register("service_type", { required: true })}
-              />
-            </div>
+          <JobCardForm
+            formData={formData}
+            vehicles={vehicles}
+            categories={categories}
+            onFormDataChange={setFormData}
+            onSubmit={handleSubmit}
+            loading={loading}
+          />
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                {...register("description")}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="cost">Cost</Label>
-              <Input
-                id="cost"
-                type="number"
-                {...register("cost", { min: 0 })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="scheduled_date">Scheduled Date</Label>
-              <Input
-                id="scheduled_date"
-                type="date"
-                {...register("scheduled_date", { required: true })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="completed_date">Completed Date</Label>
-              <Input
-                id="completed_date"
-                type="date"
-                {...register("completed_date")}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="performed_by">Performed By</Label>
-              <Input
-                id="performed_by"
-                {...register("performed_by")}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                {...register("notes")}
-              />
-            </div>
-
-            <div className="flex justify-end space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">
-                Save Changes
-              </Button>
-            </div>
-          </form>
+          <MaintenanceDocumentUpload
+            maintenanceId={record.id}
+            onUploadComplete={() => queryClient.invalidateQueries({ queryKey: ["maintenance"] })}
+          />
         </DialogContent>
       </Dialog>
+
+      {showInspection && (
+        <VehicleInspectionDialog
+          open={showInspection}
+          onOpenChange={setShowInspection}
+          maintenanceId={record.id}
+          onComplete={handleInspectionComplete}
+        />
+      )}
     </>
   );
-};
+}

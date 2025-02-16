@@ -5,12 +5,11 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { VehicleList } from "@/components/vehicles/VehicleList";
 import { VehicleStats } from "@/components/vehicles/VehicleStats";
 import { CreateVehicleDialog } from "@/components/vehicles/CreateVehicleDialog";
-import { VehicleFilterDialog } from "@/components/vehicles/filters/VehicleFilterDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Car, Plus, Search, RefreshCw } from "lucide-react";
-import { Vehicle, VehicleFilterParams } from "@/types/vehicle";
+import { Vehicle } from "@/types/vehicle";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -19,7 +18,6 @@ const Vehicles = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [activeFilters, setActiveFilters] = useState<VehicleFilterParams>({});
 
   const { data: vehicles = [], isLoading, refetch } = useQuery({
     queryKey: ["vehicles"],
@@ -37,34 +35,16 @@ const Vehicles = () => {
     },
   });
 
-  // Count total active filters
-  const totalFilters = Object.values(activeFilters).filter(value => value !== undefined).length;
-
-  // Filter vehicles based on search query and filters
+  // Filter vehicles based on search query
   const filteredVehicles = vehicles.filter(vehicle => {
-    // Search filter
     const searchLower = searchQuery.toLowerCase();
-    const matchesSearch = !searchQuery || 
+    return (
+      !searchQuery ||
       vehicle.make?.toLowerCase().includes(searchLower) ||
       vehicle.model?.toLowerCase().includes(searchLower) ||
       vehicle.license_plate?.toLowerCase().includes(searchLower) ||
-      vehicle.vin?.toLowerCase().includes(searchLower);
-
-    // Status filter
-    const matchesStatus = !activeFilters.status || vehicle.status === activeFilters.status;
-
-    // Make filter
-    const matchesMake = !activeFilters.make || 
-      vehicle.make.toLowerCase().includes(activeFilters.make.toLowerCase());
-
-    // Model filter
-    const matchesModel = !activeFilters.model || 
-      vehicle.model.toLowerCase().includes(activeFilters.model.toLowerCase());
-
-    // Year filter
-    const matchesYear = !activeFilters.year || vehicle.year === activeFilters.year;
-
-    return matchesSearch && matchesStatus && matchesMake && matchesModel && matchesYear;
+      vehicle.vin?.toLowerCase().includes(searchLower)
+    );
   });
 
   const handleRefresh = async () => {
@@ -79,13 +59,9 @@ const Vehicles = () => {
     }
   };
 
-  const handleFilterChange = (filters: VehicleFilterParams) => {
-    setActiveFilters(filters);
-  };
-
   return (
     <DashboardLayout>
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <div className="content-container">
         {/* Enhanced Header Section with Gradient */}
         <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 p-4 sm:p-6 lg:p-8 border border-gray-200/50 dark:border-gray-700/50">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">
@@ -159,11 +135,6 @@ const Vehicles = () => {
                   className="pl-9 bg-background/50 hover:bg-background/80 transition-colors w-full"
                 />
               </div>
-              <VehicleFilterDialog
-                onFilterChange={handleFilterChange}
-                activeFilters={activeFilters}
-                totalFilters={totalFilters}
-              />
             </div>
 
             <div className="overflow-hidden">

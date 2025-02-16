@@ -1,168 +1,111 @@
-import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { useState, ReactNode } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form } from "@/components/ui/form";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { UserPlus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { SalesLead, LeadProgress } from "@/types/sales.types";
-
-const customerFormSchema = z.object({
-  full_name: z.string().min(2, {
-    message: "Full name must be at least 2 characters.",
-  }),
-  phone_number: z.string().min(10, {
-    message: "Phone number must be at least 10 characters.",
-  }),
-  email: z.string().email({
-    message: "Invalid email address.",
-  }),
-  nationality: z.string().min(2, {
-    message: "Nationality must be at least 2 characters.",
-  }),
-});
-
-type CustomerFormData = z.infer<typeof customerFormSchema>;
-
+import { CustomerFormFields } from "./CustomerFormFields";
+import { EnhancedButton } from "@/components/ui/enhanced-button";
 interface CreateCustomerDialogProps {
+  children?: ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
-
-export function CreateCustomerDialog() {
-  const [open, setOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export const CreateCustomerDialog = ({
+  children,
+  open,
+  onOpenChange
+}: CreateCustomerDialogProps) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(false);
+  const [customerId, setCustomerId] = useState<string | null>(null);
   const queryClient = useQueryClient();
-
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<CustomerFormData>({
-    resolver: zodResolver(customerFormSchema),
+  const form = useForm({
     defaultValues: {
       full_name: "",
       phone_number: "",
-      email: "",
-      nationality: "",
-    },
+      address: "",
+      driver_license: "",
+      id_document_url: "",
+      license_document_url: "",
+      contract_document_url: ""
+    }
   });
-
-  const onSubmit = async (data: CustomerFormData) => {
+  const onSubmit = async (values: any) => {
+    console.log("Submitting form with values:", values);
+    setIsLoading(true);
+    setSuccess(false);
+    setError(false);
     try {
-      setIsSubmitting(true);
+      // Generate a new UUID for the customer if not already set
+      const newCustomerId = customerId || crypto.randomUUID();
 
-      // Create the customer profile first
-      const { data: newCustomer, error: customerError } = await supabase
-        .from('profiles')
-        .insert({
-          full_name: data.full_name,
-          phone_number: data.phone_number,
-          email: data.email,
-          nationality: data.nationality,
-          role: 'customer'
-        })
-        .select()
-        .single();
-
-      if (customerError) throw customerError;
-
-      // Now create a sales lead with the new customer ID
-      const { data: newLead, error: leadError } = await supabase
-        .from('sales_leads')
-        .insert({
-          customer_id: newCustomer.id,
-          full_name: data.full_name,
-          phone_number: data.phone_number,
-          email: data.email,
-          status: 'new',
-          onboarding_progress: {
-            customer_conversion: false,
-            agreement_creation: false,
-            initial_payment: false
-          }
-        })
-        .select()
-        .single();
-
-      if (leadError) throw leadError;
-
-      // Convert the response to our frontend type with proper onboarding_progress typing
-      const salesLead: SalesLead = {
-        ...newLead,
-        onboarding_progress: newLead.onboarding_progress as unknown as LeadProgress
+      // Prepare the customer data
+      const customerData = {
+        id: newCustomerId,
+        ...values,
+        role: "customer",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        status: 'pending_review'
       };
-
+      console.log("Inserting customer with data:", customerData);
+      const {
+        error: supabaseError
+      } = await supabase.from("profiles").insert(customerData);
+      if (supabaseError) {
+        console.error("Supabase error:", supabaseError);
+        throw supabaseError;
+      }
+      setSuccess(true);
       toast.success("Customer created successfully");
-      onClose();
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
 
+      // Invalidate and refetch customers query
+      await queryClient.invalidateQueries({
+        queryKey: ["customers"]
+      });
+
+      // Reset form and close dialog after success animation
+      setTimeout(() => {
+        form.reset();
+        onOpenChange?.(false);
+        setCustomerId(null);
+      }, 1500);
     } catch (error: any) {
-      console.error('Error creating customer:', error);
+      console.error("Error in onSubmit:", error);
+      setError(true);
       toast.error(error.message || "Failed to create customer");
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
-
-  const onClose = () => {
-    setOpen(false);
-    reset();
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
+  return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline">Create Customer</Button>
+        {children || <EnhancedButton className="text-slate-50">
+            <UserPlus className="mr-2 h-4 w-4" />
+            Add Customer
+          </EnhancedButton>}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create Customer</DialogTitle>
+          <DialogTitle>Add Customer</DialogTitle>
           <DialogDescription>
-            Add a new customer to the system.
+            Add a new customer to the system. Click save when you're done.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="full_name">Full Name</Label>
-            <Input id="full_name" placeholder="John Doe" {...register("full_name")} />
-            {errors.full_name && (
-              <p className="text-sm text-red-500">{errors.full_name.message}</p>
-            )}
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="phone_number">Phone Number</Label>
-            <Input id="phone_number" placeholder="123-456-7890" {...register("phone_number")} />
-            {errors.phone_number && (
-              <p className="text-sm text-red-500">{errors.phone_number.message}</p>
-            )}
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" placeholder="johndoe@example.com" {...register("email")} />
-            {errors.email && (
-              <p className="text-sm text-red-500">{errors.email.message}</p>
-            )}
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="nationality">Nationality</Label>
-            <Input id="nationality" placeholder="American" {...register("nationality")} />
-            {errors.nationality && (
-              <p className="text-sm text-red-500">{errors.nationality.message}</p>
-            )}
-          </div>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create Customer"}
-          </Button>
-        </form>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <CustomerFormFields form={form} />
+            <DialogFooter>
+              <EnhancedButton type="submit" loading={isLoading} success={success} error={error} loadingText="Creating..." successText="Customer Created!" errorText="Failed to Create">
+                Create Customer
+              </EnhancedButton>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
-    </Dialog>
-  );
-}
+    </Dialog>;
+};

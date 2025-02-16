@@ -1,4 +1,3 @@
-
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { TrafficFinesDashboard } from "@/components/traffic-fines/TrafficFinesDashboard";
 import { ErrorBoundary } from "@/components/ui/error-boundary";

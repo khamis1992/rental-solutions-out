@@ -1,4 +1,3 @@
-
 // This file contains only the essential Database type definition
 // All other types have been moved to their respective domain files
 export type Json =
@@ -20,7 +19,6 @@ export interface Database {
       payment_status: "pending" | "completed" | "failed" | "refunded"
       user_role: "admin" | "staff" | "customer" | "manager"
       vehicle_status: "available" | "rented" | "maintenance" | "retired" | "police_station" | "accident" | "reserve" | "stolen"
-      sales_lead_status: "new" | "document_collection" | "vehicle_selection" | "agreement_draft" | "ready_for_signature" | "onboarding" | "completed" | "cancelled"
     }
   }
 }
