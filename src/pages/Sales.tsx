@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { PreregisteredForm } from "@/components/sales/PreregisteredForm";
 import { LeadList } from "@/components/sales/LeadList";
+import { OnboardingList } from "@/components/sales/OnboardingList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { VehicleType } from "@/types/sales.types";
@@ -49,7 +50,7 @@ export default function Sales() {
         <TabsContent value="onboarding">
           <div className="space-y-4">
             <h2 className="text-2xl font-semibold">Onboarding</h2>
-            {/* OnboardingList component will be added here */}
+            <OnboardingList />
           </div>
         </TabsContent>
       </Tabs>
