@@ -2,12 +2,35 @@
 import { PreregisteredForm } from "@/components/sales/PreregisteredForm";
 import { LeadList } from "@/components/sales/LeadList";
 import { useState, useEffect } from "react";
-import { SalesLead } from "@/types/sales.types";
+import { SalesLead, CreateLeadDTO } from "@/types/sales.types";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function Sales() {
-  const [leads] = useState<SalesLead[]>([]);
+  const [leads, setLeads] = useState<SalesLead[]>([]);
   const [vehicleTypes, setVehicleTypes] = useState<{ id: string; name: string; status: string }[]>([]);
+
+  // Fetch leads
+  useEffect(() => {
+    fetchLeads();
+  }, []);
+
+  const fetchLeads = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('sales_leads')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error("Error fetching leads:", error);
+        return;
+      }
+
+      setLeads(data || []);
+    } catch (error) {
+      console.error("Error fetching leads:", error);
+    }
+  };
 
   useEffect(() => {
     async function fetchVehicleTypes() {
@@ -39,8 +62,31 @@ export default function Sales() {
     fetchVehicleTypes();
   }, []);
 
-  const handleSubmit = async (data: any) => {
-    console.log("Form submitted:", data);
+  const handleSubmit = async (data: CreateLeadDTO) => {
+    try {
+      const { data: newLead, error } = await supabase
+        .from('sales_leads')
+        .insert([{
+          ...data,
+          status: 'new',
+          onboarding_progress: {
+            initial_payment: false,
+            agreement_creation: false,
+            customer_conversion: false
+          }
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Update the leads list with the new lead
+      setLeads(currentLeads => [newLead, ...currentLeads]);
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Error creating lead:", error);
+      return Promise.reject(error);
+    }
   };
 
   const handleEdit = (lead: SalesLead) => {
@@ -48,11 +94,41 @@ export default function Sales() {
   };
 
   const handleDelete = async (id: string) => {
-    console.log("Delete lead:", id);
+    try {
+      const { error } = await supabase
+        .from('sales_leads')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Update the leads list by removing the deleted lead
+      setLeads(currentLeads => currentLeads.filter(lead => lead.id !== id));
+    } catch (error) {
+      console.error("Error deleting lead:", error);
+      throw error;
+    }
   };
 
   const handleTransferToOnboarding = async (lead: SalesLead) => {
-    console.log("Transfer to onboarding:", lead);
+    try {
+      const { error } = await supabase
+        .from('sales_leads')
+        .update({ status: 'in_onboarding' })
+        .eq('id', lead.id);
+
+      if (error) throw error;
+
+      // Update the leads list with the updated status
+      setLeads(currentLeads => 
+        currentLeads.map(l => 
+          l.id === lead.id ? { ...l, status: 'in_onboarding' } : l
+        )
+      );
+    } catch (error) {
+      console.error("Error transferring lead:", error);
+      throw error;
+    }
   };
 
   return (
