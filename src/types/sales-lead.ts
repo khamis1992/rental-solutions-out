@@ -14,4 +14,7 @@ export interface SalesLead {
   assigned_to: string | null;
   created_at: string;
   updated_at: string;
+  follow_up_date: string | null;
+  lead_source: string | null;
+  last_contacted_at: string | null;
 }

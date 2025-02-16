@@ -2781,6 +2781,44 @@ export type Database = {
           },
         ]
       }
+      lead_activities: {
+        Row: {
+          activity_type: string
+          created_at: string | null
+          description: string | null
+          id: string
+          lead_id: string
+          metadata: Json | null
+          performed_by: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          lead_id: string
+          metadata?: Json | null
+          performed_by?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          lead_id?: string
+          metadata?: Json | null
+          performed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_activities_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leases: {
         Row: {
           agreement_duration: unknown
@@ -5983,8 +6021,11 @@ export type Database = {
           budget_min: number | null
           created_at: string | null
           email: string | null
+          follow_up_date: string | null
           full_name: string
           id: string
+          last_contacted_at: string | null
+          lead_source: string | null
           notes: string | null
           phone_number: string | null
           preferred_vehicle_type: string | null
@@ -5997,8 +6038,11 @@ export type Database = {
           budget_min?: number | null
           created_at?: string | null
           email?: string | null
+          follow_up_date?: string | null
           full_name: string
           id?: string
+          last_contacted_at?: string | null
+          lead_source?: string | null
           notes?: string | null
           phone_number?: string | null
           preferred_vehicle_type?: string | null
@@ -6011,8 +6055,11 @@ export type Database = {
           budget_min?: number | null
           created_at?: string | null
           email?: string | null
+          follow_up_date?: string | null
           full_name?: string
           id?: string
+          last_contacted_at?: string | null
+          lead_source?: string | null
           notes?: string | null
           phone_number?: string | null
           preferred_vehicle_type?: string | null

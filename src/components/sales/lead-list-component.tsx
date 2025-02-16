@@ -1,6 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Edit, Trash2, Loader2 } from "lucide-react";
+import { Edit, Trash2, Loader2, Search, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import { SalesLead } from "@/types/sales-lead";
@@ -19,7 +19,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -33,6 +32,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { EditLeadForm } from "./edit-lead-form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -41,19 +48,34 @@ export function LeadListComponent() {
   const [selectedLead, setSelectedLead] = useState<SalesLead | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const queryClient = useQueryClient();
 
+  // Enhanced query with filters
   const { data: leads, isLoading, error } = useQuery({
-    queryKey: ["leads", currentPage],
+    queryKey: ["leads", currentPage, searchQuery, statusFilter],
     queryFn: async () => {
+      let query = supabase
+        .from("sales_leads")
+        .select("*", { count: "exact" });
+
+      if (statusFilter !== "all") {
+        query = query.eq("status", statusFilter);
+      }
+
+      if (searchQuery) {
+        query = query.or(`full_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,phone_number.ilike.%${searchQuery}%`);
+      }
+
       const start = (currentPage - 1) * ITEMS_PER_PAGE;
       const end = start + ITEMS_PER_PAGE - 1;
 
-      const { data, error, count } = await supabase
-        .from("sales_leads")
-        .select("*", { count: "exact" })
+      query = query
         .range(start, end)
         .order("created_at", { ascending: false });
+
+      const { data, error, count } = await query;
 
       if (error) throw error;
 
@@ -99,6 +121,21 @@ export function LeadListComponent() {
     }
   };
 
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case "converted":
+        return "success";
+      case "qualified":
+        return "default";
+      case "unqualified":
+        return "destructive";
+      case "contacted":
+        return "warning";
+      default:
+        return "secondary";
+    }
+  };
+
   if (error) {
     return (
       <div className="p-4 text-red-500 bg-red-50 rounded-lg">
@@ -111,6 +148,36 @@ export function LeadListComponent() {
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-between items-center gap-4 mb-4">
+        <div className="flex-1 flex gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search leads..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Select
+            value={statusFilter}
+            onValueChange={setStatusFilter}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="new">New</SelectItem>
+              <SelectItem value="contacted">Contacted</SelectItem>
+              <SelectItem value="qualified">Qualified</SelectItem>
+              <SelectItem value="unqualified">Unqualified</SelectItem>
+              <SelectItem value="converted">Converted</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -159,13 +226,7 @@ export function LeadListComponent() {
                   </TableCell>
                   <TableCell>
                     <Badge
-                      variant={
-                        lead.status === "converted"
-                          ? "success"
-                          : lead.status === "qualified"
-                          ? "default"
-                          : "secondary"
-                      }
+                      variant={getStatusBadgeVariant(lead.status)}
                     >
                       {lead.status}
                     </Badge>

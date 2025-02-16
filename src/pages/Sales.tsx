@@ -4,6 +4,7 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PreRegistrationForm } from "@/components/sales/PreRegistrationForm";
 import { Card } from "@/components/ui/card";
+import { LeadListComponent } from "@/components/sales/lead-list-component";
 
 export default function Sales() {
   return (
@@ -16,7 +17,7 @@ export default function Sales() {
             </div>
 
             <div className="mt-6">
-              <Tabs defaultValue="pre-registration" className="w-full">
+              <Tabs defaultValue="leads" className="w-full">
                 <TabsList>
                   <TabsTrigger value="pre-registration">Pre-registration</TabsTrigger>
                   <TabsTrigger value="leads">Leads</TabsTrigger>
@@ -30,9 +31,9 @@ export default function Sales() {
                   </Card>
                 </TabsContent>
 
-                <TabsContent value="leads">
+                <TabsContent value="leads" className="mt-6">
                   <Card className="p-6">
-                    <p className="text-gray-500">Leads management coming soon...</p>
+                    <LeadListComponent />
                   </Card>
                 </TabsContent>
 
