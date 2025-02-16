@@ -122,7 +122,7 @@ export function LeadList() {
                           <Button variant="secondary" size="sm" onClick={() => handleStatusChange(lead.id, "document_collection")} disabled={lead.status === "document_collection"} className="text-background-alt bg-primary-dark">
                             Request Documents
                           </Button>
-                          <Button variant="secondary" size="sm" onClick={() => handleStatusChange(lead.id, "vehicle_selection")} disabled={lead.status === "vehicle_selection"}>
+                          <Button variant="secondary" size="sm" onClick={() => handleStatusChange(lead.id, "vehicle_selection")} disabled={lead.status === "vehicle_selection"} className="text-gray-50 bg-green-500 hover:bg-green-400">
                             Select Vehicle
                           </Button>
                           <Button variant="destructive" size="sm" onClick={() => handleDelete(lead.id)}>
