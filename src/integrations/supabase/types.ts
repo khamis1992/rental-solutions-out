@@ -6308,6 +6308,30 @@ export type Database = {
           },
         ]
       }
+      sales_vehicle_types: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       schedule_conflicts: {
         Row: {
           conflict_type: string
