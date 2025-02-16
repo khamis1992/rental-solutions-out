@@ -7768,6 +7768,48 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicle_types: {
+        Row: {
+          created_at: string | null
+          daily_rate: number
+          description: string | null
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          monthly_rate: number | null
+          name: string
+          size: Database["public"]["Enums"]["vehicle_size"]
+          updated_at: string | null
+          weekly_rate: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          daily_rate: number
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          monthly_rate?: number | null
+          name: string
+          size: Database["public"]["Enums"]["vehicle_size"]
+          updated_at?: string | null
+          weekly_rate?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          daily_rate?: number
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          monthly_rate?: number | null
+          name?: string
+          size?: Database["public"]["Enums"]["vehicle_size"]
+          updated_at?: string | null
+          weekly_rate?: number | null
+        }
+        Relationships: []
+      }
       vehicle_utilization_metrics: {
         Row: {
           created_at: string | null
@@ -7830,6 +7872,7 @@ export type Database = {
           rent_amount: number | null
           status: Database["public"]["Enums"]["vehicle_status"] | null
           updated_at: string
+          vehicle_type_id: string | null
           vin: string
           year: number
         }
@@ -7850,6 +7893,7 @@ export type Database = {
           rent_amount?: number | null
           status?: Database["public"]["Enums"]["vehicle_status"] | null
           updated_at?: string
+          vehicle_type_id?: string | null
           vin: string
           year: number
         }
@@ -7870,10 +7914,19 @@ export type Database = {
           rent_amount?: number | null
           status?: Database["public"]["Enums"]["vehicle_status"] | null
           updated_at?: string
+          vehicle_type_id?: string | null
           vin?: string
           year?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_vehicle_type_id_fkey"
+            columns: ["vehicle_type_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       visitor_analytics: {
         Row: {
@@ -8809,6 +8862,13 @@ export type Database = {
         | "EXPENSE"
       user_location_status: "active" | "inactive" | "error"
       user_role: "admin" | "staff" | "customer" | "manager"
+      vehicle_size:
+        | "compact"
+        | "mid_size"
+        | "full_size"
+        | "suv"
+        | "van"
+        | "luxury"
       vehicle_status:
         | "available"
         | "rented"
