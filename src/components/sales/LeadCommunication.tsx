@@ -30,7 +30,7 @@ export const LeadCommunication = ({ leadId }: LeadCommunicationProps) => {
         .from("sales_communications")
         .select(`
           *,
-          profiles (
+          team_member:team_member_id (
             id,
             full_name,
             hire_date,
@@ -52,8 +52,8 @@ export const LeadCommunication = ({ leadId }: LeadCommunicationProps) => {
       // Transform the data to match our type, handling the profiles relationship safely
       return data.map(comm => ({
         ...comm,
-        profiles: comm.profiles ? {
-          full_name: (comm.profiles as TeamMemberProfile).full_name
+        profiles: comm.team_member ? {
+          full_name: (comm.team_member as TeamMemberProfile).full_name
         } : undefined
       })) as LeadCommunicationType[];
     }
