@@ -1,17 +1,43 @@
 
 import { PreregisteredForm } from "@/components/sales/PreregisteredForm";
 import { LeadList } from "@/components/sales/LeadList";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SalesLead } from "@/types/sales.types";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Sales() {
-  // This is a placeholder for now - we'll implement the actual data fetching later
   const [leads] = useState<SalesLead[]>([]);
-  const vehicleTypes = [
-    { id: "1", name: "Sedan", status: "active" },
-    { id: "2", name: "SUV", status: "active" },
-    { id: "3", name: "Van", status: "inactive" }
-  ];
+  const [vehicleTypes, setVehicleTypes] = useState<{ id: string; name: string; status: string }[]>([]);
+
+  useEffect(() => {
+    async function fetchVehicleTypes() {
+      try {
+        const { data, error } = await supabase
+          .from('vehicles')
+          .select('make, model')
+          .eq('status', 'available');
+        
+        if (error) {
+          console.error("Error fetching vehicle types:", error);
+          return;
+        }
+
+        // Create unique vehicle types from makes and models
+        const types = Array.from(new Set(data.map(v => `${v.make} ${v.model}`)))
+          .map((name, index) => ({
+            id: index.toString(),
+            name,
+            status: 'active'
+          }));
+
+        setVehicleTypes(types);
+      } catch (error) {
+        console.error("Error fetching vehicle types:", error);
+      }
+    }
+
+    fetchVehicleTypes();
+  }, []);
 
   const handleSubmit = async (data: any) => {
     console.log("Form submitted:", data);
