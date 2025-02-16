@@ -6040,6 +6040,8 @@ export type Database = {
       sales_leads: {
         Row: {
           assigned_to: string | null
+          budget_max: number | null
+          budget_min: number | null
           budget_range_max: number | null
           budget_range_min: number | null
           created_at: string | null
@@ -6051,6 +6053,7 @@ export type Database = {
           last_contacted: string | null
           lead_score: number | null
           lead_source: string | null
+          nationality: string | null
           next_follow_up: string | null
           notes: string | null
           onboarding_date: string | null
@@ -6066,6 +6069,8 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
           budget_range_max?: number | null
           budget_range_min?: number | null
           created_at?: string | null
@@ -6077,6 +6082,7 @@ export type Database = {
           last_contacted?: string | null
           lead_score?: number | null
           lead_source?: string | null
+          nationality?: string | null
           next_follow_up?: string | null
           notes?: string | null
           onboarding_date?: string | null
@@ -6092,6 +6098,8 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
           budget_range_max?: number | null
           budget_range_min?: number | null
           created_at?: string | null
@@ -6103,6 +6111,7 @@ export type Database = {
           last_contacted?: string | null
           lead_score?: number | null
           lead_source?: string | null
+          nationality?: string | null
           next_follow_up?: string | null
           notes?: string | null
           onboarding_date?: string | null
