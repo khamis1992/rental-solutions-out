@@ -113,12 +113,6 @@ const Vehicles = () => {
                 <RefreshCw className="h-4 w-4" />
                 <span className="hidden sm:inline">Refresh</span>
               </Button>
-
-              <VehicleFilterDialog
-                activeFilters={filterParams}
-                onFilterChange={setFilterParams}
-                totalFilters={getTotalActiveFilters()}
-              />
             </div>
           </div>
           
@@ -143,13 +137,20 @@ const Vehicles = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
-              <div className="relative flex-1 max-w-sm w-full">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search vehicles..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 bg-background/50 hover:bg-background/80 transition-colors w-full"
+              <div className="flex gap-2 flex-1 max-w-3xl">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search vehicles..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 bg-background/50 hover:bg-background/80 transition-colors w-full"
+                  />
+                </div>
+                <VehicleFilterDialog
+                  activeFilters={filterParams}
+                  onFilterChange={setFilterParams}
+                  totalFilters={getTotalActiveFilters()}
                 />
               </div>
             </div>
