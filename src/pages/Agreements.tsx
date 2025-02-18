@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { AgreementList } from "@/components/agreements/AgreementList";
 import { AgreementListHeader } from "@/components/agreements/list/AgreementListHeader";
@@ -6,14 +7,35 @@ import { AgreementStats } from "@/components/agreements/AgreementStats";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { PaymentImport } from "@/components/agreements/PaymentImport";
 import { ChevronRight, Building2, FileText } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+
 const Agreements = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const preselectedCustomerId = searchParams.get('customerId');
+  const action = searchParams.get('action');
+
+  useEffect(() => {
+    // If there's a customerId and action=new in URL, show the dialog
+    if (preselectedCustomerId && action === 'new') {
+      setShowCreateDialog(true);
+    }
+  }, [preselectedCustomerId, action]);
+
+  const handleDialogClose = () => {
+    setShowCreateDialog(false);
+    // Clear URL parameters when dialog closes
+    setSearchParams({});
+  };
+
   const handleImportClick = () => {
     // Import handling logic
   };
+
   const handleDeleteClick = () => {
     // Delete handling logic
   };
+
   return <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         {/* Header Section with Professional Gradient */}
@@ -76,8 +98,13 @@ const Agreements = () => {
           </div>
         </div>
 
-        <CreateAgreementDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
+        <CreateAgreementDialog 
+          open={showCreateDialog} 
+          onOpenChange={handleDialogClose}
+          initialCustomerId={preselectedCustomerId || undefined}
+        />
       </div>
     </DashboardLayout>;
 };
+
 export default Agreements;

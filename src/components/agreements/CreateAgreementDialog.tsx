@@ -12,7 +12,7 @@ import {
 import { useAgreementForm } from "./hooks/useAgreementForm";
 import { LeaseToOwnFields } from "./form/LeaseToOwnFields";
 import { LateFeesPenaltiesFields } from "./form/LateFeesPenaltiesFields";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AgreementBasicInfo } from "./form/AgreementBasicInfo";
 import { CustomerInformation } from "./form/CustomerInformation";
 import { VehicleAgreementDetails } from "./form/VehicleAgreementDetails";
@@ -28,12 +28,25 @@ export interface CreateAgreementDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   children?: React.ReactNode;
+  initialCustomerId?: string;
 }
 
-export function CreateAgreementDialog({ open: controlledOpen, onOpenChange, children }: CreateAgreementDialogProps) {
+export function CreateAgreementDialog({ 
+  open: controlledOpen, 
+  onOpenChange, 
+  children,
+  initialCustomerId 
+}: CreateAgreementDialogProps) {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
+
+  // Set initial customer ID when provided
+  useEffect(() => {
+    if (initialCustomerId && !selectedCustomerId) {
+      setSelectedCustomerId(initialCustomerId);
+    }
+  }, [initialCustomerId]);
 
   const {
     open,
@@ -45,6 +58,7 @@ export function CreateAgreementDialog({ open: controlledOpen, onOpenChange, chil
     watch,
     setValue,
     errors,
+    reset
   } = useAgreementForm(async () => {
     setOpen(false);
     setSelectedCustomerId("");
@@ -54,7 +68,17 @@ export function CreateAgreementDialog({ open: controlledOpen, onOpenChange, chil
 
   // Use controlled open state if provided
   const isOpen = controlledOpen !== undefined ? controlledOpen : open;
-  const handleOpenChange = onOpenChange || setOpen;
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      reset(); // Reset form when closing
+      setSelectedCustomerId("");
+    }
+    if (onOpenChange) {
+      onOpenChange(newOpen);
+    } else {
+      setOpen(newOpen);
+    }
+  };
 
   const handleFormSubmit = async (data: any) => {
     try {
