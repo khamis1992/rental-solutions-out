@@ -30,6 +30,7 @@ export const useWorkflowProgress = (workflowType: string) => {
           .select('*')
           .eq('workflow_type', workflowType)
           .eq('is_complete', false)
+          .eq('user_id', session?.user?.id)
           .maybeSingle();
 
         if (error) {
