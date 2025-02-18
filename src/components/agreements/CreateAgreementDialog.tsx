@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -42,7 +41,7 @@ export function CreateAgreementDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
   
-  const { progress, completeStep, goToStep } = useWorkflowProgress('create-agreement');
+  const { progress, completeStep, goToStep, debouncedSaveFormData } = useWorkflowProgress('create-agreement');
 
   // Set initial customer ID when provided
   useEffect(() => {
@@ -59,13 +58,34 @@ export function CreateAgreementDialog({
     onSubmit,
     watch,
     setValue,
-    errors
+    trigger,
+    errors,
+    isValid,
+    isDirty
   } = useAgreementForm(async () => {
     setOpen(false);
     setSelectedCustomerId("");
     await queryClient.invalidateQueries({ queryKey: ["agreements"] });
     toast.success("Agreement created successfully");
   });
+
+  // Watch for form changes and auto-save
+  useEffect(() => {
+    const subscription = watch((formData) => {
+      debouncedSaveFormData(formData);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [watch, debouncedSaveFormData]);
+
+  // Load saved form data when dialog opens
+  useEffect(() => {
+    if (isOpen && progress.formData) {
+      Object.entries(progress.formData).forEach(([key, value]) => {
+        setValue(key as any, value);
+      });
+    }
+  }, [isOpen, progress.formData, setValue]);
 
   // Use controlled open state if provided
   const isOpen = controlledOpen !== undefined ? controlledOpen : open;
@@ -84,11 +104,37 @@ export function CreateAgreementDialog({
     try {
       setIsSubmitting(true);
       await onSubmit(data);
+      // Clear the saved progress after successful submission
+      await saveProgress({ 
+        formData: {}, 
+        completedSteps: [], 
+        currentStep: 'customer-info',
+        is_complete: true 
+      });
     } catch (error) {
       console.error("Error creating agreement:", error);
       toast.error("Failed to create agreement. Please try again.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleNext = async () => {
+    const currentIndex = steps.findIndex(s => s.id === progress.currentStep);
+    const fieldsToValidate = {
+      'customer-info': ['customerId', 'agreementType', 'rentAmount', 'agreementDuration'],
+      'vehicle-details': ['vehicleId'],
+      'agreement-terms': ['dailyLateFee'],
+      'review': []
+    }[progress.currentStep];
+
+    const isStepValid = await trigger(fieldsToValidate);
+    
+    if (isStepValid) {
+      completeStep(progress.currentStep);
+      goToStep(steps[currentIndex + 1].id);
+    } else {
+      toast.error("Please fix the validation errors before proceeding");
     }
   };
 
@@ -206,11 +252,8 @@ export function CreateAgreementDialog({
                   ) : (
                     <Button
                       type="button"
-                      onClick={() => {
-                        const currentIndex = steps.findIndex(s => s.id === progress.currentStep);
-                        completeStep(progress.currentStep);
-                        goToStep(steps[currentIndex + 1].id);
-                      }}
+                      onClick={handleNext}
+                      disabled={isSubmitting}
                     >
                       Next
                     </Button>

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
+import { debounce } from 'lodash';
 
 export type WorkflowStep = 'customer-info' | 'vehicle-details' | 'agreement-terms' | 'review';
 
@@ -100,6 +101,11 @@ export const useWorkflowProgress = (workflowType: string) => {
     }
   };
 
+  // Create a debounced version of saveProgress for form data
+  const debouncedSaveFormData = debounce(async (formData: any) => {
+    await saveProgress({ formData });
+  }, 1000);
+
   const completeStep = async (step: WorkflowStep) => {
     const completedSteps = [...progress.completedSteps];
     if (!completedSteps.includes(step)) {
@@ -116,6 +122,7 @@ export const useWorkflowProgress = (workflowType: string) => {
     progress,
     saveProgress,
     completeStep,
-    goToStep
+    goToStep,
+    debouncedSaveFormData
   };
 };
