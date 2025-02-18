@@ -37,7 +37,7 @@ export const useWorkflowProgress = (workflowType: string) => {
         if (existingProgress) {
           setProgress({
             currentStep: existingProgress.current_step as WorkflowStep,
-            completedSteps: existingProgress.completed_steps || [],
+            completedSteps: (existingProgress.completed_steps as string[] || []) as WorkflowStep[],
             formData: existingProgress.form_data || {}
           });
         } else {
