@@ -23,6 +23,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { AgreementTemplateSelect } from "./form/AgreementTemplateSelect";
 import { useQueryClient } from "@tanstack/react-query";
+import { WorkflowProgress } from "./form/WorkflowProgress";
+import { useWorkflowProgress } from "./hooks/useWorkflowProgress";
 
 export interface CreateAgreementDialogProps {
   open?: boolean;
@@ -40,6 +42,8 @@ export function CreateAgreementDialog({
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
+
+  const { progress, completeStep, goToStep } = useWorkflowProgress('create-agreement');
 
   // Set initial customer ID when provided
   useEffect(() => {
@@ -105,6 +109,12 @@ export function CreateAgreementDialog({
             Create a new lease-to-own or short-term rental agreement.
           </DialogDescription>
         </DialogHeader>
+
+        <WorkflowProgress 
+          currentStep={progress.currentStep}
+          completedSteps={progress.completedSteps}
+        />
+
         <ScrollArea className="max-h-[80vh] pr-4">
           <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
             <AgreementTemplateSelect setValue={setValue} />

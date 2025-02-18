@@ -7556,6 +7556,39 @@ export type Database = {
         }
         Relationships: []
       }
+      validation_rules: {
+        Row: {
+          country_code: string | null
+          created_at: string | null
+          error_message: string | null
+          field_name: string
+          id: string
+          rule_pattern: string | null
+          updated_at: string | null
+          validation_type: string
+        }
+        Insert: {
+          country_code?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          field_name: string
+          id?: string
+          rule_pattern?: string | null
+          updated_at?: string | null
+          validation_type: string
+        }
+        Update: {
+          country_code?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          field_name?: string
+          id?: string
+          rule_pattern?: string | null
+          updated_at?: string | null
+          validation_type?: string
+        }
+        Relationships: []
+      }
       vehicle_alerts: {
         Row: {
           alert_type: string | null
@@ -8500,6 +8533,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      workflow_progress: {
+        Row: {
+          completed_steps: Json | null
+          created_at: string | null
+          current_step: string
+          form_data: Json | null
+          id: string
+          is_complete: boolean | null
+          last_saved_at: string | null
+          updated_at: string | null
+          user_id: string | null
+          workflow_type: string
+        }
+        Insert: {
+          completed_steps?: Json | null
+          created_at?: string | null
+          current_step: string
+          form_data?: Json | null
+          id?: string
+          is_complete?: boolean | null
+          last_saved_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          workflow_type: string
+        }
+        Update: {
+          completed_steps?: Json | null
+          created_at?: string | null
+          current_step?: string
+          form_data?: Json | null
+          id?: string
+          is_complete?: boolean | null
+          last_saved_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          workflow_type?: string
+        }
+        Relationships: []
       }
       workflow_templates: {
         Row: {
