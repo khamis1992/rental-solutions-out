@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/use-auth';
 
 export type WorkflowStep = 'customer-info' | 'vehicle-details' | 'agreement-terms' | 'review';
 
@@ -16,6 +17,8 @@ export const useWorkflowProgress = (workflowType: string) => {
     completedSteps: [],
     formData: {}
   });
+  
+  const { session } = useAuth();
 
   // Load existing progress
   useEffect(() => {
@@ -49,7 +52,8 @@ export const useWorkflowProgress = (workflowType: string) => {
               current_step: 'customer-info',
               completed_steps: [],
               form_data: {},
-              is_complete: false
+              is_complete: false,
+              user_id: session?.user?.id
             });
 
           if (insertError) {
@@ -61,8 +65,10 @@ export const useWorkflowProgress = (workflowType: string) => {
       }
     };
 
-    loadProgress();
-  }, [workflowType]);
+    if (session?.user?.id) {
+      loadProgress();
+    }
+  }, [workflowType, session?.user?.id]);
 
   const saveProgress = async (newProgress: Partial<WorkflowProgress>) => {
     try {
@@ -76,7 +82,8 @@ export const useWorkflowProgress = (workflowType: string) => {
           completed_steps: updatedProgress.completedSteps,
           form_data: updatedProgress.formData,
           is_complete: false,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          user_id: session?.user?.id
         });
 
       if (error) {
