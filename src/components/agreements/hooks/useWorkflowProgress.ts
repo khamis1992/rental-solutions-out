@@ -20,19 +20,44 @@ export const useWorkflowProgress = (workflowType: string) => {
   // Load existing progress
   useEffect(() => {
     const loadProgress = async () => {
-      const { data, error } = await supabase
-        .from('workflow_progress')
-        .select('*')
-        .eq('workflow_type', workflowType)
-        .eq('is_complete', false)
-        .single();
+      try {
+        // Try to get existing progress
+        const { data: existingProgress, error } = await supabase
+          .from('workflow_progress')
+          .select('*')
+          .eq('workflow_type', workflowType)
+          .eq('is_complete', false)
+          .maybeSingle();
 
-      if (data && !error) {
-        setProgress({
-          currentStep: data.current_step as WorkflowStep,
-          completedSteps: data.completed_steps || [],
-          formData: data.form_data || {}
-        });
+        if (error) {
+          console.error('Error loading workflow progress:', error);
+          return;
+        }
+
+        if (existingProgress) {
+          setProgress({
+            currentStep: existingProgress.current_step as WorkflowStep,
+            completedSteps: existingProgress.completed_steps || [],
+            formData: existingProgress.form_data || {}
+          });
+        } else {
+          // Create new workflow progress if none exists
+          const { error: insertError } = await supabase
+            .from('workflow_progress')
+            .insert({
+              workflow_type: workflowType,
+              current_step: 'customer-info',
+              completed_steps: [],
+              form_data: {},
+              is_complete: false
+            });
+
+          if (insertError) {
+            console.error('Error creating workflow progress:', insertError);
+          }
+        }
+      } catch (err) {
+        console.error('Error in loadProgress:', err);
       }
     };
 
@@ -40,23 +65,31 @@ export const useWorkflowProgress = (workflowType: string) => {
   }, [workflowType]);
 
   const saveProgress = async (newProgress: Partial<WorkflowProgress>) => {
-    const updatedProgress = { ...progress, ...newProgress };
-    
-    const { error } = await supabase
-      .from('workflow_progress')
-      .upsert({
-        workflow_type: workflowType,
-        current_step: updatedProgress.currentStep,
-        completed_steps: updatedProgress.completedSteps,
-        form_data: updatedProgress.formData,
-        updated_at: new Date().toISOString()
-      });
+    try {
+      const updatedProgress = { ...progress, ...newProgress };
+      
+      const { error } = await supabase
+        .from('workflow_progress')
+        .upsert({
+          workflow_type: workflowType,
+          current_step: updatedProgress.currentStep,
+          completed_steps: updatedProgress.completedSteps,
+          form_data: updatedProgress.formData,
+          is_complete: false,
+          updated_at: new Date().toISOString()
+        });
 
-    if (!error) {
+      if (error) {
+        console.error('Error saving progress:', error);
+        return false;
+      }
+
       setProgress(updatedProgress);
+      return true;
+    } catch (err) {
+      console.error('Error in saveProgress:', err);
+      return false;
     }
-
-    return !error;
   };
 
   const completeStep = async (step: WorkflowStep) => {
