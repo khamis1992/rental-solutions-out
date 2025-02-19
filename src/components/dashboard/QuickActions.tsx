@@ -3,8 +3,8 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
-  Wrench, CreditCard, 
-  UserPlus, FileText
+  UserPlus, FileText, 
+  CreditCard, Wrench
 } from "lucide-react";
 import { CreateJobDialog } from "@/components/maintenance/CreateJobDialog";
 import { PaymentForm } from "@/components/payments/PaymentForm";
@@ -20,18 +20,6 @@ export const QuickActions = () => {
 
   const actions = [
     {
-      title: "Schedule Maintenance",
-      icon: Wrench,
-      onClick: () => setShowMaintenanceDialog(true),
-      color: "text-orange-500"
-    },
-    {
-      title: "Process Payment",
-      icon: CreditCard,
-      onClick: () => setShowPaymentDialog(true),
-      color: "text-purple-500"
-    },
-    {
       title: "Add Customer",
       icon: UserPlus,
       onClick: () => setShowCustomerDialog(true),
@@ -42,6 +30,18 @@ export const QuickActions = () => {
       icon: FileText,
       onClick: () => setShowContractDialog(true),
       color: "text-teal-500"
+    },
+    {
+      title: "Process Payment",
+      icon: CreditCard,
+      onClick: () => setShowPaymentDialog(true),
+      color: "text-purple-500"
+    },
+    {
+      title: "Schedule Maintenance",
+      icon: Wrench,
+      onClick: () => setShowMaintenanceDialog(true),
+      color: "text-orange-500"
     }
   ];
 
