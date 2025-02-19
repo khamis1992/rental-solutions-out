@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -11,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { UseFormSetValue } from "react-hook-form";
 import { AgreementFormData } from "../hooks/useAgreementForm";
 import { Template } from "@/types/agreement.types";
+import { useEffect } from "react";
 
 interface AgreementTemplateSelectProps {
   setValue: UseFormSetValue<AgreementFormData>;
@@ -40,6 +42,16 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
       return data as Template[];
     },
   });
+
+  useEffect(() => {
+    if (templates && templates.length > 0) {
+      // Find the standard rental agreement template
+      const standardTemplate = templates.find(t => t.name.toLowerCase().includes('standard rental'));
+      if (standardTemplate) {
+        handleTemplateSelect(standardTemplate.id);
+      }
+    }
+  }, [templates]);
 
   const handleTemplateSelect = (templateId: string) => {
     const selectedTemplate = templates?.find((t) => t.id === templateId);
