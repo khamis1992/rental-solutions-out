@@ -1,4 +1,3 @@
-
 import { useState, ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -106,12 +105,16 @@ export const CreateCustomerDialog = ({
   };
 
   const handleCreateAgreement = () => {
-    // Close all dialogs
-    onOpenChange?.(false);
+    // Keep dialog states in sync
     setShowContractPrompt(false);
+    if (onOpenChange) {
+      onOpenChange(false);
+    }
     
     // Navigate to create agreement page with customer ID
-    navigate(`/agreements/new?customerId=${customerId}`);
+    if (customerId) {
+      navigate(`/agreements/new?customerId=${customerId}`);
+    }
   };
 
   return (
@@ -164,7 +167,9 @@ export const CreateCustomerDialog = ({
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => {
               setShowContractPrompt(false);
-              onOpenChange?.(false);
+              if (onOpenChange) {
+                onOpenChange(false);
+              }
             }}>
               Skip for now
             </AlertDialogCancel>
