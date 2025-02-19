@@ -58,10 +58,10 @@
 
 /* Dialog content scrolling */
 .dialog-content {
-  max-height: calc(85vh - 100px); /* Adjust height to account for header and footer */
+  max-height: calc(100vh - 180px); /* Adjusted to account for header and footer */
   overflow-y: auto;
   padding: 1.5rem;
-  margin-bottom: 60px; /* Space for footer */
+  padding-bottom: 80px; /* Increased padding to prevent content being hidden */
 }
 
 /* Dialog footer */
@@ -73,11 +73,13 @@
   background-color: white;
   padding: 1rem;
   border-top: 1px solid #e5e7eb;
-  z-index: 50;
+  z-index: 999; /* Increased z-index to ensure it stays on top */
   box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
+  margin: 0;
+  width: 100%;
 }
 
 /* Dialog container */
@@ -86,6 +88,8 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* Prevent double scrollbars */
+  padding-bottom: 80px; /* Space for footer */
 }
 
 /* Form scroll container */
@@ -94,6 +98,5 @@
   height: 100%;
   overflow-y: auto;
   padding: 1.5rem;
-  padding-bottom: 80px; /* Extra padding to ensure content isn't hidden behind footer */
+  margin-bottom: 80px; /* Space for footer */
 }
-
