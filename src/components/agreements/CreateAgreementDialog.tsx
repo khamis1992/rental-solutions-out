@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,6 +23,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { WorkflowProgress } from "./form/WorkflowProgress";
 import { useWorkflowProgress } from "./hooks/useWorkflowProgress";
 import { LateFeesPenaltiesFields } from "./form/LateFeesPenaltiesFields";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export interface CreateAgreementDialogProps {
   open?: boolean;
@@ -32,7 +34,6 @@ export interface CreateAgreementDialogProps {
   initialCustomerId?: string;
 }
 
-// Define steps constant
 const steps = [
   { id: 'customer-info' as const, label: 'Customer Information' },
   { id: 'vehicle-details' as const, label: 'Vehicle Details' },
@@ -48,6 +49,7 @@ export function CreateAgreementDialog({
 }: CreateAgreementDialogProps) {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const queryClient = useQueryClient();
   
   const { progress, completeStep, goToStep, debouncedSaveFormData, saveProgress } = useWorkflowProgress('create-agreement');
@@ -63,7 +65,8 @@ export function CreateAgreementDialog({
     trigger,
     errors,
     isValid,
-    isDirty
+    isDirty,
+    reset
   } = useAgreementForm(async () => {
     setOpen(false);
     setSelectedCustomerId("");
@@ -71,14 +74,22 @@ export function CreateAgreementDialog({
     toast.success("Agreement created successfully");
   });
 
-  // Set initial customer ID when provided
+  const handleErrorRecovery = () => {
+    setError(null);
+    setIsSubmitting(false);
+    if (progress.formData) {
+      Object.entries(progress.formData).forEach(([key, value]) => {
+        setValue(key as any, value);
+      });
+    }
+  };
+
   useEffect(() => {
     if (initialCustomerId && !selectedCustomerId) {
       setSelectedCustomerId(initialCustomerId);
     }
   }, [initialCustomerId]);
 
-  // Watch for form changes and auto-save
   useEffect(() => {
     const subscription = watch((formData) => {
       debouncedSaveFormData(formData);
@@ -87,7 +98,6 @@ export function CreateAgreementDialog({
     return () => subscription.unsubscribe();
   }, [watch, debouncedSaveFormData]);
 
-  // Load saved form data when dialog opens
   useEffect(() => {
     const dialogOpen = controlledOpen !== undefined ? controlledOpen : open;
     if (dialogOpen && progress.formData) {
@@ -97,7 +107,6 @@ export function CreateAgreementDialog({
     }
   }, [controlledOpen, open, progress.formData, setValue]);
 
-  // Handle dialog open state
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
       setSelectedCustomerId("");
@@ -112,8 +121,8 @@ export function CreateAgreementDialog({
   const handleFormSubmit = async (data: any) => {
     try {
       setIsSubmitting(true);
+      setError(null);
       await onSubmit(data);
-      // Clear the saved progress after successful submission
       await saveProgress({ 
         formData: {}, 
         completedSteps: [], 
@@ -122,6 +131,7 @@ export function CreateAgreementDialog({
       });
     } catch (error) {
       console.error("Error creating agreement:", error);
+      setError(error as Error);
       toast.error("Failed to create agreement. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -129,153 +139,196 @@ export function CreateAgreementDialog({
   };
 
   const handleNext = async () => {
-    const currentIndex = steps.findIndex(s => s.id === progress.currentStep);
-    const fieldsToValidate = {
-      'customer-info': ['customerId', 'agreementType', 'rentAmount', 'agreementDuration'],
-      'vehicle-details': ['vehicleId'],
-      'agreement-terms': ['dailyLateFee'],
-      'review': []
-    }[progress.currentStep];
+    try {
+      const currentIndex = steps.findIndex(s => s.id === progress.currentStep);
+      const fieldsToValidate = {
+        'customer-info': ['customerId', 'agreementType', 'rentAmount', 'agreementDuration'],
+        'vehicle-details': ['vehicleId'],
+        'agreement-terms': ['dailyLateFee'],
+        'review': []
+      }[progress.currentStep];
 
-    const isStepValid = await trigger(fieldsToValidate);
-    
-    if (isStepValid) {
-      completeStep(progress.currentStep);
-      goToStep(steps[currentIndex + 1].id);
-    } else {
-      toast.error("Please fix the validation errors before proceeding");
+      const isStepValid = await trigger(fieldsToValidate);
+      
+      if (isStepValid) {
+        await completeStep(progress.currentStep);
+        await goToStep(steps[currentIndex + 1].id);
+      } else {
+        toast.error("Please fix the validation errors before proceeding");
+      }
+    } catch (error) {
+      console.error("Error proceeding to next step:", error);
+      setError(error as Error);
+      toast.error("Failed to proceed to next step. Please try again.");
     }
   };
 
-  // Calculate dialog open state
   const isDialogOpen = controlledOpen !== undefined ? controlledOpen : open;
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Create New Agreement</DialogTitle>
-          <DialogDescription>
-            Create a new lease-to-own or short-term rental agreement.
-          </DialogDescription>
-        </DialogHeader>
+    <ErrorBoundary
+      fallback={
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>
+            An unexpected error occurred. Please try again or contact support if the problem persists.
+          </AlertDescription>
+          <Button 
+            onClick={() => {
+              reset();
+              setError(null);
+              setIsSubmitting(false);
+            }}
+            className="mt-4"
+          >
+            Reset Form
+          </Button>
+        </Alert>
+      }
+    >
+      <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
+        <DialogTrigger asChild>
+          {children}
+        </DialogTrigger>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Create New Agreement</DialogTitle>
+            <DialogDescription>
+              Create a new lease-to-own or short-term rental agreement.
+            </DialogDescription>
+          </DialogHeader>
 
-        <WorkflowProgress 
-          currentStep={progress.currentStep}
-          completedSteps={progress.completedSteps}
-        />
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>
+                {error.message}
+                <Button 
+                  onClick={handleErrorRecovery}
+                  variant="outline" 
+                  size="sm"
+                  className="mt-2"
+                >
+                  Try Again
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
 
-        <ScrollArea className="max-h-[80vh] pr-4">
-          <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-            <div className={progress.currentStep !== 'customer-info' ? 'hidden' : ''}>
-              <AgreementTemplateSelect setValue={setValue} />
-              <Separator className="my-6" />
-              <AgreementBasicInfo register={register} errors={errors} watch={watch} />
-              <Separator className="my-6" />
-              <CustomerInformation 
-                register={register} 
-                errors={errors}
-                selectedCustomerId={selectedCustomerId}
-                onCustomerSelect={setSelectedCustomerId}
-                setValue={setValue}
-              />
-            </div>
+          <WorkflowProgress 
+            currentStep={progress.currentStep}
+            completedSteps={progress.completedSteps}
+          />
 
-            <div className={progress.currentStep !== 'vehicle-details' ? 'hidden' : ''}>
-              <VehicleAgreementDetails 
-                register={register}
-                errors={errors}
-                watch={watch}
-                setValue={setValue}
-              />
-            </div>
-
-            <div className={progress.currentStep !== 'agreement-terms' ? 'hidden' : ''}>
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Late Fees & Penalties</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <LateFeesPenaltiesFields register={register} />
-                </div>
-              </div>
-              <Separator className="my-6" />
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea 
-                  id="notes"
-                  placeholder="Additional notes about the agreement..."
-                  className="min-h-[100px]"
-                  {...register("notes")} 
+          <ScrollArea className="max-h-[80vh] pr-4">
+            <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+              <div className={progress.currentStep !== 'customer-info' ? 'hidden' : ''}>
+                <AgreementTemplateSelect setValue={setValue} />
+                <Separator className="my-6" />
+                <AgreementBasicInfo register={register} errors={errors} watch={watch} />
+                <Separator className="my-6" />
+                <CustomerInformation 
+                  register={register} 
+                  errors={errors}
+                  selectedCustomerId={selectedCustomerId}
+                  onCustomerSelect={setSelectedCustomerId}
+                  setValue={setValue}
                 />
               </div>
-            </div>
 
-            <div className={progress.currentStep !== 'review' ? 'hidden' : ''}>
-              {/* Review section content */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Review Agreement Details</h3>
-                {/* Add summary of all entered information */}
+              <div className={progress.currentStep !== 'vehicle-details' ? 'hidden' : ''}>
+                <VehicleAgreementDetails 
+                  register={register}
+                  errors={errors}
+                  watch={watch}
+                  setValue={setValue}
+                />
               </div>
-            </div>
 
-            <DialogFooter className="sticky bottom-0 bg-background pt-4">
-              <div className="flex justify-between w-full">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    if (progress.currentStep !== 'customer-info') {
-                      const currentIndex = steps.findIndex(s => s.id === progress.currentStep);
-                      goToStep(steps[currentIndex - 1].id);
-                    }
-                  }}
-                  disabled={progress.currentStep === 'customer-info' || isSubmitting}
-                >
-                  Back
-                </Button>
-                <div className="flex gap-2">
+              <div className={progress.currentStep !== 'agreement-terms' ? 'hidden' : ''}>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Late Fees & Penalties</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <LateFeesPenaltiesFields register={register} />
+                  </div>
+                </div>
+                <Separator className="my-6" />
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea 
+                    id="notes"
+                    placeholder="Additional notes about the agreement..."
+                    className="min-h-[100px]"
+                    {...register("notes")} 
+                  />
+                </div>
+              </div>
+
+              <div className={progress.currentStep !== 'review' ? 'hidden' : ''}>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Review Agreement Details</h3>
+                </div>
+              </div>
+
+              <DialogFooter className="sticky bottom-0 bg-background pt-4">
+                <div className="flex justify-between w-full">
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => handleOpenChange(false)}
-                    disabled={isSubmitting}
+                    onClick={() => {
+                      if (progress.currentStep !== 'customer-info') {
+                        const currentIndex = steps.findIndex(s => s.id === progress.currentStep);
+                        goToStep(steps[currentIndex - 1].id);
+                      }
+                    }}
+                    disabled={progress.currentStep === 'customer-info' || isSubmitting}
                   >
-                    Cancel
+                    Back
                   </Button>
-                  {progress.currentStep === 'review' ? (
-                    <Button 
-                      type="submit"
-                      disabled={isSubmitting || !isValid}
-                      className="relative"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <span className="opacity-0">Create Agreement</span>
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          </div>
-                        </>
-                      ) : (
-                        "Create Agreement"
-                      )}
-                    </Button>
-                  ) : (
+                  <div className="flex gap-2">
                     <Button
                       type="button"
-                      onClick={handleNext}
+                      variant="outline"
+                      onClick={() => handleOpenChange(false)}
                       disabled={isSubmitting}
                     >
-                      Next
+                      Cancel
                     </Button>
-                  )}
+                    {progress.currentStep === 'review' ? (
+                      <Button 
+                        type="submit"
+                        disabled={isSubmitting || !isValid}
+                        className="relative"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <span className="opacity-0">Create Agreement</span>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            </div>
+                          </>
+                        ) : (
+                          "Create Agreement"
+                        )}
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        onClick={handleNext}
+                        disabled={isSubmitting}
+                      >
+                        Next
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </DialogFooter>
-          </form>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
+              </DialogFooter>
+            </form>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+    </ErrorBoundary>
   );
 }
