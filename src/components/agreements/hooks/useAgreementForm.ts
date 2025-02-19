@@ -2,9 +2,9 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
-import { addMonths } from "date-fns";
 import { toast } from "sonner";
 import { AgreementType, LeaseStatus } from "@/types/agreement.types";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 export interface AgreementFormData {
   agreementType: AgreementType;
@@ -33,6 +33,7 @@ export const useAgreementForm = (onSuccess: () => void) => {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [agreementType, setAgreementType] = useState<AgreementType>("short_term");
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<AgreementFormData>({
     defaultValues: {
@@ -54,37 +55,58 @@ export const useAgreementForm = (onSuccess: () => void) => {
     reset
   } = form;
 
+  const validateFormData = async (data: AgreementFormData): Promise<boolean> => {
+    try {
+      if (!data.customerId) {
+        toast.error("Please select a customer");
+        return false;
+      }
+
+      if (!data.vehicleId) {
+        toast.error("Please select a vehicle");
+        return false;
+      }
+
+      if (!data.templateId) {
+        toast.error("No template selected");
+        return false;
+      }
+
+      if (!data.rentAmount || data.rentAmount <= 0) {
+        toast.error("Please enter a valid rent amount");
+        return false;
+      }
+
+      if (!data.agreementDuration || data.agreementDuration <= 0) {
+        toast.error("Please enter a valid agreement duration");
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Validation error:", error);
+      toast.error("Error validating form data");
+      return false;
+    }
+  };
+
   const onSubmit = async (data: AgreementFormData) => {
     if (isSubmitting) return;
 
-    // Validate all fields before proceeding
-    const isValid = await trigger();
-    if (!isValid) {
-      toast.error("Please fix the validation errors before proceeding");
-      return;
-    }
-
     try {
       setIsSubmitting(true);
+      setError(null);
+
+      // Validate form data
+      const isValid = await validateFormData(data);
+      if (!isValid) {
+        setIsSubmitting(false);
+        return;
+      }
+
       console.log("Form data before submission:", data);
 
-      if (!data.customerId || data.customerId === "") {
-        toast.error("Please select a customer");
-        return;
-      }
-
-      if (!data.vehicleId || data.vehicleId === "") {
-        toast.error("Please select a vehicle");
-        return;
-      }
-
-      // Make sure we have a valid template ID
-      if (!data.templateId) {
-        toast.error("No template selected");
-        return;
-      }
-
-      const { error } = await supabase
+      const { error: supabaseError } = await supabase
         .from('leases')
         .insert({
           agreement_type: data.agreementType,
@@ -103,27 +125,35 @@ export const useAgreementForm = (onSuccess: () => void) => {
           template_id: data.templateId
         });
 
-      if (error) {
-        console.error('Error creating agreement:', error);
-        toast.error(error.message);
-        throw error;
+      if (supabaseError) {
+        throw supabaseError;
       }
 
       toast.success("Agreement created successfully");
       
-      // Reset form and trigger success callback after a delay
-      setTimeout(() => {
-        reset();
-        onSuccess();
-      }, 1500);
+      // Reset form and trigger success callback
+      reset();
+      onSuccess();
 
     } catch (error) {
       console.error('Error creating agreement:', error);
-      toast.error("Failed to create agreement");
+      setError(error instanceof Error ? error.message : "Failed to create agreement");
+      toast.error(error instanceof Error ? error.message : "Failed to create agreement");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Cleanup function
+  const cleanup = () => {
+    setIsSubmitting(false);
+    setError(null);
+  };
+
+  // Make sure to clean up when component unmounts
+  React.useEffect(() => {
+    return () => cleanup();
+  }, []);
 
   return {
     open,
@@ -139,6 +169,8 @@ export const useAgreementForm = (onSuccess: () => void) => {
     isValid,
     isDirty,
     reset,
-    isSubmitting
+    isSubmitting,
+    error,
+    cleanup
   };
 };
