@@ -1,3 +1,4 @@
+
 import {
   Select,
   SelectContent,
@@ -28,7 +29,6 @@ export const AgreementTypeSelect = ({ register }: AgreementTypeSelectProps) => {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="lease_to_own">Lease to Own</SelectItem>
-          <SelectItem value="short_term">Short Term Rental</SelectItem>
         </SelectContent>
       </Select>
     </div>
