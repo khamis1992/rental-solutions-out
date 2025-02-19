@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -15,10 +14,9 @@ import { AgreementFormData } from "../hooks/useAgreementForm";
 interface CustomerSelectProps {
   register: UseFormRegister<AgreementFormData>;
   onCustomerSelect?: (customerId: string) => void;
-  defaultValue?: string | null;
 }
 
-export const CustomerSelect = ({ register, onCustomerSelect, defaultValue }: CustomerSelectProps) => {
+export const CustomerSelect = ({ register, onCustomerSelect }: CustomerSelectProps) => {
   const { data: customers, isLoading } = useQuery({
     queryKey: ["customers"],
     queryFn: async () => {
@@ -57,7 +55,7 @@ export const CustomerSelect = ({ register, onCustomerSelect, defaultValue }: Cus
     <div className="space-y-2">
       <Label htmlFor="customerId">Customer</Label>
       <Select 
-        defaultValue={defaultValue || ""}
+        defaultValue=""
         {...register("customerId", { required: true })}
         onValueChange={handleCustomerSelect}
       >

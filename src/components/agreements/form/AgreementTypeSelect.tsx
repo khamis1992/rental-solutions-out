@@ -1,4 +1,3 @@
-
 import {
   Select,
   SelectContent,
@@ -7,25 +6,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useEffect } from "react";
 
 interface AgreementTypeSelectProps {
   register: any;
 }
 
 export const AgreementTypeSelect = ({ register }: AgreementTypeSelectProps) => {
-  // Set default value when component mounts
-  useEffect(() => {
-    register("agreementType").onChange({
-      target: { value: "lease_to_own" },
-    });
-  }, [register]);
-
   return (
     <div className="space-y-2">
       <Label htmlFor="agreementType">Agreement Type</Label>
       <Select
-        defaultValue="lease_to_own"
         {...register("agreementType")}
         onValueChange={(value) =>
           register("agreementType").onChange({
@@ -38,6 +28,7 @@ export const AgreementTypeSelect = ({ register }: AgreementTypeSelectProps) => {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="lease_to_own">Lease to Own</SelectItem>
+          <SelectItem value="short_term">Short Term Rental</SelectItem>
         </SelectContent>
       </Select>
     </div>

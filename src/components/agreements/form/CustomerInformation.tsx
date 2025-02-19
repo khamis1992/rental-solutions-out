@@ -1,4 +1,3 @@
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,7 +8,6 @@ import { CustomerDocuments } from "../CustomerDocuments";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
 
 interface CustomerInformationProps {
   register: UseFormRegister<AgreementFormData>;
@@ -26,27 +24,25 @@ export const CustomerInformation = ({
   onCustomerSelect,
   setValue 
 }: CustomerInformationProps) => {
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const preselectedCustomerId = queryParams.get('customerId');
-
+  // Fetch customer details when a customer is selected
   const { data: customerDetails } = useQuery({
-    queryKey: ['customer-details', selectedCustomerId || preselectedCustomerId],
+    queryKey: ['customer-details', selectedCustomerId],
     queryFn: async () => {
-      if (!selectedCustomerId && !preselectedCustomerId) return null;
+      if (!selectedCustomerId) return null;
       
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', selectedCustomerId || preselectedCustomerId)
+        .eq('id', selectedCustomerId)
         .single();
       
       if (error) throw error;
       return data;
     },
-    enabled: !!(selectedCustomerId || preselectedCustomerId)
+    enabled: !!selectedCustomerId
   });
 
+  // Auto-fill form fields when customer details are loaded
   useEffect(() => {
     if (customerDetails) {
       setValue('nationality', customerDetails.nationality || '');
@@ -54,12 +50,8 @@ export const CustomerInformation = ({
       setValue('phoneNumber', customerDetails.phone_number || '');
       setValue('email', customerDetails.email || '');
       setValue('address', customerDetails.address || '');
-      
-      if (preselectedCustomerId && onCustomerSelect) {
-        onCustomerSelect(preselectedCustomerId);
-      }
     }
-  }, [customerDetails, setValue, preselectedCustomerId, onCustomerSelect]);
+  }, [customerDetails, setValue]);
 
   return (
     <div className="space-y-4">
@@ -68,7 +60,6 @@ export const CustomerInformation = ({
         <CustomerSelect 
           register={register} 
           onCustomerSelect={onCustomerSelect}
-          defaultValue={preselectedCustomerId}
         />
         
         <div className="space-y-2">

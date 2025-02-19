@@ -1,19 +1,23 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { UseFormSetValue } from "react-hook-form";
 import { AgreementFormData } from "../hooks/useAgreementForm";
 import { Template } from "@/types/agreement.types";
-import { useEffect, useRef } from "react";
 
 interface AgreementTemplateSelectProps {
   setValue: UseFormSetValue<AgreementFormData>;
 }
 
 export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectProps) => {
-  const hasInitialized = useRef(false);
-  
-  const { data: templates } = useQuery({
+  const { data: templates, isLoading } = useQuery({
     queryKey: ["agreement-templates"],
     queryFn: async () => {
       console.log("Fetching templates...");
@@ -33,20 +37,9 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
       }
 
       console.log("Fetched templates:", data);
-      return data;
+      return data as Template[];
     },
   });
-
-  useEffect(() => {
-    if (!hasInitialized.current && templates && templates.length > 0) {
-      // Find the standard rental agreement template
-      const standardTemplate = templates.find(t => t.name.toLowerCase().includes('standard rental'));
-      if (standardTemplate) {
-        handleTemplateSelect(standardTemplate.id);
-        hasInitialized.current = true;
-      }
-    }
-  }, [templates, setValue]);
 
   const handleTemplateSelect = (templateId: string) => {
     const selectedTemplate = templates?.find((t) => t.id === templateId);
@@ -54,8 +47,6 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
       console.log("No template found with ID:", templateId);
       return;
     }
-
-    console.log("Setting template values:", selectedTemplate);
 
     // Set the template ID
     setValue("templateId", templateId);
@@ -93,6 +84,39 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
     console.log("Applied template values:", selectedTemplate);
   };
 
-  // Return null to hide the component while maintaining functionality
-  return null;
+  if (isLoading) {
+    return <div>Loading templates...</div>;
+  }
+
+  if (!templates?.length) {
+    console.log("No templates available to display");
+    return (
+      <div className="space-y-2">
+        <Label htmlFor="template">Agreement Template</Label>
+        <Select disabled>
+          <SelectTrigger>
+            <SelectValue placeholder="No templates available" />
+          </SelectTrigger>
+        </Select>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <Label htmlFor="template">Agreement Template</Label>
+      <Select onValueChange={handleTemplateSelect}>
+        <SelectTrigger>
+          <SelectValue placeholder="Select a template" />
+        </SelectTrigger>
+        <SelectContent>
+          {templates.map((template) => (
+            <SelectItem key={template.id} value={template.id}>
+              {template.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
 };

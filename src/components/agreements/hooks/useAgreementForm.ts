@@ -1,10 +1,9 @@
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
+import { addMonths } from "date-fns";
 import { toast } from "sonner";
 import { AgreementType, LeaseStatus } from "@/types/agreement.types";
-import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 export interface AgreementFormData {
   agreementType: AgreementType;
@@ -26,87 +25,66 @@ export interface AgreementFormData {
   // Template fields
   finalPrice?: number;
   agreementNumber?: string;
-  templateId?: string;
+  templateId?: string; // Add this field
 }
 
 export const useAgreementForm = (onSuccess: () => void) => {
   const [open, setOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [agreementType, setAgreementType] = useState<AgreementType>("short_term");
-  const [error, setError] = useState<string | null>(null);
-
-  const form = useForm<AgreementFormData>({
-    defaultValues: {
-      agreementType: "short_term",
-      startDate: new Date().toISOString().split('T')[0],
-      agreementDuration: 12,
-      dailyLateFee: 120,
-    },
-    mode: "onChange"
-  });
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isValid, isDirty },
-    trigger,
-    reset
-  } = form;
+    formState: { errors },
+  } = useForm<AgreementFormData>({
+    defaultValues: {
+      agreementType: "short_term",
+      startDate: new Date().toISOString().split('T')[0],
+      agreementDuration: 12,
+      dailyLateFee: 120,
+    }
+  });
 
-  const validateFormData = async (data: AgreementFormData): Promise<boolean> => {
-    try {
-      if (!data.customerId) {
-        toast.error("Please select a customer");
-        return false;
+  // Watch for changes in start date and duration
+  const startDate = watch('startDate');
+  const duration = watch('agreementDuration');
+
+  // Update end date when start date or duration changes
+  const updateEndDate = () => {
+    if (startDate && duration) {
+      try {
+        const endDate = addMonths(new Date(startDate), duration);
+        setValue('endDate', endDate.toISOString().split('T')[0]);
+      } catch (error) {
+        console.error('Error calculating end date:', error);
       }
-
-      if (!data.vehicleId) {
-        toast.error("Please select a vehicle");
-        return false;
-      }
-
-      if (!data.templateId) {
-        toast.error("No template selected");
-        return false;
-      }
-
-      if (!data.rentAmount || data.rentAmount <= 0) {
-        toast.error("Please enter a valid rent amount");
-        return false;
-      }
-
-      if (!data.agreementDuration || data.agreementDuration <= 0) {
-        toast.error("Please enter a valid agreement duration");
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error("Validation error:", error);
-      toast.error("Error validating form data");
-      return false;
     }
   };
 
+  // Use watch callback to update end date
+  watch((data, { name }) => {
+    if (name === 'startDate' || name === 'agreementDuration') {
+      updateEndDate();
+    }
+  });
+
   const onSubmit = async (data: AgreementFormData) => {
-    if (isSubmitting) return;
-
     try {
-      setIsSubmitting(true);
-      setError(null);
+      console.log("Form data before submission:", data);
 
-      // Validate form data
-      const isValid = await validateFormData(data);
-      if (!isValid) {
-        setIsSubmitting(false);
+      if (!data.customerId || data.customerId === "") {
+        toast.error("Please select a customer");
         return;
       }
 
-      console.log("Form data before submission:", data);
+      if (!data.vehicleId || data.vehicleId === "") {
+        toast.error("Please select a vehicle");
+        return;
+      }
 
-      const { error: supabaseError } = await supabase
+      const { error } = await supabase
         .from('leases')
         .insert({
           agreement_type: data.agreementType,
@@ -122,38 +100,23 @@ export const useAgreementForm = (onSuccess: () => void) => {
           status: 'pending_payment' as LeaseStatus,
           initial_mileage: 0,
           agreement_duration: `${data.agreementDuration} months`,
-          template_id: data.templateId
+          template_id: data.templateId // Add the template ID
         });
 
-      if (supabaseError) {
-        throw supabaseError;
+      if (error) {
+        console.error('Error creating agreement:', error);
+        toast.error(error.message);
+        throw error;
       }
 
-      toast.success("Agreement created successfully");
-      
-      // Reset form and trigger success callback
-      reset();
       onSuccess();
-
+      toast.success("Agreement created successfully");
     } catch (error) {
       console.error('Error creating agreement:', error);
-      setError(error instanceof Error ? error.message : "Failed to create agreement");
-      toast.error(error instanceof Error ? error.message : "Failed to create agreement");
-    } finally {
-      setIsSubmitting(false);
+      toast.error("Failed to create agreement");
+      throw error;
     }
   };
-
-  // Cleanup function
-  const cleanup = () => {
-    setIsSubmitting(false);
-    setError(null);
-  };
-
-  // Make sure to clean up when component unmounts
-  useEffect(() => {
-    return () => cleanup();
-  }, []);
 
   return {
     open,
@@ -165,12 +128,5 @@ export const useAgreementForm = (onSuccess: () => void) => {
     watch,
     setValue,
     errors,
-    trigger,
-    isValid,
-    isDirty,
-    reset,
-    isSubmitting,
-    error,
-    cleanup
   };
 };
