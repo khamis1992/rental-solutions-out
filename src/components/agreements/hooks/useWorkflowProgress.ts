@@ -10,13 +10,15 @@ interface WorkflowProgress {
   currentStep: WorkflowStep;
   completedSteps: WorkflowStep[];
   formData: any;
+  is_complete?: boolean;
 }
 
 export const useWorkflowProgress = (workflowType: string) => {
   const [progress, setProgress] = useState<WorkflowProgress>({
     currentStep: 'customer-info',
     completedSteps: [],
-    formData: {}
+    formData: {},
+    is_complete: false
   });
   
   const { session } = useAuth();
@@ -43,7 +45,8 @@ export const useWorkflowProgress = (workflowType: string) => {
           setProgress({
             currentStep: existingProgress.current_step as WorkflowStep,
             completedSteps: (existingProgress.completed_steps as string[] || []) as WorkflowStep[],
-            formData: existingProgress.form_data || {}
+            formData: existingProgress.form_data || {},
+            is_complete: existingProgress.is_complete
           });
         } else {
           // Create new workflow progress if none exists
@@ -83,7 +86,7 @@ export const useWorkflowProgress = (workflowType: string) => {
           current_step: updatedProgress.currentStep,
           completed_steps: updatedProgress.completedSteps,
           form_data: updatedProgress.formData,
-          is_complete: false,
+          is_complete: updatedProgress.is_complete ?? false,
           updated_at: new Date().toISOString(),
           user_id: session?.user?.id
         });
@@ -101,7 +104,7 @@ export const useWorkflowProgress = (workflowType: string) => {
     }
   };
 
-  // Create a debounced version of saveProgress for form data
+  // Create a debounced version of saveFormData for form data
   const debouncedSaveFormData = debounce(async (formData: any) => {
     await saveProgress({ formData });
   }, 1000);
