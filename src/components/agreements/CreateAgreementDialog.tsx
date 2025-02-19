@@ -55,10 +55,13 @@ export function CreateAgreementDialog({ open: controlledOpen, onOpenChange, chil
     await queryClient.invalidateQueries({ queryKey: ["agreements"] });
     toast.success("Agreement created successfully");
     
-    // Show payment processing prompt
+    // Navigate to agreement details with payment prompt
     const shouldProcessPayment = window.confirm("Would you like to process the first payment now?");
     if (shouldProcessPayment) {
-      navigate(`/agreements/${agreementId}/payments`);
+      // Navigate to agreement details page with payment dialog trigger
+      navigate(`/agreements/${agreementId}?showPayment=true`);
+    } else {
+      navigate(`/agreements/${agreementId}`);
     }
   });
 
