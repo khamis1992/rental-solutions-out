@@ -36,14 +36,15 @@ const Agreements = () => {
     // Delete handling logic
   };
 
-  return <DashboardLayout>
+  return (
+    <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         {/* Header Section with Professional Gradient */}
         <div className="relative bg-gradient-to-r from-blue-50 via-blue-100 to-blue-50 border-b">
           <div className="absolute inset-0 bg-white/40 backdrop-blur-sm" />
           
           {/* Content Container */}
-          <div className="relative w-full max-w-screen-xl mx-auto px-4 lg:px-8 py-10 sm:px-[240px]">
+          <div className="relative w-full max-w-screen-xl mx-auto px-4 lg:px-8 py-10 sm:px-[240px] overflow-y-auto">
             {/* Enhanced Breadcrumb Navigation */}
             <nav className="flex items-center gap-2 text-sm text-gray-600 mb-8">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-md border border-blue-100 hover:bg-blue-50 transition-all duration-300 shadow-sm">
@@ -74,7 +75,7 @@ const Agreements = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-between items-center gap-6 max-w-screen-xl mx-auto">
+            <div className="flex justify-between items-center gap-6 max-w-screen-xl mx-auto sticky top-0 bg-white/50 backdrop-blur-md z-10 py-4">
               <div className="flex-1">
                 <AgreementListHeader onImportClick={handleImportClick} onDeleteClick={handleDeleteClick} isDeleting={false} />
               </div>
@@ -104,7 +105,8 @@ const Agreements = () => {
           initialCustomerId={preselectedCustomerId || undefined}
         />
       </div>
-    </DashboardLayout>;
+    </DashboardLayout>
+  );
 };
 
 export default Agreements;
