@@ -1,3 +1,4 @@
+
 /* Add RTL support for ReactQuill */
 .rtl-editor {
   direction: rtl;
@@ -54,3 +55,39 @@
   margin-right: 0;
   margin-left: 15px;
 }
+
+/* Dialog content scrolling */
+.dialog-content {
+  max-height: 80vh;
+  overflow-y: auto;
+  padding-right: 1rem;
+  padding-bottom: 4rem; /* Add space for the footer */
+}
+
+/* Dialog footer */
+.dialog-footer {
+  position: sticky;
+  bottom: 0;
+  background-color: white;
+  padding: 1rem;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 1rem;
+  z-index: 50;
+}
+
+/* Dialog container */
+.dialog-container {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+/* Form scroll container */
+.form-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  padding-bottom: 6rem;
+}
+
