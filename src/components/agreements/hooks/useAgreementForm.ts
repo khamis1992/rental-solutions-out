@@ -57,6 +57,13 @@ export const useAgreementForm = (onSuccess: () => void) => {
   const onSubmit = async (data: AgreementFormData) => {
     if (isSubmitting) return;
 
+    // Validate all fields before proceeding
+    const isValid = await trigger();
+    if (!isValid) {
+      toast.error("Please fix the validation errors before proceeding");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       console.log("Form data before submission:", data);
@@ -68,6 +75,12 @@ export const useAgreementForm = (onSuccess: () => void) => {
 
       if (!data.vehicleId || data.vehicleId === "") {
         toast.error("Please select a vehicle");
+        return;
+      }
+
+      // Make sure we have a valid template ID
+      if (!data.templateId) {
+        toast.error("No template selected");
         return;
       }
 
