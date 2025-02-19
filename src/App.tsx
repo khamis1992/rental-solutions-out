@@ -78,14 +78,52 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              
               <Route
-                path="/"
+                path="/dashboard"
                 element={
                   <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
                     <LazyComponents.Dashboard />
                   </Suspense>
                 }
               />
+
+              {/* Agreement Routes */}
+              <Route path="/agreements">
+                <Route
+                  index
+                  element={
+                    <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                      <LazyComponents.Agreements />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="new"
+                  element={
+                    <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                      <LazyComponents.AgreementCreate />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path=":id"
+                  element={
+                    <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                      <LazyComponents.AgreementDetails />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path=":id/payments"
+                  element={
+                    <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
+                      <LazyComponents.AgreementPayments />
+                    </Suspense>
+                  }
+                />
+              </Route>
 
               <Route
                 path="/vehicles"
@@ -119,15 +157,6 @@ export default function App() {
                 element={
                   <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
                     <LazyComponents.CustomerProfile />
-                  </Suspense>
-                }
-              />
-
-              <Route
-                path="/agreements"
-                element={
-                  <Suspense fallback={<Skeleton className="h-screen w-screen" />}>
-                    <LazyComponents.Agreements />
                   </Suspense>
                 }
               />
