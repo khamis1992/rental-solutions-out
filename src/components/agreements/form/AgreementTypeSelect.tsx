@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useEffect } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface AgreementTypeSelectProps {
   register: any;
