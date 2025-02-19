@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -31,6 +32,14 @@ export interface CreateAgreementDialogProps {
   initialCustomerId?: string;
 }
 
+// Define steps constant
+const steps = [
+  { id: 'customer-info' as const, label: 'Customer Information' },
+  { id: 'vehicle-details' as const, label: 'Vehicle Details' },
+  { id: 'agreement-terms' as const, label: 'Agreement Terms' },
+  { id: 'review' as const, label: 'Review & Submit' }
+];
+
 export function CreateAgreementDialog({ 
   open: controlledOpen, 
   onOpenChange, 
@@ -41,14 +50,7 @@ export function CreateAgreementDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
   
-  const { progress, completeStep, goToStep, debouncedSaveFormData } = useWorkflowProgress('create-agreement');
-
-  // Set initial customer ID when provided
-  useEffect(() => {
-    if (initialCustomerId && !selectedCustomerId) {
-      setSelectedCustomerId(initialCustomerId);
-    }
-  }, [initialCustomerId]);
+  const { progress, completeStep, goToStep, debouncedSaveFormData, saveProgress } = useWorkflowProgress('create-agreement');
 
   const {
     open,
@@ -69,6 +71,13 @@ export function CreateAgreementDialog({
     toast.success("Agreement created successfully");
   });
 
+  // Set initial customer ID when provided
+  useEffect(() => {
+    if (initialCustomerId && !selectedCustomerId) {
+      setSelectedCustomerId(initialCustomerId);
+    }
+  }, [initialCustomerId]);
+
   // Watch for form changes and auto-save
   useEffect(() => {
     const subscription = watch((formData) => {
@@ -80,15 +89,15 @@ export function CreateAgreementDialog({
 
   // Load saved form data when dialog opens
   useEffect(() => {
-    if (isOpen && progress.formData) {
+    const dialogOpen = controlledOpen !== undefined ? controlledOpen : open;
+    if (dialogOpen && progress.formData) {
       Object.entries(progress.formData).forEach(([key, value]) => {
         setValue(key as any, value);
       });
     }
-  }, [isOpen, progress.formData, setValue]);
+  }, [controlledOpen, open, progress.formData, setValue]);
 
-  // Use controlled open state if provided
-  const isOpen = controlledOpen !== undefined ? controlledOpen : open;
+  // Handle dialog open state
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
       setSelectedCustomerId("");
@@ -138,8 +147,11 @@ export function CreateAgreementDialog({
     }
   };
 
+  // Calculate dialog open state
+  const isDialogOpen = controlledOpen !== undefined ? controlledOpen : open;
+
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
@@ -235,7 +247,7 @@ export function CreateAgreementDialog({
                   {progress.currentStep === 'review' ? (
                     <Button 
                       type="submit"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !isValid}
                       className="relative"
                     >
                       {isSubmitting ? (
