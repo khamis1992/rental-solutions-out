@@ -104,7 +104,7 @@ export const useWorkflowProgress = (workflowType: string) => {
     }
   };
 
-  // Create a debounced version of saveFormData for form data
+  // Create a debounced version of saveFormData
   const debouncedSaveFormData = debounce(async (formData: any) => {
     await saveProgress({ formData });
   }, 1000);

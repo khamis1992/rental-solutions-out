@@ -12,13 +12,15 @@ import { Label } from "@/components/ui/label";
 import { UseFormSetValue } from "react-hook-form";
 import { AgreementFormData } from "../hooks/useAgreementForm";
 import { Template } from "@/types/agreement.types";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 interface AgreementTemplateSelectProps {
   setValue: UseFormSetValue<AgreementFormData>;
 }
 
 export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectProps) => {
+  const hasInitialized = useRef(false);
+  
   const { data: templates, isLoading } = useQuery({
     queryKey: ["agreement-templates"],
     queryFn: async () => {
@@ -44,11 +46,12 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
   });
 
   useEffect(() => {
-    if (templates && templates.length > 0) {
+    if (!hasInitialized.current && templates && templates.length > 0) {
       // Find the standard rental agreement template
       const standardTemplate = templates.find(t => t.name.toLowerCase().includes('standard rental'));
       if (standardTemplate) {
         handleTemplateSelect(standardTemplate.id);
+        hasInitialized.current = true;
       }
     }
   }, [templates]);
@@ -59,6 +62,8 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
       console.log("No template found with ID:", templateId);
       return;
     }
+
+    console.log("Setting template values:", selectedTemplate);
 
     // Set the template ID
     setValue("templateId", templateId);
