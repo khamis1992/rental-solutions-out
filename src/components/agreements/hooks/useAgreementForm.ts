@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,50 +26,32 @@ export interface AgreementFormData {
   // Template fields
   finalPrice?: number;
   agreementNumber?: string;
-  templateId?: string; // Add this field
+  templateId?: string;
 }
 
 export const useAgreementForm = (onSuccess: () => void) => {
   const [open, setOpen] = useState(false);
   const [agreementType, setAgreementType] = useState<AgreementType>("short_term");
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useForm<AgreementFormData>({
+  const form = useForm<AgreementFormData>({
     defaultValues: {
       agreementType: "short_term",
       startDate: new Date().toISOString().split('T')[0],
       agreementDuration: 12,
       dailyLateFee: 120,
-    }
+    },
+    mode: "onChange"
   });
 
-  // Watch for changes in start date and duration
-  const startDate = watch('startDate');
-  const duration = watch('agreementDuration');
-
-  // Update end date when start date or duration changes
-  const updateEndDate = () => {
-    if (startDate && duration) {
-      try {
-        const endDate = addMonths(new Date(startDate), duration);
-        setValue('endDate', endDate.toISOString().split('T')[0]);
-      } catch (error) {
-        console.error('Error calculating end date:', error);
-      }
-    }
-  };
-
-  // Use watch callback to update end date
-  watch((data, { name }) => {
-    if (name === 'startDate' || name === 'agreementDuration') {
-      updateEndDate();
-    }
-  });
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isValid, isDirty },
+    trigger,
+    reset
+  } = form;
 
   const onSubmit = async (data: AgreementFormData) => {
     try {
@@ -100,7 +83,7 @@ export const useAgreementForm = (onSuccess: () => void) => {
           status: 'pending_payment' as LeaseStatus,
           initial_mileage: 0,
           agreement_duration: `${data.agreementDuration} months`,
-          template_id: data.templateId // Add the template ID
+          template_id: data.templateId
         });
 
       if (error) {
@@ -128,5 +111,9 @@ export const useAgreementForm = (onSuccess: () => void) => {
     watch,
     setValue,
     errors,
+    trigger,
+    isValid,
+    isDirty,
+    reset
   };
 };
