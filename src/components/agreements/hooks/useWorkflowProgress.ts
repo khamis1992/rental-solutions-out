@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { debounce } from 'lodash';
@@ -22,18 +22,22 @@ export const useWorkflowProgress = (workflowType: string) => {
   });
   
   const { session } = useAuth();
+  const isInitialLoadDone = useRef(false);
+  const isSaving = useRef(false);
 
-  // Load existing progress
+  // Load existing progress only once on mount
   useEffect(() => {
     const loadProgress = async () => {
       try {
-        // Try to get existing progress
+        if (!session?.user?.id || isInitialLoadDone.current) return;
+
+        console.log("Loading initial workflow progress...");
         const { data: existingProgress, error } = await supabase
           .from('workflow_progress')
           .select('*')
           .eq('workflow_type', workflowType)
           .eq('is_complete', false)
-          .eq('user_id', session?.user?.id)
+          .eq('user_id', session.user.id)
           .maybeSingle();
 
         if (error) {
@@ -42,6 +46,7 @@ export const useWorkflowProgress = (workflowType: string) => {
         }
 
         if (existingProgress) {
+          console.log("Found existing progress:", existingProgress);
           setProgress({
             currentStep: existingProgress.current_step as WorkflowStep,
             completedSteps: (existingProgress.completed_steps as string[] || []) as WorkflowStep[],
@@ -49,7 +54,7 @@ export const useWorkflowProgress = (workflowType: string) => {
             is_complete: existingProgress.is_complete
           });
         } else {
-          // Create new workflow progress if none exists
+          console.log("Creating new workflow progress");
           const { error: insertError } = await supabase
             .from('workflow_progress')
             .insert({
@@ -58,13 +63,15 @@ export const useWorkflowProgress = (workflowType: string) => {
               completed_steps: [],
               form_data: {},
               is_complete: false,
-              user_id: session?.user?.id
+              user_id: session.user.id
             });
 
           if (insertError) {
             console.error('Error creating workflow progress:', insertError);
           }
         }
+        
+        isInitialLoadDone.current = true;
       } catch (err) {
         console.error('Error in loadProgress:', err);
       }
@@ -77,6 +84,11 @@ export const useWorkflowProgress = (workflowType: string) => {
 
   const saveProgress = async (newProgress: Partial<WorkflowProgress>) => {
     try {
+      if (!session?.user?.id || isSaving.current) return false;
+      
+      isSaving.current = true;
+      console.log("Saving workflow progress:", newProgress);
+      
       const updatedProgress = { ...progress, ...newProgress };
       
       const { error } = await supabase
@@ -88,7 +100,7 @@ export const useWorkflowProgress = (workflowType: string) => {
           form_data: updatedProgress.formData,
           is_complete: updatedProgress.is_complete ?? false,
           updated_at: new Date().toISOString(),
-          user_id: session?.user?.id
+          user_id: session.user.id
         });
 
       if (error) {
@@ -97,17 +109,23 @@ export const useWorkflowProgress = (workflowType: string) => {
       }
 
       setProgress(updatedProgress);
+      console.log("Successfully saved workflow progress");
       return true;
     } catch (err) {
       console.error('Error in saveProgress:', err);
       return false;
+    } finally {
+      isSaving.current = false;
     }
   };
 
-  // Create a debounced version of saveFormData
+  // Create a debounced version of saveFormData with increased delay
   const debouncedSaveFormData = debounce(async (formData: any) => {
-    await saveProgress({ formData });
-  }, 1000);
+    if (isInitialLoadDone.current) {
+      console.log("Debounced save of form data:", formData);
+      await saveProgress({ formData });
+    }
+  }, 2000); // Increased debounce delay to 2 seconds
 
   const completeStep = async (step: WorkflowStep) => {
     const completedSteps = [...progress.completedSteps];
@@ -126,6 +144,7 @@ export const useWorkflowProgress = (workflowType: string) => {
     saveProgress,
     completeStep,
     goToStep,
-    debouncedSaveFormData
+    debouncedSaveFormData,
+    isInitialized: isInitialLoadDone.current
   };
 };
