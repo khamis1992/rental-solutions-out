@@ -17,7 +17,7 @@ export default function AgreementDetails() {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   
   // Only enable the query if we have a valid ID
-  const { agreement, isLoading } = useAgreementDetails(id || "", !!id);
+  const { agreement, isLoading, error } = useAgreementDetails(id || "", !!id);
 
   // Show payment dialog if URL has showPayment=true
   useEffect(() => {
@@ -27,15 +27,23 @@ export default function AgreementDetails() {
   }, [searchParams]);
 
   if (!id) {
-    return <div>Agreement ID is required</div>;
+    return <div className="container mx-auto py-6">Agreement ID is required</div>;
   }
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div className="container mx-auto py-6">Loading...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-6">
+        Error loading agreement: {error.message}
+      </div>
+    );
   }
 
   if (!agreement) {
-    return <div>Agreement not found</div>;
+    return <div className="container mx-auto py-6">Agreement not found</div>;
   }
 
   return (
@@ -47,19 +55,19 @@ export default function AgreementDetails() {
         <div className="space-y-4">
           <div>
             <h3 className="font-semibold">Agreement Number</h3>
-            <p>{agreement?.agreement_number}</p>
+            <p>{agreement.agreement_number}</p>
           </div>
           <div>
             <h3 className="font-semibold">Customer</h3>
-            <p>{agreement?.customer?.full_name}</p>
+            <p>{agreement.customer?.full_name}</p>
           </div>
           <div>
             <h3 className="font-semibold">Vehicle</h3>
-            <p>{agreement?.vehicle?.make} {agreement?.vehicle?.model}</p>
+            <p>{agreement.vehicle?.make} {agreement.vehicle?.model}</p>
           </div>
           <div>
             <h3 className="font-semibold">Status</h3>
-            <p className="capitalize">{agreement?.status}</p>
+            <p className="capitalize">{agreement.status}</p>
           </div>
         </div>
       </Card>
@@ -70,7 +78,7 @@ export default function AgreementDetails() {
           <DialogHeader>
             <DialogTitle>Process Payment</DialogTitle>
           </DialogHeader>
-          {agreement && <PaymentForm agreementId={agreement.id} />}
+          <PaymentForm agreementId={agreement.id} />
         </DialogContent>
       </Dialog>
     </div>

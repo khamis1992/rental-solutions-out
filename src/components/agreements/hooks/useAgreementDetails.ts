@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -6,6 +7,10 @@ export const useAgreementDetails = (agreementId: string, enabled: boolean) => {
   const { data: agreement, isLoading, error, refetch } = useQuery({
     queryKey: ['agreement-details', agreementId],
     queryFn: async () => {
+      if (!agreementId) {
+        throw new Error('No agreement ID provided');
+      }
+
       const { data: agreement, error } = await supabase
         .from('leases')
         .select(`
@@ -47,9 +52,14 @@ export const useAgreementDetails = (agreementId: string, enabled: boolean) => {
         throw error;
       }
 
+      if (!agreement) {
+        throw new Error('Agreement not found');
+      }
+
       return agreement;
     },
     enabled: enabled && !!agreementId,
+    retry: false
   });
 
   return {
