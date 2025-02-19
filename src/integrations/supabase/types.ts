@@ -1772,6 +1772,54 @@ export type Database = {
           },
         ]
       }
+      customer_onboarding: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          customer_id: string | null
+          id: string
+          notes: string | null
+          step_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          notes?: string | null
+          step_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          notes?: string | null
+          step_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_onboarding_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_onboarding_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_rewards: {
         Row: {
           created_at: string
@@ -2117,6 +2165,54 @@ export type Database = {
           {
             foreignKeyName: "document_notifications_recipient_id_fkey"
             columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_reminders: {
+        Row: {
+          created_at: string | null
+          customer_id: string | null
+          document_type: string
+          expiry_date: string
+          id: string
+          reminder_sent_at: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          customer_id?: string | null
+          document_type: string
+          expiry_date: string
+          id?: string
+          reminder_sent_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          customer_id?: string | null
+          document_type?: string
+          expiry_date?: string
+          id?: string
+          reminder_sent_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_reminders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_reminders_customer_id_fkey"
+            columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -5656,14 +5752,18 @@ export type Database = {
           contract_document_url: string | null
           created_at: string
           document_analysis_status: string | null
+          document_verification_status: string | null
           driver_license: string | null
           email: string | null
           extracted_data: Json | null
           full_name: string | null
           id: string
+          id_document_expiry: string | null
           id_document_url: string | null
           is_ai_generated: boolean | null
+          last_document_reminder_sent: string | null
           last_login: string | null
+          license_document_expiry: string | null
           license_document_url: string | null
           location_tracking_consent_date: string | null
           location_tracking_enabled: boolean | null
@@ -5672,11 +5772,14 @@ export type Database = {
           phone_number: string | null
           portal_password: string | null
           portal_username: string | null
+          preferred_communication_channel: string | null
+          profile_completion_score: number | null
           role: Database["public"]["Enums"]["user_role"] | null
           status: Database["public"]["Enums"]["customer_status_type"] | null
           status_notes: string | null
           status_updated_at: string | null
           updated_at: string
+          welcome_email_sent: boolean | null
         }
         Insert: {
           address?: string | null
@@ -5686,14 +5789,18 @@ export type Database = {
           contract_document_url?: string | null
           created_at?: string
           document_analysis_status?: string | null
+          document_verification_status?: string | null
           driver_license?: string | null
           email?: string | null
           extracted_data?: Json | null
           full_name?: string | null
           id?: string
+          id_document_expiry?: string | null
           id_document_url?: string | null
           is_ai_generated?: boolean | null
+          last_document_reminder_sent?: string | null
           last_login?: string | null
+          license_document_expiry?: string | null
           license_document_url?: string | null
           location_tracking_consent_date?: string | null
           location_tracking_enabled?: boolean | null
@@ -5702,11 +5809,14 @@ export type Database = {
           phone_number?: string | null
           portal_password?: string | null
           portal_username?: string | null
+          preferred_communication_channel?: string | null
+          profile_completion_score?: number | null
           role?: Database["public"]["Enums"]["user_role"] | null
           status?: Database["public"]["Enums"]["customer_status_type"] | null
           status_notes?: string | null
           status_updated_at?: string | null
           updated_at?: string
+          welcome_email_sent?: boolean | null
         }
         Update: {
           address?: string | null
@@ -5716,14 +5826,18 @@ export type Database = {
           contract_document_url?: string | null
           created_at?: string
           document_analysis_status?: string | null
+          document_verification_status?: string | null
           driver_license?: string | null
           email?: string | null
           extracted_data?: Json | null
           full_name?: string | null
           id?: string
+          id_document_expiry?: string | null
           id_document_url?: string | null
           is_ai_generated?: boolean | null
+          last_document_reminder_sent?: string | null
           last_login?: string | null
+          license_document_expiry?: string | null
           license_document_url?: string | null
           location_tracking_consent_date?: string | null
           location_tracking_enabled?: boolean | null
@@ -5732,11 +5846,14 @@ export type Database = {
           phone_number?: string | null
           portal_password?: string | null
           portal_username?: string | null
+          preferred_communication_channel?: string | null
+          profile_completion_score?: number | null
           role?: Database["public"]["Enums"]["user_role"] | null
           status?: Database["public"]["Enums"]["customer_status_type"] | null
           status_notes?: string | null
           status_updated_at?: string | null
           updated_at?: string
+          welcome_email_sent?: boolean | null
         }
         Relationships: []
       }

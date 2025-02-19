@@ -1,16 +1,48 @@
+
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { UseFormReturn } from "react-hook-form";
 import { ContractDocumentUpload } from "./ContractDocumentUpload";
+import { parsePhoneNumber, AsYouType } from 'libphonenumber-js';
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
 
 interface CustomerFormFieldsProps {
   form: UseFormReturn<any>;
+  profileScore?: number;
 }
 
-export const CustomerFormFields = ({ form }: CustomerFormFieldsProps) => {
+export const CustomerFormFields = ({ form, profileScore = 0 }: CustomerFormFieldsProps) => {
+  const formatPhoneNumber = (value: string) => {
+    const formatter = new AsYouType('QA');
+    return formatter.input(value);
+  };
+
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    form.setValue('phone_number', formatted);
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Profile Completion Indicator */}
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <span className="text-sm font-medium">Profile Completion</span>
+          <Badge variant={profileScore >= 80 ? "success" : "warning"}>
+            {profileScore}%
+          </Badge>
+        </div>
+        <Progress value={profileScore} className="h-2" />
+      </div>
+
       <FormField
         control={form.control}
         name="full_name"
@@ -19,7 +51,18 @@ export const CustomerFormFields = ({ form }: CustomerFormFieldsProps) => {
           <FormItem>
             <FormLabel>Full Name</FormLabel>
             <FormControl>
-              <Input placeholder="Enter full name" {...field} />
+              <Input 
+                placeholder="Enter full name" 
+                {...field} 
+                onChange={(e) => {
+                  // Auto-capitalize names
+                  const words = e.target.value.split(' ');
+                  const capitalized = words.map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                  ).join(' ');
+                  field.onChange(capitalized);
+                }}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -58,6 +101,48 @@ export const CustomerFormFields = ({ form }: CustomerFormFieldsProps) => {
 
       <FormField
         control={form.control}
+        name="license_document_expiry"
+        render={({ field }) => (
+          <FormItem className="flex flex-col">
+            <FormLabel>License Expiry Date</FormLabel>
+            <Popover>
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full pl-3 text-left font-normal",
+                      !field.value && "text-muted-foreground"
+                    )}
+                  >
+                    {field.value ? (
+                      format(new Date(field.value), "PPP")
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={field.value ? new Date(field.value) : undefined}
+                  onSelect={field.onChange}
+                  disabled={(date) =>
+                    date < new Date()
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
         name="email"
         rules={{ 
           required: "Email is required",
@@ -83,15 +168,19 @@ export const CustomerFormFields = ({ form }: CustomerFormFieldsProps) => {
         rules={{ 
           required: "Phone number is required",
           pattern: {
-            value: /^[0-9+\-\s()]*$/,
-            message: "Invalid phone number format"
+            value: /^(\+974|974)?[0-9]{8}$/,
+            message: "Please enter a valid Qatar phone number"
           }
         }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Phone Number</FormLabel>
             <FormControl>
-              <Input placeholder="Enter phone number" {...field} />
+              <Input 
+                placeholder="Enter phone number" 
+                {...field}
+                onChange={handlePhoneNumberChange}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -108,6 +197,48 @@ export const CustomerFormFields = ({ form }: CustomerFormFieldsProps) => {
             <FormControl>
               <Textarea placeholder="Enter full address" {...field} />
             </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="id_document_expiry"
+        render={({ field }) => (
+          <FormItem className="flex flex-col">
+            <FormLabel>ID Document Expiry Date</FormLabel>
+            <Popover>
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full pl-3 text-left font-normal",
+                      !field.value && "text-muted-foreground"
+                    )}
+                  >
+                    {field.value ? (
+                      format(new Date(field.value), "PPP")
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={field.value ? new Date(field.value) : undefined}
+                  onSelect={field.onChange}
+                  disabled={(date) =>
+                    date < new Date()
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
             <FormMessage />
           </FormItem>
         )}

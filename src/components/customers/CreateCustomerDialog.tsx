@@ -37,7 +37,9 @@ export const CreateCustomerDialog = ({
       address: "",
       driver_license: "",
       email: "",
-      nationality: ""
+      nationality: "",
+      id_document_expiry: null,
+      license_document_expiry: null
     }
   });
 
@@ -51,6 +53,21 @@ export const CreateCustomerDialog = ({
     if (!values.email?.trim()) {
       throw new Error("Email is required");
     }
+    
+    // Validate Qatar phone number
+    const phonePattern = /^(\+974|974)?[0-9]{8}$/;
+    if (!phonePattern.test(values.phone_number.replace(/\s/g, ''))) {
+      throw new Error("Invalid Qatar phone number format");
+    }
+    
+    // Validate document expiry dates
+    if (values.id_document_expiry && new Date(values.id_document_expiry) < new Date()) {
+      throw new Error("ID document is expired");
+    }
+    if (values.license_document_expiry && new Date(values.license_document_expiry) < new Date()) {
+      throw new Error("Driver's license is expired");
+    }
+    
     return true;
   };
 
@@ -74,7 +91,10 @@ export const CreateCustomerDialog = ({
         role: "customer",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        status: 'pending_review'
+        status: 'pending_review',
+        document_verification_status: 'pending',
+        preferred_communication_channel: 'email',
+        welcome_email_sent: false
       };
 
       const { error: supabaseError } = await supabase
@@ -83,6 +103,28 @@ export const CreateCustomerDialog = ({
 
       if (supabaseError) {
         throw supabaseError;
+      }
+
+      // Create onboarding checklist
+      const onboardingSteps = [
+        "Document Verification",
+        "Welcome Email",
+        "Initial Contact",
+        "Profile Review"
+      ];
+
+      const onboardingData = onboardingSteps.map(step => ({
+        customer_id: newCustomerId,
+        step_name: step,
+        completed: false
+      }));
+
+      const { error: onboardingError } = await supabase
+        .from("customer_onboarding")
+        .insert(onboardingData);
+
+      if (onboardingError) {
+        console.error("Error creating onboarding checklist:", onboardingError);
       }
 
       setSuccess(true);
