@@ -61,12 +61,12 @@ export interface Agreement {
   end_date: string | null;
   status: LeaseStatus;
   total_amount: number;
+  rent_amount: number; // Added this field
   initial_mileage: number;
   return_mileage: number | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
-  rent_amount: number;
   remaining_amount: number;
   daily_late_fee: number;
   payment_status: string;
