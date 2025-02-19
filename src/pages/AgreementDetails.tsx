@@ -16,7 +16,8 @@ export default function AgreementDetails() {
   const [searchParams] = useSearchParams();
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   
-  const { agreement, isLoading } = useAgreementDetails(id || "", true);
+  // Only enable the query if we have a valid ID
+  const { agreement, isLoading } = useAgreementDetails(id || "", !!id);
 
   // Show payment dialog if URL has showPayment=true
   useEffect(() => {
@@ -25,8 +26,16 @@ export default function AgreementDetails() {
     }
   }, [searchParams]);
 
+  if (!id) {
+    return <div>Agreement ID is required</div>;
+  }
+
   if (isLoading) {
     return <div>Loading...</div>;
+  }
+
+  if (!agreement) {
+    return <div>Agreement not found</div>;
   }
 
   return (
@@ -61,7 +70,7 @@ export default function AgreementDetails() {
           <DialogHeader>
             <DialogTitle>Process Payment</DialogTitle>
           </DialogHeader>
-          <PaymentForm agreementId={id} />
+          {agreement && <PaymentForm agreementId={agreement.id} />}
         </DialogContent>
       </Dialog>
     </div>

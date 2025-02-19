@@ -32,14 +32,28 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
   // Fetch rent amount and calculate late fee
   useEffect(() => {
     const fetchRentAmount = async () => {
-      const { data: lease } = await supabase
-        .from('leases')
-        .select('rent_amount')
-        .eq('id', agreementId)
-        .maybeSingle();
-      
-      if (lease?.rent_amount) {
-        setRentAmount(Number(lease.rent_amount));
+      if (!agreementId) {
+        console.error("No agreement ID provided");
+        return;
+      }
+
+      try {
+        const { data: lease, error } = await supabase
+          .from('leases')
+          .select('rent_amount')
+          .eq('id', agreementId)
+          .maybeSingle();
+        
+        if (error) throw error;
+        
+        if (lease?.rent_amount) {
+          setRentAmount(Number(lease.rent_amount));
+        } else {
+          console.warn("No rent amount found for agreement:", agreementId);
+        }
+      } catch (error) {
+        console.error("Error fetching rent amount:", error);
+        toast.error("Failed to fetch rent amount");
       }
     };
 
@@ -55,8 +69,10 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
       }
     };
 
-    fetchRentAmount();
-    calculateLateFee();
+    if (agreementId) {
+      fetchRentAmount();
+      calculateLateFee();
+    }
   }, [agreementId]);
 
   // Update due amount when rent amount or late fee changes
@@ -65,6 +81,11 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
   }, [rentAmount, lateFee]);
 
   const onSubmit = async (data: any) => {
+    if (!agreementId) {
+      toast.error("No agreement ID provided");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const paymentAmount = Number(data.amount);
@@ -99,6 +120,10 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
       setIsSubmitting(false);
     }
   };
+
+  if (!agreementId) {
+    return <div>No agreement selected</div>;
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
