@@ -13,17 +13,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { LeadNote } from "@/types/lead.types";
 
 interface LeadNotesProps {
   leadId: string;
-}
-
-interface Note {
-  id: string;
-  lead_id: string;
-  content: string;
-  created_at: string;
-  created_by: string | null;
 }
 
 export function LeadNotes({ leadId }: LeadNotesProps) {
@@ -40,7 +33,7 @@ export function LeadNotes({ leadId }: LeadNotesProps) {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Note[];
+      return data as LeadNote[];
     },
   });
 
