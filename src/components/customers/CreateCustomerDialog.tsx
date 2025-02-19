@@ -104,7 +104,9 @@ export const CreateCustomerDialog = ({
 
   const handleCreateContract = () => {
     if (customerId) {
-      navigate(`/agreements/new?customerId=${customerId}`);
+      // Update the navigation to use the correct URL pattern
+      navigate(`/agreements?customerId=${customerId}&action=new`);
+      setShowContractPrompt(false);
       onOpenChange?.(false);
     }
   };
