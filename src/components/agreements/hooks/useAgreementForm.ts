@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -151,7 +151,7 @@ export const useAgreementForm = (onSuccess: () => void) => {
   };
 
   // Make sure to clean up when component unmounts
-  React.useEffect(() => {
+  useEffect(() => {
     return () => cleanup();
   }, []);
 
