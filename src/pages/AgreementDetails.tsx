@@ -1,5 +1,5 @@
 
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { PaymentForm } from "@/components/agreements/details/PaymentForm";
 import { useAgreementDetails } from "@/components/agreements/hooks/useAgreementDetails";
@@ -14,10 +14,19 @@ import {
 export default function AgreementDetails() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   
+  // Redirect if no valid ID
+  useEffect(() => {
+    if (!id || id === "undefined") {
+      navigate("/agreements");
+      return;
+    }
+  }, [id, navigate]);
+
   // Only enable the query if we have a valid ID
-  const { agreement, isLoading, error } = useAgreementDetails(id || "", !!id);
+  const { agreement, isLoading, error } = useAgreementDetails(id || "", !!id && id !== "undefined");
 
   // Show payment dialog if URL has showPayment=true
   useEffect(() => {
@@ -26,24 +35,48 @@ export default function AgreementDetails() {
     }
   }, [searchParams]);
 
-  if (!id) {
-    return <div className="container mx-auto py-6">Agreement ID is required</div>;
+  if (!id || id === "undefined") {
+    return (
+      <div className="container mx-auto py-6">
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-2">Invalid Agreement</h2>
+          <p className="text-gray-600">No agreement ID was provided. Redirecting to agreements list...</p>
+        </Card>
+      </div>
+    );
   }
 
   if (isLoading) {
-    return <div className="container mx-auto py-6">Loading...</div>;
+    return (
+      <div className="container mx-auto py-6">
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-2">Loading...</h2>
+          <p className="text-gray-600">Please wait while we fetch the agreement details.</p>
+        </Card>
+      </div>
+    );
   }
 
   if (error) {
     return (
       <div className="container mx-auto py-6">
-        Error loading agreement: {error.message}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-2 text-red-600">Error</h2>
+          <p className="text-gray-600">{error.message}</p>
+        </Card>
       </div>
     );
   }
 
   if (!agreement) {
-    return <div className="container mx-auto py-6">Agreement not found</div>;
+    return (
+      <div className="container mx-auto py-6">
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-2">Not Found</h2>
+          <p className="text-gray-600">Agreement not found. Please check the agreement ID and try again.</p>
+        </Card>
+      </div>
+    );
   }
 
   return (

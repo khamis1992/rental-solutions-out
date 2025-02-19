@@ -7,8 +7,9 @@ export const useAgreementDetails = (agreementId: string, enabled: boolean) => {
   const { data: agreement, isLoading, error, refetch } = useQuery({
     queryKey: ['agreement-details', agreementId],
     queryFn: async () => {
-      if (!agreementId) {
-        throw new Error('No agreement ID provided');
+      // Early return if no valid ID
+      if (!agreementId || agreementId === "undefined") {
+        throw new Error('Invalid agreement ID');
       }
 
       const { data: agreement, error } = await supabase
@@ -58,7 +59,7 @@ export const useAgreementDetails = (agreementId: string, enabled: boolean) => {
 
       return agreement;
     },
-    enabled: enabled && !!agreementId,
+    enabled: enabled && !!agreementId && agreementId !== "undefined",
     retry: false
   });
 
