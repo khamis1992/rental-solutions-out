@@ -31,6 +31,7 @@ export interface AgreementFormData {
 
 export const useAgreementForm = (onSuccess: () => void) => {
   const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [agreementType, setAgreementType] = useState<AgreementType>("short_term");
 
   const form = useForm<AgreementFormData>({
@@ -54,7 +55,10 @@ export const useAgreementForm = (onSuccess: () => void) => {
   } = form;
 
   const onSubmit = async (data: AgreementFormData) => {
+    if (isSubmitting) return;
+
     try {
+      setIsSubmitting(true);
       console.log("Form data before submission:", data);
 
       if (!data.customerId || data.customerId === "") {
@@ -92,12 +96,19 @@ export const useAgreementForm = (onSuccess: () => void) => {
         throw error;
       }
 
-      onSuccess();
       toast.success("Agreement created successfully");
+      
+      // Reset form and trigger success callback after a delay
+      setTimeout(() => {
+        reset();
+        onSuccess();
+      }, 1500);
+
     } catch (error) {
       console.error('Error creating agreement:', error);
       toast.error("Failed to create agreement");
-      throw error;
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -114,6 +125,7 @@ export const useAgreementForm = (onSuccess: () => void) => {
     trigger,
     isValid,
     isDirty,
-    reset
+    reset,
+    isSubmitting
   };
 };
