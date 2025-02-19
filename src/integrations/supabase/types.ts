@@ -3036,6 +3036,55 @@ export type Database = {
           },
         ]
       }
+      lead_notes: {
+        Row: {
+          content: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          lead_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          lead_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          lead_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_notes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_notes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_notes_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leases: {
         Row: {
           agreement_duration: unknown
@@ -7556,6 +7605,39 @@ export type Database = {
         }
         Relationships: []
       }
+      validation_rules: {
+        Row: {
+          country_code: string | null
+          created_at: string | null
+          error_message: string | null
+          field_name: string
+          id: string
+          rule_pattern: string | null
+          updated_at: string | null
+          validation_type: string
+        }
+        Insert: {
+          country_code?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          field_name: string
+          id?: string
+          rule_pattern?: string | null
+          updated_at?: string | null
+          validation_type: string
+        }
+        Update: {
+          country_code?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          field_name?: string
+          id?: string
+          rule_pattern?: string | null
+          updated_at?: string | null
+          validation_type?: string
+        }
+        Relationships: []
+      }
       vehicle_alerts: {
         Row: {
           alert_type: string | null
@@ -8500,6 +8582,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      workflow_progress: {
+        Row: {
+          completed_steps: Json | null
+          created_at: string | null
+          current_step: string
+          form_data: Json | null
+          id: string
+          is_complete: boolean | null
+          last_saved_at: string | null
+          updated_at: string | null
+          user_id: string | null
+          workflow_type: string
+        }
+        Insert: {
+          completed_steps?: Json | null
+          created_at?: string | null
+          current_step: string
+          form_data?: Json | null
+          id?: string
+          is_complete?: boolean | null
+          last_saved_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          workflow_type: string
+        }
+        Update: {
+          completed_steps?: Json | null
+          created_at?: string | null
+          current_step?: string
+          form_data?: Json | null
+          id?: string
+          is_complete?: boolean | null
+          last_saved_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          workflow_type?: string
+        }
+        Relationships: []
       }
       workflow_templates: {
         Row: {

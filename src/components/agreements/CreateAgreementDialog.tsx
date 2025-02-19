@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,7 +12,7 @@ import {
 import { useAgreementForm } from "./hooks/useAgreementForm";
 import { LeaseToOwnFields } from "./form/LeaseToOwnFields";
 import { LateFeesPenaltiesFields } from "./form/LateFeesPenaltiesFields";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AgreementBasicInfo } from "./form/AgreementBasicInfo";
 import { CustomerInformation } from "./form/CustomerInformation";
 import { VehicleAgreementDetails } from "./form/VehicleAgreementDetails";
@@ -22,6 +23,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { AgreementTemplateSelect } from "./form/AgreementTemplateSelect";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface CreateAgreementDialogProps {
   open?: boolean;
@@ -33,6 +36,8 @@ export function CreateAgreementDialog({ open: controlledOpen, onOpenChange, chil
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const {
     open,
@@ -44,20 +49,60 @@ export function CreateAgreementDialog({ open: controlledOpen, onOpenChange, chil
     watch,
     setValue,
     errors,
-  } = useAgreementForm(async () => {
+  } = useAgreementForm(async (agreementId: string) => {
     setOpen(false);
     setSelectedCustomerId("");
     await queryClient.invalidateQueries({ queryKey: ["agreements"] });
     toast.success("Agreement created successfully");
+    
+    // Show payment processing prompt
+    const shouldProcessPayment = window.confirm("Would you like to process the first payment now?");
+    if (shouldProcessPayment) {
+      navigate(`/agreements/${agreementId}/payments`);
+    }
   });
+
+  // Pre-fill customer information if customerId is provided in URL
+  useEffect(() => {
+    const customerId = searchParams.get("customerId");
+    if (customerId) {
+      setSelectedCustomerId(customerId);
+      setValue("customerId", customerId);
+
+      // Fetch and set customer details
+      const fetchCustomerDetails = async () => {
+        const { data: customer, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', customerId)
+          .single();
+
+        if (error) {
+          console.error('Error fetching customer:', error);
+          return;
+        }
+
+        if (customer) {
+          setValue("nationality", customer.nationality || '');
+          setValue("drivingLicense", customer.driver_license || '');
+          setValue("phoneNumber", customer.phone_number || '');
+          setValue("email", customer.email || '');
+          setValue("address", customer.address || '');
+        }
+      };
+
+      fetchCustomerDetails();
+    }
+  }, [searchParams, setValue]);
 
   // Use controlled open state if provided
   const isOpen = controlledOpen !== undefined ? controlledOpen : open;
   const handleOpenChange = onOpenChange || setOpen;
 
   const handleFormSubmit = async (data: any) => {
+    if (isSubmitting) return;
+
     try {
-      console.log("Form submission started with data:", data);
       setIsSubmitting(true);
       await onSubmit(data);
     } catch (error) {
