@@ -1,75 +1,68 @@
-import { Button } from "@/components/ui/button";
-import { CustomerInformation } from "@/components/agreements/form/CustomerInformation";
-import { AgreementBasicInfo } from "@/components/agreements/form/AgreementBasicInfo";
-import { VehicleAgreementDetails } from "@/components/agreements/form/VehicleAgreementDetails";
-import { LateFeesPenaltiesFields } from "@/components/agreements/form/LateFeesPenaltiesFields";
-import { Step } from "@/types/agreement.types";
-import { UseFormReturn } from "react-hook-form";
-import { AgreementFormData } from "../hooks/useAgreementForm";
-import { AgreementTypeSelect } from "./AgreementTypeSelect";
+
+import { CheckIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { WorkflowStep } from "../hooks/useWorkflowProgress";
+import { Progress } from "@/components/ui/progress";
 
 interface WorkflowProgressProps {
-  currentStep: Step;
-  totalSteps: number;
-  handleNext: () => void;
-  handlePrevious: () => void;
-  control: UseFormReturn<AgreementFormData>["control"];
-  errors: UseFormReturn<AgreementFormData>["formState"]["errors"];
-  register: UseFormReturn<AgreementFormData>["register"];
-  watch: UseFormReturn<AgreementFormData>["watch"];
-  isStepValid: boolean;
-  isSubmitting: boolean;
+  currentStep: WorkflowStep;
+  completedSteps: WorkflowStep[];
 }
 
-export const WorkflowProgress = ({
-  currentStep,
-  totalSteps,
-  handleNext,
-  handlePrevious,
-  control,
-  errors,
-  register,
-  watch,
-  isStepValid,
-  isSubmitting,
-}: WorkflowProgressProps) => {
-  // Update the return statement to include the new styles
-  return (
-    <div className="space-y-6">
-      <div className="dialog-content px-6">
-        {currentStep === 1 && (
-          <div className="space-y-6">
-            <CustomerInformation control={control} errors={errors} />
-            <AgreementBasicInfo control={control} errors={errors} />
-            <AgreementTypeSelect register={register} />
-          </div>
-        )}
-        {currentStep === 2 && (
-          <VehicleAgreementDetails
-            control={control}
-            errors={errors}
-            watch={watch}
-          />
-        )}
-        {currentStep === 3 && (
-          <LateFeesPenaltiesFields control={control} errors={errors} />
-        )}
-      </div>
+const steps: { id: WorkflowStep; label: string }[] = [
+  { id: 'customer-info', label: 'Customer Information' },
+  { id: 'vehicle-details', label: 'Vehicle Details' },
+  { id: 'agreement-terms', label: 'Agreement Terms' },
+  { id: 'review', label: 'Review & Submit' }
+];
 
-      <div className="dialog-footer px-6 flex justify-between">
-        {currentStep > 1 && (
-          <Button type="button" variant="outline" onClick={handlePrevious}>
-            Previous
-          </Button>
-        )}
-        <Button
-          type="button"
-          onClick={handleNext}
-          disabled={!isStepValid || isSubmitting}
-        >
-          {currentStep === totalSteps ? "Submit" : "Next"}
-        </Button>
+export function WorkflowProgress({ currentStep, completedSteps }: WorkflowProgressProps) {
+  // Calculate progress percentage
+  const totalSteps = steps.length;
+  const completedCount = completedSteps.length;
+  const progressPercentage = (completedCount / totalSteps) * 100;
+
+  return (
+    <div className="space-y-4 mb-8">
+      <Progress value={progressPercentage} className="h-2" />
+      
+      <div className="relative">
+        <div className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 bg-gray-200" />
+        <div className="relative z-10 flex justify-between">
+          {steps.map((step, index) => {
+            const isCompleted = completedSteps.includes(step.id);
+            const isCurrent = currentStep === step.id;
+            
+            return (
+              <div key={step.id} className="flex flex-col items-center">
+                <div
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors duration-200",
+                    isCompleted ? "border-blue-600 bg-blue-600 text-white" : 
+                    isCurrent ? "border-blue-600 bg-white text-blue-600" :
+                    "border-gray-300 bg-white text-gray-300"
+                  )}
+                >
+                  {isCompleted ? (
+                    <CheckIcon className="h-4 w-4" />
+                  ) : (
+                    <span>{index + 1}</span>
+                  )}
+                </div>
+                <span
+                  className={cn(
+                    "mt-2 text-sm font-medium",
+                    isCurrent ? "text-blue-600" :
+                    isCompleted ? "text-gray-900" : "text-gray-500"
+                  )}
+                >
+                  {step.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
-};
+}

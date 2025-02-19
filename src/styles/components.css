@@ -1,10 +1,56 @@
+/* Add RTL support for ReactQuill */
+.rtl-editor {
+  direction: rtl;
+  text-align: right;
+}
 
-@layer components {
-  .dialog-content {
-    @apply max-h-[85vh] overflow-y-auto;
-  }
+.rtl-editor .ql-editor {
+  direction: rtl;
+  text-align: right;
+}
 
-  .dialog-footer {
-    @apply sticky bottom-0 bg-white py-4 border-t mt-6;
+.rtl-editor .ql-snow .ql-picker {
+  direction: rtl;
+}
+
+/* Additional RTL styles */
+.dir-rtl {
+  direction: rtl;
+}
+
+.text-right {
+  text-align: right;
+}
+
+/* Print styles for RTL */
+@media print {
+  .rtl-content {
+    direction: rtl;
+    text-align: right;
   }
+}
+
+/* Override ReactQuill default alignment */
+.ql-editor {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+.ql-snow .ql-picker.ql-header {
+  direction: rtl !important;
+}
+
+/* Force RTL for all editor content */
+.ql-container {
+  direction: rtl !important;
+}
+
+/* Adjust toolbar buttons for RTL */
+.ql-snow .ql-toolbar button {
+  float: right;
+}
+
+.ql-snow .ql-formats {
+  margin-right: 0;
+  margin-left: 15px;
 }
