@@ -2,15 +2,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { cva } from "class-variance-authority";
+import { LucideIcon } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 interface StatsCardProps {
   title: string;
-  value: string;
-  icon: React.ComponentType<{ className?: string }>;
+  value: number;
+  icon: LucideIcon;
   description?: React.ReactNode;
   className?: string;
   iconClassName?: string;
   trend?: "up" | "down" | "neutral";
+  format?: "number" | "currency";
 }
 
 const iconStyles = cva(
@@ -38,8 +41,11 @@ export const StatsCard = ({
   description,
   className,
   iconClassName,
-  trend
+  trend,
+  format = "number"
 }: StatsCardProps) => {
+  const formattedValue = format === "currency" ? formatCurrency(value) : value.toString();
+
   return (
     <Card className={cn(
       "overflow-hidden transition-all duration-300 hover:shadow-lg group cursor-pointer p-3",
@@ -65,7 +71,7 @@ export const StatsCard = ({
       <CardContent>
         <div className="space-y-1">
           <div className="text-xl font-bold tracking-tight break-words animate-fade-in">
-            {value}
+            {formattedValue}
           </div>
           {description && (
             <p className="text-xs text-muted-foreground flex items-center gap-1 animate-fade-in group-hover:text-foreground/80 transition-colors">
