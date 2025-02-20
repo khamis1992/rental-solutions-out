@@ -9335,6 +9335,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      check_document_expiry: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       check_inventory_levels: {
         Args: Record<PropertyKey, never>
         Returns: undefined

@@ -7,15 +7,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+interface CustomerProfile {
+  id: string;
+  id_document_url?: string | null;
+  license_document_url?: string | null;
+  id_document_expiry?: string | null;
+  license_document_expiry?: string | null;
+  document_verification_status?: 'pending' | 'verified' | 'expired' | 'rejected';
+}
+
 interface CustomerDocumentSectionProps {
-  profile: {
-    id: string;
-    id_document_url?: string | null;
-    license_document_url?: string | null;
-    id_document_expiry?: string | null;
-    license_document_expiry?: string | null;
-    document_verification_status?: string;
-  };
+  profile: CustomerProfile;
 }
 
 export function CustomerDocumentSection({ profile }: CustomerDocumentSectionProps) {
@@ -96,7 +98,7 @@ export function CustomerDocumentSection({ profile }: CustomerDocumentSectionProp
                 <DocumentVerificationStatus
                   documentType="ID Document"
                   documentUrl={profile.id_document_url}
-                  status={profile.document_verification_status as any || 'pending'}
+                  status={profile.document_verification_status || 'pending'}
                   onVerify={() => handleVerification('verified')}
                   onReject={() => handleVerification('rejected')}
                 />
@@ -104,7 +106,7 @@ export function CustomerDocumentSection({ profile }: CustomerDocumentSectionProp
                   documentType="ID Document"
                   expiryDate={profile.id_document_expiry ? new Date(profile.id_document_expiry) : null}
                   onExpiryDateChange={(date) => handleExpiryDateChange('id', date)}
-                  verificationStatus={profile.document_verification_status as any || 'pending'}
+                  verificationStatus={profile.document_verification_status || 'pending'}
                 />
               </>
             )}
@@ -121,7 +123,7 @@ export function CustomerDocumentSection({ profile }: CustomerDocumentSectionProp
                 <DocumentVerificationStatus
                   documentType="Driver License"
                   documentUrl={profile.license_document_url}
-                  status={profile.document_verification_status as any || 'pending'}
+                  status={profile.document_verification_status || 'pending'}
                   onVerify={() => handleVerification('verified')}
                   onReject={() => handleVerification('rejected')}
                 />
@@ -129,7 +131,7 @@ export function CustomerDocumentSection({ profile }: CustomerDocumentSectionProp
                   documentType="Driver License"
                   expiryDate={profile.license_document_expiry ? new Date(profile.license_document_expiry) : null}
                   onExpiryDateChange={(date) => handleExpiryDateChange('license', date)}
-                  verificationStatus={profile.document_verification_status as any || 'pending'}
+                  verificationStatus={profile.document_verification_status || 'pending'}
                 />
               </>
             )}
