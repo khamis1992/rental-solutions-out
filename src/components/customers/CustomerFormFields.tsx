@@ -12,9 +12,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import debounce from "lodash/debounce";
+import { findPotentialDuplicates } from "./utils/duplicateDetection";
+import { DuplicateWarning } from "./DuplicateWarning";
+import type { DuplicateMatch } from "./utils/duplicateDetection";
 
 interface CustomerFormFieldsProps {
   form: UseFormReturn<any>;
@@ -23,6 +26,9 @@ interface CustomerFormFieldsProps {
 }
 
 export const CustomerFormFields = ({ form, profileScore = 0, customerId }: CustomerFormFieldsProps) => {
+  const [duplicates, setDuplicates] = useState<DuplicateMatch[]>([]);
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(true);
+
   const formatPhoneNumber = (value: string) => {
     const formatter = new AsYouType('QA');
     return formatter.input(value);
@@ -32,6 +38,40 @@ export const CustomerFormFields = ({ form, profileScore = 0, customerId }: Custo
     const formatted = formatPhoneNumber(e.target.value);
     form.setValue('phone_number', formatted);
   };
+
+  // Check for duplicates when relevant fields change
+  useEffect(() => {
+    const checkDuplicates = async () => {
+      const formValues = form.getValues();
+      if (!formValues.full_name && !formValues.phone_number && !formValues.email) {
+        setDuplicates([]);
+        return;
+      }
+
+      const matches = await findPotentialDuplicates({
+        id: customerId,
+        full_name: formValues.full_name,
+        phone_number: formValues.phone_number,
+        email: formValues.email
+      });
+
+      setDuplicates(matches);
+      setShowDuplicateWarning(matches.length > 0);
+    };
+
+    const debouncedCheck = debounce(checkDuplicates, 500);
+    
+    const subscription = form.watch((value, { name }) => {
+      if (['full_name', 'phone_number', 'email'].includes(name || '')) {
+        debouncedCheck();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+      debouncedCheck.cancel();
+    };
+  }, [form, customerId]);
 
   const saveFormData = async (data: any) => {
     if (!customerId) return;
@@ -93,6 +133,13 @@ export const CustomerFormFields = ({ form, profileScore = 0, customerId }: Custo
 
   return (
     <div className="space-y-6">
+      {showDuplicateWarning && (
+        <DuplicateWarning 
+          duplicates={duplicates} 
+          onDismiss={() => setShowDuplicateWarning(false)} 
+        />
+      )}
+
       {/* Profile Completion Indicator */}
       <div className="space-y-2">
         <div className="flex justify-between items-center">
