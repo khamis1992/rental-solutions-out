@@ -40,6 +40,8 @@ export const FinancialDashboard = () => {
   // Initialize as empty array if null/undefined and ensure proper type conversion
   const financialData: Transaction[] = Array.isArray(rawData) ? rawData.map(transaction => ({
     ...transaction,
+    description: transaction.description || '',
+    status: 'completed',
     amount: typeof transaction.amount === 'string' ? parseFloat(transaction.amount) : transaction.amount
   })) : [];
 

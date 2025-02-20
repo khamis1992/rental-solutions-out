@@ -1,3 +1,4 @@
+
 export interface ForecastData {
   date: string;
   predicted_revenue: number;
