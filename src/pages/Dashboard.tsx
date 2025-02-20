@@ -10,13 +10,13 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface DashboardStatsData {
-  totalVehicles: number;
-  availableVehicles: number;
-  rentedVehicles: number;
-  maintenanceVehicles: number;
-  totalCustomers: number;
-  activeRentals: number;
-  monthlyRevenue: number;
+  total_vehicles: number;
+  available_vehicles: number;
+  rented_vehicles: number;
+  maintenance_vehicles: number;
+  total_customers: number;
+  active_rentals: number;
+  monthly_revenue: number;
 }
 
 const Dashboard = () => {
@@ -29,15 +29,15 @@ const Dashboard = () => {
         throw error;
       }
       
-      // Type assertion and data transformation
+      // Parse the JSON response and ensure all values are numbers
       return {
-        totalVehicles: data.total_vehicles || 0,
-        availableVehicles: data.available_vehicles || 0,
-        rentedVehicles: data.rented_vehicles || 0,
-        maintenanceVehicles: data.maintenance_vehicles || 0,
-        totalCustomers: data.total_customers || 0,
-        activeRentals: data.active_rentals || 0,
-        monthlyRevenue: data.monthly_revenue || 0
+        total_vehicles: Number(data.total_vehicles || 0),
+        available_vehicles: Number(data.available_vehicles || 0),
+        rented_vehicles: Number(data.rented_vehicles || 0),
+        maintenance_vehicles: Number(data.maintenance_vehicles || 0),
+        total_customers: Number(data.total_customers || 0),
+        active_rentals: Number(data.active_rentals || 0),
+        monthly_revenue: Number(data.monthly_revenue || 0)
       };
     }
   });

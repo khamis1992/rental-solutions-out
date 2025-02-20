@@ -48,7 +48,7 @@ export const DocumentPreview = ({
                 Expired
               </span>
             )}
-            {isExpiringSound && (
+            {isExpiringSoon && (
               <span className="text-xs bg-yellow-100 text-yellow-600 px-2 py-1 rounded">
                 Expiring Soon
               </span>
