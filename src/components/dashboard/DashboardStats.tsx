@@ -6,19 +6,19 @@ import { formatCurrency } from "@/lib/utils";
 
 interface DashboardStatsProps {
   stats?: {
-    totalVehicles: number;
-    availableVehicles: number;
-    rentedVehicles: number;
-    maintenanceVehicles: number;
-    totalCustomers: number;
-    activeRentals: number;
-    monthlyRevenue: number;
+    total_vehicles: number;
+    available_vehicles: number;
+    rented_vehicles: number;
+    maintenance_vehicles: number;
+    total_customers: number;
+    active_rentals: number;
+    monthly_revenue: number;
   };
 }
 
 export const DashboardStats = ({ stats }: DashboardStatsProps) => {
-  const fleetUtilization = stats?.totalVehicles 
-    ? ((stats.rentedVehicles / stats.totalVehicles) * 100).toFixed(1) 
+  const fleetUtilization = stats?.total_vehicles 
+    ? ((stats.rented_vehicles / stats.total_vehicles) * 100).toFixed(1) 
     : '0';
 
   return (
@@ -37,24 +37,24 @@ export const DashboardStats = ({ stats }: DashboardStatsProps) => {
         />
         <StatsCard
           title="Active Rentals"
-          value={stats?.activeRentals?.toString() || "0"}
+          value={stats?.active_rentals?.toString() || "0"}
           icon={Key}
           iconClassName="purple"
           description={
             <span className="text-amber-600 text-xs flex items-center">
               <Wrench className="mr-1 h-4 w-4" />
-              {stats?.maintenanceVehicles || 0} in maintenance
+              {stats?.maintenance_vehicles || 0} in maintenance
             </span>
           }
         />
         <StatsCard
           title="Monthly Revenue"
-          value={formatCurrency(stats?.monthlyRevenue || 0)}
+          value={formatCurrency(stats?.monthly_revenue || 0)}
           icon={Users}
           iconClassName="green"
           description={
             <span className="text-muted-foreground text-xs">
-              {stats?.totalCustomers || 0} total customers
+              {stats?.total_customers || 0} total customers
             </span>
           }
         />
