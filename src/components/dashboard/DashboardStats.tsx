@@ -64,5 +64,3 @@ export const DashboardStats = ({ stats }: DashboardStatsProps) => {
     </div>
   );
 };
-
-export default DashboardStats;

@@ -3,15 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { VehicleStatus } from "@/types/vehicle";
 import { toast } from "sonner";
+
+type VehicleStatus = 'available' | 'rented' | 'maintenance' | 'retired' | 'police_station' | 'accident' | 'reserve' | 'stolen';
 
 interface VehicleStatusCount {
   status: VehicleStatus;
   count: number;
 }
 
-const COLORS = {
+const COLORS: Record<VehicleStatus, string> = {
   available: "#22c55e", // green-500
   rented: "#3b82f6",   // blue-500
   maintenance: "#f59e0b", // amber-500
@@ -34,7 +35,9 @@ export const VehicleStatusChart = () => {
       if (error) throw error;
 
       const counts = data.reduce((acc, { status }) => {
-        acc[status] = (acc[status] || 0) + 1;
+        if (status) {
+          acc[status as VehicleStatus] = (acc[status as VehicleStatus] || 0) + 1;
+        }
         return acc;
       }, {} as Record<VehicleStatus, number>);
 
