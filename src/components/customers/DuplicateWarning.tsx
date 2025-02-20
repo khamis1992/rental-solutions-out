@@ -16,7 +16,7 @@ export function DuplicateWarning({ duplicates, onDismiss }: DuplicateWarningProp
   if (!duplicates.length) return null;
 
   return (
-    <Alert variant="warning" className="mb-4">
+    <Alert className="mb-4">
       <AlertCircle className="h-4 w-4" />
       <AlertTitle>Potential Duplicate Customer{duplicates.length > 1 ? 's' : ''} Found</AlertTitle>
       <AlertDescription>
