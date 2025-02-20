@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,21 +11,45 @@ interface AnalyticsSummary {
   payment_completion_rate: number;
 }
 
-export const CarInstallmentAnalytics = ({ contractId }: { contractId: string }) => {
+interface CarInstallmentPayment {
+  id: string;
+  contract_id: string;
+  amount: number;
+  paid_amount: number | null;
+  status: 'pending' | 'paid' | 'overdue' | 'cancelled';
+}
+
+interface CarInstallmentAnalyticsProps {
+  contractId: string;
+}
+
+export const CarInstallmentAnalytics = ({ contractId }: CarInstallmentAnalyticsProps) => {
   const { data: analytics, isLoading } = useQuery({
     queryKey: ["car-installment-analytics", contractId],
     queryFn: async () => {
       const { data: payments, error } = await supabase
         .from("car_installment_payments")
         .select("amount, paid_amount, status")
-        .eq("contract_id", contractId);
+        .eq("contract_id", contractId) as { data: CarInstallmentPayment[] | null; error: Error | null };
 
       if (error) throw error;
 
-      const total_paid = payments.reduce((sum, payment) => sum + (payment.paid_amount || 0), 0);
-      const total_pending = payments.reduce((sum, payment) => sum + payment.amount - (payment.paid_amount || 0), 0);
+      if (!payments) {
+        return {
+          total_paid: 0,
+          total_pending: 0,
+          payment_completion_rate: 0
+        };
+      }
+
+      const total_paid = payments.reduce((sum, payment) => 
+        sum + (payment.paid_amount || 0), 0);
+
+      const total_pending = payments.reduce((sum, payment) => 
+        sum + payment.amount - (payment.paid_amount || 0), 0);
+
       const total_payments = payments.length;
-      const completed_payments = payments.filter(p => p.status === 'completed').length;
+      const completed_payments = payments.filter(p => p.status === 'paid').length;
       
       return {
         total_paid,
