@@ -21,7 +21,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { AgreementTemplateSelect } from "./form/AgreementTemplateSelect";
+import { AgreementTemplateSelect } from "./templates/AgreementTemplateSelect";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
