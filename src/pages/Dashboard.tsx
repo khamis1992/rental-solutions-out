@@ -18,7 +18,16 @@ const Dashboard = () => {
       
       if (error) throw error;
       
-      const typedData = data as DashboardStatsType;
+      // Type assertion to ensure the data matches our expected structure
+      const typedData = data as {
+        total_vehicles: number;
+        available_vehicles: number;
+        rented_vehicles: number;
+        maintenance_vehicles: number;
+        total_customers: number;
+        active_rentals: number;
+        monthly_revenue: number;
+      };
       
       return {
         totalVehicles: typedData.total_vehicles,
@@ -44,7 +53,7 @@ const Dashboard = () => {
 
       {/* Dashboard Stats */}
       <div className="grid gap-6">
-        <DashboardStats />
+        <DashboardStats stats={stats} />
       </div>
 
       {/* Two Column Layout for Notifications and Activity */}
