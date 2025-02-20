@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,10 +13,8 @@ import {
   Loader2, 
   CarFront, 
   AlertTriangle, 
-  Tools, 
   Archive, 
   Building2, 
-  Siren, 
   BookMarked,
   ShieldAlert
 } from "lucide-react";
@@ -60,7 +57,7 @@ const STATUS_CONFIG: Record<VehicleStatus, {
   maintenance: {
     label: "In Maintenance",
     color: "#f59e0b",
-    icon: Tools,
+    icon: AlertTriangle,
     group: 'attention'
   },
   retired: {
