@@ -20,75 +20,98 @@ interface VisitorStats {
   timeSeriesData: { date: string; visitors: number }[];
 }
 
+interface VisitorAnalytics {
+  session_id: string;
+  visited_at: string;
+  page_visited: string;
+  country?: string;
+  device_type?: string;
+  engagement_metrics: {
+    timeOnPage?: number;
+  };
+}
+
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE'];
 
 export const VisitorAnalyticsDashboard = () => {
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading } = useQuery<VisitorStats>({
     queryKey: ['visitor-analytics'],
     queryFn: async () => {
       const { data: visitors, error } = await supabase
         .from('visitor_analytics')
         .select('*')
-        .order('visited_at', { ascending: false });
+        .order('visited_at', { ascending: false }) as { data: VisitorAnalytics[] | null; error: Error | null };
 
       if (error) throw error;
 
+      if (!visitors) {
+        return {
+          totalVisitors: 0,
+          uniqueVisitors: 0,
+          averageTimeOnPage: 0,
+          bounceRate: 0,
+          pageViews: [],
+          visitorsByCountry: [],
+          visitorsByDevice: [],
+          timeSeriesData: []
+        };
+      }
+
       // Process the data for visualization
-      const uniqueSessions = new Set(visitors?.map(v => v.session_id));
-      const totalTimeOnPage = visitors?.reduce((sum, v) => 
+      const uniqueSessions = new Set(visitors.map(v => v.session_id));
+      const totalTimeOnPage = visitors.reduce((sum, v) => 
         sum + ((v.engagement_metrics?.timeOnPage || 0) / 1000), 0);
 
-      const pageViews = visitors?.reduce((acc, v) => {
+      const pageViews = visitors.reduce<Record<string, number>>((acc, v) => {
         const page = v.page_visited;
         acc[page] = (acc[page] || 0) + 1;
         return acc;
-      }, {} as Record<string, number>);
+      }, {});
 
-      const countryStats = visitors?.reduce((acc, v) => {
+      const countryStats = visitors.reduce<Record<string, number>>((acc, v) => {
         if (v.country) {
           acc[v.country] = (acc[v.country] || 0) + 1;
         }
         return acc;
-      }, {} as Record<string, number>);
+      }, {});
 
-      const deviceStats = visitors?.reduce((acc, v) => {
+      const deviceStats = visitors.reduce<Record<string, number>>((acc, v) => {
         if (v.device_type) {
           acc[v.device_type] = (acc[v.device_type] || 0) + 1;
         }
         return acc;
-      }, {} as Record<string, number>);
+      }, {});
 
       // Create time series data
-      const timeSeriesData = visitors?.reduce((acc, v) => {
+      const timeSeriesData = visitors.reduce<Record<string, number>>((acc, v) => {
         const date = new Date(v.visited_at).toLocaleDateString();
         acc[date] = (acc[date] || 0) + 1;
         return acc;
-      }, {} as Record<string, number>);
+      }, {});
 
       return {
-        totalVisitors: visitors?.length || 0,
+        totalVisitors: visitors.length,
         uniqueVisitors: uniqueSessions.size,
-        averageTimeOnPage: totalTimeOnPage / (visitors?.length || 1),
+        averageTimeOnPage: totalTimeOnPage / visitors.length,
         bounceRate: 0, // Implement bounce rate calculation
-        pageViews: Object.entries(pageViews || {}).map(([page, views]) => ({
+        pageViews: Object.entries(pageViews).map(([page, views]) => ({
           page,
           views
         })),
-        visitorsByCountry: Object.entries(countryStats || {}).map(([country, visitors]) => ({
+        visitorsByCountry: Object.entries(countryStats).map(([country, visitors]) => ({
           country,
           visitors
         })),
-        visitorsByDevice: Object.entries(deviceStats || {}).map(([device, visitors]) => ({
+        visitorsByDevice: Object.entries(deviceStats).map(([device, visitors]) => ({
           device,
           visitors
         })),
-        timeSeriesData: Object.entries(timeSeriesData || {}).map(([date, visitors]) => ({
+        timeSeriesData: Object.entries(timeSeriesData).map(([date, visitors]) => ({
           date,
           visitors
         }))
-      } as VisitorStats;
-    },
-    refetchInterval: 30000 // Refresh every 30 seconds
+      };
+    }
   });
 
   if (isLoading) {
