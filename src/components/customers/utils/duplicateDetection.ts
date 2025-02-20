@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Customer } from "../types/customer";
 
@@ -220,4 +219,160 @@ export async function findPotentialDuplicates(
   return matches
     .sort((a, b) => b.similarity - a.similarity)
     .slice(0, 5);
+}
+
+interface BulkDuplicateResult {
+  clusters: Array<{
+    customers: DuplicateMatch[];
+    similarity: number;
+    match_reasons: string[];
+  }>;
+  totalDuplicates: number;
+  processedCount: number;
+}
+
+export async function findBulkDuplicates(
+  customers: Partial<Customer>[],
+  similarityThreshold: number = 0.7
+): Promise<BulkDuplicateResult> {
+  const clusters: Array<{
+    customers: DuplicateMatch[];
+    similarity: number;
+    match_reasons: string[];
+  }> = [];
+
+  const processedIds = new Set<string>();
+  let totalDuplicates = 0;
+
+  // Process customers in batches to avoid overwhelming the database
+  const batchSize = 50;
+  for (let i = 0; i < customers.length; i += batchSize) {
+    const batch = customers.slice(i, i + batchSize);
+    
+    // Create a map of normalized phones to customers for quick lookup
+    const phoneMap = new Map<string, Partial<Customer>[]>();
+    const emailMap = new Map<string, Partial<Customer>[]>();
+    const nameMap = new Map<string, Partial<Customer>[]>();
+
+    // Index customers by their identifiers
+    batch.forEach(customer => {
+      if (!customer.id || processedIds.has(customer.id)) return;
+
+      if (customer.phone_number) {
+        const normPhone = normalizePhoneNumber(customer.phone_number);
+        phoneMap.set(normPhone, [...(phoneMap.get(normPhone) || []), customer]);
+      }
+
+      if (customer.email) {
+        emailMap.set(customer.email.toLowerCase(), [
+          ...(emailMap.get(customer.email.toLowerCase()) || []),
+          customer
+        ]);
+      }
+
+      if (customer.full_name) {
+        const nameKey = metaphone(customer.full_name);
+        nameMap.set(nameKey, [...(nameMap.get(nameKey) || []), customer]);
+      }
+    });
+
+    // Find duplicates within the indexed batch
+    for (const customer of batch) {
+      if (!customer.id || processedIds.has(customer.id)) continue;
+
+      const duplicates = new Set<DuplicateMatch>();
+      const matchReasons = new Set<string>();
+
+      // Check phone numbers
+      if (customer.phone_number) {
+        const normPhone = normalizePhoneNumber(customer.phone_number);
+        const phoneMatches = phoneMap.get(normPhone) || [];
+        phoneMatches.forEach(match => {
+          if (match.id !== customer.id) {
+            duplicates.add({
+              id: match.id!,
+              full_name: match.full_name!,
+              phone_number: match.phone_number,
+              email: match.email,
+              similarity: 1,
+              match_reason: ['Exact phone number match']
+            });
+            matchReasons.add('Phone number match');
+          }
+        });
+      }
+
+      // Check emails
+      if (customer.email) {
+        const emailMatches = emailMap.get(customer.email.toLowerCase()) || [];
+        emailMatches.forEach(match => {
+          if (match.id !== customer.id) {
+            duplicates.add({
+              id: match.id!,
+              full_name: match.full_name!,
+              phone_number: match.phone_number,
+              email: match.email,
+              similarity: 1,
+              match_reason: ['Exact email match']
+            });
+            matchReasons.add('Email match');
+          }
+        });
+      }
+
+      // Check names
+      if (customer.full_name) {
+        const nameKey = metaphone(customer.full_name);
+        const nameMatches = nameMap.get(nameKey) || [];
+        nameMatches.forEach(match => {
+          if (match.id !== customer.id) {
+            const similarity = calculateNamePartsSimilarity(
+              customer.full_name!,
+              match.full_name!
+            );
+            if (similarity >= similarityThreshold) {
+              duplicates.add({
+                id: match.id!,
+                full_name: match.full_name!,
+                phone_number: match.phone_number,
+                email: match.email,
+                similarity,
+                match_reason: ['Similar name']
+              });
+              matchReasons.add('Name similarity');
+            }
+          }
+        });
+      }
+
+      // If duplicates found, create a new cluster
+      if (duplicates.size > 0) {
+        const duplicateArray = Array.from(duplicates);
+        clusters.push({
+          customers: [
+            {
+              id: customer.id,
+              full_name: customer.full_name!,
+              phone_number: customer.phone_number,
+              email: customer.email,
+              similarity: 1,
+              match_reason: Array.from(matchReasons)
+            },
+            ...duplicateArray
+          ],
+          similarity: Math.max(...duplicateArray.map(d => d.similarity)),
+          match_reasons: Array.from(matchReasons)
+        });
+        totalDuplicates += duplicates.size;
+      }
+
+      processedIds.add(customer.id);
+    }
+  }
+
+  return {
+    clusters: clusters.sort((a, b) => b.similarity - a.similarity),
+    totalDuplicates,
+    processedCount: processedIds.size
+  };
 }
