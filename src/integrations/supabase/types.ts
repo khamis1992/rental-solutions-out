@@ -5464,6 +5464,88 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_reminders: {
+        Row: {
+          created_at: string | null
+          days_offset: number
+          id: string
+          lease_id: string | null
+          notification_channel: string[]
+          payment_id: string | null
+          reminder_type: string
+          sent_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          days_offset: number
+          id?: string
+          lease_id?: string | null
+          notification_channel?: string[]
+          payment_id?: string | null
+          reminder_type: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          days_offset?: number
+          id?: string
+          lease_id?: string | null
+          notification_channel?: string[]
+          payment_id?: string | null
+          reminder_type?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_reminders_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
+          {
+            foreignKeyName: "payment_reminders_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "leases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_reminders_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "overdue_payments_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_reminders_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payment_history_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_reminders_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_reminders_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "unified_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_schedules: {
         Row: {
           actual_payment_date: string | null
@@ -9493,6 +9575,10 @@ export type Database = {
         }[]
       }
       generate_cash_flow_alerts: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      generate_payment_reminders: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }

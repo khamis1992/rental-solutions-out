@@ -1,10 +1,21 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Payment } from "@/types/agreement.types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/utils";
 import { formatDateToDisplay } from "@/lib/dateUtils";
+
+interface RecurringPayment {
+  id: string;
+  description: string;
+  amount: number;
+  payment_date: string;
+  status: string;
+  lease_id: string;
+  is_recurring: boolean;
+  recurring_interval: string | null;
+  next_payment_date: string | null;
+}
 
 export const RecurringPaymentsList = () => {
   const { data: payments, isLoading } = useQuery({
@@ -17,7 +28,7 @@ export const RecurringPaymentsList = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Payment[];
+      return data as RecurringPayment[];
     },
   });
 
