@@ -17,12 +17,16 @@ interface DashboardStatsProps {
 }
 
 export const DashboardStats = ({ stats }: DashboardStatsProps) => {
+  const fleetUtilization = stats?.totalVehicles 
+    ? ((stats.rentedVehicles / stats.totalVehicles) * 100).toFixed(1) 
+    : '0';
+
   return (
     <div className="space-y-8">
       <div className="grid gap-6 md:grid-cols-3">
         <StatsCard
           title="Fleet Utilization"
-          value={`${stats ? ((stats.rentedVehicles / stats.totalVehicles) * 100).toFixed(1) : '0'}%`}
+          value={`${fleetUtilization}%`}
           icon={Car}
           iconClassName="blue"
           description={
