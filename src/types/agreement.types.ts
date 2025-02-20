@@ -5,52 +5,6 @@ export type LeaseStatus = Database['public']['Enums']['lease_status'];
 export type AgreementType = Database['public']['Enums']['agreement_type'];
 export type PaymentStatus = Database['public']['Enums']['payment_status'];
 
-export interface TextStyle {
-  bold: boolean;
-  italic: boolean;
-  underline: boolean;
-  fontSize: number;
-  alignment: 'left' | 'center' | 'right' | 'justify';
-}
-
-export interface Table {
-  rows: {
-    cells: {
-      content: string;
-      style: TextStyle;
-    }[];
-  }[];
-  style?: {
-    width: string;
-    borderCollapse: string;
-    borderSpacing: string;
-  };
-}
-
-export interface Template {
-  id: string;
-  name: string;
-  description: string;
-  content: string;
-  language: string;
-  agreement_type: AgreementType;
-  rent_amount: number;
-  final_price: number;
-  agreement_duration: string;
-  daily_late_fee: number;
-  damage_penalty_rate: number;
-  late_return_fee: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  template_structure: {
-    textStyle: TextStyle;
-    tables: Table[];
-  };
-  template_sections: any[];
-  variable_mappings: Record<string, any>;
-}
-
 export interface Agreement {
   id: string;
   agreement_number: string;

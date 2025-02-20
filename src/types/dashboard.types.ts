@@ -1,3 +1,4 @@
+
 export interface DashboardStats {
   total_vehicles: number;
   available_vehicles: number;
@@ -6,8 +7,4 @@ export interface DashboardStats {
   total_customers: number;
   active_rentals: number;
   monthly_revenue: number;
-}
-
-export interface DashboardStatsProps {
-  stats: DashboardStats;
 }
