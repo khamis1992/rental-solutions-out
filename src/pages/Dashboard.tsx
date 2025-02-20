@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { SmartNotifications } from "@/components/dashboard/SmartNotifications";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "sonner";
 
 interface DashboardStatsData {
   total_vehicles: number;
@@ -20,7 +21,7 @@ interface DashboardStatsData {
 }
 
 const Dashboard = () => {
-  const { data: stats } = useQuery<DashboardStatsData>({
+  const { data: stats, error } = useQuery<DashboardStatsData>({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_dashboard_stats");
@@ -29,16 +30,27 @@ const Dashboard = () => {
         throw error;
       }
       
-      // Parse the JSON response and ensure all values are numbers
-      return {
-        total_vehicles: Number(data.total_vehicles || 0),
-        available_vehicles: Number(data.available_vehicles || 0),
-        rented_vehicles: Number(data.rented_vehicles || 0),
-        maintenance_vehicles: Number(data.maintenance_vehicles || 0),
-        total_customers: Number(data.total_customers || 0),
-        active_rentals: Number(data.active_rentals || 0),
-        monthly_revenue: Number(data.monthly_revenue || 0)
+      if (!data) {
+        throw new Error("No data returned from dashboard stats");
+      }
+
+      // Cast and validate the data
+      const statsData: DashboardStatsData = {
+        total_vehicles: Number(data.total_vehicles) || 0,
+        available_vehicles: Number(data.available_vehicles) || 0,
+        rented_vehicles: Number(data.rented_vehicles) || 0,
+        maintenance_vehicles: Number(data.maintenance_vehicles) || 0,
+        total_customers: Number(data.total_customers) || 0,
+        active_rentals: Number(data.active_rentals) || 0,
+        monthly_revenue: Number(data.monthly_revenue) || 0
       };
+
+      return statsData;
+    },
+    meta: {
+      onError: (err: Error) => {
+        toast.error("Failed to load dashboard stats: " + err.message);
+      }
     }
   });
 
