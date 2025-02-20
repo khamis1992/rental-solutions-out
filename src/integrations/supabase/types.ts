@@ -3139,6 +3139,50 @@ export type Database = {
           },
         ]
       }
+      installment_reminders: {
+        Row: {
+          created_at: string | null
+          days_offset: number
+          id: string
+          installment_id: string | null
+          is_active: boolean | null
+          last_sent_at: string | null
+          notification_channel: string[]
+          reminder_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          days_offset: number
+          id?: string
+          installment_id?: string | null
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          notification_channel: string[]
+          reminder_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          days_offset?: number
+          id?: string
+          installment_id?: string | null
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          notification_channel?: string[]
+          reminder_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "installment_reminders_installment_id_fkey"
+            columns: ["installment_id"]
+            isOneToOne: false
+            referencedRelation: "payment_installments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_activities: {
         Row: {
           activity_type: string
@@ -5296,6 +5340,60 @@ export type Database = {
           validation_status?: string | null
         }
         Relationships: []
+      }
+      payment_installment_plans: {
+        Row: {
+          created_at: string | null
+          down_payment: number | null
+          id: string
+          interval_type: string
+          lease_id: string | null
+          number_of_installments: number
+          start_date: string
+          status: string | null
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          down_payment?: number | null
+          id?: string
+          interval_type: string
+          lease_id?: string | null
+          number_of_installments: number
+          start_date: string
+          status?: string | null
+          total_amount: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          down_payment?: number | null
+          id?: string
+          interval_type?: string
+          lease_id?: string | null
+          number_of_installments?: number
+          start_date?: string
+          status?: string | null
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_installment_plans_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
+          {
+            foreignKeyName: "payment_installment_plans_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "leases"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payment_installments: {
         Row: {
