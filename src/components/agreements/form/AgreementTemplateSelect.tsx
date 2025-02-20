@@ -38,8 +38,19 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
         return [];
       }
 
-      console.log("Fetched templates:", data);
-      return data as Template[];
+      // Transform the data to match the Template interface
+      const transformedTemplates: Template[] = data.map(template => ({
+        ...template,
+        template_structure: typeof template.template_structure === 'string' ? 
+          JSON.parse(template.template_structure) : 
+          template.template_structure,
+        variable_mappings: typeof template.variable_mappings === 'string' ? 
+          JSON.parse(template.variable_mappings) : 
+          template.variable_mappings,
+      }));
+
+      console.log("Fetched templates:", transformedTemplates);
+      return transformedTemplates;
     },
   });
 
