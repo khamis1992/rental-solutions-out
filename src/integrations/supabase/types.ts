@@ -2119,6 +2119,51 @@ export type Database = {
           },
         ]
       }
+      document_analysis_results: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          document_type: string
+          extracted_data: Json
+          id: string
+          profile_id: string | null
+          status: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          document_type: string
+          extracted_data: Json
+          id?: string
+          profile_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          document_type?: string
+          extracted_data?: Json
+          id?: string
+          profile_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_analysis_results_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_analysis_results_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_notifications: {
         Row: {
           document_id: string | null
@@ -5756,12 +5801,14 @@ export type Database = {
           driver_license: string | null
           email: string | null
           extracted_data: Json | null
+          form_data: Json | null
           full_name: string | null
           id: string
           id_document_expiry: string | null
           id_document_url: string | null
           is_ai_generated: boolean | null
           last_document_reminder_sent: string | null
+          last_form_save: string | null
           last_login: string | null
           license_document_expiry: string | null
           license_document_url: string | null
@@ -5769,6 +5816,7 @@ export type Database = {
           location_tracking_enabled: boolean | null
           nationality: string | null
           needs_review: boolean | null
+          normalized_name: string | null
           phone_number: string | null
           portal_password: string | null
           portal_username: string | null
@@ -5793,12 +5841,14 @@ export type Database = {
           driver_license?: string | null
           email?: string | null
           extracted_data?: Json | null
+          form_data?: Json | null
           full_name?: string | null
           id?: string
           id_document_expiry?: string | null
           id_document_url?: string | null
           is_ai_generated?: boolean | null
           last_document_reminder_sent?: string | null
+          last_form_save?: string | null
           last_login?: string | null
           license_document_expiry?: string | null
           license_document_url?: string | null
@@ -5806,6 +5856,7 @@ export type Database = {
           location_tracking_enabled?: boolean | null
           nationality?: string | null
           needs_review?: boolean | null
+          normalized_name?: string | null
           phone_number?: string | null
           portal_password?: string | null
           portal_username?: string | null
@@ -5830,12 +5881,14 @@ export type Database = {
           driver_license?: string | null
           email?: string | null
           extracted_data?: Json | null
+          form_data?: Json | null
           full_name?: string | null
           id?: string
           id_document_expiry?: string | null
           id_document_url?: string | null
           is_ai_generated?: boolean | null
           last_document_reminder_sent?: string | null
+          last_form_save?: string | null
           last_login?: string | null
           license_document_expiry?: string | null
           license_document_url?: string | null
@@ -5843,6 +5896,7 @@ export type Database = {
           location_tracking_enabled?: boolean | null
           nationality?: string | null
           needs_review?: boolean | null
+          normalized_name?: string | null
           phone_number?: string | null
           portal_password?: string | null
           portal_username?: string | null
@@ -9301,6 +9355,16 @@ export type Database = {
           agreement_id: string
         }
         Returns: undefined
+      }
+      fuzzy_name_match: {
+        Args: {
+          search_name: string
+        }
+        Returns: {
+          id: string
+          full_name: string
+          similarity: number
+        }[]
       }
       generate_cash_flow_alerts: {
         Args: Record<PropertyKey, never>

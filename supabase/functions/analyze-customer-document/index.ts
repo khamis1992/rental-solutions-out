@@ -1,149 +1,123 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.1'
+import { corsHeaders } from '../_shared/cors.ts'
+import { createWorker } from 'https://esm.sh/tesseract.js@4.1.1'
+
+interface DocumentAnalysisRequest {
+  documentUrl: string;
+  documentType: 'id_document' | 'license_document';
+  profileId: string;
+}
+
+const processDocument = async (documentUrl: string) => {
+  const worker = await createWorker();
+  await worker.loadLanguage('eng');
+  await worker.initialize('eng');
+  
+  const response = await fetch(documentUrl);
+  const imageBlob = await response.blob();
+  
+  const { data: { text } } = await worker.recognize(imageBlob);
+  await worker.terminate();
+  
+  return text;
 };
 
-serve(async (req) => {
+const extractDocumentData = (text: string, documentType: string) => {
+  // Basic data extraction patterns
+  const patterns = {
+    name: /name[:\s]+([A-Za-z\s]+)/i,
+    id_number: /(?:id|number)[:\s]+([A-Z0-9]+)/i,
+    expiry_date: /(?:expiry|valid until)[:\s]+(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})/i,
+  };
+
+  const extractedData: Record<string, string> = {};
+  
+  Object.entries(patterns).forEach(([key, pattern]) => {
+    const match = text.match(pattern);
+    if (match && match[1]) {
+      extractedData[key] = match[1].trim();
+    }
+  });
+
+  return extractedData;
+};
+
+Deno.serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const { documentUrl, documentType, profileId } = await req.json();
-    console.log('Analyzing document:', { documentUrl, documentType, profileId });
-
-    if (!profileId) {
-      console.error('Profile ID is required');
-      throw new Error('Profile ID is required');
-    }
-
-    // Initialize Supabase client
-    const supabase = createClient(
+    const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    // First verify the profile exists
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('id', profileId)
-      .single();
+    const { documentUrl, documentType, profileId } = await req.json() as DocumentAnalysisRequest;
 
-    if (profileError || !profile) {
-      console.error('Profile not found:', profileError);
-      return new Response(
-        JSON.stringify({ error: 'Profile not found', details: profileError?.message }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 404 
-        }
-      );
+    if (!documentUrl || !documentType || !profileId) {
+      throw new Error('Missing required fields');
     }
 
-    // Call Perplexity API to analyze the document
-    const perplexityApiKey = Deno.env.get('PERPLEXITY_API_KEY');
-    if (!perplexityApiKey) {
-      throw new Error('Perplexity API key not configured');
-    }
+    console.log(`Processing ${documentType} for profile ${profileId}`);
 
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${perplexityApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.1-sonar-small-128k-online',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert at analyzing ID documents. Extract key information like name, date of birth, ID number, and expiry date. Return the data in a structured format.'
-          },
-          {
-            role: 'user',
-            content: `Please analyze this ID document: ${documentUrl}`
-          }
-        ],
-        temperature: 0.1,
-        max_tokens: 500,
-      }),
-    });
+    // Extract text from document
+    const extractedText = await processDocument(documentUrl);
+    console.log('Extracted text:', extractedText);
 
-    if (!response.ok) {
-      console.error('Perplexity API error:', await response.text());
-      throw new Error('Failed to analyze document');
-    }
+    // Extract structured data
+    const extractedData = extractDocumentData(extractedText, documentType);
+    console.log('Extracted data:', extractedData);
 
-    const analysisResult = await response.json();
-    console.log('Analysis result:', analysisResult);
+    // Calculate confidence score based on number of fields extracted
+    const expectedFields = ['name', 'id_number', 'expiry_date'];
+    const extractedFields = Object.keys(extractedData);
+    const confidenceScore = extractedFields.length / expectedFields.length;
 
-    // Extract structured data from the analysis
-    const extractedData = {
-      full_name: "Extracted Name",
-      id_number: "Extracted ID",
-      date_of_birth: "Extracted DOB",
-      expiry_date: "Extracted Expiry"
-    };
-
-    const confidenceScore = 0.85;
-
-    // Log the analysis
-    const { error: logError } = await supabase
-      .from('document_analysis_logs')
+    // Save analysis results
+    const { data: analysisResult, error: analysisError } = await supabaseClient
+      .from('document_analysis_results')
       .insert({
         profile_id: profileId,
         document_type: documentType,
-        document_url: documentUrl,
         extracted_data: extractedData,
         confidence_score: confidenceScore,
-        status: 'completed'
-      });
-
-    if (logError) {
-      console.error('Error logging analysis:', logError);
-      throw logError;
-    }
-
-    // Update profile with extracted data
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({
-        document_analysis_status: 'completed',
-        extracted_data: extractedData,
-        analysis_confidence_score: confidenceScore
+        status: confidenceScore > 0.7 ? 'success' : 'needs_review'
       })
-      .eq('id', profileId);
+      .select()
+      .single();
 
-    if (updateError) {
-      console.error('Error updating profile:', updateError);
-      throw updateError;
+    if (analysisError) {
+      throw analysisError;
     }
 
     return new Response(
       JSON.stringify({
-        success: true,
-        data: extractedData,
-        confidence_score: confidenceScore
-      }),
+        message: 'Document analyzed successfully',
+        data: analysisResult
+      }), 
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        } 
       }
     );
+
   } catch (error) {
-    console.error('Error in analyze-customer-document:', error);
+    console.error('Error:', error.message);
     return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        details: error.toString()
-      }),
+      JSON.stringify({
+        error: error.message
+      }), 
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500 
+        status: 400,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
       }
     );
   }
