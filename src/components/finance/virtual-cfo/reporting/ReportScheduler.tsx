@@ -1,21 +1,8 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-
-interface DBReportSchedule {
-  id?: string;
-  report_type: string;
-  frequency: string;
-  recipients: string[];
-  format: string;
-  last_run_at?: string;
-  next_run_at?: string;
-  is_active: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
+import { ReportSchedule } from "@/types/finance.types";
 
 export const ReportScheduler = () => {
   const queryClient = useQueryClient();
@@ -29,12 +16,12 @@ export const ReportScheduler = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as DBReportSchedule[];
+      return data as ReportSchedule[];
     }
   });
 
   const createSchedule = useMutation({
-    mutationFn: async (newSchedule: DBReportSchedule) => {
+    mutationFn: async (newSchedule: Partial<ReportSchedule>) => {
       const { data, error } = await supabase
         .from("report_schedules")
         .insert(newSchedule)
