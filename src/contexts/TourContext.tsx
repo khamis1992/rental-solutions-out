@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 interface TourStep {
