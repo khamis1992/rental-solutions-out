@@ -224,7 +224,7 @@ export const VehicleStatusChart = ({
           <div className="flex items-center gap-4">
             <div className="text-right">
               <p className="text-sm text-muted-foreground text-left px-[34px]">Total Vehicles</p>
-              <p className="text-2xl font-bold">{totalVehicles}</p>
+              <p className="text-2xl font-bold text-left mx-0 px-[36px]">{totalVehicles}</p>
             </div>
             {hasCriticalStatus && <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-md">
                 <AlertTriangle className="w-4 h-4" />
