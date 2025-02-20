@@ -5799,6 +5799,8 @@ export type Database = {
           document_analysis_status: string | null
           document_verification_status: string | null
           driver_license: string | null
+          duplicate_review_date: string | null
+          duplicate_review_status: string | null
           email: string | null
           extracted_data: Json | null
           form_data: Json | null
@@ -5814,6 +5816,7 @@ export type Database = {
           license_document_url: string | null
           location_tracking_consent_date: string | null
           location_tracking_enabled: boolean | null
+          merged_into: string | null
           nationality: string | null
           needs_review: boolean | null
           normalized_name: string | null
@@ -5839,6 +5842,8 @@ export type Database = {
           document_analysis_status?: string | null
           document_verification_status?: string | null
           driver_license?: string | null
+          duplicate_review_date?: string | null
+          duplicate_review_status?: string | null
           email?: string | null
           extracted_data?: Json | null
           form_data?: Json | null
@@ -5854,6 +5859,7 @@ export type Database = {
           license_document_url?: string | null
           location_tracking_consent_date?: string | null
           location_tracking_enabled?: boolean | null
+          merged_into?: string | null
           nationality?: string | null
           needs_review?: boolean | null
           normalized_name?: string | null
@@ -5879,6 +5885,8 @@ export type Database = {
           document_analysis_status?: string | null
           document_verification_status?: string | null
           driver_license?: string | null
+          duplicate_review_date?: string | null
+          duplicate_review_status?: string | null
           email?: string | null
           extracted_data?: Json | null
           form_data?: Json | null
@@ -5894,6 +5902,7 @@ export type Database = {
           license_document_url?: string | null
           location_tracking_consent_date?: string | null
           location_tracking_enabled?: boolean | null
+          merged_into?: string | null
           nationality?: string | null
           needs_review?: boolean | null
           normalized_name?: string | null
@@ -5909,7 +5918,22 @@ export type Database = {
           updated_at?: string
           welcome_email_sent?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_merged_into_fkey"
+            columns: ["merged_into"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_merged_into_fkey"
+            columns: ["merged_into"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       promotional_codes: {
         Row: {
@@ -9400,6 +9424,13 @@ export type Database = {
           date_str: string
         }
         Returns: boolean
+      }
+      merge_customer_records: {
+        Args: {
+          primary_id: string
+          duplicate_ids: string[]
+        }
+        Returns: undefined
       }
       migrate_to_unified_import_tracking: {
         Args: Record<PropertyKey, never>
