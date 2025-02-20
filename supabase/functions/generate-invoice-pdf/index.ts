@@ -1,123 +1,113 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { pdf } from 'https://esm.sh/@react-pdf/renderer'
-import React from 'https://esm.sh/react'
-import { Document, Page, Text, StyleSheet } from 'https://esm.sh/@react-pdf/renderer'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { PDFDocument, rgb, StandardFonts } from "https://cdn.skypack.dev/pdf-lib@1.17.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+interface GenerateReceiptRequest {
+  paymentId: string;
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { agreementId, htmlContent } = await req.json()
-    
-    if (!agreementId || !htmlContent) {
-      throw new Error('Agreement ID and HTML content are required')
-    }
-
-    // Initialize Supabase client
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    // Create styles
-    const styles = StyleSheet.create({
-      page: {
-        flexDirection: 'column',
-        backgroundColor: '#fff',
-        padding: 30
-      },
-      header: {
-        fontSize: 24,
-        marginBottom: 20
-      },
-      text: {
-        fontSize: 12,
-        marginBottom: 10
-      }
-    });
-
-    // Clean HTML content
-    const cleanContent = htmlContent.replace(/<[^>]*>/g, '\n').trim();
-
-    // Create PDF Document using React.createElement instead of JSX
-    const doc = React.createElement(Document, {}, 
-      React.createElement(Page, { size: "A4", style: styles.page },
-        React.createElement(Text, { style: styles.header }, "Invoice"),
-        React.createElement(Text, { style: styles.text }, cleanContent)
-      )
     );
 
-    // Generate PDF buffer
-    const pdfBuffer = await pdf(doc).toBuffer();
+    const { paymentId }: GenerateReceiptRequest = await req.json();
 
-    // Generate unique filename
-    const timestamp = new Date().toISOString()
-    const fileName = `invoice_${agreementId}_${timestamp}.pdf`
-    
-    // Upload to Storage
-    const { error: uploadError } = await supabase.storage
-      .from('invoices')
-      .upload(fileName, pdfBuffer, {
-        contentType: 'application/pdf',
-        cacheControl: '3600'
-      })
+    // Fetch payment details with related information
+    const { data: payment, error: paymentError } = await supabase
+      .from('unified_payments')
+      .select(`
+        *,
+        leases (
+          agreement_number,
+          customer_id,
+          profiles:customer_id (
+            full_name,
+            phone_number,
+            email
+          )
+        )
+      `)
+      .eq('id', paymentId)
+      .single();
 
-    if (uploadError) throw uploadError
+    if (paymentError) throw paymentError;
+    if (!payment) throw new Error('Payment not found');
 
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('invoices')
-      .getPublicUrl(fileName)
+    // Create PDF document
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage();
+    const { width, height } = page.getSize();
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const fontSize = 12;
 
-    // Save to generated_invoices table
-    const { error: dbError } = await supabase
-      .from('generated_invoices')
-      .insert({
-        agreement_id: agreementId,
-        file_path: fileName,
-        file_name: fileName,
-        is_latest: true
-      })
+    // Add company header
+    page.drawText('Car Rental Company', {
+      x: 50,
+      y: height - 50,
+      size: 20,
+      font,
+      color: rgb(0, 0, 0),
+    });
 
-    if (dbError) throw dbError
+    // Add receipt details
+    const textLines = [
+      `Receipt Number: ${payment.id.slice(0, 8)}`,
+      `Date: ${new Date(payment.payment_date).toLocaleDateString()}`,
+      `Agreement Number: ${payment.leases.agreement_number}`,
+      `Customer: ${payment.leases.profiles.full_name}`,
+      `Amount Paid: QAR ${payment.amount_paid}`,
+      `Payment Method: ${payment.payment_method}`,
+      `Status: ${payment.status}`,
+    ];
+
+    textLines.forEach((line, index) => {
+      page.drawText(line, {
+        x: 50,
+        y: height - 100 - (index * 25),
+        size: fontSize,
+        font,
+        color: rgb(0, 0, 0),
+      });
+    });
+
+    // Generate PDF bytes
+    const pdfBytes = await pdfDoc.save();
 
     return new Response(
-      JSON.stringify({ 
-        success: true,
-        url: publicUrl,
-        fileName
-      }),
+      pdfBytes,
+      {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="receipt-${payment.id.slice(0, 8)}.pdf"`,
+        },
+      },
+    );
+  } catch (error) {
+    console.error('Error generating receipt:', error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
       { 
-        headers: { 
+        status: 500,
+        headers: {
           ...corsHeaders,
           'Content-Type': 'application/json'
         }
       }
-    )
-
-  } catch (error) {
-    console.error('Error in generate-invoice-pdf:', error);
-    return new Response(
-      JSON.stringify({ 
-        success: false,
-        error: error.message
-      }),
-      { 
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        },
-        status: 500
-      }
-    )
+    );
   }
-})
+});

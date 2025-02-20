@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,31 +15,94 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { DollarSign, CreditCard, Receipt, Coins, PiggyBank } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 interface PaymentFormProps {
-  agreementId?: string;
+  agreementId: string;
 }
 
 export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lateFee, setLateFee] = useState(0);
+  const [rentAmount, setRentAmount] = useState(0);
+  const [dueAmount, setDueAmount] = useState(0);
   const queryClient = useQueryClient();
-  const { register, handleSubmit, reset, setValue } = useForm();
+  const { register, handleSubmit, reset, setValue, watch } = useForm();
+
+  // Fetch rent amount and calculate late fee
+  useEffect(() => {
+    const fetchRentAmount = async () => {
+      if (!agreementId) {
+        console.error("No agreement ID provided");
+        return;
+      }
+
+      try {
+        const { data: lease, error } = await supabase
+          .from('leases')
+          .select('rent_amount')
+          .eq('id', agreementId)
+          .maybeSingle();
+        
+        if (error) throw error;
+        
+        if (lease?.rent_amount) {
+          setRentAmount(Number(lease.rent_amount));
+        } else {
+          console.warn("No rent amount found for agreement:", agreementId);
+        }
+      } catch (error) {
+        console.error("Error fetching rent amount:", error);
+        toast.error("Failed to fetch rent amount");
+      }
+    };
+
+    const calculateLateFee = () => {
+      const today = new Date();
+      const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      
+      if (today > firstOfMonth) {
+        const daysLate = Math.floor((today.getTime() - firstOfMonth.getTime()) / (1000 * 60 * 60 * 24));
+        setLateFee(daysLate * 120); // 120 QAR per day
+      } else {
+        setLateFee(0);
+      }
+    };
+
+    if (agreementId) {
+      fetchRentAmount();
+      calculateLateFee();
+    }
+  }, [agreementId]);
+
+  // Update due amount when rent amount or late fee changes
+  useEffect(() => {
+    setDueAmount(rentAmount + lateFee);
+  }, [rentAmount, lateFee]);
 
   const onSubmit = async (data: any) => {
+    if (!agreementId) {
+      toast.error("No agreement ID provided");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
+      const paymentAmount = Number(data.amount);
+      const balance = dueAmount - paymentAmount;
+
       const { error } = await supabase.from("unified_payments").insert({
         lease_id: agreementId,
-        amount: parseFloat(data.amount),
-        amount_paid: parseFloat(data.amount),
-        balance: 0,
+        amount: dueAmount,
+        amount_paid: paymentAmount,
+        balance: balance,
         payment_method: data.paymentMethod,
         description: data.description,
         payment_date: new Date().toISOString(),
         status: 'completed',
         type: 'Income',
-        reconciliation_status: 'pending'
+        late_fine_amount: lateFee,
+        days_overdue: Math.floor(lateFee / 120)
       });
 
       if (error) throw error;
@@ -47,9 +110,8 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
       toast.success("Payment added successfully");
       reset();
       
-      await queryClient.invalidateQueries({ queryKey: ['payment-history'] });
-      await queryClient.invalidateQueries({ queryKey: ['payment-schedules'] });
       await queryClient.invalidateQueries({ queryKey: ['unified-payments'] });
+      await queryClient.invalidateQueries({ queryKey: ['payment-history'] });
       
     } catch (error) {
       console.error("Error adding payment:", error);
@@ -59,67 +121,59 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
     }
   };
 
+  if (!agreementId) {
+    return <div>No agreement selected</div>;
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="amount" className="flex items-center gap-2 text-[#1A1F2C]">
-          <DollarSign className="h-4 w-4 text-[#9b87f5]" />
-          Amount (QAR)
-        </Label>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="bg-muted p-4 rounded-lg mb-4">
+        <div className="grid grid-cols-1 gap-4">
+          <div>
+            <div className="text-sm text-muted-foreground">Due Amount</div>
+            <div className="text-lg font-semibold">
+              {formatCurrency(dueAmount)}
+              <span className="text-sm text-muted-foreground ml-2">
+                (Rent: {formatCurrency(rentAmount)} + Late Fee: {formatCurrency(lateFee)})
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="amount">Amount Paid (QAR)</Label>
         <Input
           id="amount"
           type="number"
           step="0.01"
-          className="border-[#9b87f5]/20 focus:border-[#9b87f5] transition-colors"
+          min="0"
           {...register("amount", { required: true })}
         />
       </div>
       
-      <div className="space-y-2">
-        <Label htmlFor="paymentMethod" className="flex items-center gap-2 text-[#1A1F2C]">
-          <CreditCard className="h-4 w-4 text-[#9b87f5]" />
-          Payment Method
-        </Label>
+      <div>
+        <Label htmlFor="paymentMethod">Payment Method</Label>
         <Select onValueChange={(value) => setValue("paymentMethod", value)}>
-          <SelectTrigger className="border-[#9b87f5]/20 focus:border-[#9b87f5] transition-colors">
+          <SelectTrigger>
             <SelectValue placeholder="Select payment method" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Cash" className="flex items-center gap-2">
-              <Coins className="h-4 w-4" />
-              Cash
-            </SelectItem>
-            <SelectItem value="WireTransfer">
-              <div className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4" />
-                Wire Transfer
-              </div>
-            </SelectItem>
-            <SelectItem value="Invoice">
-              <div className="flex items-center gap-2">
-                <Receipt className="h-4 w-4" />
-                Invoice
-              </div>
-            </SelectItem>
-            <SelectItem value="Deposit">
-              <div className="flex items-center gap-2">
-                <PiggyBank className="h-4 w-4" />
-                Deposit
-              </div>
-            </SelectItem>
+            <SelectItem value="Cash">Cash</SelectItem>
+            <SelectItem value="WireTransfer">Wire Transfer</SelectItem>
+            <SelectItem value="Invoice">Invoice</SelectItem>
+            <SelectItem value="On_hold">On Hold</SelectItem>
+            <SelectItem value="Deposit">Deposit</SelectItem>
+            <SelectItem value="Cheque">Cheque</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="description" className="flex items-center gap-2 text-[#1A1F2C]">
-          <Receipt className="h-4 w-4 text-[#9b87f5]" />
-          Description
-        </Label>
+      <div>
+        <Label htmlFor="description">Description</Label>
         <Textarea
           id="description"
           placeholder="Add payment notes or description..."
-          className="border-[#9b87f5]/20 focus:border-[#9b87f5] transition-colors min-h-[100px]"
           {...register("description")}
         />
       </div>
@@ -127,19 +181,9 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
       <Button 
         type="submit" 
         disabled={isSubmitting}
-        className="w-full bg-[#9b87f5] hover:bg-[#9b87f5]/90 text-white transition-colors"
+        className="w-full"
       >
-        {isSubmitting ? (
-          <div className="flex items-center gap-2">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            Processing Payment...
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            Add Payment
-          </div>
-        )}
+        {isSubmitting ? "Adding Payment..." : "Add Payment"}
       </Button>
     </form>
   );
