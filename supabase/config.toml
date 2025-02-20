@@ -3,3 +3,7 @@ project_id = "vqdlsidkucrownbfuouq"
 
 [functions.generate-invoice-pdf]
 verify_jwt = false
+
+[functions.send-payment-reminders]
+verify_jwt = false
+
