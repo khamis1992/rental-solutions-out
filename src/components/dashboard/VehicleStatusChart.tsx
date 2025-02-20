@@ -10,8 +10,19 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { Loader2 } from "lucide-react";
+import { 
+  Loader2, 
+  CarFront, 
+  AlertTriangle, 
+  Tools, 
+  Archive, 
+  Building2, 
+  Siren, 
+  BookMarked,
+  ShieldAlert
+} from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export interface VehicleStatusChartProps {
   className?: string;
@@ -24,36 +35,77 @@ interface VehicleStatusData {
   value: number;
   color: string;
   status: VehicleStatus;
+  icon: React.ComponentType<{ className?: string }>;
+  group: 'operational' | 'attention' | 'critical';
 }
 
-const COLORS: Record<VehicleStatus, string> = {
-  available: "#10b981", // Emerald
-  rented: "#3b82f6",   // Blue
-  maintenance: "#f59e0b", // Amber
-  retired: "#ef4444",   // Red
-  police_station: "#6366f1", // Indigo
-  accident: "#dc2626",  // Red
-  reserve: "#8b5cf6",  // Purple
-  stolen: "#1e293b"    // Slate
-};
-
-const STATUS_LABELS: Record<VehicleStatus, string> = {
-  available: "Available",
-  rented: "Rented Out",
-  maintenance: "In Maintenance",
-  retired: "Retired",
-  police_station: "At Police Station",
-  accident: "In Accident",
-  reserve: "In Reserve",
-  stolen: "Reported Stolen"
+const STATUS_CONFIG: Record<VehicleStatus, {
+  label: string;
+  color: string;
+  icon: React.ComponentType<{ className?: string }>;
+  group: 'operational' | 'attention' | 'critical';
+}> = {
+  available: {
+    label: "Available",
+    color: "#10b981",
+    icon: CarFront,
+    group: 'operational'
+  },
+  rented: {
+    label: "Rented Out",
+    color: "#3b82f6",
+    icon: BookMarked,
+    group: 'operational'
+  },
+  maintenance: {
+    label: "In Maintenance",
+    color: "#f59e0b",
+    icon: Tools,
+    group: 'attention'
+  },
+  retired: {
+    label: "Retired",
+    color: "#ef4444",
+    icon: Archive,
+    group: 'attention'
+  },
+  police_station: {
+    label: "At Police Station",
+    color: "#6366f1",
+    icon: Building2,
+    group: 'attention'
+  },
+  accident: {
+    label: "In Accident",
+    color: "#dc2626",
+    icon: AlertTriangle,
+    group: 'critical'
+  },
+  reserve: {
+    label: "In Reserve",
+    color: "#8b5cf6",
+    icon: CarFront,
+    group: 'operational'
+  },
+  stolen: {
+    label: "Reported Stolen",
+    color: "#1e293b",
+    icon: ShieldAlert,
+    group: 'critical'
+  }
 };
 
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload as VehicleStatusData;
+    const Icon = data.icon;
+    
     return (
       <div className="bg-white/95 dark:bg-gray-800/95 p-4 rounded-lg shadow-lg border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm animate-in fade-in zoom-in duration-200">
-        <p className="font-medium text-sm mb-1">{data.name}</p>
+        <div className="flex items-center gap-2 mb-2">
+          <Icon className="w-5 h-5" style={{ color: data.color }} />
+          <p className="font-medium text-sm">{data.name}</p>
+        </div>
         <div className="space-y-1">
           <p className="text-xs text-muted-foreground">
             Count: <span className="font-semibold">{data.value}</span>
@@ -70,25 +122,78 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-const CustomLegend = ({ payload }: any) => {
-  if (!payload) return null;
+const StatusGroup = ({ 
+  title, 
+  items, 
+  className 
+}: { 
+  title: string; 
+  items: VehicleStatusData[]; 
+  className?: string; 
+}) => {
+  const totalInGroup = items.reduce((sum, item) => sum + item.value, 0);
   
   return (
-    <div className="grid grid-cols-2 gap-3 mt-6">
-      {payload.map((entry: any) => (
-        <div 
-          key={entry.value}
-          className="flex items-center gap-2 group cursor-pointer transition-all duration-200 hover:opacity-80"
-        >
+    <div className={cn("space-y-2", className)}>
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-medium text-muted-foreground">{title}</h4>
+        <span className="text-xs text-muted-foreground">{totalInGroup} vehicles</span>
+      </div>
+      <div className="space-y-1">
+        {items.map((item) => (
           <div 
-            className="w-3 h-3 rounded-full transition-transform duration-200 group-hover:scale-110" 
-            style={{ backgroundColor: entry.color }}
-          />
-          <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-            {entry.value} ({entry.payload.value})
-          </span>
-        </div>
-      ))}
+            key={item.status}
+            className="flex items-center justify-between group cursor-pointer p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <div 
+                className="w-3 h-3 rounded-full transition-transform duration-200 group-hover:scale-110" 
+                style={{ backgroundColor: item.color }}
+              />
+              <div className="flex items-center gap-1.5">
+                <item.icon className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                  {item.name}
+                </span>
+              </div>
+            </div>
+            <span className="text-sm font-medium">
+              {item.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const CustomLegend = ({ payload }: any) => {
+  if (!payload?.length) return null;
+
+  const data = payload.map((entry: any) => entry.payload) as VehicleStatusData[];
+  
+  const groupedData = {
+    operational: data.filter(item => item.group === 'operational'),
+    attention: data.filter(item => item.group === 'attention'),
+    critical: data.filter(item => item.group === 'critical')
+  };
+
+  return (
+    <div className="grid grid-cols-3 gap-4 mt-6">
+      <StatusGroup 
+        title="Operational" 
+        items={groupedData.operational}
+        className="border-r border-gray-200 dark:border-gray-700 pr-4"
+      />
+      <StatusGroup 
+        title="Needs Attention" 
+        items={groupedData.attention}
+        className="border-r border-gray-200 dark:border-gray-700 pr-4"
+      />
+      <StatusGroup 
+        title="Critical" 
+        items={groupedData.critical}
+      />
     </div>
   );
 };
@@ -126,10 +231,12 @@ export const VehicleStatusChart = ({ className }: VehicleStatusChartProps) => {
       const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
 
       return Object.entries(counts).map(([status, value]) => ({
-        name: STATUS_LABELS[status as VehicleStatus],
+        name: STATUS_CONFIG[status as VehicleStatus].label,
         value,
-        color: COLORS[status as VehicleStatus],
+        color: STATUS_CONFIG[status as VehicleStatus].color,
         status: status as VehicleStatus,
+        icon: STATUS_CONFIG[status as VehicleStatus].icon,
+        group: STATUS_CONFIG[status as VehicleStatus].group,
         total
       })).filter(item => item.value > 0);
     }
@@ -141,7 +248,7 @@ export const VehicleStatusChart = ({ className }: VehicleStatusChartProps) => {
         <CardHeader>
           <CardTitle>Vehicle Status Distribution</CardTitle>
         </CardHeader>
-        <CardContent className="h-[400px] flex items-center justify-center">
+        <CardContent className="h-[500px] flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </CardContent>
       </Card>
@@ -152,12 +259,33 @@ export const VehicleStatusChart = ({ className }: VehicleStatusChartProps) => {
     return null;
   }
 
+  const totalVehicles = vehicles.reduce((sum, item) => sum + item.value, 0);
+  const criticalStatuses = vehicles.filter(v => v.group === 'critical');
+  const hasCriticalStatus = criticalStatuses.length > 0;
+
   return (
-    <Card className={className}>
+    <Card className={cn(
+      "bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300",
+      className
+    )}>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          Vehicle Status Distribution
-        </CardTitle>
+        <div className="flex items-center justify-between mb-4">
+          <CardTitle>Vehicle Status Distribution</CardTitle>
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">Total Vehicles</p>
+              <p className="text-2xl font-bold">{totalVehicles}</p>
+            </div>
+            {hasCriticalStatus && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-md">
+                <AlertTriangle className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  {criticalStatuses.reduce((sum, item) => sum + item.value, 0)} critical
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="h-[400px] w-full">
@@ -179,7 +307,10 @@ export const VehicleStatusChart = ({ className }: VehicleStatusChartProps) => {
                   <Cell 
                     key={`cell-${entry.status}`} 
                     fill={entry.color}
-                    className="transition-opacity duration-200 hover:opacity-80"
+                    className="transition-all duration-300 hover:opacity-80 hover:scale-105"
+                    style={{
+                      filter: entry.group === 'critical' ? 'url(#shadow)' : undefined
+                    }}
                   />
                 ))}
               </Pie>
@@ -193,6 +324,11 @@ export const VehicleStatusChart = ({ className }: VehicleStatusChartProps) => {
                 align="center"
                 verticalAlign="bottom"
               />
+              <defs>
+                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#ef4444" floodOpacity="0.3"/>
+                </filter>
+              </defs>
             </PieChart>
           </ResponsiveContainer>
         </div>
