@@ -1,4 +1,5 @@
-import { useState, ReactNode } from "react";
+
+import { useState, ReactNode, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
@@ -43,6 +44,13 @@ export const CreateCustomerDialog = ({
     }
   });
 
+  // Initialize customer ID for autosave
+  useEffect(() => {
+    if (!customerId) {
+      setCustomerId(crypto.randomUUID());
+    }
+  }, []);
+
   const validateCustomerData = (values: any) => {
     if (!values.full_name?.trim()) {
       throw new Error("Full name is required");
@@ -81,12 +89,9 @@ export const CreateCustomerDialog = ({
       // Validate customer data
       validateCustomerData(values);
 
-      // Generate a new UUID for the customer if not already set
-      const newCustomerId = customerId || crypto.randomUUID();
-
       // Prepare the customer data
       const customerData = {
-        id: newCustomerId,
+        id: customerId,
         ...values,
         role: "customer",
         created_at: new Date().toISOString(),
@@ -94,7 +99,8 @@ export const CreateCustomerDialog = ({
         status: 'pending_review',
         document_verification_status: 'pending',
         preferred_communication_channel: 'email',
-        welcome_email_sent: false
+        welcome_email_sent: false,
+        form_data: null // Clear form data after successful submission
       };
 
       const { error: supabaseError } = await supabase
@@ -114,7 +120,7 @@ export const CreateCustomerDialog = ({
       ];
 
       const onboardingData = onboardingSteps.map(step => ({
-        customer_id: newCustomerId,
+        customer_id: customerId,
         step_name: step,
         completed: false
       }));
@@ -133,8 +139,6 @@ export const CreateCustomerDialog = ({
       // Invalidate and refetch customers query
       await queryClient.invalidateQueries({ queryKey: ["customers"] });
 
-      // Store the customer ID and show the contract prompt
-      setCustomerId(newCustomerId);
       setShowContractPrompt(true);
 
     } catch (error: any) {
@@ -147,13 +151,11 @@ export const CreateCustomerDialog = ({
   };
 
   const handleCreateAgreement = () => {
-    // Keep dialog states in sync
     setShowContractPrompt(false);
     if (onOpenChange) {
       onOpenChange(false);
     }
     
-    // Navigate to create agreement page with customer ID
     if (customerId) {
       navigate(`/agreements/new?customerId=${customerId}`);
     }
@@ -179,7 +181,10 @@ export const CreateCustomerDialog = ({
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <CustomerFormFields form={form} />
+              <CustomerFormFields 
+                form={form} 
+                customerId={customerId || undefined}
+              />
               <DialogFooter>
                 <EnhancedButton 
                   type="submit" 

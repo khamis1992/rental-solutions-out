@@ -1,4 +1,3 @@
-
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -13,13 +12,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import debounce from "lodash/debounce";
 
 interface CustomerFormFieldsProps {
   form: UseFormReturn<any>;
   profileScore?: number;
+  customerId?: string;
 }
 
-export const CustomerFormFields = ({ form, profileScore = 0 }: CustomerFormFieldsProps) => {
+export const CustomerFormFields = ({ form, profileScore = 0, customerId }: CustomerFormFieldsProps) => {
   const formatPhoneNumber = (value: string) => {
     const formatter = new AsYouType('QA');
     return formatter.input(value);
@@ -29,6 +32,64 @@ export const CustomerFormFields = ({ form, profileScore = 0 }: CustomerFormField
     const formatted = formatPhoneNumber(e.target.value);
     form.setValue('phone_number', formatted);
   };
+
+  const saveFormData = async (data: any) => {
+    if (!customerId) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          form_data: data,
+          last_form_save: new Date().toISOString()
+        })
+        .eq('id', customerId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error saving form data:', error);
+    }
+  };
+
+  const debouncedSave = debounce((data) => {
+    saveFormData(data);
+  }, 1000);
+
+  useEffect(() => {
+    const subscription = form.watch((data) => {
+      debouncedSave(data);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+      debouncedSave.cancel();
+    };
+  }, [form, debouncedSave]);
+
+  useEffect(() => {
+    const loadSavedFormData = async () => {
+      if (!customerId) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('form_data')
+          .eq('id', customerId)
+          .single();
+
+        if (error) throw error;
+        if (data?.form_data) {
+          Object.entries(data.form_data).forEach(([key, value]) => {
+            form.setValue(key, value);
+          });
+        }
+      } catch (error) {
+        console.error('Error loading saved form data:', error);
+      }
+    };
+
+    loadSavedFormData();
+  }, [customerId]);
 
   return (
     <div className="space-y-6">
@@ -55,10 +116,9 @@ export const CustomerFormFields = ({ form, profileScore = 0 }: CustomerFormField
                 placeholder="Enter full name" 
                 {...field} 
                 onChange={(e) => {
-                  // Auto-capitalize names
                   const words = e.target.value.split(' ');
                   const capitalized = words.map(word => 
-                    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                    word ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() : ''
                   ).join(' ');
                   field.onChange(capitalized);
                 }}
@@ -77,7 +137,15 @@ export const CustomerFormFields = ({ form, profileScore = 0 }: CustomerFormField
           <FormItem>
             <FormLabel>Nationality</FormLabel>
             <FormControl>
-              <Input placeholder="Enter nationality" {...field} />
+              <Input 
+                placeholder="Enter nationality" 
+                {...field}
+                onChange={(e) => {
+                  const capitalized = e.target.value.charAt(0).toUpperCase() + 
+                                    e.target.value.slice(1).toLowerCase();
+                  field.onChange(capitalized);
+                }}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
