@@ -17,6 +17,7 @@ export const QuickActions = () => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showCustomerDialog, setShowCustomerDialog] = useState(false);
   const [showContractDialog, setShowContractDialog] = useState(false);
+  const [selectedAgreementId, setSelectedAgreementId] = useState<string>(""); // Added for payment form
 
   const actions = [
     {
@@ -77,7 +78,7 @@ export const QuickActions = () => {
           <DialogHeader>
             <DialogTitle>Process Payment</DialogTitle>
           </DialogHeader>
-          <PaymentForm />
+          <PaymentForm agreementId={selectedAgreementId} />
         </DialogContent>
       </Dialog>
 
@@ -90,7 +91,12 @@ export const QuickActions = () => {
       </CreateCustomerDialog>
 
       {/* Contract Dialog */}
-      <CreateAgreementDialog open={showContractDialog} onOpenChange={setShowContractDialog} />
+      <CreateAgreementDialog 
+        open={showContractDialog} 
+        onOpenChange={setShowContractDialog}
+      >
+        <div className="hidden">Trigger</div>
+      </CreateAgreementDialog>
     </>
   );
 };
