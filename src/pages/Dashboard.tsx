@@ -34,7 +34,6 @@ const Dashboard = () => {
         throw new Error("No data returned from dashboard stats");
       }
 
-      // Cast the response to match our interface
       const statsData: DashboardStats = {
         total_vehicles: Number(data.total_vehicles || 0),
         available_vehicles: Number(data.available_vehicles || 0),
