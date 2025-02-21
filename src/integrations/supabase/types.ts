@@ -9660,6 +9660,12 @@ export type Database = {
         }
         Returns: undefined
       }
+      standardize_template_variables: {
+        Args: {
+          content: string
+        }
+        Returns: string
+      }
       swap_day_month: {
         Args: {
           input_date: string
