@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,7 +25,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
-import { FileText, FileContract, User, Car, AlertCircle, PenLine } from "lucide-react";
+import { FileText, ClipboardList, User, Car, AlertCircle, PenLine } from "lucide-react";
 
 interface CreateAgreementDialogProps {
   open?: boolean;
@@ -67,7 +66,6 @@ export function CreateAgreementDialog({ open: controlledOpen, onOpenChange, chil
     }
   });
 
-  // Pre-fill customer information if customerId is provided in URL
   useEffect(() => {
     const customerId = searchParams.get("customerId");
     if (customerId) {
@@ -153,7 +151,7 @@ export function CreateAgreementDialog({ open: controlledOpen, onOpenChange, chil
             <Separator className="my-6" />
             
             <div className="bg-card rounded-lg border p-6 shadow-sm">
-              <SectionHeader icon={FileContract} title="Basic Agreement Information" />
+              <SectionHeader icon={ClipboardList} title="Basic Agreement Information" />
               <AgreementBasicInfo register={register} errors={errors} watch={watch} />
             </div>
             
