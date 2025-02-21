@@ -23,6 +23,7 @@ export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(
       value ? parseDateFromDisplay(value as string) || undefined : undefined
     );
+    const [open, setOpen] = useState(false);
 
     useEffect(() => {
       // Update input value when value prop changes
@@ -62,6 +63,8 @@ export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
     };
 
     const handleCalendarSelect = (date: Date | undefined) => {
+      setOpen(false); // Close the popover after selection
+      
       if (date) {
         const formattedDate = formatDateToDisplay(date);
         setInputValue(formattedDate);
@@ -72,7 +75,7 @@ export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
         // Trigger onChange event for form compatibility
         const event = {
           target: {
-            value: formattedDate
+            value: formattedDate,
           }
         } as React.ChangeEvent<HTMLInputElement>;
         if (onChange) onChange(event);
@@ -105,12 +108,13 @@ export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
                 className
               )}
             />
-            <Popover>
+            <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
                   className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   type="button"
+                  onClick={() => setOpen(true)}
                 >
                   <CalendarIcon className="h-4 w-4 text-gray-500" />
                 </Button>
