@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface Notification {
   id: number;
@@ -25,11 +26,19 @@ interface Notification {
   read: boolean;
 }
 
+const notificationRoutes = {
+  maintenance: "/maintenance",
+  payment: "/agreements",
+  insurance: "/vehicles",
+  system: "/settings"
+} as const;
+
 export const SmartNotifications = () => {
   const [filter, setFilter] = useState<string>("all");
   const [showAll, setShowAll] = useState(false);
+  const navigate = useNavigate();
 
-  const { data: notifications = [] } = useQuery({
+  const { data: notifications = [], refetch } = useQuery({
     queryKey: ["smart-notifications"],
     queryFn: async () => {
       return [
@@ -66,6 +75,16 @@ export const SmartNotifications = () => {
       ] as Notification[];
     }
   });
+
+  const handleNotificationClick = async (notification: Notification) => {
+    try {
+      toast.success("Navigating to details...");
+      navigate(notificationRoutes[notification.type]);
+      refetch();
+    } catch (error) {
+      toast.error("Failed to process notification");
+    }
+  };
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -164,8 +183,17 @@ export const SmartNotifications = () => {
                 className={cn(
                   "border group hover:shadow-sm cursor-pointer transition-all duration-300",
                   getPriorityStyles(notification.priority),
-                  !notification.read && "before:animate-pulse"
+                  !notification.read && "before:animate-pulse",
+                  "hover:scale-[1.02] active:scale-[0.98]"
                 )}
+                onClick={() => handleNotificationClick(notification)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleNotificationClick(notification);
+                  }
+                }}
               >
                 <div className="flex items-center gap-4">
                   <div className={getIconStyles(notification.priority)}>
@@ -192,6 +220,7 @@ export const SmartNotifications = () => {
                     variant="ghost"
                     size="icon"
                     className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    tabIndex={-1}
                   >
                     <ArrowRight className="h-4 w-4" />
                   </Button>
