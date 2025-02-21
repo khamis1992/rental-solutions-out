@@ -26,7 +26,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
-import { FileText, Contract, User, Car, AlertCircle, PenLine } from "lucide-react";
+import { FileText, FileContract, User, Car, AlertCircle, PenLine } from "lucide-react";
 
 interface CreateAgreementDialogProps {
   open?: boolean;
@@ -153,7 +153,7 @@ export function CreateAgreementDialog({ open: controlledOpen, onOpenChange, chil
             <Separator className="my-6" />
             
             <div className="bg-card rounded-lg border p-6 shadow-sm">
-              <SectionHeader icon={Contract} title="Basic Agreement Information" />
+              <SectionHeader icon={FileContract} title="Basic Agreement Information" />
               <AgreementBasicInfo register={register} errors={errors} watch={watch} />
             </div>
             
