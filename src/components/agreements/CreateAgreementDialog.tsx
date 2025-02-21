@@ -25,8 +25,10 @@ import { AgreementTemplateSelect } from "./templates/AgreementTemplateSelect";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Progress } from "@/components/ui/progress";
+import { FileText, Contract, User, Car, AlertCircle, PenLine } from "lucide-react";
 
-export interface CreateAgreementDialogProps {
+interface CreateAgreementDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   children?: React.ReactNode;
@@ -35,6 +37,8 @@ export interface CreateAgreementDialogProps {
 export function CreateAgreementDialog({ open: controlledOpen, onOpenChange, children }: CreateAgreementDialogProps) {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 6;
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -55,10 +59,8 @@ export function CreateAgreementDialog({ open: controlledOpen, onOpenChange, chil
     await queryClient.invalidateQueries({ queryKey: ["agreements"] });
     toast.success("Agreement created successfully");
     
-    // Navigate to agreement details with payment prompt
     const shouldProcessPayment = window.confirm("Would you like to process the first payment now?");
     if (shouldProcessPayment) {
-      // Navigate to agreement details page with payment dialog trigger
       navigate(`/agreements/${agreementId}?showPayment=true`);
     } else {
       navigate(`/agreements/${agreementId}`);
@@ -72,7 +74,6 @@ export function CreateAgreementDialog({ open: controlledOpen, onOpenChange, chil
       setSelectedCustomerId(customerId);
       setValue("customerId", customerId);
 
-      // Fetch and set customer details
       const fetchCustomerDetails = async () => {
         const { data: customer, error } = await supabase
           .from('profiles')
@@ -98,7 +99,6 @@ export function CreateAgreementDialog({ open: controlledOpen, onOpenChange, chil
     }
   }, [searchParams, setValue]);
 
-  // Use controlled open state if provided
   const isOpen = controlledOpen !== undefined ? controlledOpen : open;
   const handleOpenChange = onOpenChange || setOpen;
 
@@ -116,6 +116,13 @@ export function CreateAgreementDialog({ open: controlledOpen, onOpenChange, chil
     }
   };
 
+  const SectionHeader = ({ icon: Icon, title }: { icon: any; title: string }) => (
+    <div className="flex items-center gap-2 text-lg font-semibold mb-4">
+      <Icon className="h-5 w-5 text-primary" />
+      <h3>{title}</h3>
+    </div>
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
@@ -128,37 +135,57 @@ export function CreateAgreementDialog({ open: controlledOpen, onOpenChange, chil
             Create a new lease-to-own or short-term rental agreement.
           </DialogDescription>
         </DialogHeader>
+
+        <div className="mb-6">
+          <Progress value={(currentStep / totalSteps) * 100} className="h-2" />
+          <p className="text-sm text-muted-foreground mt-2">
+            Step {currentStep} of {totalSteps}
+          </p>
+        </div>
+
         <ScrollArea className="max-h-[80vh] pr-4">
           <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-            <AgreementTemplateSelect setValue={setValue} />
+            <div className="bg-card rounded-lg border p-6 shadow-sm">
+              <SectionHeader icon={FileText} title="Agreement Template" />
+              <AgreementTemplateSelect setValue={setValue} />
+            </div>
             
             <Separator className="my-6" />
             
-            <AgreementBasicInfo register={register} errors={errors} watch={watch} />
+            <div className="bg-card rounded-lg border p-6 shadow-sm">
+              <SectionHeader icon={Contract} title="Basic Agreement Information" />
+              <AgreementBasicInfo register={register} errors={errors} watch={watch} />
+            </div>
             
             <Separator className="my-6" />
             
-            <CustomerInformation 
-              register={register} 
-              errors={errors}
-              selectedCustomerId={selectedCustomerId}
-              onCustomerSelect={setSelectedCustomerId}
-              setValue={setValue}
-            />
+            <div className="bg-card rounded-lg border p-6 shadow-sm">
+              <SectionHeader icon={User} title="Customer Information" />
+              <CustomerInformation 
+                register={register} 
+                errors={errors}
+                selectedCustomerId={selectedCustomerId}
+                onCustomerSelect={setSelectedCustomerId}
+                setValue={setValue}
+              />
+            </div>
             
             <Separator className="my-6" />
 
-            <VehicleAgreementDetails 
-              register={register}
-              errors={errors}
-              watch={watch}
-              setValue={setValue}
-            />
+            <div className="bg-card rounded-lg border p-6 shadow-sm">
+              <SectionHeader icon={Car} title="Vehicle Details" />
+              <VehicleAgreementDetails 
+                register={register}
+                errors={errors}
+                watch={watch}
+                setValue={setValue}
+              />
+            </div>
 
             <Separator className="my-6" />
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Late Fees & Penalties</h3>
+            <div className="bg-card rounded-lg border p-6 shadow-sm">
+              <SectionHeader icon={AlertCircle} title="Late Fees & Penalties" />
               <div className="grid grid-cols-2 gap-4">
                 <LateFeesPenaltiesFields register={register} />
               </div>
@@ -166,14 +193,17 @@ export function CreateAgreementDialog({ open: controlledOpen, onOpenChange, chil
 
             <Separator className="my-6" />
 
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea 
-                id="notes"
-                placeholder="Additional notes about the agreement..."
-                className="min-h-[100px]"
-                {...register("notes")} 
-              />
+            <div className="bg-card rounded-lg border p-6 shadow-sm">
+              <SectionHeader icon={PenLine} title="Additional Notes" />
+              <div className="space-y-2">
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea 
+                  id="notes"
+                  placeholder="Additional notes about the agreement..."
+                  className="min-h-[100px]"
+                  {...register("notes")} 
+                />
+              </div>
             </div>
 
             <DialogFooter className="sticky bottom-0 bg-background pt-4">
