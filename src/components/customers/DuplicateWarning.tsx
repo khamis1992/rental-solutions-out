@@ -1,8 +1,10 @@
 
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Trash2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import type { DuplicateMatch } from "./utils/duplicateDetection";
 
 interface DuplicateWarningProps {
@@ -12,6 +14,35 @@ interface DuplicateWarningProps {
 
 export function DuplicateWarning({ duplicates, onDismiss }: DuplicateWarningProps) {
   const navigate = useNavigate();
+
+  const handleDelete = async (duplicateId: string) => {
+    try {
+      // First, delete all associated legal cases
+      const { error: legalCasesError } = await supabase
+        .from('legal_cases')
+        .delete()
+        .eq('customer_id', duplicateId);
+
+      if (legalCasesError) {
+        console.error('Error deleting legal cases:', legalCasesError);
+        throw legalCasesError;
+      }
+
+      // Then delete the customer profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', duplicateId);
+
+      if (profileError) throw profileError;
+
+      toast.success("Customer deleted successfully");
+      onDismiss();
+    } catch (error: any) {
+      console.error('Error deleting customer:', error);
+      toast.error(error.message || "Failed to delete customer");
+    }
+  };
 
   if (!duplicates.length) return null;
 
@@ -29,13 +60,22 @@ export function DuplicateWarning({ duplicates, onDismiss }: DuplicateWarningProp
                   {duplicate.match_reason.join(', ')}
                 </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate(`/customers/profile/${duplicate.id}`)}
-              >
-                View Profile
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/customers/profile/${duplicate.id}`)}
+                >
+                  View Profile
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => handleDelete(duplicate.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
