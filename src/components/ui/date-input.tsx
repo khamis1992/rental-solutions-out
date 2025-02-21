@@ -2,7 +2,12 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "./input";
 import { Label } from "./label";
+import { Button } from "./button";
+import { Calendar } from "./calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { cn } from "@/lib/utils";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import { isValidDateFormat, parseDateFromDisplay, formatDateToDisplay } from "@/lib/dateUtils";
 
 interface DateInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -15,6 +20,9 @@ export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
   ({ className, label, error, value, onChange, onDateChange, ...props }, ref) => {
     const [inputValue, setInputValue] = useState(value as string || '');
     const [validationError, setValidationError] = useState('');
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+      value ? parseDateFromDisplay(value as string)?.toDate() : undefined
+    );
 
     useEffect(() => {
       // Update input value when value prop changes
@@ -23,7 +31,7 @@ export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
       }
     }, [value]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
       setInputValue(newValue);
       
@@ -37,12 +45,25 @@ export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
       if (newValue.length === 10) {
         if (isValidDateFormat(newValue)) {
           const date = parseDateFromDisplay(newValue);
-          if (onDateChange) onDateChange(date);
+          if (date) {
+            setSelectedDate(date);
+            if (onDateChange) onDateChange(date);
+          }
           setValidationError('');
         } else {
           setValidationError('Please enter a valid date in DD/MM/YYYY format');
           if (onDateChange) onDateChange(null);
         }
+      }
+    };
+
+    const handleCalendarSelect = (date: Date | undefined) => {
+      if (date) {
+        const formattedDate = formatDateToDisplay(date);
+        setInputValue(formattedDate);
+        setSelectedDate(date);
+        if (onDateChange) onDateChange(date);
+        setValidationError('');
       }
     };
 
@@ -56,20 +77,44 @@ export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
     return (
       <div className="space-y-1">
         {label && <Label>{label}</Label>}
-        <Input
-          {...props}
-          ref={ref}
-          type="text"
-          placeholder="DD/MM/YYYY"
-          value={inputValue}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          className={cn(
-            "w-full",
-            error || validationError ? "border-red-500" : "",
-            className
-          )}
-        />
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Input
+              {...props}
+              ref={ref}
+              type="text"
+              placeholder="DD/MM/YYYY"
+              value={inputValue}
+              onChange={handleInputChange}
+              onBlur={handleBlur}
+              className={cn(
+                "w-full pr-10",
+                error || validationError ? "border-red-500" : "",
+                className
+              )}
+            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  type="button"
+                >
+                  <CalendarIcon className="h-4 w-4 text-gray-500" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={handleCalendarSelect}
+                  disabled={(date) => date < new Date("1900-01-01")}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
         {(error || validationError) && (
           <p className="text-sm text-red-500">{error || validationError}</p>
         )}

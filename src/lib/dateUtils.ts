@@ -48,7 +48,12 @@ export const isValidDateFormat = (dateStr: string): boolean => {
   
   // Parse and validate the date
   const parsedDate = parseDateFromDisplay(dateStr);
-  return parsedDate !== null;
+  if (!parsedDate) return false;
+
+  // Ensure the parsed date matches the input format when reformatted
+  // This catches invalid dates like 31/02/2024
+  const reformatted = formatDateToDisplay(parsedDate);
+  return reformatted === dateStr;
 };
 
 /**
@@ -80,17 +85,4 @@ export const formatApiDateToDisplay = (isoDate: string | null): string => {
     console.error('Error converting API date to display format:', isoDate, error);
     return '';
   }
-};
-
-export const swap_day_month = (date: Date): Date => {
-  const year = date.getFullYear();
-  const month = date.getMonth(); // 0-11
-  const day = date.getDate();
-  
-  // Only swap if day is a valid month number (1-12)
-  if (day <= 12) {
-    return new Date(year, day - 1, month + 1);
-  }
-  
-  return date;
 };
