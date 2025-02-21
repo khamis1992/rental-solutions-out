@@ -17,25 +17,12 @@ export function DuplicateWarning({ duplicates, onDismiss }: DuplicateWarningProp
 
   const handleDelete = async (duplicateId: string) => {
     try {
-      // First, delete all associated legal cases
-      const { error: legalCasesError } = await supabase
-        .from('legal_cases')
-        .delete()
-        .eq('customer_id', duplicateId);
-
-      if (legalCasesError) {
-        console.error('Error deleting legal cases:', legalCasesError);
-        throw legalCasesError;
-      }
-
-      // Then delete the customer profile
-      const { error: profileError } = await supabase
+      const { error } = await supabase
         .from('profiles')
         .delete()
         .eq('id', duplicateId);
 
-      if (profileError) throw profileError;
-
+      if (error) throw error;
       toast.success("Customer deleted successfully");
       onDismiss();
     } catch (error: any) {
@@ -73,7 +60,7 @@ export function DuplicateWarning({ duplicates, onDismiss }: DuplicateWarningProp
                   size="sm"
                   onClick={() => handleDelete(duplicate.id)}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  Delete
                 </Button>
               </div>
             </div>
