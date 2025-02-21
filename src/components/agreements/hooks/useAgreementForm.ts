@@ -91,6 +91,9 @@ export const useAgreementForm = (onSuccess: (agreementId: string) => void) => {
 
   const processTemplateVariables = async (templateId: string, agreementData: any) => {
     try {
+      console.log("Processing template variables for template:", templateId);
+      console.log("Agreement data:", agreementData);
+
       // First get the template content
       const { data: template, error: templateError } = await supabase
         .from('agreement_templates')
@@ -98,7 +101,11 @@ export const useAgreementForm = (onSuccess: (agreementId: string) => void) => {
         .eq('id', templateId)
         .single();
 
-      if (templateError) throw templateError;
+      if (templateError) {
+        console.error("Template fetch error:", templateError);
+        throw templateError;
+      }
+      console.log("Fetched template:", template);
 
       // Get customer details
       const { data: customer, error: customerError } = await supabase
@@ -107,7 +114,11 @@ export const useAgreementForm = (onSuccess: (agreementId: string) => void) => {
         .eq('id', agreementData.customer_id)
         .single();
 
-      if (customerError) throw customerError;
+      if (customerError) {
+        console.error("Customer fetch error:", customerError);
+        throw customerError;
+      }
+      console.log("Fetched customer:", customer);
 
       // Get vehicle details
       const { data: vehicle, error: vehicleError } = await supabase
@@ -116,16 +127,14 @@ export const useAgreementForm = (onSuccess: (agreementId: string) => void) => {
         .eq('id', agreementData.vehicle_id)
         .single();
 
-      if (vehicleError) throw vehicleError;
-
-      // Get security deposit if exists
-      const { data: securityDeposit } = await supabase
-        .from('security_deposits')
-        .select('amount')
-        .eq('lease_id', agreementData.id)
-        .single();
+      if (vehicleError) {
+        console.error("Vehicle fetch error:", vehicleError);
+        throw vehicleError;
+      }
+      console.log("Fetched vehicle:", vehicle);
 
       let content = template.content;
+      console.log("Original template content:", content);
 
       // Use the standardize_template_variables function
       const { data: standardizedContent, error: standardizeError } = await supabase
@@ -133,35 +142,41 @@ export const useAgreementForm = (onSuccess: (agreementId: string) => void) => {
           content: content
         });
 
-      if (standardizeError) throw standardizeError;
+      if (standardizeError) {
+        console.error("Standardization error:", standardizeError);
+        throw standardizeError;
+      }
+      console.log("Standardized content:", standardizedContent);
+
       content = standardizedContent;
 
       // Replace customer variables
       content = content.replace(/{{customer\.([^}]+)}}/g, (match, field) => {
-        return customer[field]?.toString() || match;
+        const value = customer[field]?.toString();
+        console.log(`Replacing customer.${field} with:`, value);
+        return value || match;
       });
 
       // Replace vehicle variables
       content = content.replace(/{{vehicle\.([^}]+)}}/g, (match, field) => {
-        return vehicle[field]?.toString() || match;
+        const value = vehicle[field]?.toString();
+        console.log(`Replacing vehicle.${field} with:`, value);
+        return value || match;
       });
 
       // Replace agreement variables
       content = content.replace(/{{agreement\.([^}]+)}}/g, (match, field) => {
+        let value;
         if (field === 'agreement_duration') {
-          return `${agreementData.agreement_duration} months`;
+          value = `${agreementData.agreement_duration} months`;
+        } else {
+          value = agreementData[field]?.toString();
         }
-        return agreementData[field]?.toString() || match;
+        console.log(`Replacing agreement.${field} with:`, value);
+        return value || match;
       });
 
-      // Replace payment variables
-      content = content.replace(/{{payment\.([^}]+)}}/g, (match, field) => {
-        if (field === 'down_payment' && securityDeposit) {
-          return securityDeposit.amount.toString();
-        }
-        return match;
-      });
-
+      console.log("Final processed content:", content);
       return content;
 
     } catch (error) {
