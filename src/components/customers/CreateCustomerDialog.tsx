@@ -62,12 +62,6 @@ export const CreateCustomerDialog = ({
       throw new Error("Email is required");
     }
     
-    // Validate Qatar phone number
-    const phonePattern = /^(\+974|974)?[0-9]{8}$/;
-    if (!phonePattern.test(values.phone_number.replace(/\s/g, ''))) {
-      throw new Error("Invalid Qatar phone number format");
-    }
-    
     // Validate document expiry dates
     if (values.id_document_expiry && new Date(values.id_document_expiry) < new Date()) {
       throw new Error("ID document is expired");
