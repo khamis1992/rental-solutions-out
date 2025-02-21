@@ -26,10 +26,10 @@ export interface AgreementFormData {
   // Template fields
   finalPrice?: number;
   agreementNumber?: string;
-  templateId?: string; // Add this field
+  templateId?: string;
 }
 
-export const useAgreementForm = (onSuccess: () => void) => {
+export const useAgreementForm = (onSuccess: (agreementId: string) => void) => {
   const [open, setOpen] = useState(false);
   const [agreementType, setAgreementType] = useState<AgreementType>("short_term");
 
@@ -71,6 +71,93 @@ export const useAgreementForm = (onSuccess: () => void) => {
     }
   });
 
+  const processTemplateVariables = async (templateId: string, agreementData: any) => {
+    try {
+      // First get the template content
+      const { data: template, error: templateError } = await supabase
+        .from('agreement_templates')
+        .select('*')
+        .eq('id', templateId)
+        .single();
+
+      if (templateError) throw templateError;
+
+      // Get customer details
+      const { data: customer, error: customerError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', agreementData.customer_id)
+        .single();
+
+      if (customerError) throw customerError;
+
+      // Get vehicle details
+      const { data: vehicle, error: vehicleError } = await supabase
+        .from('vehicles')
+        .select('*')
+        .eq('id', agreementData.vehicle_id)
+        .single();
+
+      if (vehicleError) throw vehicleError;
+
+      // Get security deposit if exists
+      const { data: securityDeposit } = await supabase
+        .from('security_deposits')
+        .select('amount')
+        .eq('lease_id', agreementData.id)
+        .single();
+
+      let content = template.content;
+
+      // Use the standardize_template_variables function
+      const { data: standardizedContent, error: standardizeError } = await supabase
+        .rpc('standardize_template_variables', {
+          content: content
+        });
+
+      if (standardizeError) throw standardizeError;
+      content = standardizedContent;
+
+      // Replace customer variables
+      content = content.replace(/{{customer\.([^}]+)}}/g, (match, field) => {
+        return customer[field] || match;
+      });
+
+      // Replace vehicle variables
+      content = content.replace(/{{vehicle\.([^}]+)}}/g, (match, field) => {
+        return vehicle[field] || match;
+      });
+
+      // Replace agreement variables
+      content = content.replace(/{{agreement\.([^}]+)}}/g, (match, field) => {
+        if (field === 'agreement_duration') {
+          return `${agreementData.agreement_duration} months`;
+        }
+        return agreementData[field] || match;
+      });
+
+      // Replace payment variables
+      content = content.replace(/{{payment\.([^}]+)}}/g, (match, field) => {
+        if (field === 'down_payment' && securityDeposit) {
+          return securityDeposit.amount.toString();
+        }
+        return match;
+      });
+
+      // Update the agreement with processed content
+      const { error: updateError } = await supabase
+        .from('leases')
+        .update({ processed_content: content })
+        .eq('id', agreementData.id);
+
+      if (updateError) throw updateError;
+
+    } catch (error) {
+      console.error('Error processing template variables:', error);
+      throw error;
+    }
+  };
+
   const onSubmit = async (data: AgreementFormData) => {
     try {
       console.log("Form data before submission:", data);
@@ -85,7 +172,7 @@ export const useAgreementForm = (onSuccess: () => void) => {
         return;
       }
 
-      const { error } = await supabase
+      const { data: agreement, error } = await supabase
         .from('leases')
         .insert({
           agreement_type: data.agreementType,
@@ -101,8 +188,10 @@ export const useAgreementForm = (onSuccess: () => void) => {
           status: 'pending_payment' as LeaseStatus,
           initial_mileage: 0,
           agreement_duration: `${data.agreementDuration} months`,
-          template_id: data.templateId // Add the template ID
-        });
+          template_id: data.templateId
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error('Error creating agreement:', error);
@@ -110,7 +199,12 @@ export const useAgreementForm = (onSuccess: () => void) => {
         throw error;
       }
 
-      onSuccess();
+      // Process template variables if template is selected
+      if (data.templateId && agreement) {
+        await processTemplateVariables(data.templateId, agreement);
+      }
+
+      onSuccess(agreement.id);
       toast.success("Agreement created successfully");
     } catch (error) {
       console.error('Error creating agreement:', error);
