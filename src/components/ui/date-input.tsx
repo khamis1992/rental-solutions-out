@@ -21,13 +21,17 @@ export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
     const [inputValue, setInputValue] = useState(value as string || '');
     const [validationError, setValidationError] = useState('');
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-      value ? parseDateFromDisplay(value as string)?.toDate() : undefined
+      value ? parseDateFromDisplay(value as string) || undefined : undefined
     );
 
     useEffect(() => {
       // Update input value when value prop changes
       if (value && typeof value === 'string') {
         setInputValue(value);
+        const parsedDate = parseDateFromDisplay(value);
+        if (parsedDate) {
+          setSelectedDate(parsedDate);
+        }
       }
     }, [value]);
 
@@ -64,6 +68,14 @@ export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
         setSelectedDate(date);
         if (onDateChange) onDateChange(date);
         setValidationError('');
+
+        // Trigger onChange event for form compatibility
+        const event = {
+          target: {
+            value: formattedDate
+          }
+        } as React.ChangeEvent<HTMLInputElement>;
+        if (onChange) onChange(event);
       }
     };
 
