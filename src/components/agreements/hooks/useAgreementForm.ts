@@ -29,6 +29,24 @@ export interface AgreementFormData {
   templateId?: string;
 }
 
+interface LeaseInsertData {
+  agreement_type: AgreementType;
+  customer_id: string;
+  vehicle_id: string;
+  rent_amount: number;
+  total_amount: number;
+  start_date: string;
+  end_date: string;
+  daily_late_fee: number;
+  notes?: string;
+  down_payment?: number;
+  status: LeaseStatus;
+  initial_mileage: number;
+  agreement_duration: string;
+  template_id?: string;
+  processed_content?: string;
+}
+
 export const useAgreementForm = (onSuccess: (agreementId: string) => void) => {
   const [open, setOpen] = useState(false);
   const [agreementType, setAgreementType] = useState<AgreementType>("short_term");
@@ -120,12 +138,12 @@ export const useAgreementForm = (onSuccess: (agreementId: string) => void) => {
 
       // Replace customer variables
       content = content.replace(/{{customer\.([^}]+)}}/g, (match, field) => {
-        return customer[field] || match;
+        return customer[field]?.toString() || match;
       });
 
       // Replace vehicle variables
       content = content.replace(/{{vehicle\.([^}]+)}}/g, (match, field) => {
-        return vehicle[field] || match;
+        return vehicle[field]?.toString() || match;
       });
 
       // Replace agreement variables
@@ -133,7 +151,7 @@ export const useAgreementForm = (onSuccess: (agreementId: string) => void) => {
         if (field === 'agreement_duration') {
           return `${agreementData.agreement_duration} months`;
         }
-        return agreementData[field] || match;
+        return agreementData[field]?.toString() || match;
       });
 
       // Replace payment variables
@@ -144,13 +162,7 @@ export const useAgreementForm = (onSuccess: (agreementId: string) => void) => {
         return match;
       });
 
-      // Update the agreement with processed content
-      const { error: updateError } = await supabase
-        .from('leases')
-        .update({ processed_content: content })
-        .eq('id', agreementData.id);
-
-      if (updateError) throw updateError;
+      return content;
 
     } catch (error) {
       console.error('Error processing template variables:', error);
@@ -172,24 +184,35 @@ export const useAgreementForm = (onSuccess: (agreementId: string) => void) => {
         return;
       }
 
+      const leaseData: LeaseInsertData = {
+        agreement_type: data.agreementType,
+        customer_id: data.customerId,
+        vehicle_id: data.vehicleId,
+        rent_amount: data.rentAmount,
+        total_amount: data.rentAmount * data.agreementDuration,
+        start_date: data.startDate,
+        end_date: data.endDate,
+        daily_late_fee: data.dailyLateFee,
+        notes: data.notes,
+        down_payment: data.downPayment,
+        status: 'pending_payment',
+        initial_mileage: 0,
+        agreement_duration: `${data.agreementDuration} months`,
+        template_id: data.templateId
+      };
+
+      // Process template variables if template is selected
+      if (data.templateId) {
+        const processedContent = await processTemplateVariables(data.templateId, {
+          ...leaseData,
+          id: 'temp' // Temporary ID for processing
+        });
+        leaseData.processed_content = processedContent;
+      }
+
       const { data: agreement, error } = await supabase
         .from('leases')
-        .insert({
-          agreement_type: data.agreementType,
-          customer_id: data.customerId,
-          vehicle_id: data.vehicleId,
-          rent_amount: data.rentAmount,
-          total_amount: data.rentAmount * data.agreementDuration,
-          start_date: data.startDate,
-          end_date: data.endDate,
-          daily_late_fee: data.dailyLateFee,
-          notes: data.notes,
-          down_payment: data.downPayment,
-          status: 'pending_payment' as LeaseStatus,
-          initial_mileage: 0,
-          agreement_duration: `${data.agreementDuration} months`,
-          template_id: data.templateId
-        })
+        .insert(leaseData)
         .select()
         .single();
 
@@ -197,11 +220,6 @@ export const useAgreementForm = (onSuccess: (agreementId: string) => void) => {
         console.error('Error creating agreement:', error);
         toast.error(error.message);
         throw error;
-      }
-
-      // Process template variables if template is selected
-      if (data.templateId && agreement) {
-        await processTemplateVariables(data.templateId, agreement);
       }
 
       onSuccess(agreement.id);
