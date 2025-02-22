@@ -1,1 +1,3 @@
+
 const sanitizeText = (text) => text.replace(/\u0000/g, '');\nconst extractTextFromWordDocument = async (file) => {\n  try {\n    setProgress(30);\n    const arrayBuffer = await file.arrayBuffer();\n    setProgress(50);\n    const result = await mammoth.convertToHtml(arrayBuffer);\n    if (!result || !result.value) {\n      throw new Error('Failed to extract content from document');\n    }\n    setProgress(70);\n    // Sanitize the extracted text\n    const sanitizedText = sanitizeText(result.value);\n    return sanitizedText;\n  } catch (error) {\n    console.error('Error extracting text:', error);\n    throw new Error(\n      error instanceof Error ? `Failed to process document: ${error.message}` : 'Failed to process document'\n    );\n  }\n};
+
