@@ -74,7 +74,7 @@ export const AgreementTableRow = ({
           onClick={() => onNameClick(agreement.id)}
           className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-medium group-hover:translate-x-1 transition-all duration-300"
         >
-          <FileText className="h-4 w-4 group-hover:scale-110 transition-transform" />
+          <Car className="h-4 w-4 group-hover:scale-110 transition-transform" />
           <span className="truncate">{agreement.agreement_number}</span>
         </button>
       </TableCell>
