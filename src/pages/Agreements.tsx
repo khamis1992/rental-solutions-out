@@ -5,7 +5,7 @@ import { AgreementStats } from "@/components/agreements/AgreementStats";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { PaymentImport } from "@/components/agreements/PaymentImport";
 import { ChevronRight, Building2, FileText } from "lucide-react";
-import { CustomAgreementViewer } from "@/components/agreements/custom/CustomAgreementViewer";
+import { AgreementList } from "@/components/agreements/AgreementList";
 
 const Agreements = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -50,7 +50,7 @@ const Agreements = () => {
             {/* Action Buttons */}
             <div className="flex justify-between items-center gap-6 max-w-screen-xl mx-auto">
               <div className="flex-1">
-                <CustomAgreementViewer />
+                <AgreementList />
               </div>
               <div className="flex-shrink-0">
                 <PaymentImport />
