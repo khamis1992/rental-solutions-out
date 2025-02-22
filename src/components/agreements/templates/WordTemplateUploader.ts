@@ -33,12 +33,19 @@ export const uploadWordTemplate = async (
     onProgress?.(10);
     console.log('Starting file upload...');
 
-    // First upload the original file
+    // First convert the file to HTML using mammoth
+    const arrayBuffer = await file.arrayBuffer();
+    const { value: htmlContent } = await mammoth.convertToHtml({ arrayBuffer });
+
+    onProgress?.(40);
+    console.log('File converted to HTML...');
+
+    // Upload original file to storage
     const fileExt = file.name.split('.').pop();
     const filePath = `${crypto.randomUUID()}.${fileExt}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('customer_documents')
+      .from('word_templates')
       .upload(filePath, file, {
         contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         upsert: false
@@ -49,19 +56,10 @@ export const uploadWordTemplate = async (
       throw new Error('Failed to upload document');
     }
 
-    onProgress?.(40);
-    console.log('File uploaded, processing content...');
-
-    // Convert file to array buffer for mammoth processing
-    const arrayBuffer = await file.arrayBuffer();
-
-    // Process document with mammoth
-    const { value: htmlContent } = await mammoth.convertToHtml({ arrayBuffer });
-
     onProgress?.(70);
-    console.log('Content processed, extracting variables...');
+    console.log('Original file uploaded, processing content...');
 
-    // Extract template variables
+    // Extract template variables from HTML
     const variables = extractVariables(htmlContent);
 
     onProgress?.(90);
@@ -69,14 +67,16 @@ export const uploadWordTemplate = async (
 
     // Get the public URL for the uploaded file
     const { data: { publicUrl } } = supabase.storage
-      .from('customer_documents')
+      .from('word_templates')
       .getPublicUrl(filePath);
 
     // Save template details to database
     const { error: dbError } = await supabase.from('word_templates').insert({
       name: file.name.replace('.docx', ''),
       original_file_url: publicUrl,
-      content: htmlContent,
+      html_content: htmlContent,
+      content: htmlContent, // For backward compatibility
+      original_filename: file.name,
       variable_mappings: variables.reduce((acc, variable) => ({
         ...acc,
         [variable]: ''
@@ -87,7 +87,7 @@ export const uploadWordTemplate = async (
     if (dbError) {
       // Clean up the uploaded file if database insert fails
       await supabase.storage
-        .from('customer_documents')
+        .from('word_templates')
         .remove([filePath]);
       
       console.error('Database error:', dbError);
