@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { EnhancedButton } from "@/components/ui/enhanced-button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -36,7 +35,6 @@ export const CustomWordTemplateUpload = () => {
         setProgress(progress);
       });
 
-      toast.success('Template uploaded successfully');
       event.target.value = '';
     } catch (error) {
       console.error('Upload error:', error);
