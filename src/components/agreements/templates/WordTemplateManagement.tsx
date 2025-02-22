@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Upload, FileText, Trash, Eye, Edit2 } from "lucide-react";
+import { Upload, FileText, Trash, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,20 +25,13 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { TemplatePreview } from "./TemplatePreview";
-import { Textarea } from "@/components/ui/textarea";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 interface WordTemplate {
   id: string;
   name: string;
-  content?: string;
   original_file_url: string;
   created_at: string;
   updated_at: string;
@@ -49,9 +42,6 @@ export function WordTemplateManagement() {
   const [uploading, setUploading] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<WordTemplate | null>(null);
   const [previewContent, setPreviewContent] = useState<string>("");
-  const [editingTemplate, setEditingTemplate] = useState<WordTemplate | null>(null);
-  const [editedContent, setEditedContent] = useState("");
-  const [editedName, setEditedName] = useState("");
   const queryClient = useQueryClient();
 
   const { data: templates, isLoading } = useQuery({
@@ -87,16 +77,12 @@ export function WordTemplateManagement() {
 
       if (uploadError) throw uploadError;
 
-      // Read file content
-      const content = await file.text();
-
       // Create template record
       const { error: dbError } = await supabase
         .from('word_templates')
         .insert({
           name: file.name.replace('.docx', ''),
           original_file_url: filename,
-          content: content,
           is_active: true
         });
 
@@ -116,79 +102,20 @@ export function WordTemplateManagement() {
     try {
       setSelectedTemplate(template);
       
-      if (template.content) {
-        setPreviewContent(template.content);
-      } else {
-        // Download the template file if content is not available
-        const { data: fileData, error: downloadError } = await supabase.storage
-          .from('word_templates')
-          .download(template.original_file_url);
+      // Download the template file
+      const { data: fileData, error: downloadError } = await supabase.storage
+        .from('word_templates')
+        .download(template.original_file_url);
 
-        if (downloadError) throw downloadError;
+      if (downloadError) throw downloadError;
 
-        // Convert to text for preview
-        const text = await fileData.text();
-        setPreviewContent(text);
-      }
+      // Convert to text for preview
+      const text = await fileData.text();
+      setPreviewContent(text);
     } catch (error) {
       console.error('Error loading preview:', error);
       toast.error('Failed to load preview');
     }
-  };
-
-  const handleEdit = async (template: WordTemplate) => {
-    try {
-      setEditingTemplate(template);
-      setEditedName(template.name);
-      
-      if (template.content) {
-        setEditedContent(template.content);
-      } else {
-        // Download the template file if content is not available
-        const { data: fileData, error: downloadError } = await supabase.storage
-          .from('word_templates')
-          .download(template.original_file_url);
-
-        if (downloadError) throw downloadError;
-
-        // Convert to text for editing
-        const text = await fileData.text();
-        setEditedContent(text);
-      }
-    } catch (error) {
-      console.error('Error loading template for editing:', error);
-      toast.error('Failed to load template');
-    }
-  };
-
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, name, content }: { id: string, name: string, content: string }) => {
-      const { error } = await supabase
-        .from('word_templates')
-        .update({ name, content })
-        .eq('id', id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success('Template updated successfully');
-      queryClient.invalidateQueries({ queryKey: ['word-templates'] });
-      setEditingTemplate(null);
-    },
-    onError: (error) => {
-      console.error('Error updating template:', error);
-      toast.error('Failed to update template');
-    }
-  });
-
-  const handleSave = () => {
-    if (!editingTemplate) return;
-    
-    updateMutation.mutate({
-      id: editingTemplate.id,
-      name: editedName,
-      content: editedContent
-    });
   };
 
   const deleteMutation = useMutation({
@@ -288,57 +215,6 @@ export function WordTemplateManagement() {
                         <TemplatePreview content={previewContent} />
                       </DialogContent>
                     </Dialog>
-                    
-                    <Sheet>
-                      <SheetTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(template)}
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                      </SheetTrigger>
-                      <SheetContent className="w-[800px] sm:w-[600px]" side="right">
-                        <SheetHeader>
-                          <SheetTitle>Edit Template</SheetTitle>
-                        </SheetHeader>
-                        <div className="space-y-4 py-4">
-                          <div className="space-y-2">
-                            <Label>Template Name</Label>
-                            <Input
-                              value={editedName}
-                              onChange={(e) => setEditedName(e.target.value)}
-                              placeholder="Enter template name"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Content</Label>
-                            <Textarea
-                              value={editedContent}
-                              onChange={(e) => setEditedContent(e.target.value)}
-                              placeholder="Enter template content"
-                              className="min-h-[500px] font-mono"
-                            />
-                          </div>
-                        </div>
-                        <div className="flex justify-end gap-2 pt-4">
-                          <Button
-                            variant="outline"
-                            onClick={() => setEditingTemplate(null)}
-                          >
-                            Cancel
-                          </Button>
-                          <Button 
-                            onClick={handleSave}
-                            disabled={updateMutation.isPending}
-                          >
-                            Save Changes
-                          </Button>
-                        </div>
-                      </SheetContent>
-                    </Sheet>
-
                     <Button
                       variant="destructive"
                       size="sm"
