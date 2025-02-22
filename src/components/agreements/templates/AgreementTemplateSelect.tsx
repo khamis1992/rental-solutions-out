@@ -12,13 +12,20 @@ import { Label } from "@/components/ui/label";
 import { UseFormSetValue } from "react-hook-form";
 import { AgreementFormData } from "../hooks/useAgreementForm";
 import { Template } from "@/types/agreement.types";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
+import { TemplatePreview } from "./TemplatePreview";
 
 interface AgreementTemplateSelectProps {
   setValue: UseFormSetValue<AgreementFormData>;
 }
 
 export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectProps) => {
+  const [showPreview, setShowPreview] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+
   const { data: templates, isLoading } = useQuery({
     queryKey: ["agreement-templates"],
     queryFn: async () => {
@@ -61,20 +68,24 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
       if (standardTemplate) {
         console.log("Auto-selecting Standard Rental Agreement template");
         handleTemplateSelect(standardTemplate.id);
+        setSelectedTemplate(standardTemplate);
       } else {
         // If standard template not found, select the first available template
         console.log("Standard template not found, selecting first available template");
         handleTemplateSelect(templates[0].id);
+        setSelectedTemplate(templates[0]);
       }
     }
   }, [templates]);
 
   const handleTemplateSelect = (templateId: string) => {
-    const selectedTemplate = templates?.find((t) => t.id === templateId);
-    if (!selectedTemplate) {
+    const template = templates?.find((t) => t.id === templateId);
+    if (!template) {
       console.log("No template found with ID:", templateId);
       return;
     }
+
+    setSelectedTemplate(template);
 
     // Set the template ID
     setValue("templateId", templateId);
@@ -82,7 +93,7 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
     // Parse duration from agreement_duration string
     let durationMonths = 12; // Default value
     try {
-      const durationStr = selectedTemplate.agreement_duration;
+      const durationStr = template.agreement_duration;
       if (durationStr.includes("months") || durationStr.includes("month")) {
         const match = durationStr.match(/(\d+)/);
         if (match) {
@@ -97,19 +108,25 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
     }
 
     // Only set values if they exist in the template
-    setValue("agreementType", selectedTemplate.agreement_type);
-    if (selectedTemplate.rent_amount) {
-      setValue("rentAmount", selectedTemplate.rent_amount);
+    setValue("agreementType", template.agreement_type);
+    if (template.rent_amount) {
+      setValue("rentAmount", template.rent_amount);
     }
-    if (selectedTemplate.final_price) {
-      setValue("finalPrice", selectedTemplate.final_price);
+    if (template.final_price) {
+      setValue("finalPrice", template.final_price);
     }
     setValue("agreementDuration", durationMonths);
-    if (selectedTemplate.daily_late_fee) {
-      setValue("dailyLateFee", selectedTemplate.daily_late_fee);
+    if (template.daily_late_fee) {
+      setValue("dailyLateFee", template.daily_late_fee);
     }
 
-    console.log("Applied template values:", selectedTemplate);
+    console.log("Applied template values:", template);
+  };
+
+  const handlePreviewClick = () => {
+    if (selectedTemplate) {
+      setShowPreview(true);
+    }
   };
 
   if (isLoading) {
@@ -132,7 +149,20 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
 
   return (
     <div className="space-y-2">
-      <Label htmlFor="template">Agreement Template</Label>
+      <div className="flex items-center justify-between">
+        <Label htmlFor="template">Agreement Template</Label>
+        {selectedTemplate && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+            onClick={handlePreviewClick}
+          >
+            <Eye className="h-4 w-4" />
+            Preview Template
+          </Button>
+        )}
+      </div>
       <Select onValueChange={handleTemplateSelect}>
         <SelectTrigger>
           <SelectValue placeholder="Select a template" />
@@ -145,6 +175,19 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
           ))}
         </SelectContent>
       </Select>
+
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-4xl">
+          {selectedTemplate && (
+            <TemplatePreview 
+              content={selectedTemplate.content}
+              textStyle={selectedTemplate.template_structure?.textStyle}
+              tables={selectedTemplate.template_structure?.tables}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
+
