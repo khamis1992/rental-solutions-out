@@ -2216,6 +2216,61 @@ export type Database = {
           },
         ]
       }
+      document_processing_queue: {
+        Row: {
+          agreement_id: string | null
+          attempts: number | null
+          created_at: string
+          error_log: string | null
+          id: string
+          processed_at: string | null
+          status: string | null
+          template_id: string | null
+        }
+        Insert: {
+          agreement_id?: string | null
+          attempts?: number | null
+          created_at?: string
+          error_log?: string | null
+          id?: string
+          processed_at?: string | null
+          status?: string | null
+          template_id?: string | null
+        }
+        Update: {
+          agreement_id?: string | null
+          attempts?: number | null
+          created_at?: string
+          error_log?: string | null
+          id?: string
+          processed_at?: string | null
+          status?: string | null
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_processing_queue_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
+          {
+            foreignKeyName: "document_processing_queue_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "leases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_processing_queue_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "word_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_reminders: {
         Row: {
           created_at: string | null
@@ -5971,6 +6026,55 @@ export type Database = {
         }
         Relationships: []
       }
+      processed_documents: {
+        Row: {
+          agreement_id: string | null
+          created_at: string
+          id: string
+          processed_file_url: string
+          processing_status: string | null
+          template_id: string | null
+        }
+        Insert: {
+          agreement_id?: string | null
+          created_at?: string
+          id?: string
+          processed_file_url: string
+          processing_status?: string | null
+          template_id?: string | null
+        }
+        Update: {
+          agreement_id?: string | null
+          created_at?: string
+          id?: string
+          processed_file_url?: string
+          processing_status?: string | null
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "processed_documents_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "active_agreements_view"
+            referencedColumns: ["lease_id"]
+          },
+          {
+            foreignKeyName: "processed_documents_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "leases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "processed_documents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "word_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
@@ -8869,6 +8973,39 @@ export type Database = {
           utm_medium?: string | null
           utm_source?: string | null
           visited_at?: string | null
+        }
+        Relationships: []
+      }
+      word_templates: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+          original_file_url: string
+          updated_at: string
+          variable_mappings: Json | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          original_file_url: string
+          updated_at?: string
+          variable_mappings?: Json | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          original_file_url?: string
+          updated_at?: string
+          variable_mappings?: Json | null
         }
         Relationships: []
       }
