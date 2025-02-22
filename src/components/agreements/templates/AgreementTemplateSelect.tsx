@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -11,20 +12,13 @@ import { Label } from "@/components/ui/label";
 import { UseFormSetValue } from "react-hook-form";
 import { AgreementFormData } from "../hooks/useAgreementForm";
 import { Template } from "@/types/agreement.types";
-import { useEffect, useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
-import { TemplatePreview } from "./TemplatePreview";
+import { useEffect } from "react";
 
 interface AgreementTemplateSelectProps {
   setValue: UseFormSetValue<AgreementFormData>;
 }
 
 export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectProps) => {
-  const [showPreview, setShowPreview] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
-
   const { data: templates, isLoading } = useQuery({
     queryKey: ["agreement-templates"],
     queryFn: async () => {
@@ -65,11 +59,9 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
       if (standardTemplate) {
         console.log("Auto-selecting Standard Rental Agreement template");
         handleTemplateSelect(standardTemplate.id);
-        setSelectedTemplate(standardTemplate);
       } else {
         console.log("Standard template not found, selecting first available template");
         handleTemplateSelect(templates[0].id);
-        setSelectedTemplate(templates[0]);
       }
     }
   }, [templates]);
@@ -80,8 +72,6 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
       console.log("No template found with ID:", templateId);
       return;
     }
-
-    setSelectedTemplate(template);
 
     setValue("templateId", templateId);
 
@@ -116,12 +106,6 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
     console.log("Applied template values:", template);
   };
 
-  const handlePreviewClick = () => {
-    if (selectedTemplate) {
-      setShowPreview(true);
-    }
-  };
-
   if (isLoading) {
     return <div>Loading templates...</div>;
   }
@@ -142,20 +126,7 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label htmlFor="template">Agreement Template</Label>
-        {selectedTemplate && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-            onClick={handlePreviewClick}
-          >
-            <Eye className="h-4 w-4" />
-            معاينة النموذج
-          </Button>
-        )}
-      </div>
+      <Label htmlFor="template">Agreement Template</Label>
       <Select onValueChange={handleTemplateSelect}>
         <SelectTrigger>
           <SelectValue placeholder="Select a template" />
@@ -168,18 +139,6 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
           ))}
         </SelectContent>
       </Select>
-
-      <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="max-w-4xl">
-          {selectedTemplate && (
-            <TemplatePreview 
-              content={selectedTemplate.content}
-              textStyle={selectedTemplate.template_structure?.textStyle}
-              tables={selectedTemplate.template_structure?.tables}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
