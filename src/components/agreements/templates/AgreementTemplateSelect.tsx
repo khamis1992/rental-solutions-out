@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -45,7 +44,6 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
         return [];
       }
 
-      // Transform the data to match the Template interface
       const transformedTemplates: Template[] = data.map(template => ({
         ...template,
         template_structure: typeof template.template_structure === 'string' ? 
@@ -61,7 +59,6 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
     },
   });
 
-  // Auto-select Standard Rental Agreement template
   useEffect(() => {
     if (templates && templates.length > 0) {
       const standardTemplate = templates.find(t => t.name === "Standard Rental Agreement");
@@ -70,7 +67,6 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
         handleTemplateSelect(standardTemplate.id);
         setSelectedTemplate(standardTemplate);
       } else {
-        // If standard template not found, select the first available template
         console.log("Standard template not found, selecting first available template");
         handleTemplateSelect(templates[0].id);
         setSelectedTemplate(templates[0]);
@@ -87,10 +83,8 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
 
     setSelectedTemplate(template);
 
-    // Set the template ID
     setValue("templateId", templateId);
 
-    // Parse duration from agreement_duration string
     let durationMonths = 12; // Default value
     try {
       const durationStr = template.agreement_duration;
@@ -107,7 +101,6 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
       console.error("Error parsing duration:", error);
     }
 
-    // Only set values if they exist in the template
     setValue("agreementType", template.agreement_type);
     if (template.rent_amount) {
       setValue("rentAmount", template.rent_amount);
@@ -159,7 +152,7 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
             onClick={handlePreviewClick}
           >
             <Eye className="h-4 w-4" />
-            Preview Template
+            معاينة النموذج
           </Button>
         )}
       </div>
@@ -190,4 +183,3 @@ export const AgreementTemplateSelect = ({ setValue }: AgreementTemplateSelectPro
     </div>
   );
 };
-
