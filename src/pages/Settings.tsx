@@ -9,6 +9,7 @@ import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
 import { UserManagementSettings } from "@/components/settings/UserManagementSettings";
 import { VehicleStatusSettings } from "@/components/settings/VehicleStatusSettings";
 import { AgreementTemplateManagement } from "@/components/agreements/templates/AgreementTemplateManagement";
+import { WordTemplateManagement } from "@/components/agreements/templates/WordTemplateManagement";
 import { LoyaltyProgramSettings } from "@/components/settings/LoyaltyProgramSettings";
 
 const Settings = () => {
@@ -56,7 +57,10 @@ const Settings = () => {
             <VehicleStatusSettings />
           </TabsContent>
           <TabsContent value="templates">
-            <AgreementTemplateManagement />
+            <div className="space-y-6">
+              <AgreementTemplateManagement />
+              <WordTemplateManagement />
+            </div>
           </TabsContent>
           <TabsContent value="loyalty">
             <LoyaltyProgramSettings />
