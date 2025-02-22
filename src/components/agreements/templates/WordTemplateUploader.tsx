@@ -11,9 +11,18 @@ export function WordTemplateUploader() {
   const [uploading, setUploading] = useState(false);
 
   const extractTextFromWordDocument = async (file: File): Promise<string> => {
-    const arrayBuffer = await file.arrayBuffer();
-    const result = await mammoth.extractRawText({ arrayBuffer });
-    return result.value;
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      // Passing the ArrayBuffer directly to mammoth instead of as an object
+      const result = await mammoth.extractRawText(arrayBuffer);
+      if (!result || !result.value) {
+        throw new Error('Failed to extract text from document');
+      }
+      return result.value;
+    } catch (error) {
+      console.error('Error extracting text:', error);
+      throw error;
+    }
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,6 +39,7 @@ export function WordTemplateUploader() {
 
       // First, extract text content using mammoth
       const extractedText = await extractTextFromWordDocument(file);
+      console.log('Extracted text:', extractedText); // For debugging
       
       // Sanitize filename and create a unique path
       const sanitizedFileName = file.name.replace(/[^\x00-\x7F]/g, '');
