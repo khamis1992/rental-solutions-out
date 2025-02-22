@@ -9627,6 +9627,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      process_agreement_templates: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          agreement_id: string
+          success: boolean
+          error_message: string
+        }[]
+      }
       process_historical_payments: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -9638,6 +9646,15 @@ export type Database = {
       process_recurring_transactions: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      process_single_agreement_template: {
+        Args: {
+          agreement_id: string
+        }
+        Returns: {
+          success: boolean
+          error_message: string
+        }[]
       }
       process_tracked_import: {
         Args: {

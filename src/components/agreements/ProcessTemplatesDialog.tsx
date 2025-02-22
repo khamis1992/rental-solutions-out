@@ -19,6 +19,12 @@ interface ProcessTemplatesDialogProps {
   onSuccess?: () => void;
 }
 
+interface ProcessResult {
+  agreement_id: string;
+  success: boolean;
+  error_message: string | null;
+}
+
 export function ProcessTemplatesDialog({
   open,
   onOpenChange,
@@ -33,10 +39,14 @@ export function ProcessTemplatesDialog({
       setProgress(10);
 
       const { data: results, error } = await supabase
-        .rpc('process_agreement_templates');
+        .rpc<ProcessResult[]>('process_agreement_templates');
 
       if (error) {
         throw error;
+      }
+
+      if (!results) {
+        throw new Error('No response from template processing');
       }
 
       setProgress(100);
