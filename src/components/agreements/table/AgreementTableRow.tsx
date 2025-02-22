@@ -79,12 +79,6 @@ export const AgreementTableRow = ({
         </button>
       </TableCell>
       <TableCell className="py-2">
-        <div className="flex flex-col">
-          <span className="font-medium text-gray-900 truncate">{agreement.vehicle?.make}</span>
-          <span className="text-sm text-gray-500 truncate">{agreement.vehicle?.model}</span>
-        </div>
-      </TableCell>
-      <TableCell className="py-2">
         <span className="font-medium text-gray-900 truncate max-w-[130px]">
           {agreement.customer?.full_name}
         </span>

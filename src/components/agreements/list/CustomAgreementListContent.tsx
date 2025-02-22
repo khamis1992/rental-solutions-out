@@ -73,7 +73,6 @@ export const CustomAgreementListContent = () => {
           <TableRow>
             <TableHead>Agreement #</TableHead>
             <TableHead>License Plate</TableHead>
-            <TableHead>Vehicle</TableHead>
             <TableHead>Customer</TableHead>
             <TableHead>Start Date</TableHead>
             <TableHead>End Date</TableHead>
