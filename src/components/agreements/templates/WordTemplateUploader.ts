@@ -57,9 +57,14 @@ export const uploadWordTemplate = async (
 
     onProgress?.(20);
 
+    // Create a new FormData instance
+    const fileData = new Blob([file], { 
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+    });
+
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('word_templates')
-      .upload(filePath, file, {
+      .upload(filePath, fileData, {
         contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         upsert: false
       });

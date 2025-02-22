@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Upload } from "lucide-react";
 import { toast } from "sonner";
-import { uploadWordTemplate } from "./WordTemplateUploader";
+import { processWordDocument, uploadWordTemplate } from "./WordTemplateUploader";
 
 export const CustomWordTemplateUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
@@ -31,11 +31,13 @@ export const CustomWordTemplateUpload = () => {
       setIsUploading(true);
       setProgress(0);
 
-      await uploadWordTemplate(file, (progress) => {
+      const result = await uploadWordTemplate(file, (progress) => {
         setProgress(progress);
       });
 
+      console.log('Upload successful:', result);
       event.target.value = '';
+      
     } catch (error) {
       console.error('Upload error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to upload template');
