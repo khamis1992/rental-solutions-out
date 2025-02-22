@@ -5,8 +5,11 @@ import { Agreement } from "@/types/agreement.types";
 import { AgreementTableRow } from "../table/AgreementTableRow";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 export const CustomAgreementListContent = () => {
+  const navigate = useNavigate();
+
   const { data: agreements = [], isLoading, error } = useQuery({
     queryKey: ["agreements"],
     queryFn: async () => {
@@ -40,6 +43,10 @@ export const CustomAgreementListContent = () => {
 
   const handlePrintContract = async (id: string) => {
     console.log("Print contract", id);
+  };
+
+  const handleAgreementClick = (id: string) => {
+    navigate(`/agreements/${id}`);
   };
 
   if (isLoading) {
@@ -87,7 +94,7 @@ export const CustomAgreementListContent = () => {
               agreement={agreement}
               onViewContract={handleViewContract}
               onPrintContract={handlePrintContract}
-              onAgreementClick={(id) => console.log('Agreement clicked:', id)}
+              onAgreementClick={handleAgreementClick}
               onNameClick={(id) => console.log('Name clicked:', id)}
               onDeleted={() => console.log('Deleted')}
               onDeleteClick={() => console.log('Delete clicked')}
