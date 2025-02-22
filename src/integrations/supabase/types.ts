@@ -8980,36 +8980,30 @@ export type Database = {
         Row: {
           content: string | null
           created_at: string
-          html_content: string | null
           id: string
           is_active: boolean | null
           name: string
           original_file_url: string
-          original_filename: string | null
           updated_at: string
           variable_mappings: Json | null
         }
         Insert: {
           content?: string | null
           created_at?: string
-          html_content?: string | null
           id?: string
           is_active?: boolean | null
           name: string
           original_file_url: string
-          original_filename?: string | null
           updated_at?: string
           variable_mappings?: Json | null
         }
         Update: {
           content?: string | null
           created_at?: string
-          html_content?: string | null
           id?: string
           is_active?: boolean | null
           name?: string
           original_file_url?: string
-          original_filename?: string | null
           updated_at?: string
           variable_mappings?: Json | null
         }

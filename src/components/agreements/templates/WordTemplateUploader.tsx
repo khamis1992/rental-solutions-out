@@ -1,115 +1,95 @@
 
 import { useState } from "react";
+import { toast } from "sonner";
 import mammoth from "mammoth";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-interface WordProcessingResult {
-  content: string;
-  variables: string[];
-}
+export function WordTemplateUploader() {
+  const [uploading, setUploading] = useState(false);
 
-const sanitizeText = (text: string) => text.replace(/\u0000/g, '');
-
-export const processWordDocument = async (
-  file: File,
-  onProgress?: (progress: number) => void
-): Promise<WordProcessingResult> => {
-  try {
-    onProgress?.(30);
+  const extractTextFromWordDocument = async (file: File): Promise<string> => {
     const arrayBuffer = await file.arrayBuffer();
-    
-    onProgress?.(50);
-    const result = await mammoth.convertToHtml({ arrayBuffer });
-    
-    if (!result || !result.value) {
-      throw new Error('Failed to extract content from document');
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    return result.value;
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploading(true);
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      // Validate file type
+      if (!file.name.endsWith('.docx')) {
+        toast.error('Please upload a Word document (.docx)');
+        return;
+      }
+
+      // First, extract text content using mammoth
+      const extractedText = await extractTextFromWordDocument(file);
+      console.log('Extracted text:', extractedText); // For debugging
+
+      // Upload original file to storage
+      const filename = `${crypto.randomUUID()}.docx`;
+      const { error: uploadError } = await supabase.storage
+        .from('word_templates')
+        .upload(filename, file);
+
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw uploadError;
+      }
+
+      // Create template record with extracted text
+      const { error: dbError } = await supabase
+        .from('word_templates')
+        .insert({
+          name: file.name.replace('.docx', ''),
+          original_file_url: filename,
+          content: extractedText,
+          is_active: true
+        });
+
+      if (dbError) {
+        console.error('Database insert error:', dbError);
+        throw dbError;
+      }
+
+      toast.success('Template uploaded successfully');
+      event.target.value = ''; // Reset input
+    } catch (error) {
+      console.error('Error uploading template:', error);
+      toast.error('Failed to upload template. Please try again.');
+    } finally {
+      setUploading(false);
     }
+  };
 
-    onProgress?.(70);
-    
-    // Find template variables in the content (matching {{variable}})
-    const variableMatches = result.value.match(/\{\{([^}]+)\}\}/g) || [];
-    const variables = [...new Set(variableMatches.map(v => v.replace(/[{}]/g, '')))];
-
-    // Sanitize content
-    const sanitizedContent = sanitizeText(result.value);
-
-    return {
-      content: sanitizedContent,
-      variables
-    };
-  } catch (error) {
-    console.error('Error processing Word document:', error);
-    throw new Error(
-      error instanceof Error ? `Failed to process document: ${error.message}` : 'Failed to process document'
-    );
-  }
-};
-
-export const uploadWordTemplate = async (
-  file: File,
-  onProgress?: (progress: number) => void
-): Promise<{ publicUrl: string; content: string; variables: string[] }> => {
-  try {
-    // First upload the file to storage
-    const fileExt = file.name.split('.').pop();
-    const filePath = `${crypto.randomUUID()}.${fileExt}`;
-
-    onProgress?.(20);
-
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('word_templates')
-      .upload(filePath, file, {
-        contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        upsert: false
-      });
-
-    if (uploadError) {
-      console.error('Storage upload error:', uploadError);
-      throw new Error('Failed to upload file to storage');
-    }
-
-    onProgress?.(40);
-
-    // Get the public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('word_templates')
-      .getPublicUrl(filePath);
-
-    onProgress?.(60);
-
-    // Process the Word document
-    const { content, variables } = await processWordDocument(file);
-    
-    onProgress?.(80);
-
-    // Create the template entry
-    const { error: dbError } = await supabase
-      .from('word_templates')
-      .insert({
-        name: file.name.replace('.docx', ''),
-        original_file_url: publicUrl,
-        content: content,
-        variable_mappings: variables.reduce((acc, variable) => ({
-          ...acc,
-          [variable]: ''
-        }), {}),
-        is_active: true
-      });
-
-    if (dbError) {
-      console.error('Database insert error:', dbError);
-      throw new Error('Failed to save template details');
-    }
-
-    onProgress?.(100);
-    toast.success('Template uploaded successfully');
-
-    return { publicUrl, content, variables };
-  } catch (error) {
-    console.error('Upload error:', error);
-    toast.error(error instanceof Error ? error.message : 'Failed to upload template');
-    throw error;
-  }
-};
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Upload Template</CardTitle>
+        <CardDescription>
+          Upload a new Word document template (.docx)
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <Input
+            type="file"
+            accept=".docx"
+            onChange={handleFileUpload}
+            disabled={uploading}
+            className="max-w-sm"
+          />
+          <p className="text-sm text-muted-foreground">
+            Upload a Word document (.docx) with variable placeholders
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

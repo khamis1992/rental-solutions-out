@@ -25,12 +25,6 @@ interface ProcessResult {
   error_message: string | null;
 }
 
-interface DatabaseProcessResult {
-  success: boolean;
-  agreement_id: string;
-  error_message: string | null;
-}
-
 export function ProcessTemplatesDialog({
   open,
   onOpenChange,
@@ -45,9 +39,7 @@ export function ProcessTemplatesDialog({
       setProgress(10);
 
       const { data: results, error } = await supabase
-        .rpc<DatabaseProcessResult>('process_agreement_templates', {}, {
-          count: 'exact'
-        });
+        .rpc<ProcessResult>('process_agreement_templates');
 
       if (error) {
         throw error;
