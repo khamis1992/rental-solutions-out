@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { 
   Upload,
   Download,
+  FileText
 } from "lucide-react";
 import {
   Tooltip,
@@ -29,6 +30,25 @@ export const AgreementListHeader = ({
 
   return (
     <div className="flex items-center gap-4">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="lg"
+              className="bg-white text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all duration-300 gap-2 group shadow-sm hover:shadow-md h-11"
+              onClick={() => setShowProcessTemplates(true)}
+            >
+              <FileText className="h-5 w-5" />
+              Process Templates
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Process agreement templates</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>

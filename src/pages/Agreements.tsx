@@ -1,13 +1,11 @@
-
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { CustomAgreementList } from "@/components/agreements/CustomAgreementList";
+import { AgreementList } from "@/components/agreements/AgreementList";
 import { AgreementListHeader } from "@/components/agreements/list/AgreementListHeader";
 import { AgreementStats } from "@/components/agreements/AgreementStats";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { PaymentImport } from "@/components/agreements/PaymentImport";
-import { ChevronRight, Building2 } from "lucide-react";
-
+import { ChevronRight, Building2, FileText } from "lucide-react";
 const Agreements = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const handleImportClick = () => {
@@ -16,7 +14,6 @@ const Agreements = () => {
   const handleDeleteClick = () => {
     // Delete handling logic
   };
-
   return <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         {/* Header Section with Professional Gradient */}
@@ -41,7 +38,7 @@ const Agreements = () => {
             <div className="mb-10">
               <div className="flex items-center gap-6">
                 <div className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
-                  <Building2 className="h-8 w-8 text-white" />
+                  <FileText className="h-8 w-8 text-white" />
                 </div>
                 <div>
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 text-transparent bg-clip-text mb-2">
@@ -75,7 +72,7 @@ const Agreements = () => {
 
           {/* Agreements List */}
           <div className="pb-12">
-            <CustomAgreementList />
+            <AgreementList />
           </div>
         </div>
 
@@ -83,5 +80,4 @@ const Agreements = () => {
       </div>
     </DashboardLayout>;
 };
-
 export default Agreements;
