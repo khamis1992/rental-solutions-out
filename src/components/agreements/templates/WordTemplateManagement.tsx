@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Upload, FileText, Trash } from "lucide-react";
+import { Upload, FileText, Trash, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +22,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { TemplatePreview } from "./TemplatePreview";
 
 interface WordTemplate {
   id: string;
@@ -34,6 +40,8 @@ interface WordTemplate {
 
 export function WordTemplateManagement() {
   const [uploading, setUploading] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<WordTemplate | null>(null);
+  const [previewContent, setPreviewContent] = useState<string>("");
   const queryClient = useQueryClient();
 
   const { data: templates, isLoading } = useQuery({
@@ -87,6 +95,26 @@ export function WordTemplateManagement() {
       toast.error('Failed to upload template');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handlePreview = async (template: WordTemplate) => {
+    try {
+      setSelectedTemplate(template);
+      
+      // Download the template file
+      const { data: fileData, error: downloadError } = await supabase.storage
+        .from('word_templates')
+        .download(template.original_file_url);
+
+      if (downloadError) throw downloadError;
+
+      // Convert to text for preview
+      const text = await fileData.text();
+      setPreviewContent(text);
+    } catch (error) {
+      console.error('Error loading preview:', error);
+      toast.error('Failed to load preview');
     }
   };
 
@@ -172,14 +200,30 @@ export function WordTemplateManagement() {
                   {new Date(template.created_at).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => deleteMutation.mutate(template.id)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePreview(template)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl h-[90vh]">
+                        <TemplatePreview content={previewContent} />
+                      </DialogContent>
+                    </Dialog>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => deleteMutation.mutate(template.id)}
+                      disabled={deleteMutation.isPending}
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
