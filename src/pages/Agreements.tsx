@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { AgreementList } from "@/components/agreements/AgreementList";
+import { CustomAgreementList } from "@/components/agreements/CustomAgreementList";
 import { AgreementListHeader } from "@/components/agreements/list/AgreementListHeader";
 import { AgreementStats } from "@/components/agreements/AgreementStats";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
@@ -75,7 +75,7 @@ const Agreements = () => {
 
           {/* Agreements List */}
           <div className="pb-12">
-            <AgreementList />
+            <CustomAgreementList />
           </div>
         </div>
 
