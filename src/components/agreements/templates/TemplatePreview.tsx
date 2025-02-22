@@ -1,11 +1,11 @@
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TextStyle, Table } from "@/types/agreement.types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface TemplatePreviewProps {
   content: string;
@@ -27,76 +27,132 @@ export const TemplatePreview = ({
   tables = []
 }: TemplatePreviewProps) => {
   const [pageCount, setPageCount] = useState(1);
+  const [processedContent, setProcessedContent] = useState(content);
+
+  // Sample data for preview
+  const sampleData = {
+    customer: {
+      full_name: "John Smith",
+      phone_number: "+1 234 567 890",
+      address: "123 Main St, City, Country",
+      nationality: "United States"
+    },
+    vehicle: {
+      make: "Toyota",
+      model: "Camry",
+      year: "2023",
+      license_plate: "ABC 123",
+      vin: "1HGCM82633A123456",
+      color: "Silver"
+    },
+    agreement: {
+      agreement_number: "AGR-2024-001",
+      start_date: new Date().toLocaleDateString(),
+      end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+      rent_amount: "1,500",
+      total_amount: "18,000"
+    }
+  };
 
   const containsArabic = (text: string) => {
     const arabicPattern = /[\u0600-\u06FF]/;
     return arabicPattern.test(text);
   };
 
+  const replaceVariables = (text: string) => {
+    let replacedContent = text;
+
+    // Replace customer variables
+    Object.entries(sampleData.customer).forEach(([key, value]) => {
+      const pattern = new RegExp(`{{customer.${key}}}`, 'g');
+      replacedContent = replacedContent.replace(pattern, value.toString());
+    });
+
+    // Replace vehicle variables
+    Object.entries(sampleData.vehicle).forEach(([key, value]) => {
+      const pattern = new RegExp(`{{vehicle.${key}}}`, 'g');
+      replacedContent = replacedContent.replace(pattern, value.toString());
+    });
+
+    // Replace agreement variables
+    Object.entries(sampleData.agreement).forEach(([key, value]) => {
+      const pattern = new RegExp(`{{agreement.${key}}}`, 'g');
+      replacedContent = replacedContent.replace(pattern, value.toString());
+    });
+
+    return replacedContent;
+  };
+
   const processContent = (text: string) => {
     const isArabic = containsArabic(text);
     const dirAttribute = isArabic ? 'rtl' : 'ltr';
 
-    let processedContent = text;
-    
-    // Center all bold text
-    processedContent = processedContent.replace(
+    // First replace variables with sample data
+    let processedText = replaceVariables(text);
+
+    // Then apply styling
+    processedText = processedText.replace(
       /<strong>(.*?)<\/strong>/g,
       '<strong class="block text-center mb-4">$1</strong>'
     );
 
-    // Process template variables
-    processedContent = processedContent.replace(
+    // Highlight remaining variables that weren't replaced
+    processedText = processedText.replace(
       /{{(.*?)}}/g,
-      '<span class="template-variable bg-gray-50 px-1 rounded">{{$1}}</span>'
+      '<span class="template-variable bg-yellow-100 px-1 rounded border border-yellow-300">{{$1}}</span>'
     );
 
     // Process section headers
-    processedContent = processedContent.replace(
+    processedText = processedText.replace(
       /<h1>(.*?)<\/h1>/g,
       '<h1 class="text-2xl font-bold text-gray-900 mb-6 page-break-after-avoid">$1</h1>'
     );
     
-    processedContent = processedContent.replace(
+    processedText = processedText.replace(
       /<h2>/g,
       '<h2 class="text-xl font-semibold mb-4 text-gray-800 page-break-after-avoid">'
     );
 
     // Optimize paragraph spacing
-    processedContent = processedContent.replace(
+    processedText = processedText.replace(
       /<p>/g,
       `<p dir="${dirAttribute}" class="mb-4 leading-relaxed text-justify" style="text-align: ${isArabic ? 'right' : 'left'}">`
     );
 
     // Optimize list spacing
-    processedContent = processedContent.replace(
+    processedText = processedText.replace(
       /<ul>/g,
       '<ul class="list-disc list-inside mb-4 space-y-2">'
     );
 
-    processedContent = processedContent.replace(
+    processedText = processedText.replace(
       /<ol>/g,
       '<ol class="list-decimal list-inside mb-4 space-y-2">'
     );
 
     // Enhance table styling
-    processedContent = processedContent.replace(
+    processedText = processedText.replace(
       /<table/g,
       '<table class="w-full border-collapse mb-6 page-break-inside-avoid"'
     );
 
-    processedContent = processedContent.replace(
+    processedText = processedText.replace(
       /<th/g,
       '<th class="border border-gray-300 bg-gray-50 p-3 text-right"'
     );
 
-    processedContent = processedContent.replace(
+    processedText = processedText.replace(
       /<td/g,
       '<td class="border border-gray-300 p-3 text-right"'
     );
 
-    return processedContent;
+    return processedText;
   };
+
+  useEffect(() => {
+    const processed = processContent(content);
+    setProcessedContent(processed);
+  }, [content]);
 
   const isArabic = containsArabic(content);
 
@@ -130,6 +186,12 @@ export const TemplatePreview = ({
           </AlertDescription>
         </Alert>
       )}
+
+      <div className="bg-yellow-50 p-4 rounded-md">
+        <p className="text-sm text-yellow-800">
+          Preview is showing sample data. Variables will be replaced with actual data when processing the document.
+        </p>
+      </div>
       
       <ScrollArea className="h-[calc(80vh-120px)] w-full rounded-md border">
         <div className="preview-container mx-auto bg-white">
@@ -153,7 +215,7 @@ export const TemplatePreview = ({
               fontSize: `${textStyle.fontSize}px`,
               width: '210mm',
               minHeight: '297mm',
-              padding: '25mm 25mm 30mm 25mm', // Increased bottom padding for footer
+              padding: '25mm 25mm 30mm 25mm',
               margin: '0 auto',
               boxSizing: 'border-box',
               backgroundColor: 'white',
@@ -161,7 +223,7 @@ export const TemplatePreview = ({
               position: 'relative'
             }}
             ref={calculatePageCount}
-            dangerouslySetInnerHTML={{ __html: processContent(content) }}
+            dangerouslySetInnerHTML={{ __html: processedContent }}
           />
         </div>
       </ScrollArea>
