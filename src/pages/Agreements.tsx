@@ -1,19 +1,15 @@
+
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { AgreementList } from "@/components/agreements/AgreementList";
-import { AgreementListHeader } from "@/components/agreements/list/AgreementListHeader";
 import { AgreementStats } from "@/components/agreements/AgreementStats";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { PaymentImport } from "@/components/agreements/PaymentImport";
 import { ChevronRight, Building2, FileText } from "lucide-react";
+import { CustomAgreementViewer } from "@/components/agreements/custom/CustomAgreementViewer";
+
 const Agreements = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const handleImportClick = () => {
-    // Import handling logic
-  };
-  const handleDeleteClick = () => {
-    // Delete handling logic
-  };
+  
   return <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         {/* Header Section with Professional Gradient */}
@@ -54,7 +50,7 @@ const Agreements = () => {
             {/* Action Buttons */}
             <div className="flex justify-between items-center gap-6 max-w-screen-xl mx-auto">
               <div className="flex-1">
-                <AgreementListHeader onImportClick={handleImportClick} onDeleteClick={handleDeleteClick} isDeleting={false} />
+                <CustomAgreementViewer />
               </div>
               <div className="flex-shrink-0">
                 <PaymentImport />
@@ -69,15 +65,11 @@ const Agreements = () => {
           <div className="py-8">
             <AgreementStats />
           </div>
-
-          {/* Agreements List */}
-          <div className="pb-12">
-            <AgreementList />
-          </div>
         </div>
 
         <CreateAgreementDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
       </div>
     </DashboardLayout>;
 };
+
 export default Agreements;
