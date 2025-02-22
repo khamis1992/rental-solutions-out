@@ -39,13 +39,13 @@ export function ProcessTemplatesDialog({
       setProgress(10);
 
       const { data: results, error } = await supabase
-        .rpc<ProcessResult[]>('process_agreement_templates');
+        .rpc<ProcessResult>('process_agreement_templates');
 
       if (error) {
         throw error;
       }
 
-      if (!results) {
+      if (!results || !Array.isArray(results)) {
         throw new Error('No response from template processing');
       }
 
