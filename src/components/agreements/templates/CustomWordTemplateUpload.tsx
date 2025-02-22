@@ -15,27 +15,21 @@ export const CustomWordTemplateUpload = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.name.toLowerCase().endsWith('.docx')) {
-      toast.error('Please upload a valid Word document (.docx)');
-      return;
-    }
-
-    // Validate file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB');
-      return;
-    }
-
     try {
       setIsUploading(true);
       setProgress(0);
 
+      console.log('Starting upload process for file:', file.name);
+      
       const result = await uploadWordTemplate(file, (progress) => {
         setProgress(progress);
+        console.log('Upload progress:', progress);
       });
 
       console.log('Upload successful:', result);
+      toast.success('Template uploaded successfully');
+      
+      // Clear the input
       event.target.value = '';
       
     } catch (error) {
@@ -64,7 +58,7 @@ export const CustomWordTemplateUpload = () => {
         <div className="space-y-2">
           <Progress value={progress} />
           <p className="text-sm text-muted-foreground">
-            Processing template...
+            {progress < 100 ? 'Processing template...' : 'Upload complete!'}
           </p>
         </div>
       )}

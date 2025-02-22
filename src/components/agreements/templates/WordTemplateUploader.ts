@@ -50,21 +50,32 @@ export const uploadWordTemplate = async (
   file: File,
   onProgress?: (progress: number) => void
 ): Promise<{ publicUrl: string; content: string; variables: string[] }> => {
+  if (!file.name.toLowerCase().endsWith('.docx')) {
+    throw new Error('Please upload a valid Word document (.docx)');
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error('File size must be less than 5MB');
+  }
+
   try {
-    // First upload the file to storage
+    onProgress?.(10);
+    console.log('Processing document...');
+    
+    // First process the document to verify it's valid
+    const { content, variables } = await processWordDocument(file);
+    
+    onProgress?.(40);
+    console.log('Document processed successfully, uploading to storage...');
+
+    // Generate file path
     const fileExt = file.name.split('.').pop();
     const filePath = `${crypto.randomUUID()}.${fileExt}`;
 
-    onProgress?.(20);
-
-    // Create a new FormData instance
-    const fileData = new Blob([file], { 
-      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
-    });
-
+    // Upload the file directly without converting to Blob
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('word_templates')
-      .upload(filePath, fileData, {
+      .upload(filePath, file, {
         contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         upsert: false
       });
@@ -74,19 +85,16 @@ export const uploadWordTemplate = async (
       throw new Error('Failed to upload file to storage');
     }
 
-    onProgress?.(40);
+    onProgress?.(70);
+    console.log('File uploaded successfully, getting public URL...');
 
     // Get the public URL
     const { data: { publicUrl } } = supabase.storage
       .from('word_templates')
       .getPublicUrl(filePath);
 
-    onProgress?.(60);
-
-    // Process the Word document
-    const { content, variables } = await processWordDocument(file);
-    
     onProgress?.(80);
+    console.log('Creating template entry in database...');
 
     // Create the template entry
     const { error: dbError } = await supabase
@@ -103,6 +111,11 @@ export const uploadWordTemplate = async (
       });
 
     if (dbError) {
+      // If database insert fails, clean up the uploaded file
+      await supabase.storage
+        .from('word_templates')
+        .remove([filePath]);
+        
       console.error('Database insert error:', dbError);
       throw new Error('Failed to save template details');
     }
