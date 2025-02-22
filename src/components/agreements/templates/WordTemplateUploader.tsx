@@ -30,13 +30,19 @@ export function WordTemplateUploader() {
 
       // First, extract text content using mammoth
       const extractedText = await extractTextFromWordDocument(file);
-      console.log('Extracted text:', extractedText); // For debugging
+      
+      // Sanitize filename and create a unique path
+      const sanitizedFileName = file.name.replace(/[^\x00-\x7F]/g, '');
+      const fileExt = sanitizedFileName.split('.').pop() || 'docx';
+      const filePath = `${crypto.randomUUID()}.${fileExt}`;
 
       // Upload original file to storage
-      const filename = `${crypto.randomUUID()}.docx`;
       const { error: uploadError } = await supabase.storage
         .from('word_templates')
-        .upload(filename, file);
+        .upload(filePath, file, {
+          contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          upsert: false
+        });
 
       if (uploadError) {
         console.error('Storage upload error:', uploadError);
@@ -47,8 +53,8 @@ export function WordTemplateUploader() {
       const { error: dbError } = await supabase
         .from('word_templates')
         .insert({
-          name: file.name.replace('.docx', ''),
-          original_file_url: filename,
+          name: sanitizedFileName.replace('.docx', ''),
+          original_file_url: filePath,
           content: extractedText,
           is_active: true
         });
