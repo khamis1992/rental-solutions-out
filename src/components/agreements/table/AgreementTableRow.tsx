@@ -5,7 +5,6 @@ import { formatDateToDisplay } from "@/lib/dateUtils";
 import { Badge } from "@/components/ui/badge";
 import { Info, Trash2, Car, User, Truck, Calendar, Activity, CheckCircle, Clock, XCircle, CheckSquare } from "lucide-react";
 import type { Agreement } from "@/types/agreement.types";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Tooltip,
@@ -31,7 +30,6 @@ export const AgreementTableRow = ({
   onAgreementClick,
   onNameClick,
   onDeleted,
-  onDeleteClick,
 }: AgreementTableRowProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 
