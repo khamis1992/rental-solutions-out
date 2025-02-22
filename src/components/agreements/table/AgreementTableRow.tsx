@@ -1,8 +1,9 @@
+
 import React from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { formatDateToDisplay } from "@/lib/dateUtils";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Trash2, Info, Car, User, Truck, Calendar, Activity, CheckCircle, Clock, XCircle, CheckSquare } from "lucide-react";
+import { Info, Trash2, Car, User, Truck, Calendar, Activity, CheckCircle, Clock, XCircle, CheckSquare } from "lucide-react";
 import type { Agreement } from "@/types/agreement.types";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -14,8 +15,6 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { DeleteAgreementDialog } from "../DeleteAgreementDialog";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { AgreementEditor } from "../print/AgreementEditor";
 
 interface AgreementTableRowProps {
   agreement: Agreement;
@@ -35,8 +34,6 @@ export const AgreementTableRow = ({
   onDeleteClick,
 }: AgreementTableRowProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
-  const [showTemplateDialog, setShowTemplateDialog] = React.useState(false);
-  const [templateContent, setTemplateContent] = React.useState("");
 
   const getStatusConfig = (status: string): { color: string; icon: React.ReactNode } => {
     switch (status) {
@@ -65,40 +62,6 @@ export const AgreementTableRow = ({
           color: 'bg-gray-100 text-gray-800 hover:bg-gray-200 border-gray-400',
           icon: <Activity className="h-3.5 w-3.5" />
         };
-    }
-  };
-
-  const handleViewTemplate = async () => {
-    try {
-      const { data: templateData, error } = await supabase
-        .from("agreement_templates")
-        .select("content")
-        .eq("id", agreement.template_id)
-        .single();
-
-      if (error) throw error;
-
-      if (!templateData?.content) {
-        toast.error("No template content found");
-        return;
-      }
-
-      let content = templateData.content
-        .replace(/{{customer\.customer_name}}/g, agreement.customer?.full_name || "")
-        .replace(/{{customer\.phone_number}}/g, agreement.customer?.phone_number || "")
-        .replace(/{{vehicle\.make}}/g, agreement.vehicle?.make || "")
-        .replace(/{{vehicle\.model}}/g, agreement.vehicle?.model || "")
-        .replace(/{{vehicle\.year}}/g, agreement.vehicle?.year?.toString() || "")
-        .replace(/{{vehicle\.license_plate}}/g, agreement.vehicle?.license_plate || "")
-        .replace(/{{agreement\.agreement_number}}/g, agreement.agreement_number || "")
-        .replace(/{{agreement\.start_date}}/g, formatDateToDisplay(agreement.start_date))
-        .replace(/{{agreement\.end_date}}/g, formatDateToDisplay(agreement.end_date));
-
-      setTemplateContent(content);
-      setShowTemplateDialog(true);
-    } catch (error) {
-      console.error("Error fetching template:", error);
-      toast.error("Failed to load template");
     }
   };
 
@@ -173,22 +136,6 @@ export const AgreementTableRow = ({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={handleViewTemplate}
-                className="hover:bg-blue-50 transition-colors duration-300"
-              >
-                <FileText className="h-4 w-4 text-blue-600 hover:text-blue-700 transition-colors duration-300" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>View Agreement Template</p>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
                 onClick={() => onNameClick(agreement.id)}
                 className="hover:bg-blue-50 transition-colors duration-300"
               >
@@ -223,12 +170,6 @@ export const AgreementTableRow = ({
           onOpenChange={setShowDeleteDialog}
           onDeleted={onDeleted}
         />
-
-        <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
-          <DialogContent className="max-w-4xl">
-            <AgreementEditor initialContent={templateContent} />
-          </DialogContent>
-        </Dialog>
       </TableCell>
     </TableRow>
   );
