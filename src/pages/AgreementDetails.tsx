@@ -10,6 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function AgreementDetails() {
   const { id } = useParams();
@@ -83,27 +85,50 @@ export default function AgreementDetails() {
     <div className="container mx-auto py-6 space-y-6">
       <h1 className="text-2xl font-bold mb-6">Agreement Details</h1>
       
-      {/* Agreement details card */}
-      <Card className="p-6">
-        <div className="space-y-4">
-          <div>
-            <h3 className="font-semibold">Agreement Number</h3>
-            <p>{agreement.agreement_number}</p>
-          </div>
-          <div>
-            <h3 className="font-semibold">Customer</h3>
-            <p>{agreement.customer?.full_name}</p>
-          </div>
-          <div>
-            <h3 className="font-semibold">Vehicle</h3>
-            <p>{agreement.vehicle?.make} {agreement.vehicle?.model}</p>
-          </div>
-          <div>
-            <h3 className="font-semibold">Status</h3>
-            <p className="capitalize">{agreement.status}</p>
-          </div>
-        </div>
-      </Card>
+      <Tabs defaultValue="details">
+        <TabsList>
+          <TabsTrigger value="details">Details</TabsTrigger>
+          <TabsTrigger value="contract">Contract</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="details">
+          <Card className="p-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold">Agreement Number</h3>
+                <p>{agreement.agreement_number}</p>
+              </div>
+              <div>
+                <h3 className="font-semibold">Customer</h3>
+                <p>{agreement.customer?.full_name}</p>
+              </div>
+              <div>
+                <h3 className="font-semibold">Vehicle</h3>
+                <p>{agreement.vehicle?.make} {agreement.vehicle?.model}</p>
+              </div>
+              <div>
+                <h3 className="font-semibold">Status</h3>
+                <p className="capitalize">{agreement.status}</p>
+              </div>
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="contract">
+          <Card>
+            <ScrollArea className="h-[60vh] w-full rounded-md border p-6">
+              {agreement.processed_content ? (
+                <div 
+                  className="prose max-w-none" 
+                  dangerouslySetInnerHTML={{ __html: agreement.processed_content }}
+                />
+              ) : (
+                <p className="text-gray-500">No contract template content available</p>
+              )}
+            </ScrollArea>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Payment Dialog */}
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>

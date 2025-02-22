@@ -42,7 +42,9 @@ export const useAgreementDetails = (agreementId: string, enabled: boolean) => {
             payment_method,
             status,
             late_fine_amount
-          )
+          ),
+          processed_content,
+          template_id
         `)
         .eq('id', agreementId)
         .maybeSingle();
