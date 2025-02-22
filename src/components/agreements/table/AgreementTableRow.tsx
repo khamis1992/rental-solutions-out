@@ -64,8 +64,8 @@ export const AgreementTableRow = ({
     <TableRow className="group hover:bg-gray-50/80 transition-all duration-200">
       <TableCell className="py-2">
         <button
-          onClick={() => onNameClick(agreement.id)}
-          className="text-blue-600 hover:text-blue-700 font-medium group-hover:translate-x-1 transition-all duration-300"
+          onClick={() => onAgreementClick(agreement.id)}
+          className="text-blue-600 hover:text-blue-700 font-medium group-hover:translate-x-1 transition-all duration-300 cursor-pointer"
         >
           <span className="truncate">{agreement.agreement_number}</span>
         </button>
