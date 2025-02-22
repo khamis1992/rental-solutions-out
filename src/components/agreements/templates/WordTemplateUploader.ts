@@ -6,9 +6,16 @@ import { toast } from "sonner";
 interface WordProcessingResult {
   content: string;
   variables: string[];
+  htmlContent: string;
 }
 
 const sanitizeText = (text: string) => text.replace(/\u0000/g, '');
+
+const extractVariables = (content: string): string[] => {
+  const variablePattern = /\{\{([^}]+)\}\}/g;
+  const matches = content.match(variablePattern) || [];
+  return [...new Set(matches.map(match => match.replace(/[{}]/g, '')))];
+};
 
 export const processWordDocument = async (
   file: File,
@@ -18,25 +25,38 @@ export const processWordDocument = async (
     onProgress?.(30);
     const arrayBuffer = await file.arrayBuffer();
     
-    onProgress?.(50);
-    const result = await mammoth.convertToHtml({ arrayBuffer });
-    
-    if (!result || !result.value) {
-      throw new Error('Failed to extract content from document');
+    // Convert Word document to HTML
+    const { value: htmlContent, messages } = await mammoth.convertToHtml({ 
+      arrayBuffer,
+      convertImage: mammoth.images.imgElement((image) => {
+        return image.read()
+          .then((imageBuffer) => {
+            const base64Image = Buffer.from(imageBuffer).toString('base64');
+            return {
+              src: `data:${image.contentType};base64,${base64Image}`
+            };
+          });
+      })
+    });
+
+    if (messages.length > 0) {
+      console.warn('Mammoth conversion messages:', messages);
     }
 
-    onProgress?.(70);
-    
-    // Find template variables in the content (matching {{variable}})
-    const variableMatches = result.value.match(/\{\{([^}]+)\}\}/g) || [];
-    const variables = [...new Set(variableMatches.map(v => v.replace(/[{}]/g, '')))];
+    onProgress?.(50);
 
-    // Sanitize content
-    const sanitizedContent = sanitizeText(result.value);
+    // Extract template variables
+    const variables = extractVariables(htmlContent);
+
+    // Sanitize content for storage
+    const sanitizedContent = sanitizeText(htmlContent);
+
+    onProgress?.(70);
 
     return {
       content: sanitizedContent,
-      variables
+      variables,
+      htmlContent: htmlContent
     };
   } catch (error) {
     console.error('Error processing Word document:', error);
@@ -49,11 +69,13 @@ export const processWordDocument = async (
 export const uploadWordTemplate = async (
   file: File,
   onProgress?: (progress: number) => void
-): Promise<{ publicUrl: string; content: string; variables: string[] }> => {
+): Promise<{ publicUrl: string; content: string; variables: string[]; htmlContent: string }> => {
+  // Validate file type
   if (!file.name.toLowerCase().endsWith('.docx')) {
     throw new Error('Please upload a valid Word document (.docx)');
   }
 
+  // Validate file size (5MB limit)
   if (file.size > 5 * 1024 * 1024) {
     throw new Error('File size must be less than 5MB');
   }
@@ -63,17 +85,17 @@ export const uploadWordTemplate = async (
     console.log('Processing document...');
     
     // First process the document to verify it's valid
-    const { content, variables } = await processWordDocument(file);
+    const { content, variables, htmlContent } = await processWordDocument(file);
     
     onProgress?.(40);
     console.log('Document processed successfully, uploading to storage...');
 
-    // Generate file path
+    // Generate unique file path
     const fileExt = file.name.split('.').pop();
     const filePath = `${crypto.randomUUID()}.${fileExt}`;
 
-    // Upload the file directly without converting to Blob
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    // Upload the original file
+    const { error: uploadError } = await supabase.storage
       .from('word_templates')
       .upload(filePath, file, {
         contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -96,7 +118,7 @@ export const uploadWordTemplate = async (
     onProgress?.(80);
     console.log('Creating template entry in database...');
 
-    // Create the template entry
+    // Create database entry
     const { error: dbError } = await supabase
       .from('word_templates')
       .insert({
@@ -111,7 +133,7 @@ export const uploadWordTemplate = async (
       });
 
     if (dbError) {
-      // If database insert fails, clean up the uploaded file
+      // Cleanup: remove uploaded file if database insert fails
       await supabase.storage
         .from('word_templates')
         .remove([filePath]);
@@ -123,10 +145,24 @@ export const uploadWordTemplate = async (
     onProgress?.(100);
     toast.success('Template uploaded successfully');
 
-    return { publicUrl, content, variables };
+    return { publicUrl, content, variables, htmlContent };
   } catch (error) {
     console.error('Upload error:', error);
     toast.error(error instanceof Error ? error.message : 'Failed to upload template');
     throw error;
   }
 };
+
+export const downloadWordTemplate = async (fileUrl: string): Promise<Blob> => {
+  try {
+    const response = await fetch(fileUrl);
+    if (!response.ok) {
+      throw new Error('Failed to download template');
+    }
+    return await response.blob();
+  } catch (error) {
+    console.error('Download error:', error);
+    throw new Error('Failed to download template');
+  }
+};
+
