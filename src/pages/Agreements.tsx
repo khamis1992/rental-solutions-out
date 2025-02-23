@@ -12,7 +12,7 @@ import { type Agreement } from "@/types/agreement.types";
 import { DeleteAgreementDialog } from "@/components/agreements/DeleteAgreementDialog";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { CustomAgreementList } from "@/features/agreements/components/list/CustomAgreementList";
+import { EnhancedAgreementList } from "@/features/agreements/components/list/EnhancedAgreementList";
 
 const Agreements = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -120,14 +120,14 @@ const Agreements = () => {
             <AgreementStats />
           </div>
 
-          {/* Agreement List */}
+          {/* Enhanced Agreements List */}
           <div className="pb-12">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2D2942]"></div>
               </div>
             ) : (
-              <CustomAgreementList 
+              <EnhancedAgreementList 
                 agreements={agreements as Agreement[]}
                 onViewDetails={handleViewDetails}
                 onDelete={handleDeleteClick}
