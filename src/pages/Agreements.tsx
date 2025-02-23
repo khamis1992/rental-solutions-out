@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { AgreementListHeader } from "@/components/agreements/list/AgreementListHeader";
@@ -6,7 +5,7 @@ import { AgreementStats } from "@/components/agreements/AgreementStats";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { PaymentImport } from "@/components/agreements/PaymentImport";
 import { ChevronRight, Building2, FileText } from "lucide-react";
-import { CustomAgreementList } from "@/components/agreements/list/CustomAgreementList";
+import { AgreementList } from "@/features/agreements/components/list/AgreementList";
 import { useAgreements } from "@/components/agreements/hooks/useAgreements";
 import { AgreementDetailsDialog } from "@/components/agreements/AgreementDetailsDialog";
 import { type Agreement } from "@/types/agreement.types";
@@ -108,7 +107,7 @@ const Agreements = () => {
             {isLoading ? (
               <div>Loading...</div>
             ) : (
-              <CustomAgreementList 
+              <AgreementList 
                 agreements={agreements}
                 onViewDetails={handleViewDetails}
                 onDelete={handleDeleteClick}
