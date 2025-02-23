@@ -9,7 +9,7 @@ import { SmartNotifications } from "@/components/dashboard/SmartNotifications";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { VehicleStatusChartV3 } from "@/components/dashboard/enhanced/VehicleStatusChartV3";
+import { VehicleStatusChartV2 } from "@/components/dashboard/enhanced/VehicleStatusChartV2";
 
 interface DashboardStats {
   total_vehicles: number;
@@ -35,7 +35,7 @@ const Dashboard = () => {
         throw new Error("No data returned from dashboard stats");
       }
 
-      // Since data is of type Json, we need to type assert and validate it
+      // Convert the data to the correct format
       const statsData: DashboardStats = {
         total_vehicles: Number(data.total_vehicles || 0),
         available_vehicles: Number(data.available_vehicles || 0),
@@ -67,7 +67,7 @@ const Dashboard = () => {
         <DashboardStats stats={statsData} />
       </div>
 
-      <VehicleStatusChartV3 />
+      <VehicleStatusChartV2 />
 
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
         <Card className="bg-white/50 backdrop-blur-sm border-gray-200/50 hover:border-gray-300 transition-all duration-300 h-[400px]">
