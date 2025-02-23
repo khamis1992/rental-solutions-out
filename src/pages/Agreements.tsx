@@ -128,7 +128,7 @@ const Agreements = () => {
               </div>
             ) : (
               <EnhancedAgreementList 
-                agreements={agreements}
+                agreements={agreements as Agreement[]}
                 onViewDetails={handleViewDetails}
                 onDelete={handleDeleteClick}
                 viewMode="list"
