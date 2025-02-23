@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatDateToDisplay } from "@/lib/dateUtils";
+import { formatDate } from "@/lib/dateUtils";
 
 interface CustomAgreementListProps {
   agreements: Agreement[];
@@ -125,7 +125,7 @@ export const CustomAgreementList = ({
                   <p className="text-xs text-gray-500">Start Date</p>
                   <p className="text-sm">
                     {agreement.start_date ? 
-                      formatDateToDisplay(agreement.start_date) :
+                      formatDate(agreement.start_date) :
                       'Not set'
                     }
                   </p>
@@ -134,7 +134,7 @@ export const CustomAgreementList = ({
                   <p className="text-xs text-gray-500">End Date</p>
                   <p className="text-sm">
                     {agreement.end_date ? 
-                      formatDateToDisplay(agreement.end_date) :
+                      formatDate(agreement.end_date) :
                       'Not set'
                     }
                   </p>
