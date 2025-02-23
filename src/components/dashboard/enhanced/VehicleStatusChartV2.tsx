@@ -1,6 +1,6 @@
 
 import { useEffect, useMemo, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { DonutChart } from "../charts/DonutChart";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,16 +9,17 @@ import { StatusGroupV2 } from "./StatusGroupV2";
 import { VehicleStatusDialogV2 } from "./VehicleStatusDialogV2";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AlertTriangle } from "lucide-react";
 
 export const STATUS_CONFIG = {
-  available: { color: "#10B981", label: "Available", group: "operational" },
-  rented: { color: "#3B82F6", label: "Rented", group: "operational" },
-  maintenance: { color: "#F59E0B", label: "Maintenance", group: "attention" },
-  reserve: { color: "#8B5CF6", label: "Reserved", group: "operational" },
-  police_station: { color: "#8B5CF6", label: "Police Station", group: "critical" },
-  accident: { color: "#EF4444", label: "Accident", group: "critical" },
-  stolen: { color: "#1F2937", label: "Stolen", group: "critical" },
-  retired: { color: "#6B7280", label: "Retired", group: "attention" },
+  available: { color: "#10B981", label: "Available", group: "operational", icon: "🚗" },
+  rented: { color: "#3B82F6", label: "Rented Out", group: "operational", icon: "📋" },
+  maintenance: { color: "#F59E0B", label: "In Maintenance", group: "attention", icon: "⚠️" },
+  reserve: { color: "#8B5CF6", label: "In Reserve", group: "operational", icon: "🚗" },
+  police_station: { color: "#8B5CF6", label: "At Police Station", group: "attention", icon: "🏢" },
+  accident: { color: "#EF4444", label: "In Accident", group: "critical", icon: "⚠️" },
+  stolen: { color: "#1F2937", label: "Reported Stolen", group: "critical", icon: "🚫" },
+  retired: { color: "#6B7280", label: "Retired", group: "attention", icon: "🔒" },
 };
 
 export const VehicleStatusChartV2 = () => {
@@ -86,11 +87,15 @@ export const VehicleStatusChartV2 = () => {
     return vehicles.filter((v) => v.status === selectedStatus);
   }, [selectedStatus, vehicles]);
 
+  const criticalCount = useMemo(() => {
+    return groupedStatuses.critical.reduce((sum, item) => sum + item.count, 0);
+  }, [groupedStatuses.critical]);
+
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Vehicle Status Distribution</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <h3 className="text-2xl font-bold tracking-tight">Vehicle Status Distribution</h3>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
@@ -109,13 +114,20 @@ export const VehicleStatusChartV2 = () => {
   return (
     <>
       <Card className="bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 backdrop-blur-sm border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Vehicle Status Distribution</span>
-            <span className="text-sm font-normal text-muted-foreground">
-              Total Vehicles: {vehicles.length}
-            </span>
-          </CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <h3 className="text-2xl font-bold tracking-tight">Vehicle Status Distribution</h3>
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col items-end">
+              <span className="text-sm text-muted-foreground">Total Vehicles</span>
+              <span className="text-2xl font-bold">{vehicles.length}</span>
+            </div>
+            {criticalCount > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg">
+                <AlertTriangle className="h-4 w-4" />
+                <span className="text-sm font-medium">{criticalCount} critical</span>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -128,26 +140,33 @@ export const VehicleStatusChartV2 = () => {
                   innerRadius: 60,
                   outerRadius: 100,
                 }}
-                primaryValue={chartData.reduce((sum, item) => sum + item.value, 0)}
+                primaryValue={vehicles.length}
                 primaryLabel="Total Vehicles"
               />
             </div>
-            <div className="space-y-6">
-              <StatusGroupV2
-                title="Operational"
-                items={groupedStatuses.operational}
-                onStatusClick={setSelectedStatus}
-              />
-              <StatusGroupV2
-                title="Needs Attention"
-                items={groupedStatuses.attention}
-                onStatusClick={setSelectedStatus}
-              />
-              <StatusGroupV2
-                title="Critical"
-                items={groupedStatuses.critical}
-                onStatusClick={setSelectedStatus}
-              />
+            <div className="space-y-8">
+              <div className="space-y-6">
+                <div className="grid gap-6">
+                  <StatusGroupV2
+                    title="Operational"
+                    subtitle={`${groupedStatuses.operational.reduce((sum, item) => sum + item.count, 0)} vehicles`}
+                    items={groupedStatuses.operational}
+                    onStatusClick={setSelectedStatus}
+                  />
+                  <StatusGroupV2
+                    title="Needs Attention"
+                    subtitle={`${groupedStatuses.attention.reduce((sum, item) => sum + item.count, 0)} vehicles`}
+                    items={groupedStatuses.attention}
+                    onStatusClick={setSelectedStatus}
+                  />
+                  <StatusGroupV2
+                    title="Critical"
+                    subtitle={`${groupedStatuses.critical.reduce((sum, item) => sum + item.count, 0)} vehicles`}
+                    items={groupedStatuses.critical}
+                    onStatusClick={setSelectedStatus}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>

@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 
 interface StatusGroupV2Props {
   title: string;
+  subtitle?: string;
   items: Array<{
     status: VehicleStatus;
     count: number;
@@ -12,16 +13,18 @@ interface StatusGroupV2Props {
   onStatusClick: (status: VehicleStatus) => void;
 }
 
-export const StatusGroupV2 = ({ title, items, onStatusClick }: StatusGroupV2Props) => {
-  const total = items.reduce((sum, item) => sum + item.count, 0);
-
+export const StatusGroupV2 = ({ title, subtitle, items, onStatusClick }: StatusGroupV2Props) => {
   return (
     <div className="space-y-3">
-      <h3 className="font-medium text-sm text-muted-foreground">{title}</h3>
-      <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm text-muted-foreground font-medium">{title}</h3>
+        {subtitle && (
+          <span className="text-sm text-muted-foreground">{subtitle}</span>
+        )}
+      </div>
+      <div className="space-y-1.5">
         {items.map(({ status, count }) => {
           const config = STATUS_CONFIG[status];
-          const percentage = ((count / total) * 100).toFixed(1);
           const isCritical = config?.group === "critical";
           
           return (
@@ -34,24 +37,16 @@ export const StatusGroupV2 = ({ title, items, onStatusClick }: StatusGroupV2Prop
                 "hover:bg-muted/50 active:bg-muted",
                 "hover:scale-[1.02]",
                 "border border-transparent hover:border-border",
-                "animate-fade-in",
                 isCritical && "hover:bg-red-500/10 dark:hover:bg-red-500/20"
               )}
             >
               <div className="flex items-center gap-2">
-                <div
-                  className={cn(
-                    "w-3 h-3 rounded-full",
-                    isCritical && "ring-2 ring-red-500/20"
-                  )}
-                  style={{ backgroundColor: config?.color }}
-                />
-                <span className="text-sm font-medium">{config?.label || status}</span>
+                <span className="text-lg">{config?.icon}</span>
+                <span className="text-sm font-medium text-muted-foreground">
+                  {config?.label || status}
+                </span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">{count}</span>
-                <span className="text-xs text-muted-foreground">({percentage}%)</span>
-              </div>
+              <div className="text-sm font-bold">{count}</div>
             </button>
           );
         })}
