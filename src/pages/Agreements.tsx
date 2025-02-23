@@ -16,7 +16,7 @@ import {
 import { CustomAgreementList } from "@/components/agreements/list/CustomAgreementList";
 import { useAgreements } from "@/components/agreements/hooks/useAgreements";
 import { AgreementDetailsDialog } from "@/components/agreements/AgreementDetailsDialog";
-import { type Agreement } from "@/types/agreement.types";
+import { type Agreement, type LeaseStatus } from "@/types/agreement.types";
 import { DeleteAgreementDialog } from "@/components/agreements/DeleteAgreementDialog";
 import { toast } from "sonner";
 
@@ -25,6 +25,7 @@ const Agreements = () => {
   const [selectedAgreement, setSelectedAgreement] = useState<Agreement | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState<LeaseStatus | 'all'>('all');
 
   const { 
     data: agreements = [], 
@@ -52,6 +53,11 @@ const Agreements = () => {
     setShowDeleteDialog(false);
     setSelectedAgreement(null);
   };
+
+  // Filter agreements based on status
+  const filteredAgreements = agreements.filter(agreement => 
+    currentStatus === 'all' ? true : agreement.status === currentStatus
+  );
 
   return (
     <DashboardLayout>
@@ -125,7 +131,7 @@ const Agreements = () => {
               </div>
             ) : (
               <CustomAgreementList 
-                agreements={agreements}
+                agreements={filteredAgreements}
                 onViewDetails={handleViewDetails}
                 onDelete={handleDeleteClick}
                 viewMode="grid"
@@ -161,4 +167,3 @@ const Agreements = () => {
 };
 
 export default Agreements;
-
