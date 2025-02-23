@@ -1,20 +1,53 @@
+
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { AgreementList } from "@/components/agreements/AgreementList";
 import { AgreementListHeader } from "@/components/agreements/list/AgreementListHeader";
 import { AgreementStats } from "@/components/agreements/AgreementStats";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { PaymentImport } from "@/components/agreements/PaymentImport";
 import { ChevronRight, Building2, FileText } from "lucide-react";
+import { CustomAgreementList } from "@/components/agreements/list/CustomAgreementList";
+import { useAgreements } from "@/components/agreements/hooks/useAgreements";
+import { AgreementDetailsDialog } from "@/components/agreements/AgreementDetailsDialog";
+import { type Agreement } from "@/types/agreement.types";
+import { DeleteAgreementDialog } from "@/components/agreements/DeleteAgreementDialog";
+import { toast } from "sonner";
+
 const Agreements = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [selectedAgreement, setSelectedAgreement] = useState<Agreement | null>(null);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const { 
+    agreements = [], 
+    isLoading,
+    refetch 
+  } = useAgreements();
+
   const handleImportClick = () => {
     // Import handling logic
   };
-  const handleDeleteClick = () => {
-    // Delete handling logic
+
+  const handleViewDetails = (agreement: Agreement) => {
+    setSelectedAgreement(agreement);
+    setShowDetailsDialog(true);
   };
-  return <DashboardLayout>
+
+  const handleDeleteClick = (agreement: Agreement) => {
+    setSelectedAgreement(agreement);
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteComplete = () => {
+    toast.success("Agreement deleted successfully");
+    refetch();
+    setShowDeleteDialog(false);
+    setSelectedAgreement(null);
+  };
+
+  return (
+    <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         {/* Header Section with Professional Gradient */}
         <div className="relative bg-gradient-to-r from-blue-50 via-blue-100 to-blue-50 border-b">
@@ -54,7 +87,7 @@ const Agreements = () => {
             {/* Action Buttons */}
             <div className="flex justify-between items-center gap-6 max-w-screen-xl mx-auto">
               <div className="flex-1">
-                <AgreementListHeader onImportClick={handleImportClick} onDeleteClick={handleDeleteClick} isDeleting={false} />
+                <AgreementListHeader onImportClick={handleImportClick} onDeleteClick={() => {}} isDeleting={false} />
               </div>
               <div className="flex-shrink-0">
                 <PaymentImport />
@@ -72,12 +105,39 @@ const Agreements = () => {
 
           {/* Agreements List */}
           <div className="pb-12">
-            <AgreementList />
+            <CustomAgreementList 
+              agreements={agreements}
+              onViewDetails={handleViewDetails}
+              onDelete={handleDeleteClick}
+              viewMode="grid"
+            />
           </div>
         </div>
 
-        <CreateAgreementDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
+        {/* Dialogs */}
+        <CreateAgreementDialog 
+          open={showCreateDialog} 
+          onOpenChange={setShowCreateDialog} 
+        />
+
+        {selectedAgreement && (
+          <>
+            <AgreementDetailsDialog
+              open={showDetailsDialog}
+              onOpenChange={setShowDetailsDialog}
+              agreementId={selectedAgreement.id}
+            />
+            <DeleteAgreementDialog
+              agreementId={selectedAgreement.id}
+              open={showDeleteDialog}
+              onOpenChange={setShowDeleteDialog}
+              onDeleted={handleDeleteComplete}
+            />
+          </>
+        )}
       </div>
-    </DashboardLayout>;
+    </DashboardLayout>
+  );
 };
+
 export default Agreements;
