@@ -3,7 +3,7 @@ import { type Agreement } from "@/types/agreement.types";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, MoreVertical, Trash2 } from "lucide-react";
+import { MoreVertical, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -81,11 +81,6 @@ export const CustomAgreementList = ({
                   <DropdownMenuItem onClick={() => onViewDetails(agreement)}>
                     View Details
                   </DropdownMenuItem>
-                  {onViewTemplate && (
-                    <DropdownMenuItem onClick={() => onViewTemplate(agreement)}>
-                      View Template
-                    </DropdownMenuItem>
-                  )}
                   {onDelete && (
                     <DropdownMenuItem
                       className="text-red-600"
@@ -145,14 +140,6 @@ export const CustomAgreementList = ({
             {/* Footer Actions */}
             {viewMode !== 'list' && (
               <div className="mt-4 flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onViewTemplate?.(agreement)}
-                >
-                  <FileText className="h-4 w-4 mr-1" />
-                  Template
-                </Button>
                 {onDelete && (
                   <Button
                     variant="destructive"
@@ -171,3 +158,4 @@ export const CustomAgreementList = ({
     </div>
   );
 };
+
