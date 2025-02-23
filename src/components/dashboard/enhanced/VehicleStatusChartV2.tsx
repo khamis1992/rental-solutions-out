@@ -115,7 +115,17 @@ export const VehicleStatusChartV2 = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="relative flex items-center justify-center">
-              <DonutChart data={chartData} />
+              <DonutChart 
+                data={chartData} 
+                config={{
+                  width: 300,
+                  height: 300,
+                  innerRadius: 60,
+                  outerRadius: 100,
+                }}
+                primaryValue={chartData.reduce((sum, item) => sum + item.value, 0)}
+                primaryLabel="Total Vehicles"
+              />
             </div>
             <div className="space-y-6">
               <StatusGroupV2

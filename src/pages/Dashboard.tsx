@@ -9,6 +9,7 @@ import { SmartNotifications } from "@/components/dashboard/SmartNotifications";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
+import { VehicleStatusChartV2 } from "@/components/dashboard/enhanced/VehicleStatusChartV2";
 
 interface DashboardStats {
   total_vehicles: number;
@@ -21,7 +22,7 @@ interface DashboardStats {
 }
 
 const Dashboard = () => {
-  const { data: stats, error } = useQuery({
+  const { data: statsData, error } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_dashboard_stats');
@@ -34,6 +35,7 @@ const Dashboard = () => {
         throw new Error("No data returned from dashboard stats");
       }
 
+      // Convert the data to the correct format
       const statsData: DashboardStats = {
         total_vehicles: Number(data.total_vehicles || 0),
         available_vehicles: Number(data.available_vehicles || 0),
@@ -62,8 +64,10 @@ const Dashboard = () => {
       </Card>
 
       <div className="grid gap-6">
-        <DashboardStats stats={stats} />
+        <DashboardStats stats={statsData} />
       </div>
+
+      <VehicleStatusChartV2 />
 
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
         <Card className="bg-white/50 backdrop-blur-sm border-gray-200/50 hover:border-gray-300 transition-all duration-300 h-[400px]">
