@@ -12,7 +12,7 @@ import { type Agreement } from "@/types/agreement.types";
 import { DeleteAgreementDialog } from "@/components/agreements/DeleteAgreementDialog";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { EnhancedAgreementList } from "@/components/agreements/enhanced/AgreementList";
+import { EnhancedAgreementListV2 } from "@/components/agreements/v2/EnhancedAgreementListV2";
 
 const Agreements = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -122,33 +122,13 @@ const Agreements = () => {
 
           {/* Enhanced Agreements List with Loading State */}
           <div className="pb-12">
-            {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, index) => (
-                  <div 
-                    key={index}
-                    className="animate-pulse bg-white rounded-lg border border-slate-200/75 p-6 space-y-4"
-                  >
-                    <div className="h-6 bg-slate-200 rounded-md w-3/4"></div>
-                    <div className="space-y-2">
-                      <div className="h-4 bg-slate-200 rounded w-1/2"></div>
-                      <div className="h-4 bg-slate-200 rounded w-1/3"></div>
-                    </div>
-                    <div className="flex justify-between pt-4">
-                      <div className="h-8 bg-slate-200 rounded w-1/4"></div>
-                      <div className="h-8 bg-slate-200 rounded w-1/4"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <EnhancedAgreementList 
-                agreements={agreements}
-                onViewDetails={handleViewDetails}
-                onDelete={handleDeleteClick}
-                viewMode="list"
-              />
-            )}
+            <EnhancedAgreementListV2 
+              agreements={agreements}
+              onViewDetails={handleViewDetails}
+              onDelete={handleDeleteClick}
+              viewMode="grid"
+              showLoadingState={isLoading}
+            />
           </div>
         </div>
 
