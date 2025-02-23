@@ -1,4 +1,3 @@
-
 import { Agreement } from "@/types/agreement.types";
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatDate } from "@/lib/utils";

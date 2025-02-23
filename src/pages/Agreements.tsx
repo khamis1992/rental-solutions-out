@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { AgreementListHeader } from "@/components/agreements/list/AgreementListHeader";
@@ -12,7 +11,7 @@ import { type Agreement } from "@/types/agreement.types";
 import { DeleteAgreementDialog } from "@/components/agreements/DeleteAgreementDialog";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { EnhancedAgreementList } from "@/features/agreements/components/list/EnhancedAgreementList";
+import { EnhancedAgreementList } from "@/features/agreements/components/enhanced/EnhancedAgreementList";
 
 const Agreements = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
