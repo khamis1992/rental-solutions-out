@@ -56,7 +56,7 @@ const Agreements = () => {
           <div className="absolute inset-0 bg-white/40 backdrop-blur-sm" />
           
           {/* Content Container */}
-          <div className="relative w-full max-w-screen-xl mx-auto px-4 lg:px-8 py-8 sm:px-[240px]">
+          <div className="relative w-full max-w-screen-xl mx-auto px-4 lg:px-8 py-8">
             {/* Enhanced Breadcrumb Navigation */}
             <nav className="flex items-center gap-2 text-sm text-[#2D2942]/70 mb-8">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-md border border-[#2D2942]/10 hover:bg-[#2D2942]/5 transition-all duration-300 shadow-sm">
@@ -87,7 +87,7 @@ const Agreements = () => {
             </div>
 
             {/* Enhanced Search and Action Buttons */}
-            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 max-w-screen-xl mx-auto">
+            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
               <div className="flex-1 relative">
                 <Input
                   placeholder="Search agreements..."
@@ -120,20 +120,24 @@ const Agreements = () => {
             <AgreementStats />
           </div>
 
-          {/* Enhanced Agreements List */}
-          <div className="pb-12">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2D2942]"></div>
-              </div>
-            ) : (
-              <EnhancedAgreementList 
-                agreements={agreements}
-                onViewDetails={handleViewDetails}
-                onDelete={handleDeleteClick}
-                viewMode="grid"
-              />
-            )}
+          {/* Enhanced Agreements List Container */}
+          <div className="pb-12 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="space-y-6">
+              {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2D2942]"></div>
+                </div>
+              ) : (
+                <div className="transition-all duration-300 hover:shadow-lg rounded-xl">
+                  <EnhancedAgreementList 
+                    agreements={agreements}
+                    onViewDetails={handleViewDetails}
+                    onDelete={handleDeleteClick}
+                    viewMode="grid"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
