@@ -18,24 +18,22 @@ export const VehicleStatusChartV3 = () => {
       try {
         const { data, error } = await supabase
           .from('vehicles')
-          .select('status')
-          .then(result => {
-            if (result.error) throw result.error;
-            
-            // Count vehicles by status
-            const counts: Record<string, number> = {};
-            result.data.forEach(vehicle => {
-              counts[vehicle.status] = (counts[vehicle.status] || 0) + 1;
-            });
-            
-            return Object.entries(counts).map(([status, count]) => ({
-              status: status as VehicleStatus,
-              count
-            }));
-          });
+          .select('status');
 
         if (error) throw error;
-        setVehicleData(data);
+
+        // Count vehicles by status
+        const counts: Record<string, number> = {};
+        data.forEach(vehicle => {
+          counts[vehicle.status] = (counts[vehicle.status] || 0) + 1;
+        });
+
+        const statusData = Object.entries(counts).map(([status, count]) => ({
+          status: status as VehicleStatus,
+          count
+        }));
+
+        setVehicleData(statusData);
       } catch (error) {
         toast.error("Failed to load vehicle status data: " + (error as Error).message);
       } finally {
@@ -57,11 +55,16 @@ export const VehicleStatusChartV3 = () => {
     height: 320,
     innerRadius: 70,
     outerRadius: 110,
+    style: {
+      background: "transparent",
+      padding: 0,
+      margin: 0,
+    }
   };
 
   return (
     <Card className="p-6">
-      <ChartContainer>
+      <ChartContainer config={chartConfig}>
         {isLoading ? (
           <div>Loading...</div>
         ) : (
