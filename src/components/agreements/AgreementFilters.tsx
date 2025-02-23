@@ -1,47 +1,43 @@
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
-import { useState, useCallback } from "react";
-import { debounce } from "lodash";
-import { LeaseStatus } from "@/types/agreement.types";
 
-interface AgreementFiltersProps {
-  onStatusChange: (value: LeaseStatus | "all") => void;
-  onSortChange: (value: string) => void;
-  onSearch: (value: string) => void;
-  searchValue: string;
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Filter, Search } from "lucide-react";
+
+export interface AgreementFiltersProps {
+  onSearchChange?: (value: string) => void;
+  onStatusFilter?: (value: string) => void;
 }
 
 export const AgreementFilters = ({
-  onStatusChange,
-  onSortChange,
-  onSearch,
-  searchValue,
+  onSearchChange,
+  onStatusFilter,
 }: AgreementFiltersProps) => {
-  const [localSearchValue, setLocalSearchValue] = useState(searchValue);
-
-  // Debounce the search to avoid too many requests
-  const debouncedSearch = useCallback(
-    debounce((value: string) => {
-      onSearch(value);
-    }, 300),
-    [onSearch]
-  );
-
-  const handleSearchChange = (value: string) => {
-    setLocalSearchValue(value);
-    debouncedSearch(value);
-  };
-
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
-      <div className="relative w-full md:w-96">
-        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+    <div className="flex flex-col gap-6 md:flex-row md:items-center">
+      <div className="w-full md:w-1/3 relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
         <Input
-          placeholder="Search agreements by number, customer, or vehicle..."
-          value={localSearchValue}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          className="pl-8"
+          placeholder="Search agreements..."
+          onChange={(e) => onSearchChange?.(e.target.value)}
+          className="w-full pl-11 h-12 md:h-10 text-base"
         />
+      </div>
+      <div className="w-full md:w-1/4">
+        <Select onValueChange={onStatusFilter} defaultValue="all">
+          <SelectTrigger className="w-full h-12 md:h-10 text-base">
+            <div className="flex items-center gap-2">
+              <Filter className="h-5 w-5 text-muted-foreground" />
+              <SelectValue placeholder="Filter by status" />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
