@@ -6,13 +6,13 @@ import { AgreementStats } from "@/components/agreements/AgreementStats";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { PaymentImport } from "@/components/agreements/PaymentImport";
 import { ChevronRight, Building2, FileText, Search } from "lucide-react";
-import { CustomAgreementList } from "@/features/agreements/components/list/CustomAgreementList";
 import { useAgreements } from "@/components/agreements/hooks/useAgreements";
 import { AgreementDetailsDialog } from "@/components/agreements/AgreementDetailsDialog";
 import { type Agreement } from "@/types/agreement.types";
 import { DeleteAgreementDialog } from "@/components/agreements/DeleteAgreementDialog";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { EnhancedAgreementList } from "@/components/agreements/EnhancedAgreementList";
 
 const Agreements = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -127,7 +127,7 @@ const Agreements = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2D2942]"></div>
               </div>
             ) : (
-              <CustomAgreementList 
+              <EnhancedAgreementList 
                 agreements={agreements}
                 onViewDetails={handleViewDetails}
                 onDelete={handleDeleteClick}
