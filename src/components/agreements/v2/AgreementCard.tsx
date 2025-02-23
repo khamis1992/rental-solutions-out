@@ -24,6 +24,11 @@ import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { TemplatePreview } from "@/components/agreements/templates/TemplatePreview";
 
+const containsArabic = (text: string) => {
+  const arabicPattern = /[\u0600-\u06FF]/;
+  return arabicPattern.test(text);
+};
+
 export const AgreementCard = ({
   agreement,
   onViewDetails,
@@ -35,6 +40,8 @@ export const AgreementCard = ({
   const paymentProgress = calculatePaymentProgress(agreement);
   const StatusIcon = status.icon;
   const PaymentIcon = paymentConfig.icon;
+
+  const isArabic = containsArabic(agreement.processed_content || "");
 
   return (
     <>
@@ -140,7 +147,7 @@ export const AgreementCard = ({
       </Card>
 
       <Dialog open={showTemplatePreview} onOpenChange={setShowTemplatePreview}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto p-0">
           <TemplatePreview
             content={agreement.processed_content || ""}
             missingVariables={[]}
@@ -149,8 +156,9 @@ export const AgreementCard = ({
               italic: false,
               underline: false,
               fontSize: 14,
-              alignment: 'right'
+              alignment: isArabic ? 'right' : 'left'
             }}
+            tables={[]}
           />
         </DialogContent>
       </Dialog>
