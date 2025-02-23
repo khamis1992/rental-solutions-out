@@ -5,7 +5,14 @@ import { AgreementListHeader } from "@/components/agreements/list/AgreementListH
 import { AgreementStats } from "@/components/agreements/AgreementStats";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { PaymentImport } from "@/components/agreements/PaymentImport";
-import { ChevronRight, Building2, FileText } from "lucide-react";
+import { 
+  ChevronRight, 
+  Building2, 
+  FileText,
+  Settings,
+  BarChart,
+  Clock
+} from "lucide-react";
 import { CustomAgreementList } from "@/components/agreements/list/CustomAgreementList";
 import { useAgreements } from "@/components/agreements/hooks/useAgreements";
 import { AgreementDetailsDialog } from "@/components/agreements/AgreementDetailsDialog";
@@ -48,46 +55,53 @@ const Agreements = () => {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-        {/* Header Section with Professional Gradient */}
-        <div className="relative bg-gradient-to-r from-blue-50 via-blue-100 to-blue-50 border-b">
+      <div className="min-h-screen bg-gradient-to-b from-[#98BBF5]/5 to-white">
+        {/* Enhanced Header Section with New Color Scheme */}
+        <div className="relative bg-gradient-to-r from-[#98BBF5]/10 via-[#98BBF5]/20 to-[#98BBF5]/10 border-b border-[#98BBF5]/20">
           <div className="absolute inset-0 bg-white/40 backdrop-blur-sm" />
           
           {/* Content Container */}
           <div className="relative w-full max-w-screen-xl mx-auto px-4 lg:px-8 py-10 sm:px-[240px]">
             {/* Enhanced Breadcrumb Navigation */}
-            <nav className="flex items-center gap-2 text-sm text-gray-600 mb-8">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-md border border-blue-100 hover:bg-blue-50 transition-all duration-300 shadow-sm">
-                <Building2 className="h-4 w-4 text-blue-500" />
+            <nav className="flex items-center gap-2 text-sm text-[#1C304F] mb-8">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-md border border-[#98BBF5]/30 hover:bg-[#98BBF5]/10 transition-all duration-300 shadow-sm">
+                <Building2 className="h-4 w-4 text-[#1C304F]" />
                 <span className="font-medium">Organization</span>
               </div>
-              <ChevronRight className="h-4 w-4 text-blue-300" />
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50/80 backdrop-blur-md border border-blue-200 shadow-sm">
-                <span className="font-medium text-blue-700">Agreements Management</span>
+              <ChevronRight className="h-4 w-4 text-[#98BBF5]" />
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#98BBF5]/10 backdrop-blur-md border border-[#98BBF5]/30 shadow-sm">
+                <FileText className="h-4 w-4 text-[#1C304F]" />
+                <span className="font-medium text-[#1C304F]">Agreements Management</span>
               </div>
             </nav>
 
-            {/* Title Section */}
+            {/* Enhanced Title Section */}
             <div className="mb-10">
               <div className="flex items-center gap-6">
-                <div className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
-                  <FileText className="h-8 w-8 text-white" />
+                <div className="p-4 bg-gradient-to-br from-[#98BBF5] to-[#1C304F] rounded-xl shadow-lg group transition-all duration-300 hover:shadow-xl hover:scale-105">
+                  <FileText className="h-8 w-8 text-white animate-pulse" />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 text-transparent bg-clip-text mb-2">
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-[#1C304F] via-[#98BBF5] to-[#1C304F] text-transparent bg-clip-text mb-2">
                     Agreements Management
                   </h1>
-                  <p className="text-gray-600 text-lg">
-                    Manage and track all your agreements efficiently
+                  <p className="text-[#1C304F]/80 text-lg flex items-center gap-2">
+                    <Settings className="h-4 w-4" /> Manage and
+                    <BarChart className="h-4 w-4" /> track all agreements
+                    <Clock className="h-4 w-4" /> efficiently
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* Enhanced Action Buttons */}
             <div className="flex justify-between items-center gap-6 max-w-screen-xl mx-auto">
               <div className="flex-1">
-                <AgreementListHeader onImportClick={handleImportClick} onDeleteClick={() => {}} isDeleting={false} />
+                <AgreementListHeader 
+                  onImportClick={handleImportClick} 
+                  onDeleteClick={() => {}} 
+                  isDeleting={false}
+                />
               </div>
               <div className="flex-shrink-0">
                 <PaymentImport />
@@ -98,15 +112,17 @@ const Agreements = () => {
 
         {/* Main Content Area */}
         <div className="w-full max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Stats Section */}
+          {/* Enhanced Stats Section */}
           <div className="py-8">
             <AgreementStats />
           </div>
 
-          {/* Agreements List */}
+          {/* Enhanced Agreements List */}
           <div className="pb-12">
             {isLoading ? (
-              <div>Loading...</div>
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#98BBF5]"></div>
+              </div>
             ) : (
               <CustomAgreementList 
                 agreements={agreements}
@@ -145,3 +161,4 @@ const Agreements = () => {
 };
 
 export default Agreements;
+
