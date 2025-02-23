@@ -20,8 +20,14 @@ const badgeVariants = cva(
         pending_payment: "border-transparent bg-amber-500 text-white",
         pending_deposit: "border-transparent bg-amber-600 text-white",
         closed: "border-transparent bg-rose-500 text-white",
-        success: "border-transparent bg-emerald-500 text-white",
-        warning: "border-transparent bg-amber-500 text-white",
+        success: "border-transparent bg-[#10B981] text-white", // Exact green from image
+        warning: "border-transparent bg-[#F59E0B] text-white", // Exact amber from image
+        rented: "border-transparent bg-[#3B82F6] text-white", // Exact blue from image
+        reserve: "border-transparent bg-[#8B5CF6] text-white", // Exact purple from image
+        maintenance: "border-transparent bg-[#F59E0B] text-white", // Exact amber from image
+        police_station: "border-transparent bg-[#8B5CF6] text-white", // Exact purple from image
+        accident: "border-transparent bg-[#EF4444] text-white", // Exact red from image
+        stolen: "border-transparent bg-[#1F2937] text-white", // Exact black from image
       },
     },
     defaultVariants: {
@@ -41,3 +47,4 @@ function Badge({ className, variant, ...props }: BadgeProps) {
 }
 
 export { Badge, badgeVariants }
+
