@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { AgreementListHeader } from "@/components/agreements/list/AgreementListHeader";
 import { AgreementStats } from "@/components/agreements/AgreementStats";
@@ -13,6 +14,7 @@ import { toast } from "sonner";
 const Agreements = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const { data: agreements = [] } = useAgreements();
+  const navigate = useNavigate();
 
   const handleImportClick = () => {
     // Import handling logic
@@ -23,9 +25,7 @@ const Agreements = () => {
   };
 
   const handleViewDetails = (agreement: any) => {
-    // View details handling logic
-    console.log("View details:", agreement);
-    toast.info("View details functionality coming soon");
+    navigate(`/agreements/${agreement.id}`);
   };
 
   const handleViewTemplate = (agreement: any) => {
