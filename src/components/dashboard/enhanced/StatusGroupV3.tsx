@@ -6,7 +6,7 @@ import { ReactNode } from "react";
 
 interface StatusGroupV3Props {
   title: string;
-  subtitle?: string;
+  total: number;
   items: Array<{
     status: VehicleStatus;
     count: number;
@@ -15,19 +15,19 @@ interface StatusGroupV3Props {
   icon?: ReactNode;
 }
 
-export const StatusGroupV3 = ({ title, subtitle, items, onStatusClick, icon }: StatusGroupV3Props) => {
+export const StatusGroupV3 = ({ title, total, items, onStatusClick, icon }: StatusGroupV3Props) => {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {icon}
           <h3 className="text-sm font-medium">{title}</h3>
         </div>
-        {subtitle && (
-          <span className="text-xs text-muted-foreground">{subtitle}</span>
-        )}
+        <div className="text-sm font-semibold">
+          {total} vehicles
+        </div>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         {items.map(({ status, count }) => {
           const config = STATUS_CONFIG_V3[status];
           return (

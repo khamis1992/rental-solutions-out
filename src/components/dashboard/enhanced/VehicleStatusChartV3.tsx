@@ -4,10 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { VehicleStatus } from "@/types/vehicle";
-import { DonutChart } from "../charts/DonutChart";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertCircle, AlertTriangle, ArrowDown, BarChart3, CheckCircle2, Circle, Construction, Loader2 } from "lucide-react";
 import { StatusGroupV3 } from "./StatusGroupV3";
+import { cn } from "@/lib/utils";
 
 export const STATUS_CONFIG_V3 = {
   available: {
@@ -78,12 +78,6 @@ export const VehicleStatusChartV3 = () => {
 
   const totalVehicles = Object.values(counts).reduce((sum, count) => sum + count, 0);
 
-  const chartData = Object.entries(counts).map(([status, count]) => ({
-    name: STATUS_CONFIG_V3[status as VehicleStatus]?.label || status,
-    value: count,
-    color: STATUS_CONFIG_V3[status as VehicleStatus]?.color || "#000000"
-  }));
-
   const handleStatusClick = (status: VehicleStatus) => {
     setSelectedStatus(status === selectedStatus ? null : status);
   };
@@ -100,6 +94,10 @@ export const VehicleStatusChartV3 = () => {
     .filter(([status]) => STATUS_CONFIG_V3[status as VehicleStatus]?.group === "critical")
     .map(([status, count]) => ({ status: status as VehicleStatus, count }));
 
+  const operationalTotal = operationalStatuses.reduce((sum, { count }) => sum + count, 0);
+  const attentionTotal = attentionStatuses.reduce((sum, { count }) => sum + count, 0);
+  const criticalTotal = criticalStatuses.reduce((sum, { count }) => sum + count, 0);
+
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between pb-6 border-b">
@@ -107,60 +105,57 @@ export const VehicleStatusChartV3 = () => {
           <BarChart3 className="w-5 h-5 text-muted-foreground" />
           <h2 className="text-lg font-semibold">Vehicle Status Distribution</h2>
         </div>
-        <div className="text-sm text-muted-foreground">
-          Total Vehicles: {totalVehicles}
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-muted-foreground">
+            Total Vehicles: {totalVehicles}
+          </div>
+          {criticalTotal > 0 && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full text-sm">
+              <AlertCircle className="w-4 h-4" />
+              <span>{criticalTotal} Critical</span>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 py-6">
-        <div className="flex items-center justify-center">
-          <DonutChart
-            data={chartData}
-            config={{
-              width: 320,
-              height: 320,
-              innerRadius: 70,
-              outerRadius: 110,
-            }}
-            primaryValue={totalVehicles}
-            primaryLabel="Total Vehicles"
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
+        <div className={cn(
+          "p-4 rounded-lg border",
+          "bg-green-50/50 dark:bg-green-900/10 border-green-100"
+        )}>
+          <StatusGroupV3
+            title="Operational"
+            total={operationalTotal}
+            items={operationalStatuses}
+            onStatusClick={handleStatusClick}
+            icon={<CheckCircle2 className="w-5 h-5 text-green-500" />}
           />
         </div>
 
-        <div className="grid gap-6">
-          {operationalStatuses.length > 0 && (
-            <Card className="p-4 border-green-100 bg-green-50/50 dark:bg-green-900/10">
-              <StatusGroupV3
-                title="Operational"
-                items={operationalStatuses}
-                onStatusClick={handleStatusClick}
-                icon={<CheckCircle2 className="w-5 h-5 text-green-500" />}
-              />
-            </Card>
-          )}
+        <div className={cn(
+          "p-4 rounded-lg border",
+          "bg-amber-50/50 dark:bg-amber-900/10 border-amber-100"
+        )}>
+          <StatusGroupV3
+            title="Needs Attention"
+            total={attentionTotal}
+            items={attentionStatuses}
+            onStatusClick={handleStatusClick}
+            icon={<AlertTriangle className="w-5 h-5 text-amber-500" />}
+          />
+        </div>
 
-          {attentionStatuses.length > 0 && (
-            <Card className="p-4 border-amber-100 bg-amber-50/50 dark:bg-amber-900/10">
-              <StatusGroupV3
-                title="Attention Required"
-                items={attentionStatuses}
-                onStatusClick={handleStatusClick}
-                icon={<AlertTriangle className="w-5 h-5 text-amber-500" />}
-              />
-            </Card>
-          )}
-
-          {criticalStatuses.length > 0 && (
-            <Card className="p-4 border-red-100 bg-red-50/50 dark:bg-red-900/10">
-              <StatusGroupV3
-                title="Critical"
-                subtitle="Requires Immediate Action"
-                items={criticalStatuses}
-                onStatusClick={handleStatusClick}
-                icon={<AlertCircle className="w-5 h-5 text-red-500" />}
-              />
-            </Card>
-          )}
+        <div className={cn(
+          "p-4 rounded-lg border",
+          "bg-red-50/50 dark:bg-red-900/10 border-red-100"
+        )}>
+          <StatusGroupV3
+            title="Critical"
+            total={criticalTotal}
+            items={criticalStatuses}
+            onStatusClick={handleStatusClick}
+            icon={<AlertCircle className="w-5 h-5 text-red-500" />}
+          />
         </div>
       </div>
     </Card>
