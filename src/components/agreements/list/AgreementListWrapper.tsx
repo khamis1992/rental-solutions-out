@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import {
   CheckCircle2,
-  Wallet,
+  Filter,
   Lock,
   XCircle,
   Ban,
@@ -21,7 +21,6 @@ import {
   CheckSquare,
   ArrowUpDown,
   Search,
-  FilterCog,
   Clock,
   Loader2
 } from "lucide-react";
@@ -44,9 +43,9 @@ export const AgreementListWrapper = ({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const statusOptions = [
-    { value: "all", label: "All Status", icon: <FilterCog className="h-4 w-4 text-[#1C304F]/70" /> },
+    { value: "all", label: "All Status", icon: <Filter className="h-4 w-4 text-[#1C304F]/70" /> },
     { value: "pending_payment", label: "Pending Payment", icon: <Clock className="h-4 w-4 text-yellow-500" /> },
-    { value: "pending_deposit", label: "Pending Deposit", icon: <Wallet className="h-4 w-4 text-[#98BBF5]" /> },
+    { value: "pending_deposit", label: "Pending Deposit", icon: <Clock className="h-4 w-4 text-[#98BBF5]" /> },
     { value: "active", label: "Active", icon: <CheckCircle2 className="h-4 w-4 text-green-500" /> },
     { value: "closed", label: "Closed", icon: <Lock className="h-4 w-4 text-gray-500" /> },
     { value: "terminated", label: "Terminated", icon: <XCircle className="h-4 w-4 text-red-500" /> },
@@ -72,13 +71,13 @@ export const AgreementListWrapper = ({
     });
 
   // Update parent component with filtered results
-  React.useEffect(() => {
+  useState(() => {
     onFilterChange(filteredAgreements);
   }, [filteredAgreements, onFilterChange]);
 
   return (
     <div className="space-y-6">
-      {/* Enhanced Search and Filter Bar */}
+      {/* Search and Filter Bar */}
       <div className="sticky top-4 z-10">
         <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-[#98BBF5]/20 p-4 transition-all duration-300">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -98,7 +97,7 @@ export const AgreementListWrapper = ({
             <Select value={currentStatus} onValueChange={(value: LeaseStatus | 'all') => setCurrentStatus(value)}>
               <SelectTrigger className="w-[180px] border-[#98BBF5]/30 hover:border-[#98BBF5]">
                 <div className="flex items-center gap-2">
-                  <FilterCog className="h-4 w-4 text-[#1C304F]/70" />
+                  <Filter className="h-4 w-4 text-[#1C304F]/70" />
                   <SelectValue placeholder="Filter by status" />
                 </div>
               </SelectTrigger>
