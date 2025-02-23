@@ -20,7 +20,7 @@ const Agreements = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const { 
-    agreements = [], 
+    data: agreements = [], 
     isLoading,
     refetch 
   } = useAgreements();
@@ -105,12 +105,16 @@ const Agreements = () => {
 
           {/* Agreements List */}
           <div className="pb-12">
-            <CustomAgreementList 
-              agreements={agreements}
-              onViewDetails={handleViewDetails}
-              onDelete={handleDeleteClick}
-              viewMode="grid"
-            />
+            {isLoading ? (
+              <div>Loading...</div>
+            ) : (
+              <CustomAgreementList 
+                agreements={agreements}
+                onViewDetails={handleViewDetails}
+                onDelete={handleDeleteClick}
+                viewMode="grid"
+              />
+            )}
           </div>
         </div>
 
