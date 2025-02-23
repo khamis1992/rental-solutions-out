@@ -108,9 +108,14 @@ export const VehicleStatusChartV2 = () => {
 
   return (
     <>
-      <Card>
+      <Card className="bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 backdrop-blur-sm border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300">
         <CardHeader>
-          <CardTitle>Vehicle Status Distribution</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>Vehicle Status Distribution</span>
+            <span className="text-sm font-normal text-muted-foreground">
+              Total Vehicles: {vehicles.length}
+            </span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

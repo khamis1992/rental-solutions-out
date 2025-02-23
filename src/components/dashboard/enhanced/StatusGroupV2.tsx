@@ -22,6 +22,7 @@ export const StatusGroupV2 = ({ title, items, onStatusClick }: StatusGroupV2Prop
         {items.map(({ status, count }) => {
           const config = STATUS_CONFIG[status];
           const percentage = ((count / total) * 100).toFixed(1);
+          const isCritical = config?.group === "critical";
           
           return (
             <button
@@ -32,12 +33,17 @@ export const StatusGroupV2 = ({ title, items, onStatusClick }: StatusGroupV2Prop
                 "transition-all duration-200",
                 "hover:bg-muted/50 active:bg-muted",
                 "hover:scale-[1.02]",
-                "border border-transparent hover:border-border"
+                "border border-transparent hover:border-border",
+                "animate-fade-in",
+                isCritical && "hover:bg-red-500/10 dark:hover:bg-red-500/20"
               )}
             >
               <div className="flex items-center gap-2">
                 <div
-                  className="w-3 h-3 rounded-full"
+                  className={cn(
+                    "w-3 h-3 rounded-full",
+                    isCritical && "ring-2 ring-red-500/20"
+                  )}
                   style={{ backgroundColor: config?.color }}
                 />
                 <span className="text-sm font-medium">{config?.label || status}</span>
