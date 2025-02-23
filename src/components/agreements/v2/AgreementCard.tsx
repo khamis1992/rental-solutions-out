@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -5,8 +6,21 @@ import { AgreementCardProps } from "./types";
 import { getStatusConfig, getPaymentConfig, calculatePaymentProgress } from "./utils";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils";
-import { Calendar, DollarSign, Eye, Trash2, User, Car } from "lucide-react";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import {
+  Calendar,
+  DollarSign,
+  Eye,
+  Trash2,
+  User,
+  Car
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
+
 export const AgreementCard = ({
   agreement,
   onViewDetails,
@@ -17,8 +31,13 @@ export const AgreementCard = ({
   const paymentProgress = calculatePaymentProgress(agreement);
   const StatusIcon = status.icon;
   const PaymentIcon = paymentConfig.icon;
-  return <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-      <CardHeader className={cn("space-y-4 bg-gradient-to-br", status.gradient)}>
+
+  return (
+    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+      <CardHeader className={cn(
+        "space-y-4 bg-gradient-to-br",
+        status.gradient
+      )}>
         <div className="flex items-start justify-between">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
@@ -34,7 +53,10 @@ export const AgreementCard = ({
               </p>
             </div>
           </div>
-          <Badge className="bg-transparent">
+          <Badge className={cn(
+            "flex items-center gap-1.5 transition-colors",
+            status.color
+          )}>
             <StatusIcon className="h-3.5 w-3.5" />
             {status.label}
           </Badge>
@@ -49,7 +71,9 @@ export const AgreementCard = ({
               <span className="text-sm font-medium">Start Date</span>
             </div>
             <span className="text-sm">
-              {agreement.start_date ? new Date(agreement.start_date).toLocaleDateString() : "Not set"}
+              {agreement.start_date 
+                ? new Date(agreement.start_date).toLocaleDateString()
+                : "Not set"}
             </span>
           </div>
           <div className="flex flex-col gap-1.5">
@@ -69,23 +93,42 @@ export const AgreementCard = ({
           <Progress value={paymentProgress} className="h-2" />
         </div>
 
-        {agreement.payment_status && <Badge variant="outline" className={cn("flex items-center gap-1.5", paymentConfig.color)}>
+        {agreement.payment_status && (
+          <Badge
+            variant="outline"
+            className={cn(
+              "flex items-center gap-1.5",
+              paymentConfig.color
+            )}
+          >
             <PaymentIcon className="h-3.5 w-3.5" />
             {paymentConfig.badge}
-          </Badge>}
+          </Badge>
+        )}
       </CardContent>
 
       <CardFooter className="p-4 bg-slate-50/50 border-t border-slate-100">
         <div className="flex w-full justify-end gap-2">
-          <Button variant="outline" size="sm" onClick={() => onViewDetails(agreement)} className="hover:bg-primary/5 hover:text-primary">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onViewDetails(agreement)}
+            className="hover:bg-primary/5 hover:text-primary"
+          >
             <Eye className="h-4 w-4 mr-1.5" />
             View Details
           </Button>
-          <Button variant="destructive" size="sm" onClick={() => onDelete(agreement)} className="hover:bg-destructive/90">
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => onDelete(agreement)}
+            className="hover:bg-destructive/90"
+          >
             <Trash2 className="h-4 w-4 mr-1.5" />
             Delete
           </Button>
         </div>
       </CardFooter>
-    </Card>;
+    </Card>
+  );
 };
