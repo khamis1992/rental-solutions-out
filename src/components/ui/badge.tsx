@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
@@ -9,18 +10,18 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+          "border-transparent bg-primary text-primary-foreground",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "border-transparent bg-secondary text-secondary-foreground",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
+          "border-transparent bg-destructive text-destructive-foreground",
         outline: "text-foreground",
-        active: "border-transparent bg-green-500 text-white hover:bg-green-600",
-        pending_payment: "border-transparent bg-yellow-500 text-white hover:bg-yellow-600",
-        pending_deposit: "border-transparent bg-orange-500 text-white hover:bg-orange-600",
-        closed: "border-transparent bg-red-500 text-white hover:bg-red-600",
-        success: "border-transparent bg-green-500 text-white hover:bg-green-600",
-        warning: "border-transparent bg-yellow-500 text-white hover:bg-yellow-600",
+        active: "border-transparent bg-green-500 text-white",
+        pending_payment: "border-transparent bg-yellow-500 text-white",
+        pending_deposit: "border-transparent bg-orange-500 text-white",
+        closed: "border-transparent bg-red-500 text-white",
+        success: "border-transparent bg-green-500 text-white",
+        warning: "border-transparent bg-yellow-500 text-white",
       },
     },
     defaultVariants: {
@@ -40,3 +41,4 @@ function Badge({ className, variant, ...props }: BadgeProps) {
 }
 
 export { Badge, badgeVariants }
+
