@@ -1,19 +1,44 @@
+
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { AgreementList } from "@/components/agreements/AgreementList";
 import { AgreementListHeader } from "@/components/agreements/list/AgreementListHeader";
 import { AgreementStats } from "@/components/agreements/AgreementStats";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { PaymentImport } from "@/components/agreements/PaymentImport";
 import { ChevronRight, Building2, FileText } from "lucide-react";
+import { CustomAgreementList } from "@/components/agreements/list/CustomAgreementList";
+import { useAgreements } from "@/components/agreements/hooks/useAgreements";
+import { toast } from "sonner";
+
 const Agreements = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const { data: agreements = [] } = useAgreements();
+
   const handleImportClick = () => {
     // Import handling logic
   };
+
   const handleDeleteClick = () => {
     // Delete handling logic
   };
+
+  const handleViewDetails = (agreement: any) => {
+    // View details handling logic
+    console.log("View details:", agreement);
+    toast.info("View details functionality coming soon");
+  };
+
+  const handleViewTemplate = (agreement: any) => {
+    // Template viewing logic
+    console.log("View template:", agreement);
+    toast.info("View template functionality coming soon");
+  };
+
+  const handleDelete = (agreement: any) => {
+    console.log("Delete:", agreement);
+    toast.error("Delete functionality not implemented yet");
+  };
+
   return <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         {/* Header Section with Professional Gradient */}
@@ -72,7 +97,12 @@ const Agreements = () => {
 
           {/* Agreements List */}
           <div className="pb-12">
-            <AgreementList />
+            <CustomAgreementList
+              agreements={agreements}
+              onViewDetails={handleViewDetails}
+              onViewTemplate={handleViewTemplate}
+              onDelete={handleDelete}
+            />
           </div>
         </div>
 
@@ -80,4 +110,5 @@ const Agreements = () => {
       </div>
     </DashboardLayout>;
 };
+
 export default Agreements;
