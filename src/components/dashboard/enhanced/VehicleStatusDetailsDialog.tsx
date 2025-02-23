@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Car } from "lucide-react";
 import { STATUS_CONFIG } from "./VehicleStatusChartV2";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface VehicleStatusDetailsDialogProps {
   isOpen: boolean;
@@ -29,7 +29,17 @@ export const VehicleStatusDetailsDialog = ({
   vehicles,
   isLoading,
 }: VehicleStatusDetailsDialogProps) => {
+  const navigate = useNavigate();
   const statusConfig = STATUS_CONFIG[status];
+
+  const handleVehicleClick = (vehicleId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onClose();
+    setTimeout(() => {
+      navigate(`/vehicles/${vehicleId}`);
+    }, 100);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -77,6 +87,7 @@ export const VehicleStatusDetailsDialog = ({
                   <TableCell>
                     <Link 
                       to={`/vehicles/${vehicle.id}`}
+                      onClick={(e) => handleVehicleClick(vehicle.id, e)}
                       className="font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline transition-colors"
                     >
                       {vehicle.license_plate}
