@@ -11,16 +11,8 @@ import {
 import { formatCurrency } from "@/lib/utils";
 import { Agreement } from "../../types/agreement.types";
 import {
-  FileText,
-  User,
-  Car,
-  DollarSign,
-  CheckCircle,
-  Clock,
-  Wallet,
-  XCircle,
-  AlertCircle,
-  Copy,
+  Settings,
+  Sliders,
 } from "lucide-react";
 import {
   HoverCard,
@@ -47,24 +39,24 @@ export const AgreementListContent = ({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "active":
-        return <CheckCircle className="h-4 w-4" />;
+        return <Settings className="h-4 w-4" />;
       case "pending_payment":
-        return <Clock className="h-4 w-4" />;
+        return <Sliders className="h-4 w-4" />;
       case "pending_deposit":
-        return <Wallet className="h-4 w-4" />;
+        return <Settings className="h-4 w-4" />;
       default:
-        return <XCircle className="h-4 w-4" />;
+        return <Sliders className="h-4 w-4" />;
     }
   };
 
   const getPaymentStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
-        return <CheckCircle className="h-4 w-4" />;
+        return <Settings className="h-4 w-4" />;
       case "pending":
-        return <Clock className="h-4 w-4" />;
+        return <Sliders className="h-4 w-4" />;
       default:
-        return <AlertCircle className="h-4 w-4" />;
+        return <Settings className="h-4 w-4" />;
     }
   };
 
@@ -89,11 +81,11 @@ export const AgreementListContent = ({
           >
             <TableCell>
               <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-muted-foreground" />
+                <Settings className="h-4 w-4 text-muted-foreground" />
                 <span>{agreement.agreement_number}</span>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Copy
+                    <Settings
                       className="h-4 w-4 text-muted-foreground hover:text-primary cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -108,7 +100,7 @@ export const AgreementListContent = ({
             <TableCell>
               <HoverCard>
                 <HoverCardTrigger className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
+                  <Settings className="h-4 w-4 text-muted-foreground" />
                   <span>{agreement.customer?.full_name}</span>
                 </HoverCardTrigger>
                 <HoverCardContent className="w-80">
@@ -126,7 +118,7 @@ export const AgreementListContent = ({
             <TableCell>
               <HoverCard>
                 <HoverCardTrigger className="flex items-center gap-2">
-                  <Car className="h-4 w-4 text-muted-foreground" />
+                  <Sliders className="h-4 w-4 text-muted-foreground" />
                   <span>
                     {agreement.vehicle?.make} {agreement.vehicle?.model}
                   </span>
@@ -144,7 +136,7 @@ export const AgreementListContent = ({
             </TableCell>
             <TableCell>
               <div className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <Settings className="h-4 w-4 text-muted-foreground" />
                 {formatCurrency(agreement.total_amount)}
               </div>
             </TableCell>
