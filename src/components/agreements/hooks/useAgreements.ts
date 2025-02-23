@@ -62,31 +62,9 @@ export const useAgreements = () => {
 
         // Transform the data to ensure it matches the Agreement type
         const agreements: Agreement[] = data.map(agreement => ({
-          id: agreement.id,
-          agreement_number: agreement.agreement_number,
-          agreement_type: agreement.agreement_type,
-          customer_id: agreement.customer_id,
-          vehicle_id: agreement.vehicle_id,
-          start_date: agreement.start_date,
-          end_date: agreement.end_date,
-          status: agreement.status,
-          total_amount: agreement.total_amount,
-          initial_mileage: agreement.initial_mileage,
-          return_mileage: agreement.return_mileage,
-          notes: agreement.notes,
-          created_at: agreement.created_at,
-          updated_at: agreement.updated_at,
-          rent_amount: agreement.rent_amount || 0,
-          remaining_amount: agreement.remaining_amount || 0,
-          daily_late_fee: agreement.daily_late_fee || 0,
-          payment_status: agreement.payment_status,
-          last_payment_date: agreement.last_payment_date,
-          next_payment_date: agreement.next_payment_date,
-          payment_frequency: agreement.payment_frequency,
-          template_id: agreement.template_id,
-          customer: agreement.customer,
-          vehicle: agreement.vehicle,
-          remaining_amounts: agreement.remaining_amounts
+          ...agreement,
+          payment_status: agreement.payment_status as Agreement['payment_status'], // Ensure correct type casting
+          remaining_amounts: agreement.remaining_amounts || []
         }));
 
         return agreements;
@@ -98,3 +76,5 @@ export const useAgreements = () => {
     staleTime: 30000, // Consider data fresh for 30 seconds
   });
 };
+
+export type { Agreement };  // Export Agreement type to fix the error in AgreementListContent

@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { type Agreement, type LeaseStatus } from "@/types/agreement.types";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -54,7 +53,6 @@ export const AgreementListWrapper = ({
     { value: "completed", label: "Completed", icon: <CheckSquare className="h-4 w-4 text-green-500" /> }
   ];
 
-  // Filter and sort agreements
   const filteredAgreements = agreements
     .filter(agreement => {
       const matchesStatus = currentStatus === 'all' ? true : agreement.status === currentStatus;
@@ -70,18 +68,15 @@ export const AgreementListWrapper = ({
       return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
     });
 
-  // Update parent component with filtered results
-  useState(() => {
+  useEffect(() => {
     onFilterChange(filteredAgreements);
   }, [filteredAgreements, onFilterChange]);
 
   return (
     <div className="space-y-6">
-      {/* Search and Filter Bar */}
       <div className="sticky top-4 z-10">
         <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-[#98BBF5]/20 p-4 transition-all duration-300">
           <div className="flex flex-col sm:flex-row gap-4">
-            {/* Search Input */}
             <div className="relative flex-1 group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1C304F]/50 transition-transform duration-300 group-focus-within:rotate-90" />
               <Input
@@ -93,7 +88,6 @@ export const AgreementListWrapper = ({
               />
             </div>
 
-            {/* Status Filter */}
             <Select value={currentStatus} onValueChange={(value: LeaseStatus | 'all') => setCurrentStatus(value)}>
               <SelectTrigger className="w-[180px] border-[#98BBF5]/30 hover:border-[#98BBF5]">
                 <div className="flex items-center gap-2">
@@ -117,7 +111,6 @@ export const AgreementListWrapper = ({
               </SelectContent>
             </Select>
 
-            {/* Sort Button */}
             <Button
               variant="outline"
               className="border-[#98BBF5]/30 hover:border-[#98BBF5]"
@@ -128,7 +121,6 @@ export const AgreementListWrapper = ({
             </Button>
           </div>
 
-          {/* Active Filters */}
           {currentStatus !== 'all' && (
             <div className="flex items-center gap-2 mt-4">
               <span className="text-sm text-[#1C304F]/70">Active filters:</span>
@@ -150,7 +142,6 @@ export const AgreementListWrapper = ({
         </div>
       </div>
 
-      {/* List Content with Loading State */}
       <div className="bg-white/50 backdrop-blur-sm rounded-xl border border-[#98BBF5]/10 p-4">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 space-y-4">
@@ -171,4 +162,3 @@ export const AgreementListWrapper = ({
     </div>
   );
 };
-
