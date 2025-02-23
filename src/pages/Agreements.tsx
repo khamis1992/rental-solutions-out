@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { AgreementListHeader } from "@/components/agreements/list/AgreementListHeader";
@@ -50,7 +51,7 @@ const Agreements = () => {
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-        {/* Enhanced Header Section with Professional Gradient */}
+        {/* Enhanced Header Section */}
         <div className="relative bg-gradient-to-r from-[#2D2942]/5 via-[#2D2942]/10 to-[#2D2942]/5 border-b">
           <div className="absolute inset-0 bg-white/40 backdrop-blur-sm" />
           
@@ -119,15 +120,30 @@ const Agreements = () => {
             <AgreementStats />
           </div>
 
-          {/* Enhanced Agreements List */}
+          {/* Enhanced Agreements List with Loading State */}
           <div className="pb-12">
             {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2D2942]"></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, index) => (
+                  <div 
+                    key={index}
+                    className="animate-pulse bg-white rounded-lg border border-slate-200/75 p-6 space-y-4"
+                  >
+                    <div className="h-6 bg-slate-200 rounded-md w-3/4"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-slate-200 rounded w-1/2"></div>
+                      <div className="h-4 bg-slate-200 rounded w-1/3"></div>
+                    </div>
+                    <div className="flex justify-between pt-4">
+                      <div className="h-8 bg-slate-200 rounded w-1/4"></div>
+                      <div className="h-8 bg-slate-200 rounded w-1/4"></div>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <EnhancedAgreementList 
-                agreements={agreements as Agreement[]}
+                agreements={agreements}
                 onViewDetails={handleViewDetails}
                 onDelete={handleDeleteClick}
                 viewMode="list"
