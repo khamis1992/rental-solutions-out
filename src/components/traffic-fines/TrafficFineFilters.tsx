@@ -1,7 +1,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Calendar } from "lucide-react";
+import { Search, Settings, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -40,7 +40,7 @@ export function TrafficFineFilters({
                 <Select value={statusFilter} onValueChange={onStatusFilterChange}>
                   <SelectTrigger className="w-full md:w-[180px] bg-white border-orange-500/20">
                     <div className="flex items-center gap-2">
-                      <Filter className="h-4 w-4" />
+                      <Settings className="h-4 w-4" />
                       <SelectValue placeholder="Filter by status" />
                     </div>
                   </SelectTrigger>
