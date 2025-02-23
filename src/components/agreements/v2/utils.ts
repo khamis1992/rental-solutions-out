@@ -20,17 +20,17 @@ export const getStatusConfig = (status: string): StatusConfig => {
       description: "Agreement is currently active"
     },
     pending_payment: {
-      color: "bg-amber-500/15 text-amber-700",
+      color: "text-amber-700",
       icon: Clock,
       label: "Pending Payment",
-      gradient: "from-amber-50 to-amber-100/50",
+      gradient: "from-white to-white",
       description: "Awaiting payment confirmation"
     },
     closed: {
-      color: "bg-slate-500/15 text-slate-700",
+      color: "bg-rose-500/15 text-rose-700",
       icon: FileText,
       label: "Closed",
-      gradient: "from-slate-50 to-slate-100/50",
+      gradient: "from-rose-50 to-rose-100/50",
       description: "Agreement has been closed"
     }
   };
