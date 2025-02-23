@@ -11,7 +11,7 @@ import { type Agreement } from "@/types/agreement.types";
 import { DeleteAgreementDialog } from "@/components/agreements/DeleteAgreementDialog";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { EnhancedAgreementList } from "@/features/agreements/components/enhanced/EnhancedAgreementList";
+import { EnhancedAgreementList } from "@/components/agreements/enhanced/AgreementList";
 
 const Agreements = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
