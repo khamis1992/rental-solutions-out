@@ -16,12 +16,12 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground",
         outline: "text-foreground",
-        active: "border-transparent bg-green-500 text-white",
-        pending_payment: "border-transparent bg-yellow-500 text-white",
-        pending_deposit: "border-transparent bg-orange-500 text-white",
-        closed: "border-transparent bg-red-500 text-white",
-        success: "border-transparent bg-green-500 text-white",
-        warning: "border-transparent bg-yellow-500 text-white",
+        active: "border-transparent bg-emerald-500 text-white",
+        pending_payment: "border-transparent bg-amber-500 text-white",
+        pending_deposit: "border-transparent bg-amber-600 text-white",
+        closed: "border-transparent bg-rose-500 text-white",
+        success: "border-transparent bg-emerald-500 text-white",
+        warning: "border-transparent bg-amber-500 text-white",
       },
     },
     defaultVariants: {
@@ -41,4 +41,3 @@ function Badge({ className, variant, ...props }: BadgeProps) {
 }
 
 export { Badge, badgeVariants }
-
