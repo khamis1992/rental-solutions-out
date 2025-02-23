@@ -27,10 +27,10 @@ export const getStatusConfig = (status: string): StatusConfig => {
       description: "Awaiting payment confirmation"
     },
     closed: {
-      color: "bg-slate-500/15 text-slate-700",
+      color: "bg-rose-500/15 text-rose-700",
       icon: FileText,
       label: "Closed",
-      gradient: "from-slate-50 to-slate-100/50",
+      gradient: "from-rose-50 to-rose-100/50",
       description: "Agreement has been closed"
     }
   };
