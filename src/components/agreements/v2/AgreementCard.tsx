@@ -21,7 +21,7 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TemplatePreview } from "@/components/agreements/templates/TemplatePreview";
 
 const containsArabic = (text: string) => {
@@ -147,19 +147,40 @@ export const AgreementCard = ({
       </Card>
 
       <Dialog open={showTemplatePreview} onOpenChange={setShowTemplatePreview}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto p-0">
-          <TemplatePreview
-            content={agreement.processed_content || ""}
-            missingVariables={[]}
-            textStyle={{
-              bold: false,
-              italic: false,
-              underline: false,
-              fontSize: 14,
-              alignment: isArabic ? 'right' : 'left'
-            }}
-            tables={[]}
-          />
+        <DialogContent className="max-w-5xl max-h-[90vh] p-0">
+          <div className="preview-container mx-auto bg-white min-h-[297mm]">
+            <div 
+              className={cn(
+                "a4-page",
+                isArabic ? "font-arabic" : "font-serif",
+                "leading-relaxed text-gray-700"
+              )}
+              style={{
+                direction: isArabic ? 'rtl' : 'ltr',
+                width: '210mm',
+                minHeight: '297mm',
+                padding: '25mm 25mm 30mm 25mm',
+                margin: '0 auto',
+                boxSizing: 'border-box',
+                backgroundColor: 'white',
+                boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+                position: 'relative'
+              }}
+            >
+              <TemplatePreview
+                content={agreement.processed_content || ""}
+                missingVariables={[]}
+                textStyle={{
+                  bold: false,
+                  italic: false,
+                  underline: false,
+                  fontSize: 14,
+                  alignment: isArabic ? 'right' : 'left'
+                }}
+                tables={[]}
+              />
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>
