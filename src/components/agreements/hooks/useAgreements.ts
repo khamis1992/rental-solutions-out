@@ -1,38 +1,8 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-export interface Agreement {
-  id: string;
-  agreement_number: string | null;
-  agreement_type: string;
-  customer_id: string;
-  vehicle_id: string;
-  start_date: string | null;
-  end_date: string | null;
-  status: string;
-  initial_mileage: number;
-  return_mileage: number | null;
-  total_amount: number;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-  payment_status: string | null;
-  last_payment_date: string | null;
-  next_payment_date: string | null;
-  payment_frequency: string | null;
-  customer?: {
-    id: string;
-    full_name: string | null;
-  };
-  vehicle?: {
-    id: string;
-    make: string;
-    model: string;
-    year: number;
-    license_plate: string;
-  };
-}
+import { type Agreement } from "@/types/agreement.types";
 
 export const useAgreements = () => {
   return useQuery({
@@ -42,10 +12,34 @@ export const useAgreements = () => {
         const { data, error } = await supabase
           .from("leases")
           .select(`
-            *,
+            id,
+            agreement_number,
+            agreement_type,
+            customer_id,
+            vehicle_id,
+            start_date,
+            end_date,
+            status,
+            total_amount,
+            initial_mileage,
+            return_mileage,
+            notes,
+            created_at,
+            updated_at,
+            rent_amount,
+            remaining_amount,
+            daily_late_fee,
+            payment_status,
+            last_payment_date,
+            next_payment_date,
+            payment_frequency,
+            template_id,
             customer:customer_id (
               id,
-              full_name
+              full_name,
+              phone_number,
+              email,
+              status
             ),
             vehicle:vehicle_id (
               id,
@@ -53,6 +47,9 @@ export const useAgreements = () => {
               model,
               year,
               license_plate
+            ),
+            remaining_amounts (
+              remaining_amount
             )
           `)
           .order("created_at", { ascending: false });
@@ -63,7 +60,36 @@ export const useAgreements = () => {
           throw error;
         }
 
-        return data as Agreement[];
+        // Transform the data to ensure it matches the Agreement type
+        const agreements: Agreement[] = data.map(agreement => ({
+          id: agreement.id,
+          agreement_number: agreement.agreement_number,
+          agreement_type: agreement.agreement_type,
+          customer_id: agreement.customer_id,
+          vehicle_id: agreement.vehicle_id,
+          start_date: agreement.start_date,
+          end_date: agreement.end_date,
+          status: agreement.status,
+          total_amount: agreement.total_amount,
+          initial_mileage: agreement.initial_mileage,
+          return_mileage: agreement.return_mileage,
+          notes: agreement.notes,
+          created_at: agreement.created_at,
+          updated_at: agreement.updated_at,
+          rent_amount: agreement.rent_amount || 0,
+          remaining_amount: agreement.remaining_amount || 0,
+          daily_late_fee: agreement.daily_late_fee || 0,
+          payment_status: agreement.payment_status,
+          last_payment_date: agreement.last_payment_date,
+          next_payment_date: agreement.next_payment_date,
+          payment_frequency: agreement.payment_frequency,
+          template_id: agreement.template_id,
+          customer: agreement.customer,
+          vehicle: agreement.vehicle,
+          remaining_amounts: agreement.remaining_amounts
+        }));
+
+        return agreements;
       } catch (err) {
         console.error("Error in agreements query:", err);
         throw err;
