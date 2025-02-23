@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Car } from "lucide-react";
 import { STATUS_CONFIG } from "./VehicleStatusChartV2";
+import { Link } from "react-router-dom";
 
 interface VehicleStatusDetailsDialogProps {
   isOpen: boolean;
@@ -73,7 +74,14 @@ export const VehicleStatusDetailsDialog = ({
             <TableBody>
               {vehicles.map((vehicle) => (
                 <TableRow key={vehicle.id} className="group">
-                  <TableCell className="font-medium">{vehicle.license_plate}</TableCell>
+                  <TableCell>
+                    <Link 
+                      to={`/vehicles/${vehicle.id}`}
+                      className="font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline transition-colors"
+                    >
+                      {vehicle.license_plate}
+                    </Link>
+                  </TableCell>
                   <TableCell>{vehicle.make}</TableCell>
                   <TableCell>{vehicle.model}</TableCell>
                   <TableCell>
