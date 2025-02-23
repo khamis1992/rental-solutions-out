@@ -39,7 +39,7 @@ export function ProcessTemplatesDialog({
       setProgress(10);
 
       const { data: results, error } = await supabase
-        .rpc<ProcessResult, ProcessResult[]>('process_agreement_templates');
+        .rpc<ProcessResult>('process_agreement_templates');
 
       if (error) {
         throw error;

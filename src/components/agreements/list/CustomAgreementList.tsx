@@ -87,32 +87,32 @@ export function CustomAgreementList({
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-[#98BBF5]/10 text-[#1C304F] border-[#98BBF5]";
+        return "bg-green-500/10 text-green-500 border-green-500";
       case "pending":
-        return "bg-yellow-500/10 text-yellow-700 border-yellow-500";
+        return "bg-yellow-500/10 text-yellow-500 border-yellow-500";
       case "expired":
-        return "bg-red-500/10 text-red-700 border-red-500";
+        return "bg-red-500/10 text-red-500 border-red-500";
       default:
-        return "bg-gray-500/10 text-gray-700 border-gray-500";
+        return "bg-gray-500/10 text-gray-500 border-gray-500";
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Enhanced Controls */}
+      {/* Controls */}
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
         <div className="flex-1 w-full sm:w-auto relative">
           <Input
             placeholder="Search agreements..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 border-[#98BBF5]/30 focus:border-[#98BBF5] focus:ring-[#98BBF5]/50"
+            className="w-full pl-10"
           />
-          <Search className="h-4 w-4 absolute left-3 top-3 text-[#1C304F]/50" />
+          <Search className="h-4 w-4 absolute left-3 top-3 text-gray-500" />
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[140px] border-[#98BBF5]/30">
+            <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -123,7 +123,7 @@ export function CustomAgreementList({
             </SelectContent>
           </Select>
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[140px] border-[#98BBF5]/30">
+            <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
@@ -131,12 +131,11 @@ export function CustomAgreementList({
               <SelectItem value="oldest">Oldest First</SelectItem>
             </SelectContent>
           </Select>
-          <div className="flex gap-1 border border-[#98BBF5]/30 rounded-md p-1">
+          <div className="flex gap-1 border rounded-md p-1">
             <Button
               variant={viewMode === "grid" ? "secondary" : "ghost"}
               size="icon"
               onClick={() => setViewMode("grid")}
-              className="text-[#1C304F] hover:text-[#98BBF5]"
             >
               <LayoutGrid className="h-4 w-4" />
             </Button>
@@ -144,7 +143,6 @@ export function CustomAgreementList({
               variant={viewMode === "list" ? "secondary" : "ghost"}
               size="icon"
               onClick={() => setViewMode("list")}
-              className="text-[#1C304F] hover:text-[#98BBF5]"
             >
               <LayoutList className="h-4 w-4" />
             </Button>
@@ -152,7 +150,7 @@ export function CustomAgreementList({
         </div>
       </div>
 
-      {/* Enhanced Agreement List */}
+      {/* Agreement List */}
       <div
         className={cn(
           "grid gap-4",
@@ -165,17 +163,17 @@ export function CustomAgreementList({
           <Card
             key={agreement.id}
             className={cn(
-              "transition-all duration-300 hover:shadow-lg hover:shadow-[#98BBF5]/20 hover:-translate-y-1",
+              "transition-all duration-200 hover:shadow-md",
               `border-l-4 ${getStatusColor(agreement.status)}`
             )}
           >
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="font-semibold text-[#1C304F]">
+                  <h3 className="font-semibold">
                     Agreement #{agreement.agreement_number}
                   </h3>
-                  <p className="text-sm text-[#1C304F]/70">
+                  <p className="text-sm text-gray-500">
                     Type: {agreement.agreement_type}
                   </p>
                 </div>
@@ -189,19 +187,19 @@ export function CustomAgreementList({
             </CardHeader>
             <CardContent className="pb-2">
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-[#1C304F]/70">
-                  <Car className="h-4 w-4" />
+                <div className="flex items-center gap-2">
+                  <Car className="h-4 w-4 text-gray-500" />
                   <span className="text-sm">
                     {agreement.vehicle?.year} {agreement.vehicle?.make}{" "}
                     {agreement.vehicle?.model}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-[#1C304F]/70">
-                  <User className="h-4 w-4" />
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-gray-500" />
                   <span className="text-sm">{agreement.customer?.full_name}</span>
                 </div>
-                <div className="flex items-center gap-2 text-[#1C304F]/70">
-                  <Calendar className="h-4 w-4" />
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-gray-500" />
                   <span className="text-sm">
                     {format(new Date(agreement.created_at), "PPP")}
                   </span>
@@ -213,7 +211,6 @@ export function CustomAgreementList({
                 variant="outline"
                 size="sm"
                 onClick={() => onViewDetails(agreement)}
-                className="hover:bg-[#98BBF5]/10 hover:text-[#1C304F] border-[#98BBF5]/30"
               >
                 <Eye className="h-4 w-4 mr-1" />
                 View
@@ -221,7 +218,7 @@ export function CustomAgreementList({
               <Button
                 variant="outline"
                 size="sm"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                className="text-red-600 hover:text-red-700"
                 onClick={() => onDelete(agreement)}
               >
                 <Trash2 className="h-4 w-4 mr-1" />
@@ -232,14 +229,14 @@ export function CustomAgreementList({
         ))}
       </div>
 
-      {/* Enhanced Empty State */}
+      {/* Empty State */}
       {paginatedAgreements.length === 0 && (
         <div className="text-center py-12">
-          <FileText className="h-12 w-12 text-[#98BBF5] mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-[#1C304F] mb-2">
+          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
             No agreements found
           </h3>
-          <p className="text-[#1C304F]/70">
+          <p className="text-gray-500">
             {searchTerm || statusFilter !== "all"
               ? "Try adjusting your search or filters"
               : "Get started by creating a new agreement"}
@@ -247,7 +244,7 @@ export function CustomAgreementList({
         </div>
       )}
 
-      {/* Enhanced Pagination */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center gap-2 mt-6">
           <Button
@@ -255,11 +252,10 @@ export function CustomAgreementList({
             size="sm"
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="border-[#98BBF5]/30 hover:bg-[#98BBF5]/10"
           >
             Previous
           </Button>
-          <span className="py-2 px-4 text-sm text-[#1C304F]">
+          <span className="py-2 px-4 text-sm text-gray-600">
             Page {currentPage} of {totalPages}
           </span>
           <Button
@@ -267,7 +263,6 @@ export function CustomAgreementList({
             size="sm"
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="border-[#98BBF5]/30 hover:bg-[#98BBF5]/10"
           >
             Next
           </Button>
