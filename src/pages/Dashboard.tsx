@@ -9,6 +9,7 @@ import { SmartNotifications } from "@/components/dashboard/SmartNotifications";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
+import { VehicleStatusChartV3 } from "@/components/dashboard/VehicleStatusChartV3";
 
 interface DashboardStats {
   total_vehicles: number;
@@ -66,13 +67,16 @@ const Dashboard = () => {
         <DashboardStats stats={statsData} />
       </div>
 
-      <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2">
+        <VehicleStatusChartV3 />
         <Card className="bg-white/50 backdrop-blur-sm border-gray-200/50 hover:border-gray-300 transition-all duration-300 h-[400px]">
           <ScrollArea className="h-full">
             <SmartNotifications />
           </ScrollArea>
         </Card>
-        
+      </div>
+
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
         <Card className="bg-white/50 backdrop-blur-sm border-gray-200/50 hover:border-gray-300 transition-all duration-300 h-[400px]">
           <ScrollArea className="h-full">
             <RecentActivity />
