@@ -1,49 +1,27 @@
-
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { AgreementList } from "@/components/agreements/AgreementList";
+import { AgreementListHeader } from "@/components/agreements/list/AgreementListHeader";
 import { AgreementStats } from "@/components/agreements/AgreementStats";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { PaymentImport } from "@/components/agreements/PaymentImport";
-import { ChevronRight, Building2, FileText, Grid2x2, List } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { CustomAgreementList } from "@/components/agreements/list/CustomAgreementList";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider,
-} from "@/components/ui/tooltip";
-import { useAgreements } from "@/components/agreements/hooks/useAgreements";
-import { toast } from "sonner";
-
+import { ChevronRight, Building2, FileText } from "lucide-react";
 const Agreements = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const { data: agreements = [], isLoading } = useAgreements();
-
-  const handleViewDetails = (agreement: any) => {
-    // View details handling logic
-    console.log("View details:", agreement);
+  const handleImportClick = () => {
+    // Import handling logic
   };
-
-  const handleViewTemplate = (agreement: any) => {
-    // Template viewing logic
-    console.log("View template:", agreement);
+  const handleDeleteClick = () => {
+    // Delete handling logic
   };
-
-  const handleDelete = (agreement: any) => {
-    toast.error("Delete functionality not implemented");
-  };
-
-  return (
-    <DashboardLayout>
+  return <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         {/* Header Section with Professional Gradient */}
         <div className="relative bg-gradient-to-r from-blue-50 via-blue-100 to-blue-50 border-b">
           <div className="absolute inset-0 bg-white/40 backdrop-blur-sm" />
           
           {/* Content Container */}
-          <div className="relative w-full max-w-screen-xl mx-auto px-4 lg:px-8 py-10">
+          <div className="relative w-full max-w-screen-xl mx-auto px-4 lg:px-8 py-10 sm:px-[240px]">
             {/* Enhanced Breadcrumb Navigation */}
             <nav className="flex items-center gap-2 text-sm text-gray-600 mb-8">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-md border border-blue-100 hover:bg-blue-50 transition-all duration-300 shadow-sm">
@@ -73,36 +51,11 @@ const Agreements = () => {
               </div>
             </div>
 
-            {/* View Toggle and Actions */}
-            <div className="flex justify-between items-center gap-6 max-w-screen-xl mx-auto mb-6">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex bg-white rounded-lg border shadow-sm p-1">
-                      <Button
-                        variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setViewMode('grid')}
-                        className="px-2"
-                      >
-                        <Grid2x2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant={viewMode === 'list' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setViewMode('list')}
-                        className="px-2"
-                      >
-                        <List className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Toggle view mode</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
+            {/* Action Buttons */}
+            <div className="flex justify-between items-center gap-6 max-w-screen-xl mx-auto">
+              <div className="flex-1">
+                <AgreementListHeader onImportClick={handleImportClick} onDeleteClick={handleDeleteClick} isDeleting={false} />
+              </div>
               <div className="flex-shrink-0">
                 <PaymentImport />
               </div>
@@ -119,20 +72,12 @@ const Agreements = () => {
 
           {/* Agreements List */}
           <div className="pb-12">
-            <CustomAgreementList
-              agreements={agreements}
-              onViewDetails={handleViewDetails}
-              onViewTemplate={handleViewTemplate}
-              onDelete={handleDelete}
-              viewMode={viewMode}
-            />
+            <AgreementList />
           </div>
         </div>
 
         <CreateAgreementDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
       </div>
-    </DashboardLayout>
-  );
+    </DashboardLayout>;
 };
-
 export default Agreements;
