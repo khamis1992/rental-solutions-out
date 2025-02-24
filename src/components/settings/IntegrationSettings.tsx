@@ -9,10 +9,8 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ResendOverview } from "./email/ResendDashboard/Overview";
 import { TemplateList } from "./email/ResendDashboard/TemplateList";
-import { TemplatePerformance } from "./email/ResendDashboard/TemplatePerformance";
 import { TemplateRecommendations } from "./email/ResendDashboard/TemplateRecommendations";
 import { Button } from "@/components/ui/button";
-import { ABTesting } from "./email/ResendDashboard/ABTesting";
 
 export const IntegrationSettings = () => {
   const [resendApiKey, setResendApiKey] = useState("");
@@ -82,9 +80,7 @@ export const IntegrationSettings = () => {
               <TabsList>
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="templates">Templates</TabsTrigger>
-                <TabsTrigger value="performance">Performance</TabsTrigger>
                 <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
-                <TabsTrigger value="ab-testing">A/B Testing</TabsTrigger>
                 <TabsTrigger value="test">Test</TabsTrigger>
               </TabsList>
               
@@ -96,16 +92,8 @@ export const IntegrationSettings = () => {
                 <TemplateList />
               </TabsContent>
 
-              <TabsContent value="performance">
-                <TemplatePerformance />
-              </TabsContent>
-
               <TabsContent value="recommendations">
                 <TemplateRecommendations />
-              </TabsContent>
-              
-              <TabsContent value="ab-testing">
-                <ABTesting />
               </TabsContent>
               
               <TabsContent value="test">
