@@ -2415,6 +2415,39 @@ export type Database = {
         }
         Relationships: []
       }
+      email_clicks: {
+        Row: {
+          clicked_at: string
+          created_at: string
+          email_id: string
+          id: string
+          ip_address: string | null
+          link_url: string
+          location: Json | null
+          user_agent: string | null
+        }
+        Insert: {
+          clicked_at?: string
+          created_at?: string
+          email_id: string
+          id?: string
+          ip_address?: string | null
+          link_url: string
+          location?: Json | null
+          user_agent?: string | null
+        }
+        Update: {
+          clicked_at?: string
+          created_at?: string
+          email_id?: string
+          id?: string
+          ip_address?: string | null
+          link_url?: string
+          location?: Json | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       email_communications: {
         Row: {
           content: string
@@ -2477,6 +2510,86 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      email_metrics: {
+        Row: {
+          created_at: string
+          delivered_at: string | null
+          email_id: string
+          error_message: string | null
+          id: string
+          provider_response: Json | null
+          recipient: string
+          sent_at: string | null
+          status: string
+          template_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delivered_at?: string | null
+          email_id: string
+          error_message?: string | null
+          id?: string
+          provider_response?: Json | null
+          recipient: string
+          sent_at?: string | null
+          status: string
+          template_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delivered_at?: string | null
+          email_id?: string
+          error_message?: string | null
+          id?: string
+          provider_response?: Json | null
+          recipient?: string
+          sent_at?: string | null
+          status?: string
+          template_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_metrics_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_opens: {
+        Row: {
+          created_at: string
+          email_id: string
+          id: string
+          ip_address: string | null
+          location: Json | null
+          opened_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_id: string
+          id?: string
+          ip_address?: string | null
+          location?: Json | null
+          opened_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_id?: string
+          id?: string
+          ip_address?: string | null
+          location?: Json | null
+          opened_at?: string
+          user_agent?: string | null
+        }
+        Relationships: []
       }
       email_template_categories: {
         Row: {

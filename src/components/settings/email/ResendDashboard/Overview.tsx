@@ -2,23 +2,43 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Mail, AlertCircle, CheckCircle } from "lucide-react";
+import { Mail, AlertCircle, CheckCircle, LineChart } from "lucide-react";
+import {
+  LineChart as RechartsLineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts';
+import { Loader2 } from "lucide-react";
+import { format, subDays } from "date-fns";
 
 export const ResendOverview = () => {
   const { data: emailStats, isLoading } = useQuery({
     queryKey: ["email-stats"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('email_logs')
-        .select('status')
-        .gt('sent_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+      const { data: metrics, error } = await supabase
+        .from('email_metrics')
+        .select('status, sent_at')
+        .gte('sent_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
       if (error) throw error;
 
       const stats = {
-        total: data.length,
-        delivered: data.filter(log => log.status === 'delivered').length,
-        failed: data.filter(log => log.status === 'failed').length,
+        total: metrics.length,
+        delivered: metrics.filter(m => m.status === 'delivered').length,
+        failed: metrics.filter(m => m.status === 'failed').length,
+        last7Days: Array.from({ length: 7 }, (_, i) => {
+          const date = subDays(new Date(), i);
+          return {
+            date: format(date, 'MMM dd'),
+            sent: metrics.filter(m => 
+              format(new Date(m.sent_at), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
+            ).length
+          };
+        }).reverse()
       };
 
       return stats;
@@ -53,6 +73,11 @@ export const ResendOverview = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{emailStats?.delivered || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              {emailStats?.total ? 
+                `${Math.round((emailStats.delivered / emailStats.total) * 100)}% delivery rate` : 
+                'No emails sent'}
+            </p>
           </CardContent>
         </Card>
 
@@ -63,9 +88,44 @@ export const ResendOverview = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{emailStats?.failed || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              {emailStats?.total ? 
+                `${Math.round((emailStats.failed / emailStats.total) * 100)}% failure rate` : 
+                'No emails sent'}
+            </p>
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Email Activity</CardTitle>
+          <CardDescription>
+            Email sending activity over the last 7 days
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <RechartsLineChart
+                data={emailStats?.last7Days}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Line 
+                  type="monotone" 
+                  dataKey="sent" 
+                  stroke="#8884d8" 
+                  name="Emails Sent"
+                />
+              </RechartsLineChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -75,8 +135,10 @@ export const ResendOverview = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Activity list will be implemented in the next iteration */}
-          <p className="text-sm text-muted-foreground">Coming soon...</p>
+          <div className="space-y-4">
+            {/* Activity list will be implemented in the next iteration */}
+            <p className="text-sm text-muted-foreground">Coming soon...</p>
+          </div>
         </CardContent>
       </Card>
     </div>
