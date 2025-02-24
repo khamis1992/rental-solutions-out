@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Filter, X } from "lucide-react";
 import { VehicleFilterParams, VehicleStatus } from "@/types/vehicle";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface VehicleFilterDialogProps {
   onFilterChange: (filters: VehicleFilterParams) => void;
@@ -19,6 +21,21 @@ export const VehicleFilterDialog = ({
   activeFilters,
   totalFilters,
 }: VehicleFilterDialogProps) => {
+  // Fetch available statuses
+  const { data: availableStatuses } = useQuery({
+    queryKey: ["vehicle-statuses"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("vehicle_statuses")
+        .select("*")
+        .eq("is_active", true)
+        .order("name");
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const handleStatusChange = (value: VehicleStatus) => {
     onFilterChange({ ...activeFilters, status: value });
   };
@@ -87,11 +104,11 @@ export const VehicleFilterDialog = ({
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="available">Available</SelectItem>
-                <SelectItem value="maintenance">Maintenance</SelectItem>
-                <SelectItem value="rented">Rented</SelectItem>
-                <SelectItem value="reserved">Reserved</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+                {availableStatuses?.map((status) => (
+                  <SelectItem key={status.id} value={status.name}>
+                    {status.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

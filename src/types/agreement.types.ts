@@ -69,7 +69,7 @@ export interface Agreement {
   rent_amount: number;
   remaining_amount: number;
   daily_late_fee: number;
-  payment_status: string;
+  payment_status: PaymentStatus;
   last_payment_date: string | null;
   next_payment_date: string | null;
   payment_frequency: string;
