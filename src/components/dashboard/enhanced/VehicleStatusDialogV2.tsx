@@ -19,6 +19,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { VehicleStatusDropdown } from "@/components/vehicles/table/VehicleStatusDropdown";
+import { VehicleLocationCell } from "@/components/vehicles/table/VehicleLocationCell";
 
 interface VehicleStatusDialogV2Props {
   isOpen: boolean;
@@ -38,6 +39,7 @@ export const VehicleStatusDialogV2 = ({
   const [selectedNestedStatus, setSelectedNestedStatus] = useState<VehicleStatus | null>(null);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [updatingVehicleId, setUpdatingVehicleId] = useState<string | null>(null);
+  const [editingLocation, setEditingLocation] = useState<string | null>(null);
   const statusConfig = STATUS_CONFIG[status];
 
   // Fetch available statuses
@@ -159,7 +161,15 @@ export const VehicleStatusDialogV2 = ({
                         disabled={!availableStatuses}
                       />
                     </TableCell>
-                    <TableCell>{vehicle.location || "N/A"}</TableCell>
+                    <TableCell>
+                      <VehicleLocationCell
+                        vehicleId={vehicle.id}
+                        location={vehicle.location || ''}
+                        isEditing={editingLocation === vehicle.id}
+                        onEditStart={() => setEditingLocation(vehicle.id)}
+                        onEditEnd={() => setEditingLocation(null)}
+                      />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
