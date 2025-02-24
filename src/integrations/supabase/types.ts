@@ -2478,9 +2478,78 @@ export type Database = {
           },
         ]
       }
+      email_template_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_template_versions: {
+        Row: {
+          changes_summary: string | null
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          template_id: string | null
+          updated_at: string
+          version_number: number
+        }
+        Insert: {
+          changes_summary?: string | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          template_id?: string | null
+          updated_at?: string
+          version_number: number
+        }
+        Update: {
+          changes_summary?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          template_id?: string | null
+          updated_at?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_template_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_templates: {
         Row: {
           category: string
+          category_id: string | null
           content: string
           created_at: string | null
           created_by: string | null
@@ -2493,6 +2562,7 @@ export type Database = {
         }
         Insert: {
           category: string
+          category_id?: string | null
           content: string
           created_at?: string | null
           created_by?: string | null
@@ -2505,6 +2575,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          category_id?: string | null
           content?: string
           created_at?: string | null
           created_by?: string | null
@@ -2515,7 +2586,15 @@ export type Database = {
           updated_at?: string | null
           variables?: Json | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "email_templates_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "email_template_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       entity_actions: {
         Row: {
