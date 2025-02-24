@@ -10,6 +10,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { useState, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from "@/integrations/supabase/client"
+import { cn } from "@/lib/utils"
 
 interface TemplateEditorProps {
   templateId?: string;
@@ -39,7 +40,11 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
     content: '',
     editorProps: {
       attributes: {
-        class: 'prose prose-sm focus:outline-none max-w-none min-h-[200px] p-4',
+        class: cn(
+          'prose prose-sm focus:outline-none max-w-none min-h-[200px] p-4',
+          'text-right'
+        ),
+        dir: 'rtl',
       },
     },
   })
@@ -47,8 +52,8 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
   const handleSave = useCallback(async () => {
     if (!name || !editor?.getHTML()) {
       toast({
-        title: "Error",
-        description: "Please fill in all required fields",
+        title: "خطأ",
+        description: "يرجى ملء جميع الحقول المطلوبة",
         variant: "destructive"
       })
       return
@@ -103,16 +108,16 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
       }
 
       toast({
-        title: "Success",
-        description: "Template saved successfully",
+        title: "تم بنجاح",
+        description: "تم حفظ القالب بنجاح",
       })
 
       onSave?.()
     } catch (error) {
       console.error('Error saving template:', error)
       toast({
-        title: "Error",
-        description: "Failed to save template",
+        title: "خطأ",
+        description: "فشل في حفظ القالب",
         variant: "destructive"
       })
     }
@@ -122,25 +127,26 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
     <Card>
       <CardHeader>
         <CardTitle>
-          {templateId ? 'Edit Template' : 'Create New Template'}
+          {templateId ? 'تعديل القالب' : 'إنشاء قالب جديد'}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4" dir="rtl">
         <div className="space-y-2">
-          <Label htmlFor="name">Template Name</Label>
+          <Label htmlFor="name">اسم القالب</Label>
           <Input
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Enter template name"
+            placeholder="أدخل اسم القالب"
+            className="text-right"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
+          <Label htmlFor="category">الفئة</Label>
           <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger id="category">
-              <SelectValue placeholder="Select category" />
+            <SelectTrigger id="category" className="text-right">
+              <SelectValue placeholder="اختر الفئة" />
             </SelectTrigger>
             <SelectContent>
               {categories?.map((cat) => (
@@ -153,15 +159,15 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
         </div>
 
         <div className="space-y-2">
-          <Label>Content</Label>
-          <div className="border rounded-md">
+          <Label>المحتوى</Label>
+          <div className="border rounded-md overflow-hidden">
             <EditorContent editor={editor} />
           </div>
         </div>
 
-        <div className="flex justify-end space-x-2">
-          <Button variant="outline">Preview</Button>
-          <Button onClick={handleSave}>Save Template</Button>
+        <div className="flex justify-start space-x-2">
+          <Button variant="outline">معاينة</Button>
+          <Button onClick={handleSave}>حفظ القالب</Button>
         </div>
       </CardContent>
     </Card>
