@@ -12,9 +12,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Car } from "lucide-react";
 import { STATUS_CONFIG } from "./VehicleStatusChartV2";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { VehicleStatusDetailsDialog } from "./VehicleStatusDetailsDialog";
 import { VehicleDetailsDialog } from "@/components/vehicles/VehicleDetailsDialog";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface VehicleStatusDialogV2Props {
   isOpen: boolean;
@@ -33,7 +37,23 @@ export const VehicleStatusDialogV2 = ({
 }: VehicleStatusDialogV2Props) => {
   const [selectedNestedStatus, setSelectedNestedStatus] = useState<VehicleStatus | null>(null);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+  const [updatingVehicleId, setUpdatingVehicleId] = useState<string | null>(null);
   const statusConfig = STATUS_CONFIG[status];
+
+  // Fetch available statuses
+  const { data: availableStatuses } = useQuery({
+    queryKey: ["vehicle-statuses"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("vehicle_statuses")
+        .select("*")
+        .eq("is_active", true)
+        .order("name");
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   const filteredVehicles = selectedNestedStatus 
     ? vehicles.filter(v => v.status === selectedNestedStatus)
@@ -47,6 +67,48 @@ export const VehicleStatusDialogV2 = ({
     e.preventDefault();
     e.stopPropagation();
     setSelectedVehicleId(vehicleId);
+  };
+
+  const updateVehicleStatus = useCallback(async (vehicleId: string, newStatus: VehicleStatus) => {
+    setUpdatingVehicleId(vehicleId);
+    try {
+      const { error } = await supabase
+        .from("vehicles")
+        .update({ status: newStatus })
+        .eq("id", vehicleId);
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success(`Vehicle status updated to ${newStatus}`);
+    } catch (error) {
+      console.error("Error updating vehicle status:", error);
+      toast.error("Failed to update vehicle status");
+    } finally {
+      setUpdatingVehicleId(null);
+    }
+  }, []);
+
+  const renderStatusOptions = (vehicleId: string, currentStatus: VehicleStatus) => {
+    return (
+      <div className="flex gap-2 flex-wrap">
+        {availableStatuses?.map((statusOption) => (
+          <Button
+            key={statusOption.id}
+            variant={statusOption.name === currentStatus ? "secondary" : "outline"}
+            size="sm"
+            disabled={updatingVehicleId === vehicleId}
+            onClick={(e) => {
+              e.stopPropagation();
+              updateVehicleStatus(vehicleId, statusOption.name as VehicleStatus);
+            }}
+          >
+            {statusOption.name}
+          </Button>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -110,12 +172,7 @@ export const VehicleStatusDialogV2 = ({
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <button
-                        onClick={() => handleStatusClick(vehicle.status)}
-                        className="w-full"
-                      >
-                        <VehicleStatusCell status={vehicle.status} vehicleId={vehicle.id} />
-                      </button>
+                      {renderStatusOptions(vehicle.id, vehicle.status)}
                     </TableCell>
                     <TableCell>{vehicle.location || "N/A"}</TableCell>
                   </TableRow>
