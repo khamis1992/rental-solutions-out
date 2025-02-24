@@ -14,6 +14,7 @@ import { Car } from "lucide-react";
 import { STATUS_CONFIG } from "./VehicleStatusChartV2";
 import { useState } from "react";
 import { VehicleStatusDetailsDialog } from "./VehicleStatusDetailsDialog";
+import { Link, useNavigate } from "react-router-dom";
 
 interface VehicleStatusDialogV2Props {
   isOpen: boolean;
@@ -32,6 +33,7 @@ export const VehicleStatusDialogV2 = ({
 }: VehicleStatusDialogV2Props) => {
   const [selectedNestedStatus, setSelectedNestedStatus] = useState<VehicleStatus | null>(null);
   const statusConfig = STATUS_CONFIG[status];
+  const navigate = useNavigate();
 
   const filteredVehicles = selectedNestedStatus 
     ? vehicles.filter(v => v.status === selectedNestedStatus)
@@ -39,6 +41,15 @@ export const VehicleStatusDialogV2 = ({
 
   const handleStatusClick = (clickedStatus: VehicleStatus) => {
     setSelectedNestedStatus(clickedStatus);
+  };
+
+  const handleVehicleClick = (vehicleId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onClose();
+    setTimeout(() => {
+      navigate(`/vehicles/${vehicleId}`);
+    }, 100);
   };
 
   return (
@@ -86,7 +97,15 @@ export const VehicleStatusDialogV2 = ({
               <TableBody>
                 {vehicles.map((vehicle) => (
                   <TableRow key={vehicle.id} className="group">
-                    <TableCell className="font-medium">{vehicle.license_plate}</TableCell>
+                    <TableCell>
+                      <Link 
+                        to={`/vehicles/${vehicle.id}`}
+                        onClick={(e) => handleVehicleClick(vehicle.id, e)}
+                        className="font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline transition-colors"
+                      >
+                        {vehicle.license_plate}
+                      </Link>
+                    </TableCell>
                     <TableCell>{vehicle.make}</TableCell>
                     <TableCell>{vehicle.model}</TableCell>
                     <TableCell>
