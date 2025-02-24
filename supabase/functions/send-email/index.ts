@@ -7,13 +7,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface EmailRequest {
-  to: string;
-  subject: string;
-  html: string;
-  from?: string;
-}
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -22,15 +15,13 @@ serve(async (req) => {
 
   try {
     const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
-    const { to, subject, html, from = "Lovable <onboarding@resend.dev>" } = await req.json() as EmailRequest;
-
-    console.log(`Sending email to ${to} with subject: ${subject}`);
+    const { email, name } = await req.json();
 
     const { data, error } = await resend.emails.send({
-      from,
-      to,
-      subject,
-      html,
+      from: "Lovable <onboarding@resend.dev>",
+      to: email,
+      subject: "Hello World",
+      html: `<p>Congrats on sending your <strong>first email</strong>!</p>`
     });
 
     if (error) {
