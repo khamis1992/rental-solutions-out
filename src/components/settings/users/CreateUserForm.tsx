@@ -46,38 +46,19 @@ export const CreateUserForm = ({ isAdmin, onSuccess }: CreateUserFormProps) => {
         throw new Error('Only admins can create staff or admin users');
       }
 
-      // Create the auth user with metadata
+      // Create the auth user with metadata - trigger will handle profile creation
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
         options: {
           data: {
             full_name: values.full_name,
-            role: values.role, // Include role in metadata
+            role: values.role,
           },
         },
       });
 
       if (authError) throw authError;
-
-      // Let the database trigger create the initial profile
-      // Then update the profile with additional fields
-      if (authData.user) {
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({
-            role: values.role,
-            status: 'pending_review',
-            document_verification_status: 'pending',
-            location_tracking_enabled: false,
-            welcome_email_sent: false,
-            profile_completion_score: 0,
-            preferred_communication_channel: 'email',
-          })
-          .eq('id', authData.user.id);
-
-        if (updateError) throw updateError;
-      }
 
       toast({
         title: "Success",
