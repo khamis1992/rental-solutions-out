@@ -94,3 +94,4 @@ export const VehicleStatusCell = ({ status }: VehicleStatusCellProps) => {
     </Badge>
   );
 };
+
