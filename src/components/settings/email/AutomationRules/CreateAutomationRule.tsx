@@ -14,11 +14,13 @@ import { supabase } from "@/integrations/supabase/client"
 const formSchema = z.object({
   name: z.string().min(1, "الرجاء إدخال اسم القاعدة"),
   description: z.string().optional(),
-  trigger_type: z.string(),
-  template_id: z.string(),
-  timing_type: z.string(),
+  trigger_type: z.enum(['welcome', 'contract_confirmation', 'payment_reminder', 'late_payment', 'insurance_renewal', 'legal_notice']),
+  template_id: z.string().min(1, "الرجاء اختيار القالب"),
+  timing_type: z.enum(['before', 'after', 'on']),
   timing_value: z.number().min(0),
 })
+
+type FormValues = z.infer<typeof formSchema>
 
 interface CreateAutomationRuleProps {
   open: boolean
@@ -32,10 +34,10 @@ export const CreateAutomationRule = ({
   onSuccess
 }: CreateAutomationRuleProps) => {
   const { toast } = useToast()
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      timing_value: 0
+      timing_value: 0,
     }
   })
 
@@ -52,7 +54,7 @@ export const CreateAutomationRule = ({
     }
   })
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: FormValues) => {
     try {
       const { error } = await supabase
         .from('email_automation_rules')
@@ -122,7 +124,7 @@ export const CreateAutomationRule = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>نوع القاعدة</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="اختر نوع القاعدة" />
@@ -148,7 +150,7 @@ export const CreateAutomationRule = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>قالب البريد</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="اختر القالب" />
@@ -173,7 +175,7 @@ export const CreateAutomationRule = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>نوع التوقيت</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="اختر نوع التوقيت" />

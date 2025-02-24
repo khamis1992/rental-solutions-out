@@ -21,6 +21,22 @@ import { useState } from "react"
 import { supabase } from "@/integrations/supabase/client"
 import { CreateAutomationRule } from "./CreateAutomationRule"
 
+type AutomationRule = {
+  id: string
+  name: string
+  description?: string
+  template_id: string
+  trigger_type: 'welcome' | 'contract_confirmation' | 'payment_reminder' | 'late_payment' | 'insurance_renewal' | 'legal_notice'
+  conditions: Record<string, any>
+  timing_type: 'before' | 'after' | 'on'
+  timing_value: number
+  is_active: boolean
+  email_templates?: {
+    id: string
+    name: string
+  }
+}
+
 export const AutomationRulesList = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
 
@@ -39,7 +55,7 @@ export const AutomationRulesList = () => {
         .order('created_at')
 
       if (error) throw error
-      return data || []
+      return data as AutomationRule[]
     }
   })
 
@@ -57,7 +73,7 @@ export const AutomationRulesList = () => {
     refetch()
   }
 
-  const getTriggerTypeLabel = (type: string) => {
+  const getTriggerTypeLabel = (type: AutomationRule['trigger_type']) => {
     const labels: Record<string, string> = {
       'welcome': 'رسائل الترحيب',
       'contract_confirmation': 'تأكيد العقد',
@@ -69,7 +85,7 @@ export const AutomationRulesList = () => {
     return labels[type] || type
   }
 
-  const getTimingLabel = (type: string, value: number) => {
+  const getTimingLabel = (type: AutomationRule['timing_type'], value: number) => {
     const timingLabels: Record<string, string> = {
       'before': 'قبل',
       'after': 'بعد',
