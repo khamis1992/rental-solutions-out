@@ -7578,6 +7578,65 @@ export type Database = {
           },
         ]
       }
+      template_analytics: {
+        Row: {
+          bounced: number | null
+          clicked: number | null
+          complaints: number | null
+          created_at: string | null
+          delivered: number | null
+          engagement_rate: number | null
+          id: string
+          opened: number | null
+          response_rate: number | null
+          template_id: string | null
+          time_period: unknown | null
+          total_sent: number | null
+          unsubscribes: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          bounced?: number | null
+          clicked?: number | null
+          complaints?: number | null
+          created_at?: string | null
+          delivered?: number | null
+          engagement_rate?: number | null
+          id?: string
+          opened?: number | null
+          response_rate?: number | null
+          template_id?: string | null
+          time_period?: unknown | null
+          total_sent?: number | null
+          unsubscribes?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          bounced?: number | null
+          clicked?: number | null
+          complaints?: number | null
+          created_at?: string | null
+          delivered?: number | null
+          engagement_rate?: number | null
+          id?: string
+          opened?: number | null
+          response_rate?: number | null
+          template_id?: string | null
+          time_period?: unknown | null
+          total_sent?: number | null
+          unsubscribes?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_analytics_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       traffic_fines: {
         Row: {
           assignment_status: string | null
@@ -9842,6 +9901,13 @@ export type Database = {
           p_customer_id: string
         }
         Returns: number
+      }
+      calculate_template_performance: {
+        Args: {
+          p_template_id: string
+          p_time_period: unknown
+        }
+        Returns: undefined
       }
       can_delete_customer: {
         Args: {
