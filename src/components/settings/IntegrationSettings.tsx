@@ -11,6 +11,7 @@ import { ResendOverview } from "./email/ResendDashboard/Overview";
 import { TemplateList } from "./email/ResendDashboard/TemplateList";
 import { TemplateRecommendations } from "./email/ResendDashboard/TemplateRecommendations";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export const IntegrationSettings = () => {
   const [resendApiKey, setResendApiKey] = useState("");
@@ -97,27 +98,31 @@ export const IntegrationSettings = () => {
               </TabsContent>
               
               <TabsContent value="test">
-                <div className="space-y-4 pt-4">
+                <div className="space-y-4 pt-4" dir="rtl">
                   <div>
                     <Input
                       type="text"
-                      placeholder="Enter test email"
+                      placeholder="أدخل البريد الإلكتروني للاختبار"
                       value={testEmail}
                       onChange={(e) => setTestEmail(e.target.value)}
-                      className="max-w-sm"
+                      className={cn(
+                        "max-w-sm text-right",
+                        "placeholder:text-right"
+                      )}
                     />
                   </div>
                   <Button 
                     onClick={testResendIntegration}
                     disabled={isTesting || !testEmail}
+                    className="flex flex-row-reverse"
                   >
                     {isTesting ? (
                       <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Testing...
+                        <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                        جارٍ الاختبار...
                       </>
                     ) : (
-                      'Test Connection'
+                      'اختبار الاتصال'
                     )}
                   </Button>
                 </div>
