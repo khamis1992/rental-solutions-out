@@ -46,7 +46,7 @@ export const CreateUserForm = ({ isAdmin, onSuccess }: CreateUserFormProps) => {
         throw new Error('Only admins can create staff or admin users');
       }
 
-      // Create the auth user with metadata - trigger will handle profile creation
+      // Create the auth user with metadata - trigger will handle profile creation with defaults
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
