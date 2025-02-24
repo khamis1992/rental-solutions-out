@@ -4,9 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditCard, Mail, MessageSquare, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { ResendOverview } from "./email/ResendDashboard/Overview";
+import { TemplateList } from "./email/ResendDashboard/TemplateList";
 
 export const IntegrationSettings = () => {
   const [resendApiKey, setResendApiKey] = useState("");
@@ -81,8 +84,8 @@ export const IntegrationSettings = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col gap-4 p-4 border rounded-lg">
-            <div className="flex items-center gap-4">
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 p-4 border rounded-lg">
               <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <Mail className="h-6 w-6" />
               </div>
@@ -93,30 +96,48 @@ export const IntegrationSettings = () => {
               <Switch defaultChecked />
             </div>
             
-            <div className="space-y-4 pt-4 border-t">
-              <div>
-                <Input
-                  type="text"
-                  placeholder="Enter test email"
-                  value={testEmail}
-                  onChange={(e) => setTestEmail(e.target.value)}
-                  className="max-w-sm"
-                />
-              </div>
-              <Button 
-                onClick={testResendIntegration}
-                disabled={isTesting || !testEmail}
-              >
-                {isTesting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Testing...
-                  </>
-                ) : (
-                  'Test Connection'
-                )}
-              </Button>
-            </div>
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList>
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="templates">Templates</TabsTrigger>
+                <TabsTrigger value="test">Test</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="overview">
+                <ResendOverview />
+              </TabsContent>
+              
+              <TabsContent value="templates">
+                <TemplateList />
+              </TabsContent>
+              
+              <TabsContent value="test">
+                <div className="space-y-4 pt-4">
+                  <div>
+                    <Input
+                      type="text"
+                      placeholder="Enter test email"
+                      value={testEmail}
+                      onChange={(e) => setTestEmail(e.target.value)}
+                      className="max-w-sm"
+                    />
+                  </div>
+                  <Button 
+                    onClick={testResendIntegration}
+                    disabled={isTesting || !testEmail}
+                  >
+                    {isTesting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Testing...
+                      </>
+                    ) : (
+                      'Test Connection'
+                    )}
+                  </Button>
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
 
           <div className="flex items-center gap-4 p-4 border rounded-lg">
