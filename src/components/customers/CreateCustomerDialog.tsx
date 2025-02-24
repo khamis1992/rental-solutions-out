@@ -57,10 +57,9 @@ export const CreateCustomerDialog = ({
     if (!values.phone_number?.trim()) {
       throw new Error("Phone number is required");
     }
-    // Basic phone number validation that accepts numbers, spaces, dashes and plus sign
-    const phoneRegex = /^[0-9\s\-\+]+$/;
-    if (!phoneRegex.test(values.phone_number)) {
-      throw new Error("Please enter a valid phone number");
+    // Only verify that the phone number is not empty and contains numbers
+    if (!/\d/.test(values.phone_number)) {
+      throw new Error("Phone number must contain at least one digit");
     }
     if (!values.email?.trim()) {
       throw new Error("Email is required");
@@ -202,7 +201,7 @@ export const CreateCustomerDialog = ({
             <AlertDialogTitle>Create Agreement</AlertDialogTitle>
             <AlertDialogDescription>
               Would you like to create a new agreement for this customer?
-            </AlertDialogDescription>
+            </DialogDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => {
