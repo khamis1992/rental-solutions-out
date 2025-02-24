@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ResendOverview } from "./email/ResendDashboard/Overview";
 import { TemplateList } from "./email/ResendDashboard/TemplateList";
 import { TemplateRecommendations } from "./email/ResendDashboard/TemplateRecommendations";
+import { AutomationRulesList } from "./email/AutomationRules/AutomationRulesList";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -81,6 +82,7 @@ export const IntegrationSettings = () => {
               <TabsList>
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="templates">Templates</TabsTrigger>
+                <TabsTrigger value="automation">Automation</TabsTrigger>
                 <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
                 <TabsTrigger value="test">Test</TabsTrigger>
               </TabsList>
@@ -91,6 +93,10 @@ export const IntegrationSettings = () => {
               
               <TabsContent value="templates">
                 <TemplateList />
+              </TabsContent>
+
+              <TabsContent value="automation">
+                <AutomationRulesList />
               </TabsContent>
 
               <TabsContent value="recommendations">
