@@ -2499,6 +2499,56 @@ export type Database = {
         }
         Relationships: []
       }
+      email_automation_rules: {
+        Row: {
+          conditions: Json
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          template_id: string | null
+          timing_type: Database["public"]["Enums"]["timing_type"]
+          timing_value: number | null
+          trigger_type: Database["public"]["Enums"]["notification_trigger_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          conditions?: Json
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          template_id?: string | null
+          timing_type: Database["public"]["Enums"]["timing_type"]
+          timing_value?: number | null
+          trigger_type: Database["public"]["Enums"]["notification_trigger_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          conditions?: Json
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          template_id?: string | null
+          timing_type?: Database["public"]["Enums"]["timing_type"]
+          timing_value?: number | null
+          trigger_type?: Database["public"]["Enums"]["notification_trigger_type"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_automation_rules_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_clicks: {
         Row: {
           clicked_at: string
@@ -2638,6 +2688,151 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "email_metrics_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_notification_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          recipient_email: string
+          recipient_id: string | null
+          rule_id: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["notification_status"] | null
+          template_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          recipient_email: string
+          recipient_id?: string | null
+          rule_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["notification_status"] | null
+          template_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          recipient_email?: string
+          recipient_id?: string | null
+          rule_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["notification_status"] | null
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_notification_logs_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_notification_logs_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_notification_logs_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "email_automation_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_notification_logs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_notification_queue: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          last_retry_at: string | null
+          metadata: Json | null
+          recipient_email: string
+          recipient_id: string | null
+          retry_count: number | null
+          rule_id: string | null
+          scheduled_for: string
+          status: Database["public"]["Enums"]["notification_status"] | null
+          template_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          last_retry_at?: string | null
+          metadata?: Json | null
+          recipient_email: string
+          recipient_id?: string | null
+          retry_count?: number | null
+          rule_id?: string | null
+          scheduled_for: string
+          status?: Database["public"]["Enums"]["notification_status"] | null
+          template_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          last_retry_at?: string | null
+          metadata?: Json | null
+          recipient_email?: string
+          recipient_id?: string | null
+          retry_count?: number | null
+          rule_id?: string | null
+          scheduled_for?: string
+          status?: Database["public"]["Enums"]["notification_status"] | null
+          template_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_notification_queue_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_notification_queue_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_notification_queue_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "email_automation_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_notification_queue_template_id_fkey"
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "email_templates"
@@ -10316,6 +10511,14 @@ export type Database = {
         | "in_progress"
         | "completed"
         | "cancelled"
+      notification_status: "pending" | "sent" | "failed" | "cancelled"
+      notification_trigger_type:
+        | "welcome"
+        | "contract_confirmation"
+        | "payment_reminder"
+        | "late_payment"
+        | "insurance_renewal"
+        | "legal_notice"
       overdue_payment_status: "pending" | "partially_paid" | "resolved"
       payment_method_type:
         | "Invoice"
@@ -10342,6 +10545,7 @@ export type Database = {
         | "terms"
         | "payment_terms"
         | "signatures"
+      timing_type: "before" | "after" | "on"
       transaction_amount_type: "income" | "expense" | "refund"
       transaction_type:
         | "LATE_PAYMENT_FEE"
