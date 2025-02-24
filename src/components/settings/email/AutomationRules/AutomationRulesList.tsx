@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query"
 import { 
   Card,
@@ -43,7 +42,10 @@ const DEFAULT_RULES: Partial<AutomationRule>[] = [
     name: "رسالة ترحيب للعملاء الجدد",
     description: "إرسال رسالة ترحيب تلقائية عند إنشاء حساب العميل",
     trigger_type: "welcome",
-    conditions: { event: "new_customer" },
+    conditions: { 
+      event: "new_customer",
+      required_attachments: ['id', 'license']
+    },
     timing_type: "after",
     timing_value: 0,
     is_active: true
@@ -52,7 +54,10 @@ const DEFAULT_RULES: Partial<AutomationRule>[] = [
     name: "تأكيد العقد",
     description: "إرسال تأكيد تلقائي عند توقيع العقد",
     trigger_type: "contract_confirmation",
-    conditions: { event: "contract_signed" },
+    conditions: { 
+      event: "contract_signed",
+      required_attachments: ['contract', 'id', 'license']
+    },
     timing_type: "after",
     timing_value: 0,
     is_active: true
@@ -61,7 +66,10 @@ const DEFAULT_RULES: Partial<AutomationRule>[] = [
     name: "تذكير بموعد الدفع",
     description: "تذكير قبل موعد الدفع بثلاثة أيام",
     trigger_type: "payment_reminder",
-    conditions: { event: "payment_due" },
+    conditions: { 
+      event: "payment_due",
+      recurrence: "daily"
+    },
     timing_type: "before",
     timing_value: 3,
     is_active: true
@@ -70,7 +78,10 @@ const DEFAULT_RULES: Partial<AutomationRule>[] = [
     name: "إشعار التأخر في السداد",
     description: "إشعار عند تأخر الدفع",
     trigger_type: "late_payment",
-    conditions: { event: "payment_overdue" },
+    conditions: { 
+      event: "payment_overdue",
+      recurrence: "daily"
+    },
     timing_type: "after",
     timing_value: 1,
     is_active: true
@@ -79,7 +90,10 @@ const DEFAULT_RULES: Partial<AutomationRule>[] = [
     name: "تذكير تجديد التأمين",
     description: "تذكير قبل انتهاء التأمين بأسبوع",
     trigger_type: "insurance_renewal",
-    conditions: { event: "insurance_expiring" },
+    conditions: { 
+      event: "insurance_expiring",
+      required_attachments: ['insurance']
+    },
     timing_type: "before",
     timing_value: 7,
     is_active: true
@@ -88,7 +102,12 @@ const DEFAULT_RULES: Partial<AutomationRule>[] = [
     name: "إشعار قانوني",
     description: "إرسال إشعار قانوني للمدفوعات المتأخرة",
     trigger_type: "legal_notice",
-    conditions: { event: "payment_very_late", days_overdue: 30 },
+    conditions: { 
+      event: "payment_very_late", 
+      days_overdue: 30,
+      required_attachments: ['contract'],
+      recurrence: "weekly"
+    },
     timing_type: "after",
     timing_value: 30,
     is_active: true
