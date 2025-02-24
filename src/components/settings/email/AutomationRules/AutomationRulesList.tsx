@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query"
 import { 
   Card,
@@ -145,7 +146,12 @@ export const AutomationRulesList = () => {
         .from('email_templates')
         .select('id, template_type')
       
-      const templatesByType = templates?.reduce((acc, template) => {
+      if (!templates) {
+        throw new Error('No templates found')
+      }
+
+      // Create a map of template types to template IDs
+      const templatesByType = templates.reduce((acc, template) => {
         if (template.template_type) {
           acc[template.template_type] = template.id;
         }
@@ -155,7 +161,9 @@ export const AutomationRulesList = () => {
       // Add default rules with matching templates
       const rulesToAdd = DEFAULT_RULES.map(rule => ({
         ...rule,
-        template_id: templatesByType[rule.trigger_type as string] || null
+        template_id: templatesByType[rule.trigger_type] || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }));
 
       const { error } = await supabase
