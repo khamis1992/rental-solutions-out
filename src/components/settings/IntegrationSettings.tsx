@@ -138,29 +138,6 @@ export const IntegrationSettings = () => {
           </div>
         </CardContent>
       </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>API Access</CardTitle>
-          <CardDescription>
-            Manage your API keys and access tokens
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="p-4 border rounded-lg">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="font-medium">Production API Key</p>
-                <p className="text-sm text-muted-foreground">Last used 2 days ago</p>
-              </div>
-              <Button variant="outline">Regenerate</Button>
-            </div>
-            <div className="bg-muted p-2 rounded-md">
-              <code className="text-sm">••••••••••••••••</code>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
