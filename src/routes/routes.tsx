@@ -1,8 +1,6 @@
 
 import { lazy } from "react";
 
-import { Shell } from "@/components/shells";
-
 export const routes = [
   {
     path: "/email-test",
