@@ -1,9 +1,10 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CreditCard, Mail, MessageSquare, Loader2 } from "lucide-react";
+import { Mail, MessageSquare, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ResendOverview } from "./email/ResendDashboard/Overview";
@@ -57,27 +58,6 @@ export const IntegrationSettings = () => {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Payment Integrations</CardTitle>
-          <CardDescription>
-            Connect your payment processing services
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-4 p-4 border rounded-lg">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <CreditCard className="h-6 w-6" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium">Stripe</p>
-              <p className="text-sm text-muted-foreground">Process credit card payments</p>
-            </div>
-            <Switch defaultChecked />
-          </div>
-        </CardContent>
-      </Card>
-
       <Card>
         <CardHeader>
           <CardTitle>Communication Services</CardTitle>
