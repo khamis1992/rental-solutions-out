@@ -7,6 +7,11 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS'
 }
 
+interface EmailRequest {
+  email: string;
+  name: string;
+}
+
 serve(async (req) => {
   console.log("Starting send-email function");
 
@@ -20,6 +25,7 @@ serve(async (req) => {
 
   try {
     const apiKey = Deno.env.get('RESEND_API_KEY');
+    const fromEmail = Deno.env.get('FROM_EMAIL') || 'noreply@alaraf.online';
     console.log("API Key present:", !!apiKey);
 
     if (!apiKey) {
@@ -29,13 +35,12 @@ serve(async (req) => {
     const body = await req.json();
     console.log("Received request body:", body);
 
-    const { email, name } = body;
+    const { email, name } = body as EmailRequest;
 
     if (!email || !name) {
       throw new Error("Missing required fields: email and name are required");
     }
 
-    // Use native fetch instead of the Resend SDK to avoid dependency issues
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -43,7 +48,7 @@ serve(async (req) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'onboarding@resend.dev',
+        from: fromEmail,
         to: email,
         subject: 'Test Email',
         html: `
@@ -63,6 +68,10 @@ serve(async (req) => {
     console.log("Email API response:", data);
 
     if (!response.ok) {
+      // Handle specific error cases
+      if (data.message?.includes('verify a domain')) {
+        throw new Error(`Domain verification required. Please verify your domain at resend.com/domains and update the FROM_EMAIL environment variable to use an email from your verified domain.`);
+      }
       throw new Error(data.message || 'Failed to send email');
     }
 
