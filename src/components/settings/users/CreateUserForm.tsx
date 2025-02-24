@@ -46,37 +46,38 @@ export const CreateUserForm = ({ isAdmin, onSuccess }: CreateUserFormProps) => {
         throw new Error('Only admins can create staff or admin users');
       }
 
-      // First create the auth user to get the ID
+      // Create the auth user with metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
         options: {
           data: {
             full_name: values.full_name,
+            role: values.role, // Include role in metadata
           },
         },
       });
 
       if (authError) throw authError;
-      if (!authData.user) throw new Error('Failed to create user');
 
-      // Then create the profile using the auth user's ID
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
-          full_name: values.full_name,
-          email: values.email,
-          role: values.role,
-          status: 'pending_review',
-          document_verification_status: 'pending',
-          location_tracking_enabled: false,
-          welcome_email_sent: false,
-          profile_completion_score: 0,
-          preferred_communication_channel: 'email',
-        });
+      // Let the database trigger create the initial profile
+      // Then update the profile with additional fields
+      if (authData.user) {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            role: values.role,
+            status: 'pending_review',
+            document_verification_status: 'pending',
+            location_tracking_enabled: false,
+            welcome_email_sent: false,
+            profile_completion_score: 0,
+            preferred_communication_channel: 'email',
+          })
+          .eq('id', authData.user.id);
 
-      if (profileError) throw profileError;
+        if (updateError) throw updateError;
+      }
 
       toast({
         title: "Success",
@@ -86,6 +87,7 @@ export const CreateUserForm = ({ isAdmin, onSuccess }: CreateUserFormProps) => {
       form.reset();
       onSuccess?.();
     } catch (error: any) {
+      console.error("Error in onSubmit:", error);
       toast({
         title: "Error",
         description: error.message,
