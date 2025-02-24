@@ -1,3 +1,4 @@
+
 import { useState, ReactNode, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -10,7 +11,6 @@ import { CustomerFormFields } from "./CustomerFormFields";
 import { EnhancedButton } from "@/components/ui/enhanced-button";
 import { useNavigate } from "react-router-dom";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { CustomCustomerFormFields } from "./CustomCustomerFormFields";
 
 interface CreateCustomerDialogProps {
   children?: ReactNode;
@@ -169,7 +169,7 @@ export const CreateCustomerDialog = ({
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <CustomCustomerFormFields 
+              <CustomerFormFields 
                 form={form} 
                 customerId={customerId || undefined}
               />
