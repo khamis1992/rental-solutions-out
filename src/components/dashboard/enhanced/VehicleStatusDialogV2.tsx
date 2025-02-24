@@ -14,7 +14,7 @@ import { Car } from "lucide-react";
 import { STATUS_CONFIG } from "./VehicleStatusChartV2";
 import { useState } from "react";
 import { VehicleStatusDetailsDialog } from "./VehicleStatusDetailsDialog";
-import { Link, useNavigate } from "react-router-dom";
+import { VehicleDetailsDialog } from "@/components/vehicles/VehicleDetailsDialog";
 
 interface VehicleStatusDialogV2Props {
   isOpen: boolean;
@@ -32,8 +32,8 @@ export const VehicleStatusDialogV2 = ({
   isLoading,
 }: VehicleStatusDialogV2Props) => {
   const [selectedNestedStatus, setSelectedNestedStatus] = useState<VehicleStatus | null>(null);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const statusConfig = STATUS_CONFIG[status];
-  const navigate = useNavigate();
 
   const filteredVehicles = selectedNestedStatus 
     ? vehicles.filter(v => v.status === selectedNestedStatus)
@@ -46,10 +46,7 @@ export const VehicleStatusDialogV2 = ({
   const handleVehicleClick = (vehicleId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    onClose();
-    setTimeout(() => {
-      navigate(`/vehicles/${vehicleId}`);
-    }, 100);
+    setSelectedVehicleId(vehicleId);
   };
 
   return (
@@ -98,13 +95,12 @@ export const VehicleStatusDialogV2 = ({
                 {vehicles.map((vehicle) => (
                   <TableRow key={vehicle.id} className="group">
                     <TableCell>
-                      <Link 
-                        to={`/vehicles/${vehicle.id}`}
+                      <button 
                         onClick={(e) => handleVehicleClick(vehicle.id, e)}
                         className="font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline transition-colors"
                       >
                         {vehicle.license_plate}
-                      </Link>
+                      </button>
                     </TableCell>
                     <TableCell>{vehicle.make}</TableCell>
                     <TableCell>{vehicle.model}</TableCell>
@@ -136,6 +132,14 @@ export const VehicleStatusDialogV2 = ({
         status={selectedNestedStatus || "available"}
         vehicles={filteredVehicles}
         isLoading={isLoading}
+      />
+
+      <VehicleDetailsDialog
+        vehicleId={selectedVehicleId || ''}
+        open={!!selectedVehicleId}
+        onOpenChange={(open) => {
+          if (!open) setSelectedVehicleId(null);
+        }}
       />
     </>
   );
