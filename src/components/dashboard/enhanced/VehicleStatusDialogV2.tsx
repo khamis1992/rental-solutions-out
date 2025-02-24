@@ -17,8 +17,8 @@ import { VehicleStatusDetailsDialog } from "./VehicleStatusDetailsDialog";
 import { VehicleDetailsDialog } from "@/components/vehicles/VehicleDetailsDialog";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { VehicleStatusDropdown } from "@/components/vehicles/table/VehicleStatusDropdown";
 
 interface VehicleStatusDialogV2Props {
   isOpen: boolean;
@@ -90,27 +90,6 @@ export const VehicleStatusDialogV2 = ({
     }
   }, []);
 
-  const renderStatusOptions = (vehicleId: string, currentStatus: VehicleStatus) => {
-    return (
-      <div className="flex gap-2 flex-wrap">
-        {availableStatuses?.map((statusOption) => (
-          <Button
-            key={statusOption.id}
-            variant={statusOption.name === currentStatus ? "secondary" : "outline"}
-            size="sm"
-            disabled={updatingVehicleId === vehicleId}
-            onClick={(e) => {
-              e.stopPropagation();
-              updateVehicleStatus(vehicleId, statusOption.name as VehicleStatus);
-            }}
-          >
-            {statusOption.name}
-          </Button>
-        ))}
-      </div>
-    );
-  };
-
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -172,7 +151,13 @@ export const VehicleStatusDialogV2 = ({
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {renderStatusOptions(vehicle.id, vehicle.status)}
+                      <VehicleStatusDropdown
+                        currentStatus={vehicle.status}
+                        availableStatuses={availableStatuses || []}
+                        onStatusChange={(newStatus) => updateVehicleStatus(vehicle.id, newStatus)}
+                        isLoading={updatingVehicleId === vehicle.id}
+                        disabled={!availableStatuses}
+                      />
                     </TableCell>
                     <TableCell>{vehicle.location || "N/A"}</TableCell>
                   </TableRow>
