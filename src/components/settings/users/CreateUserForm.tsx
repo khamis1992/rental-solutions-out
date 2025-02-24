@@ -46,8 +46,28 @@ export const CreateUserForm = ({ isAdmin, onSuccess }: CreateUserFormProps) => {
         throw new Error('Only admins can create staff or admin users');
       }
 
-      // Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // First create the user in profiles table
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .insert([{
+          full_name: values.full_name,
+          email: values.email,
+          role: values.role,
+          // Additional default fields
+          status: 'pending_review',
+          document_verification_status: 'pending',
+          location_tracking_enabled: false,
+          welcome_email_sent: false,
+          profile_completion_score: 0,
+          preferred_communication_channel: 'email',
+        }])
+        .select()
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Then create the auth user with the same ID
+      const { error: authError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
         options: {
@@ -58,18 +78,6 @@ export const CreateUserForm = ({ isAdmin, onSuccess }: CreateUserFormProps) => {
       });
 
       if (authError) throw authError;
-
-      // Create profile record using the auth user's ID
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user!.id,
-          full_name: values.full_name,
-          email: values.email,
-          role: values.role,
-        });
-
-      if (profileError) throw profileError;
 
       toast({
         title: "Success",
