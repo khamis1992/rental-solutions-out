@@ -13,20 +13,39 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus } from "lucide-react";
 import { format } from "date-fns";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { TemplateEditor } from "./TemplateEditor";
 
 export const TemplateList = () => {
-  const { data: templates, isLoading } = useQuery({
+  const [showEditor, setShowEditor] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+
+  const { data: templates, isLoading, refetch } = useQuery({
     queryKey: ["email-templates"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('email_templates')
-        .select('*')
+        .select(`
+          *,
+          category:email_template_categories(name)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data;
     }
   });
+
+  const handleEdit = (templateId: string) => {
+    setSelectedTemplate(templateId);
+    setShowEditor(true);
+  };
+
+  const handleClose = () => {
+    setShowEditor(false);
+    setSelectedTemplate(null);
+    refetch();
+  };
 
   if (isLoading) {
     return (
@@ -40,7 +59,7 @@ export const TemplateList = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Email Templates</h3>
-        <Button>
+        <Button onClick={() => setShowEditor(true)}>
           <Plus className="h-4 w-4 mr-2" />
           New Template
         </Button>
@@ -52,7 +71,7 @@ export const TemplateList = () => {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Category</TableHead>
-              <TableHead>Last Used</TableHead>
+              <TableHead>Last Updated</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -61,11 +80,9 @@ export const TemplateList = () => {
             {templates?.map((template) => (
               <TableRow key={template.id}>
                 <TableCell className="font-medium">{template.name}</TableCell>
-                <TableCell>{template.category}</TableCell>
+                <TableCell>{template.category?.name || 'Uncategorized'}</TableCell>
                 <TableCell>
-                  {template.last_used_at 
-                    ? format(new Date(template.last_used_at), 'MMM d, yyyy')
-                    : 'Never'}
+                  {format(new Date(template.updated_at), 'MMM d, yyyy')}
                 </TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 rounded-full text-xs ${
@@ -75,7 +92,9 @@ export const TemplateList = () => {
                   </span>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="sm">Edit</Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleEdit(template.id)}>
+                    Edit
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -89,6 +108,15 @@ export const TemplateList = () => {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={showEditor} onOpenChange={setShowEditor}>
+        <DialogContent className="max-w-4xl">
+          <TemplateEditor 
+            templateId={selectedTemplate} 
+            onSave={handleClose}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
