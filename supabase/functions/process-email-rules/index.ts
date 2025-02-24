@@ -44,6 +44,19 @@ async function processAutomationRules() {
             .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
           break
 
+        case 'contract_confirmation':
+          // Get customers with newly created agreements
+          const { data: newAgreements } = await supabase
+            .from('leases')
+            .select('customer_id')
+            .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+
+          if (newAgreements?.length) {
+            const customerIds = newAgreements.map(a => a.customer_id)
+            recipientsQuery = recipientsQuery.in('id', customerIds)
+          }
+          break
+
         case 'payment_reminder':
           // Get customers with upcoming payments
           const { data: upcomingPayments } = await supabase
@@ -73,8 +86,6 @@ async function processAutomationRules() {
               .in('id', supabase.from('leases').select('customer_id').in('id', leaseIds))
           }
           break
-
-        // Add other cases as needed
       }
 
       // Get recipients based on conditions
