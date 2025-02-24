@@ -52,7 +52,6 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
     },
   })
 
-  // Preview handler
   const handlePreview = () => {
     if (!editor?.getHTML()) {
       toast({
@@ -89,30 +88,32 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
     try {
       const template = {
         name,
-        category_id: category,
+        category: category, // Changed from category_id to category
+        subject: name, // Added required field
         content: editor.getHTML(),
         variables: [], // Will be populated based on detected variables
+        is_active: true // Added required field
       }
 
       if (templateId) {
-        // Create new version
-        const { error: versionError } = await supabase
-          .from('email_template_versions')
-          .insert({
-            template_id: templateId,
-            content: editor.getHTML(),
-            version_number: 1, // This should be incremented based on existing versions
-          })
-
-        if (versionError) throw versionError
-
-        // Update template
+        // Update existing template
         const { error: templateError } = await supabase
           .from('email_templates')
           .update(template)
           .eq('id', templateId)
 
         if (templateError) throw templateError
+
+        // Create new version
+        const { error: versionError } = await supabase
+          .from('email_template_versions')
+          .insert({
+            template_id: templateId,
+            content: editor.getHTML(),
+            version_number: 1,
+          })
+
+        if (versionError) throw versionError
       } else {
         // Create new template
         const { data, error: templateError } = await supabase
@@ -122,16 +123,18 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
 
         if (templateError) throw templateError
 
-        // Create initial version
-        const { error: versionError } = await supabase
-          .from('email_template_versions')
-          .insert({
-            template_id: data[0].id,
-            content: editor.getHTML(),
-            version_number: 1,
-          })
+        if (data && data[0]) {
+          // Create initial version
+          const { error: versionError } = await supabase
+            .from('email_template_versions')
+            .insert({
+              template_id: data[0].id,
+              content: editor.getHTML(),
+              version_number: 1,
+            })
 
-        if (versionError) throw versionError
+          if (versionError) throw versionError
+        }
       }
 
       toast({
@@ -140,6 +143,12 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
       })
 
       onSave?.()
+      
+      // Reset form after successful save
+      setName('')
+      editor?.commands.setContent('')
+      setCategory('')
+      
     } catch (error) {
       console.error('Error saving template:', error)
       toast({
