@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from "@/integrations/supabase/client"
 import { cn } from "@/lib/utils"
@@ -52,6 +52,36 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
     },
   })
 
+  // Load template data if templateId is provided
+  useEffect(() => {
+    if (templateId) {
+      const loadTemplate = async () => {
+        const { data, error } = await supabase
+          .from('email_templates')
+          .select('*')
+          .eq('id', templateId)
+          .single()
+
+        if (error) {
+          toast({
+            title: "خطأ",
+            description: "فشل في تحميل القالب",
+            variant: "destructive"
+          })
+          return
+        }
+
+        if (data) {
+          setName(data.name)
+          setCategory(data.category)
+          editor?.commands.setContent(data.content)
+        }
+      }
+
+      loadTemplate()
+    }
+  }, [templateId, editor, toast])
+
   const handlePreview = () => {
     if (!editor?.getHTML()) {
       toast({
@@ -88,11 +118,11 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
     try {
       const template = {
         name,
-        category: category, // Changed from category_id to category
-        subject: name, // Added required field
+        category: category,
+        subject: name,
         content: editor.getHTML(),
-        variables: [], // Will be populated based on detected variables
-        is_active: true // Added required field
+        variables: [],
+        is_active: true
       }
 
       if (templateId) {
@@ -144,10 +174,12 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
 
       onSave?.()
       
-      // Reset form after successful save
-      setName('')
-      editor?.commands.setContent('')
-      setCategory('')
+      // Only reset form for new templates, not when editing
+      if (!templateId) {
+        setName('')
+        editor?.commands.setContent('')
+        setCategory('')
+      }
       
     } catch (error) {
       console.error('Error saving template:', error)
