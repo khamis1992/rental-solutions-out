@@ -8,13 +8,8 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS'
 }
 
-interface EmailRequest {
-  email: string;
-  name: string;
-}
-
 serve(async (req) => {
-  console.log("Received request:", req.method);
+  console.log("Starting send-email function");
 
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -25,48 +20,29 @@ serve(async (req) => {
   }
 
   try {
-    // Validate request method
-    if (req.method !== 'POST') {
-      throw new Error(`Method ${req.method} not allowed`);
-    }
-
-    // Get and validate API key
     const apiKey = Deno.env.get('RESEND_API_KEY');
+    console.log("API Key present:", !!apiKey); // Log if API key exists, not the actual key
+
     if (!apiKey) {
-      console.error("Missing RESEND_API_KEY environment variable");
-      throw new Error("Email service configuration error");
-    }
-
-    // Initialize Resend
-    const resend = new Resend(apiKey);
-
-    // Parse and validate request body
-    const contentType = req.headers.get("content-type");
-    if (!contentType?.includes("application/json")) {
-      throw new Error("Content-Type must be application/json");
+      throw new Error("Missing RESEND_API_KEY environment variable");
     }
 
     const body = await req.json();
     console.log("Received request body:", body);
 
-    // Validate required fields
-    if (!body.email || !body.name) {
+    const { email, name } = body;
+
+    if (!email || !name) {
       throw new Error("Missing required fields: email and name are required");
     }
 
-    const { email, name }: EmailRequest = body;
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      throw new Error("Invalid email format");
-    }
+    const resend = new Resend(apiKey);
+    console.log("Resend client initialized");
 
     console.log(`Attempting to send test email to: ${email}`);
 
-    // Send email
     const { data, error } = await resend.emails.send({
-      from: "Lovable <onboarding@resend.dev>",
+      from: "onboarding@resend.dev",
       to: email,
       subject: "Test Email",
       html: `
