@@ -154,7 +154,7 @@ export const CreateCustomerDialog = ({
   };
 
   return (
-    <>
+    <div>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogTrigger asChild>
           {children || (
@@ -195,13 +195,16 @@ export const CreateCustomerDialog = ({
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={showContractPrompt} onOpenChange={setShowContractPrompt}>
+      <AlertDialog 
+        open={showContractPrompt} 
+        onOpenChange={setShowContractPrompt}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Create Agreement</AlertDialogTitle>
             <AlertDialogDescription>
               Would you like to create a new agreement for this customer?
-            </DialogDialogDescription>
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => {
@@ -218,6 +221,6 @@ export const CreateCustomerDialog = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 };
