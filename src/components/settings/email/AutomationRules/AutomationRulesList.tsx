@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query"
 import { 
   Card,
@@ -19,7 +18,7 @@ import { Button } from "@/components/ui/button"
 import { Plus, Pencil } from "lucide-react"
 import { useState } from "react"
 import { supabase } from "@/integrations/supabase/client"
-import { CreateAutomationRule } from "./CreateAutomationRule"
+import { CustomAutomationRule } from "./CustomAutomationRule"
 
 type AutomationRule = {
   id: string
@@ -157,7 +156,7 @@ export const AutomationRulesList = () => {
         </Table>
       </CardContent>
 
-      <CreateAutomationRule 
+      <CustomAutomationRule 
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
         onSuccess={() => {
