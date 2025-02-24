@@ -101,34 +101,6 @@ export const CustomCustomerFormFields = ({
           </FormItem>
         )}
       />
-
-      <FormField
-        control={form.control}
-        name="id_document_expiry"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>ID Document Expiry</FormLabel>
-            <FormControl>
-              <Input type="date" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="license_document_expiry"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>License Document Expiry</FormLabel>
-            <FormControl>
-              <Input type="date" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
     </div>
   );
 };
