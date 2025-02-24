@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -46,19 +45,29 @@ export const CreateUserForm = ({ isAdmin, onSuccess }: CreateUserFormProps) => {
         throw new Error('Only admins can create staff or admin users');
       }
 
-      // Create the auth user with metadata - trigger will handle profile creation with defaults
+      // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
         options: {
           data: {
             full_name: values.full_name,
-            role: values.role,
           },
         },
       });
 
       if (authError) throw authError;
+
+      // Update profile with role
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ 
+          role: values.role,
+          full_name: values.full_name,
+        })
+        .eq('id', authData.user!.id);
+
+      if (profileError) throw profileError;
 
       toast({
         title: "Success",
@@ -68,7 +77,6 @@ export const CreateUserForm = ({ isAdmin, onSuccess }: CreateUserFormProps) => {
       form.reset();
       onSuccess?.();
     } catch (error: any) {
-      console.error("Error in onSubmit:", error);
       toast({
         title: "Error",
         description: error.message,
