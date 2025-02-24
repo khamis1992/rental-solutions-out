@@ -57,10 +57,6 @@ export const CreateCustomerDialog = ({
     if (!values.phone_number?.trim()) {
       throw new Error("Phone number is required");
     }
-    // Only verify that the phone number is not empty and contains numbers
-    if (!/\d/.test(values.phone_number)) {
-      throw new Error("Phone number must contain at least one digit");
-    }
     if (!values.email?.trim()) {
       throw new Error("Email is required");
     }
