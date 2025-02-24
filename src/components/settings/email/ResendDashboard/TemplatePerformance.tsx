@@ -13,10 +13,34 @@ import {
   Legend
 } from 'recharts';
 import { Loader2 } from "lucide-react";
-import { format, subDays } from "date-fns";
+import { DataTable } from "@/components/ui/data-table";
+
+interface TemplateAnalytics {
+  id: string;
+  template_id: string;
+  total_sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  engagement_rate: number;
+  response_rate: number;
+  email_templates?: {
+    name: string;
+  } | null;
+}
+
+interface PerformanceData {
+  name: string;
+  sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  engagementRate: number;
+  responseRate: number;
+}
 
 export const TemplatePerformance = () => {
-  const { data: performanceData, isLoading } = useQuery({
+  const { data: performanceData, isLoading } = useQuery<TemplateAnalytics[], Error>({
     queryKey: ["template-performance"],
     queryFn: async () => {
       const { data: analytics, error } = await supabase
@@ -31,17 +55,19 @@ export const TemplatePerformance = () => {
 
       if (error) throw error;
 
-      return analytics.map(record => ({
-        name: record.email_templates?.name || 'Unnamed Template',
-        sent: record.total_sent,
-        delivered: record.delivered,
-        opened: record.opened,
-        clicked: record.clicked,
-        engagementRate: parseFloat(record.engagement_rate?.toFixed(2)) || 0,
-        responseRate: parseFloat(record.response_rate?.toFixed(2)) || 0
-      }));
+      return analytics as TemplateAnalytics[];
     }
   });
+
+  const chartData: PerformanceData[] = performanceData?.map(record => ({
+    name: record.email_templates?.name || 'Unnamed Template',
+    sent: record.total_sent,
+    delivered: record.delivered,
+    opened: record.opened,
+    clicked: record.clicked,
+    engagementRate: parseFloat(record.engagement_rate?.toFixed(2)) || 0,
+    responseRate: parseFloat(record.response_rate?.toFixed(2)) || 0
+  })) || [];
 
   if (isLoading) {
     return (
@@ -64,7 +90,7 @@ export const TemplatePerformance = () => {
           <div className="h-[400px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={performanceData}
+                data={chartData}
                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
@@ -95,7 +121,7 @@ export const TemplatePerformance = () => {
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={performanceData}
+                  data={chartData}
                   margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
@@ -120,7 +146,7 @@ export const TemplatePerformance = () => {
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={performanceData}
+                  data={chartData}
                   margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
