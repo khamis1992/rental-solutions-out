@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useState, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from "@/integrations/supabase/client"
@@ -20,6 +21,8 @@ interface TemplateEditorProps {
 export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
   const [name, setName] = useState('')
   const [category, setCategory] = useState('')
+  const [showPreview, setShowPreview] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const { toast } = useToast()
 
   const { data: categories } = useQuery({
@@ -49,6 +52,19 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
     },
   })
 
+  // Preview handler
+  const handlePreview = () => {
+    if (!editor?.getHTML()) {
+      toast({
+        title: "خطأ",
+        description: "لا يوجد محتوى للمعاينة",
+        variant: "destructive"
+      })
+      return
+    }
+    setShowPreview(true)
+  }
+
   const handleSave = useCallback(async () => {
     if (!name || !editor?.getHTML()) {
       toast({
@@ -58,6 +74,17 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
       })
       return
     }
+
+    if (!category) {
+      toast({
+        title: "خطأ",
+        description: "يرجى اختيار الفئة",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setIsSaving(true)
 
     try {
       const template = {
@@ -120,56 +147,79 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
         description: "فشل في حفظ القالب",
         variant: "destructive"
       })
+    } finally {
+      setIsSaving(false)
     }
   }, [name, category, editor, templateId, toast, onSave])
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          {templateId ? 'تعديل القالب' : 'إنشاء قالب جديد'}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4" dir="rtl">
-        <div className="space-y-2">
-          <Label htmlFor="name">اسم القالب</Label>
-          <Input
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="أدخل اسم القالب"
-            className="text-right"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="category">الفئة</Label>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger id="category" className="text-right">
-              <SelectValue placeholder="اختر الفئة" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories?.map((cat) => (
-                <SelectItem key={cat.id} value={cat.id}>
-                  {cat.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label>المحتوى</Label>
-          <div className="border rounded-md overflow-hidden">
-            <EditorContent editor={editor} />
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {templateId ? 'تعديل القالب' : 'إنشاء قالب جديد'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4" dir="rtl">
+          <div className="space-y-2">
+            <Label htmlFor="name">اسم القالب</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="أدخل اسم القالب"
+              className="text-right"
+            />
           </div>
-        </div>
 
-        <div className="flex justify-start space-x-2">
-          <Button variant="outline">معاينة</Button>
-          <Button onClick={handleSave}>حفظ القالب</Button>
-        </div>
-      </CardContent>
-    </Card>
+          <div className="space-y-2">
+            <Label htmlFor="category">الفئة</Label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger id="category" className="text-right">
+                <SelectValue placeholder="اختر الفئة" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories?.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>المحتوى</Label>
+            <div className="border rounded-md overflow-hidden">
+              <EditorContent editor={editor} />
+            </div>
+          </div>
+
+          <div className="flex justify-start space-x-2">
+            <Button variant="outline" onClick={handlePreview}>معاينة</Button>
+            <Button 
+              onClick={handleSave} 
+              disabled={isSaving}
+            >
+              {isSaving ? 'جاري الحفظ...' : 'حفظ القالب'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-[800px]" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>معاينة القالب</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4 p-4 border rounded">
+            <div 
+              className="prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: editor?.getHTML() || '' }} 
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
