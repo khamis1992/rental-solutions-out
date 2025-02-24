@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Mail, MessageSquare, Loader2 } from "lucide-react";
+import { Mail, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ResendOverview } from "./email/ResendDashboard/Overview";
@@ -135,17 +135,6 @@ export const IntegrationSettings = () => {
                 </div>
               </TabsContent>
             </Tabs>
-          </div>
-
-          <div className="flex items-center gap-4 p-4 border rounded-lg">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <MessageSquare className="h-6 w-6" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium">Twilio</p>
-              <p className="text-sm text-muted-foreground">SMS notification service</p>
-            </div>
-            <Switch />
           </div>
         </CardContent>
       </Card>
