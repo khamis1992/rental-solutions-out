@@ -57,6 +57,11 @@ export const CreateCustomerDialog = ({
     if (!values.phone_number?.trim()) {
       throw new Error("Phone number is required");
     }
+    // Basic phone number validation that accepts numbers, spaces, dashes and plus sign
+    const phoneRegex = /^[0-9\s\-\+]+$/;
+    if (!phoneRegex.test(values.phone_number)) {
+      throw new Error("Please enter a valid phone number");
+    }
     if (!values.email?.trim()) {
       throw new Error("Email is required");
     }
