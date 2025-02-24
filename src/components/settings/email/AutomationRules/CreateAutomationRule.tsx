@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
+import { useEffect } from "react"
 
 const formSchema = z.object({
   name: z.string().min(1, "الرجاء إدخال اسم القاعدة"),
@@ -26,12 +27,22 @@ interface CreateAutomationRuleProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess: () => void
+  editingRule?: {
+    id: string
+    name: string
+    description?: string
+    template_id: string
+    trigger_type: 'welcome' | 'contract_confirmation' | 'payment_reminder' | 'late_payment' | 'insurance_renewal' | 'legal_notice'
+    timing_type: 'before' | 'after' | 'on'
+    timing_value: number
+  } | null
 }
 
 export const CreateAutomationRule = ({
   open,
   onOpenChange,
-  onSuccess
+  onSuccess,
+  editingRule
 }: CreateAutomationRuleProps) => {
   const { toast } = useToast()
   const form = useForm<FormValues>({
@@ -40,6 +51,23 @@ export const CreateAutomationRule = ({
       timing_value: 0,
     }
   })
+
+  useEffect(() => {
+    if (editingRule) {
+      form.reset({
+        name: editingRule.name,
+        description: editingRule.description,
+        trigger_type: editingRule.trigger_type,
+        template_id: editingRule.template_id,
+        timing_type: editingRule.timing_type,
+        timing_value: editingRule.timing_value,
+      })
+    } else {
+      form.reset({
+        timing_value: 0,
+      })
+    }
+  }, [editingRule, form])
 
   const { data: templates } = useQuery({
     queryKey: ['email-templates'],
@@ -56,27 +84,44 @@ export const CreateAutomationRule = ({
 
   const onSubmit = async (values: FormValues) => {
     try {
-      const { error } = await supabase
-        .from('email_automation_rules')
-        .insert({
-          ...values,
-          conditions: {},
-          is_active: true
+      if (editingRule) {
+        const { error } = await supabase
+          .from('email_automation_rules')
+          .update({
+            ...values,
+            conditions: {},
+          })
+          .eq('id', editingRule.id)
+
+        if (error) throw error
+
+        toast({
+          title: "تم بنجاح",
+          description: "تم تحديث قاعدة البريد التلقائي بنجاح",
         })
+      } else {
+        const { error } = await supabase
+          .from('email_automation_rules')
+          .insert({
+            ...values,
+            conditions: {},
+            is_active: true
+          })
 
-      if (error) throw error
+        if (error) throw error
 
-      toast({
-        title: "تم بنجاح",
-        description: "تم إنشاء قاعدة البريد التلقائي بنجاح",
-      })
+        toast({
+          title: "تم بنجاح",
+          description: "تم إنشاء قاعدة البريد التلقائي بنجاح",
+        })
+      }
 
       onSuccess()
     } catch (error) {
-      console.error('Error creating automation rule:', error)
+      console.error('Error saving automation rule:', error)
       toast({
         title: "خطأ",
-        description: "حدث خطأ أثناء إنشاء القاعدة",
+        description: "حدث خطأ أثناء حفظ القاعدة",
         variant: "destructive"
       })
     }
@@ -86,7 +131,9 @@ export const CreateAutomationRule = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]" dir="rtl">
         <DialogHeader>
-          <DialogTitle>إضافة قاعدة بريد تلقائي جديدة</DialogTitle>
+          <DialogTitle>
+            {editingRule ? "تعديل قاعدة البريد التلقائي" : "إضافة قاعدة بريد تلقائي جديدة"}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -219,7 +266,7 @@ export const CreateAutomationRule = ({
                 إلغاء
               </Button>
               <Button type="submit">
-                حفظ
+                {editingRule ? "حفظ التغييرات" : "حفظ"}
               </Button>
             </div>
           </form>

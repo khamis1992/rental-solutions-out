@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table"
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import { Plus, Pencil } from "lucide-react"
 import { useState } from "react"
 import { supabase } from "@/integrations/supabase/client"
 import { CreateAutomationRule } from "./CreateAutomationRule"
@@ -39,6 +39,7 @@ type AutomationRule = {
 
 export const AutomationRulesList = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [editingRule, setEditingRule] = useState<AutomationRule | null>(null)
 
   const { data: rules, refetch } = useQuery({
     queryKey: ['automation-rules'],
@@ -73,6 +74,11 @@ export const AutomationRulesList = () => {
     refetch()
   }
 
+  const handleEdit = (rule: AutomationRule) => {
+    setEditingRule(rule)
+    setShowCreateDialog(true)
+  }
+
   const getTriggerTypeLabel = (type: AutomationRule['trigger_type']) => {
     const labels: Record<string, string> = {
       'welcome': 'رسائل الترحيب',
@@ -99,7 +105,10 @@ export const AutomationRulesList = () => {
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>قواعد البريد التلقائي</CardTitle>
         <Button 
-          onClick={() => setShowCreateDialog(true)}
+          onClick={() => {
+            setEditingRule(null)
+            setShowCreateDialog(true)
+          }}
           className="mr-2"
         >
           <Plus className="w-4 h-4 ml-2" />
@@ -115,7 +124,7 @@ export const AutomationRulesList = () => {
               <TableHead>القالب</TableHead>
               <TableHead>التوقيت</TableHead>
               <TableHead>الحالة</TableHead>
-              <TableHead></TableHead>
+              <TableHead>الإجراءات</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -134,7 +143,13 @@ export const AutomationRulesList = () => {
                   />
                 </TableCell>
                 <TableCell>
-                  {/* Add edit/delete actions here */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleEdit(rule)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -147,8 +162,10 @@ export const AutomationRulesList = () => {
         onOpenChange={setShowCreateDialog}
         onSuccess={() => {
           setShowCreateDialog(false)
+          setEditingRule(null)
           refetch()
         }}
+        editingRule={editingRule}
       />
     </Card>
   )
