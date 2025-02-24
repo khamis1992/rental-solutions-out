@@ -2683,6 +2683,33 @@ export type Database = {
           },
         ]
       }
+      email_cron_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          execution_time: string | null
+          id: string
+          processed_count: number | null
+          success: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          execution_time?: string | null
+          id?: string
+          processed_count?: number | null
+          success?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          execution_time?: string | null
+          id?: string
+          processed_count?: number | null
+          success?: boolean | null
+        }
+        Relationships: []
+      }
       email_event_triggers: {
         Row: {
           conditions: Json | null
