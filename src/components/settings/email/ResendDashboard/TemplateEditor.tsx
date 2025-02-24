@@ -34,7 +34,7 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
         .order('name')
       
       if (error) throw error
-      return data
+      return data || []
     }
   })
 
@@ -58,7 +58,13 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
       const loadTemplate = async () => {
         const { data, error } = await supabase
           .from('email_templates')
-          .select('*')
+          .select(`
+            *,
+            email_template_categories(
+              id,
+              name
+            )
+          `)
           .eq('id', templateId)
           .single()
 
