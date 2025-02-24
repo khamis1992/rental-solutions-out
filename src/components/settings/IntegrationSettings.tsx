@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -12,6 +11,7 @@ import { TemplateList } from "./email/ResendDashboard/TemplateList";
 import { TemplatePerformance } from "./email/ResendDashboard/TemplatePerformance";
 import { TemplateRecommendations } from "./email/ResendDashboard/TemplateRecommendations";
 import { Button } from "@/components/ui/button";
+import { ABTesting } from "./email/ResendDashboard/ABTesting";
 
 export const IntegrationSettings = () => {
   const [resendApiKey, setResendApiKey] = useState("");
@@ -104,6 +104,7 @@ export const IntegrationSettings = () => {
                 <TabsTrigger value="templates">Templates</TabsTrigger>
                 <TabsTrigger value="performance">Performance</TabsTrigger>
                 <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
+                <TabsTrigger value="ab-testing">A/B Testing</TabsTrigger>
                 <TabsTrigger value="test">Test</TabsTrigger>
               </TabsList>
               
@@ -121,6 +122,10 @@ export const IntegrationSettings = () => {
 
               <TabsContent value="recommendations">
                 <TemplateRecommendations />
+              </TabsContent>
+              
+              <TabsContent value="ab-testing">
+                <ABTesting />
               </TabsContent>
               
               <TabsContent value="test">

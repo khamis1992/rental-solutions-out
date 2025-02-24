@@ -9,6 +9,90 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ab_test_experiments: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          ended_at: string | null
+          id: string
+          metrics_config: Json | null
+          name: string
+          started_at: string | null
+          status: string | null
+          success_criteria: Json | null
+          winning_variant_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          ended_at?: string | null
+          id?: string
+          metrics_config?: Json | null
+          name: string
+          started_at?: string | null
+          status?: string | null
+          success_criteria?: Json | null
+          winning_variant_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          ended_at?: string | null
+          id?: string
+          metrics_config?: Json | null
+          name?: string
+          started_at?: string | null
+          status?: string | null
+          success_criteria?: Json | null
+          winning_variant_id?: string | null
+        }
+        Relationships: []
+      }
+      ab_test_variants: {
+        Row: {
+          experiment_id: string | null
+          id: string
+          is_control: boolean | null
+          metrics: Json | null
+          name: string
+          performance_data: Json | null
+          template_id: string | null
+        }
+        Insert: {
+          experiment_id?: string | null
+          id?: string
+          is_control?: boolean | null
+          metrics?: Json | null
+          name: string
+          performance_data?: Json | null
+          template_id?: string | null
+        }
+        Update: {
+          experiment_id?: string | null
+          id?: string
+          is_control?: boolean | null
+          metrics?: Json | null
+          name?: string
+          performance_data?: Json | null
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ab_test_variants_experiment_id_fkey"
+            columns: ["experiment_id"]
+            isOneToOne: false
+            referencedRelation: "ab_test_experiments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ab_test_variants_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounting_categories: {
         Row: {
           budget_limit: number | null
