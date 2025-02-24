@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
-import { Resend } from "npm:resend@3.0.0"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,7 +20,7 @@ serve(async (req) => {
 
   try {
     const apiKey = Deno.env.get('RESEND_API_KEY');
-    console.log("API Key present:", !!apiKey); // Log if API key exists, not the actual key
+    console.log("API Key present:", !!apiKey);
 
     if (!apiKey) {
       throw new Error("Missing RESEND_API_KEY environment variable");
@@ -36,33 +35,36 @@ serve(async (req) => {
       throw new Error("Missing required fields: email and name are required");
     }
 
-    const resend = new Resend(apiKey);
-    console.log("Resend client initialized");
-
-    console.log(`Attempting to send test email to: ${email}`);
-
-    const { data, error } = await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: email,
-      subject: "Test Email",
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px;">
-          <h2>Test Email Configuration</h2>
-          <p>Hi ${name},</p>
-          <p>This is a test email to verify your email configuration!</p>
-          <p>If you're receiving this, your email integration is working correctly.</p>
-          <br>
-          <p>Best regards,<br>Lovable Team</p>
-        </div>
-      `
+    // Use native fetch instead of the Resend SDK to avoid dependency issues
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: 'onboarding@resend.dev',
+        to: email,
+        subject: 'Test Email',
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2>Test Email Configuration</h2>
+            <p>Hi ${name},</p>
+            <p>This is a test email to verify your email configuration!</p>
+            <p>If you're receiving this, your email integration is working correctly.</p>
+            <br>
+            <p>Best regards,<br>Lovable Team</p>
+          </div>
+        `
+      })
     });
 
-    if (error) {
-      console.error("Resend API error:", error);
-      throw error;
-    }
+    const data = await response.json();
+    console.log("Email API response:", data);
 
-    console.log("Email sent successfully:", data);
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to send email');
+    }
 
     return new Response(
       JSON.stringify({ 
