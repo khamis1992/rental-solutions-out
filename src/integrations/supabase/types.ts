@@ -7637,6 +7637,56 @@ export type Database = {
           },
         ]
       }
+      template_recommendations: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          description: string
+          id: string
+          impact_metrics: Json | null
+          implemented_at: string | null
+          metrics: Json
+          priority: string | null
+          recommendation_type: string
+          status: string | null
+          template_id: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          description: string
+          id?: string
+          impact_metrics?: Json | null
+          implemented_at?: string | null
+          metrics: Json
+          priority?: string | null
+          recommendation_type: string
+          status?: string | null
+          template_id?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          impact_metrics?: Json | null
+          implemented_at?: string | null
+          metrics?: Json
+          priority?: string | null
+          recommendation_type?: string
+          status?: string | null
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_recommendations_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       traffic_fines: {
         Row: {
           assignment_status: string | null
@@ -9984,6 +10034,12 @@ export type Database = {
       }
       generate_payment_reminders: {
         Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      generate_template_recommendations: {
+        Args: {
+          p_template_id: string
+        }
         Returns: undefined
       }
       get_dashboard_stats: {
