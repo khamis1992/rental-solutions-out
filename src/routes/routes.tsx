@@ -1,3 +1,4 @@
+
 import { lazy } from "react";
 
 import { CalendarIcon } from "lucide-react";
@@ -11,11 +12,10 @@ import { FileBarGraph } from "lucide-react";
 import { PhoneCall } from "lucide-react";
 import { MessageSquare } from "lucide-react";
 import { UserPlus } from "lucide-react";
-import { CheckCircle2 } from "lucide-react";
 import { BadgeCheck } from "lucide-react";
 import { CircleUserRound } from "lucide-react";
 
-import { Shell } from "@/components/shells/shell";
+import { Shell } from "@/components/shells";
 
 export const routes = [
   {
