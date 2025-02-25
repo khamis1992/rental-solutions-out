@@ -23,20 +23,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let mounted = true;
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserRole(session.user.id);
+      if (mounted) {
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          fetchUserRole(session.user.id);
+        }
+        setLoading(false);
       }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
+      
+      if (!mounted) return;
+
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
 
       if (event === 'SIGNED_IN' && session) {
         await fetchUserRole(session.user.id);
@@ -47,26 +55,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [navigate]);
 
   const fetchUserRole = async (userId: string) => {
     try {
+      console.log('Fetching role for user:', userId);
       const { data, error } = await supabase
-        .from('profiles')
+        .from('user_roles')
         .select('role')
-        .eq('id', userId)
-        .single();
+        .eq('user_id', userId)
+        .maybeSingle();
 
       if (error) {
-        throw error;
+        console.error('Error fetching user role:', error);
+        return;
       }
 
-      setUserRole(data?.role || null);
+      console.log('User role data:', data);
+      setUserRole(data?.role || 'user'); // Default to 'user' if no role is set
     } catch (error) {
-      console.error('Error fetching user role:', error);
-      toast.error('Error fetching user role');
+      console.error('Error in fetchUserRole:', error);
     }
   };
 

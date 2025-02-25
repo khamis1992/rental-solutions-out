@@ -21,10 +21,12 @@ export const ProtectedRoute = ({
   const location = useLocation();
 
   useEffect(() => {
+    console.log('ProtectedRoute state:', { user, loading, userRole, requireAuth, allowedRoles });
+    
     if (!loading) {
       if (requireAuth && !user) {
-        // Save the attempted URL
         const returnUrl = `${location.pathname}${location.search}`;
+        console.log('Redirecting to auth, no user found. Return URL:', returnUrl);
         navigate(`/auth?returnUrl=${encodeURIComponent(returnUrl)}`);
         toast.error("Please sign in to access this page");
       } else if (
@@ -33,6 +35,7 @@ export const ProtectedRoute = ({
         userRole && 
         !allowedRoles.includes(userRole)
       ) {
+        console.log('User does not have required role:', { userRole, allowedRoles });
         toast.error("You don't have permission to access this page");
         navigate("/");
       }
@@ -45,6 +48,12 @@ export const ProtectedRoute = ({
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  // If we require auth and there's no user, don't render anything
+  // The useEffect above will handle the redirect
+  if (requireAuth && !user) {
+    return null;
   }
 
   return <>{children}</>;
