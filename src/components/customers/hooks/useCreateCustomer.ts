@@ -25,27 +25,32 @@ export const useCreateCustomer = (customerId: string | null, onSuccess?: () => v
         throw new Error("Customer ID is required");
       }
 
-      // Create the customer profile first
-      const customerData = {
-        id: customerId,
-        ...values,
+      // Create the base profile data
+      const profileData = {
+        id: customerId, // Explicitly set the ID field
+        full_name: values.full_name,
+        email: values.email,
+        phone_number: values.phone_number,
+        address: values.address,
+        nationality: values.nationality,
+        driver_license: values.driver_license,
         role: "customer",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
         status: 'pending_review',
         document_verification_status: 'pending',
         preferred_communication_channel: 'email',
         welcome_email_sent: false,
         creation_status: 'pending',
-        form_data: values
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
-      console.log("Attempting to insert customer data:", customerData);
+      console.log("Attempting to insert profile data:", profileData);
 
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .insert([customerData])
-        .select();
+        .insert([profileData])
+        .select('id, full_name, email')
+        .single();
 
       if (profileError) {
         console.error("Profile creation error:", {
@@ -56,6 +61,8 @@ export const useCreateCustomer = (customerId: string | null, onSuccess?: () => v
         });
         throw profileError;
       }
+
+      console.log("Profile created successfully:", profileData);
 
       // Queue the onboarding steps creation
       const { error: queueError } = await supabase
