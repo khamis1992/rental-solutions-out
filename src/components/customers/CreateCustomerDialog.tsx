@@ -1,3 +1,4 @@
+
 import { useState, ReactNode, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -81,7 +82,7 @@ export const CreateCustomerDialog = ({
       validateCustomerData(values);
 
       const customerData = {
-        id: customerId,
+        customer_id: customerId, // Changed from 'id' to 'customer_id'
         ...values,
         role: "customer",
         created_at: new Date().toISOString(),
@@ -93,11 +94,14 @@ export const CreateCustomerDialog = ({
         form_data: null
       };
 
+      console.log("Inserting customer data:", customerData);
+
       const { error: supabaseError } = await supabase
         .from("profiles")
         .insert(customerData);
 
       if (supabaseError) {
+        console.error("Supabase insertion error:", supabaseError);
         throw supabaseError;
       }
 
