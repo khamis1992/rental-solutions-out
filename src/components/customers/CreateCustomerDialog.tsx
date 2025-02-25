@@ -48,10 +48,8 @@ export const CreateCustomerDialog = ({
     setError(false);
     
     try {
-      // Generate a new UUID for the customer if not already set
       const newCustomerId = customerId || crypto.randomUUID();
       
-      // Prepare the customer data
       const customerData = {
         id: newCustomerId,
         ...values,
@@ -79,10 +77,8 @@ export const CreateCustomerDialog = ({
       setSuccess(true);
       toast.success("Customer created successfully");
       
-      // Invalidate and refetch customers query
       await queryClient.invalidateQueries({ queryKey: ["customers"] });
       
-      // Reset form and close dialog after success animation
       setTimeout(() => {
         form.reset();
         onOpenChange?.(false);
