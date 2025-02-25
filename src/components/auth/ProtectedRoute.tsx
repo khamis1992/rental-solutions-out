@@ -1,77 +1,45 @@
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useSessionContext } from "@supabase/auth-helpers-react";
-import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  requireAuth?: boolean;
+  allowedRoles?: string[];
 }
 
-export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { session } = useSessionContext();
+export const ProtectedRoute = ({ 
+  children, 
+  requireAuth = true,
+  allowedRoles = []
+}: ProtectedRouteProps) => {
+  const { user, loading, userRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [isLoading, setIsLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkUserRole = async () => {
-      try {
-        // Allow access to auth page
-        if (window.location.pathname === "/auth") {
-          setIsLoading(false);
-          return;
-        }
-
-        // If no session, redirect to auth with return URL
-        if (!session?.user) {
-          const currentPath = `${location.pathname}${location.search}`;
-          navigate(`/auth?returnUrl=${encodeURIComponent(currentPath)}`);
-          setIsLoading(false);
-          return;
-        }
-
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", session.user.id)
-          .maybeSingle();
-
-        if (error) {
-          console.error("Error fetching user role:", error);
-          toast.error("Error fetching user profile");
-          navigate("/auth");
-          return;
-        }
-
-        setUserRole(profile?.role || null);
-
-        // Special handling for vehicle routes - allow both staff and customers
-        if (location.pathname.startsWith('/vehicles/')) {
-          setIsLoading(false);
-          return;
-        }
-
-        // For customer portal access
-        if (profile?.role === "customer" && window.location.pathname !== "/customer-portal") {
-          navigate("/customer-portal");
-        }
-      } catch (error) {
-        console.error("Error in checkUserRole:", error);
-        toast.error("An error occurred while checking user access");
-        navigate("/auth");
-      } finally {
-        setIsLoading(false);
+    if (!loading) {
+      if (requireAuth && !user) {
+        // Save the attempted URL
+        const returnUrl = `${location.pathname}${location.search}`;
+        navigate(`/auth?returnUrl=${encodeURIComponent(returnUrl)}`);
+        toast.error("Please sign in to access this page");
+      } else if (
+        user && 
+        allowedRoles.length > 0 && 
+        userRole && 
+        !allowedRoles.includes(userRole)
+      ) {
+        toast.error("You don't have permission to access this page");
+        navigate("/");
       }
-    };
+    }
+  }, [user, loading, navigate, location, requireAuth, allowedRoles, userRole]);
 
-    checkUserRole();
-  }, [session, navigate, location]);
-
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
