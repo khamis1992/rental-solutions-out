@@ -11,7 +11,6 @@ import { CustomerFormFields } from "./CustomerFormFields";
 import { EnhancedButton } from "@/components/ui/enhanced-button";
 import { useNavigate } from "react-router-dom";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { CustomCustomerFormFields } from "./CustomCustomerFormFields";
 
 interface CreateCustomerDialogProps {
   children?: ReactNode;
@@ -45,6 +44,7 @@ export const CreateCustomerDialog = ({
     }
   });
 
+  // Initialize customer ID for autosave
   useEffect(() => {
     if (!customerId) {
       setCustomerId(crypto.randomUUID());
@@ -62,6 +62,7 @@ export const CreateCustomerDialog = ({
       throw new Error("Email is required");
     }
     
+    // Validate document expiry dates
     if (values.id_document_expiry && new Date(values.id_document_expiry) < new Date()) {
       throw new Error("ID document is expired");
     }
@@ -73,15 +74,16 @@ export const CreateCustomerDialog = ({
   };
 
   const onSubmit = async (values: any) => {
-    console.log("Starting form submission with values:", values);
+    console.log("Submitting form with values:", values);
     setIsLoading(true);
     setSuccess(false);
     setError(false);
     
     try {
-      console.log("Validating customer data...");
+      // Validate customer data
       validateCustomerData(values);
 
+      // Prepare the customer data
       const customerData = {
         id: customerId,
         ...values,
@@ -92,30 +94,18 @@ export const CreateCustomerDialog = ({
         document_verification_status: 'pending',
         preferred_communication_channel: 'email',
         welcome_email_sent: false,
-        form_data: null
+        form_data: null // Clear form data after successful submission
       };
 
-      console.log("Attempting to insert customer data:", customerData);
-
-      const { data, error: supabaseError } = await supabase
+      const { error: supabaseError } = await supabase
         .from("profiles")
-        .insert(customerData)
-        .select();
-
-      console.log("Supabase insert response - Data:", data, "Error:", supabaseError);
+        .insert(customerData);
 
       if (supabaseError) {
-        console.error("Detailed Supabase error:", {
-          message: supabaseError.message,
-          details: supabaseError.details,
-          hint: supabaseError.hint,
-          code: supabaseError.code
-        });
         throw supabaseError;
       }
 
-      console.log("Customer created successfully, creating onboarding steps...");
-
+      // Create onboarding checklist
       const onboardingSteps = [
         "Document Verification",
         "Welcome Email",
@@ -134,29 +124,19 @@ export const CreateCustomerDialog = ({
         .insert(onboardingData);
 
       if (onboardingError) {
-        console.error("Error creating onboarding checklist:", {
-          message: onboardingError.message,
-          details: onboardingError.details,
-          hint: onboardingError.hint,
-          code: onboardingError.code
-        });
+        console.error("Error creating onboarding checklist:", onboardingError);
       }
 
       setSuccess(true);
       toast.success("Customer created successfully");
 
-      console.log("Invalidating customers query...");
+      // Invalidate and refetch customers query
       await queryClient.invalidateQueries({ queryKey: ["customers"] });
 
       setShowContractPrompt(true);
 
     } catch (error: any) {
-      console.error("Detailed error in onSubmit:", {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-        cause: error.cause
-      });
+      console.error("Error in onSubmit:", error);
       setError(true);
       toast.error(error.message || "Failed to create customer");
     } finally {
@@ -195,7 +175,7 @@ export const CreateCustomerDialog = ({
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <CustomCustomerFormFields 
+              <CustomerFormFields 
                 form={form} 
                 customerId={customerId || undefined}
               />
