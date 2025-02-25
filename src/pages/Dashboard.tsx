@@ -21,14 +21,23 @@ interface DashboardStats {
   monthly_revenue: number;
 }
 
+interface DashboardStatsResponse {
+  total_vehicles: number;
+  available_vehicles: number;
+  rented_vehicles: number;
+  maintenance_vehicles: number;
+  total_customers: number;
+  active_rentals: number;
+  monthly_revenue: number;
+}
+
 const Dashboard = () => {
   const { data: statsData, error, isLoading } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
-      // First, let's log the query execution
       console.log("Fetching dashboard stats...");
 
-      const { data, error } = await supabase.rpc('get_dashboard_stats');
+      const { data, error } = await supabase.rpc<DashboardStatsResponse>('get_dashboard_stats');
       
       if (error) {
         console.error("Error fetching dashboard stats:", error);
@@ -42,20 +51,19 @@ const Dashboard = () => {
 
       console.log("Received dashboard stats:", data);
 
-      // Convert the data to the correct format with default values
       const statsData: DashboardStats = {
-        total_vehicles: Number(data.total_vehicles || 0),
-        available_vehicles: Number(data.available_vehicles || 0),
-        rented_vehicles: Number(data.rented_vehicles || 0),
-        maintenance_vehicles: Number(data.maintenance_vehicles || 0),
-        total_customers: Number(data.total_customers || 0),
-        active_rentals: Number(data.active_rentals || 0),
-        monthly_revenue: Number(data.monthly_revenue || 0)
+        total_vehicles: Number(data.total_vehicles ?? 0),
+        available_vehicles: Number(data.available_vehicles ?? 0),
+        rented_vehicles: Number(data.rented_vehicles ?? 0),
+        maintenance_vehicles: Number(data.maintenance_vehicles ?? 0),
+        total_customers: Number(data.total_customers ?? 0),
+        active_rentals: Number(data.active_rentals ?? 0),
+        monthly_revenue: Number(data.monthly_revenue ?? 0)
       };
 
       return statsData;
     },
-    staleTime: 30000, // Consider data fresh for 30 seconds
+    staleTime: 30000,
     meta: {
       onError: (err: Error) => {
         console.error("Dashboard stats error:", err);
@@ -64,13 +72,11 @@ const Dashboard = () => {
     }
   });
 
-  // If there's an error, show it
   if (error) {
     console.error("Dashboard query error:", error);
     toast.error("Error loading dashboard data");
   }
 
-  // Log the current stats data for debugging
   console.log("Current stats data:", statsData);
 
   return (
