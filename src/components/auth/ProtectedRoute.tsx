@@ -11,7 +11,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { session } = useSessionContext();
+  const { session, isLoading: sessionLoading } = useSessionContext();
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
@@ -34,16 +34,25 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
           return;
         }
 
+        // Check user role
         const { data: profile, error } = await supabase
           .from("profiles")
           .select("role")
           .eq("id", session.user.id)
-          .maybeSingle();
+          .single();
 
         if (error) {
           console.error("Error fetching user role:", error);
-          toast.error("Error fetching user profile");
-          navigate("/auth");
+          
+          // Only show error toast for non-network errors
+          if (!error.message.includes("Failed to fetch")) {
+            toast.error("Error fetching user profile");
+          }
+          
+          // Don't redirect on network errors - they may be temporary
+          if (!error.message.includes("Failed to fetch")) {
+            navigate("/auth");
+          }
           return;
         }
 
@@ -61,17 +70,23 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         }
       } catch (error) {
         console.error("Error in checkUserRole:", error);
-        toast.error("An error occurred while checking user access");
-        navigate("/auth");
+        // Only redirect on non-network errors
+        if (error instanceof Error && !error.message.includes("Failed to fetch")) {
+          toast.error("An error occurred while checking user access");
+          navigate("/auth");
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkUserRole();
-  }, [session, navigate, location]);
+    // Only check role if session loading is complete
+    if (!sessionLoading) {
+      checkUserRole();
+    }
+  }, [session, navigate, location, sessionLoading]);
 
-  if (isLoading) {
+  if (sessionLoading || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

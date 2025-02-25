@@ -5,15 +5,17 @@ import { useSessionContext } from "@supabase/auth-helpers-react";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 export const AuthContainer = () => {
   const { isLoading, session } = useSessionContext();
   const navigate = useNavigate();
 
-  if (session) {
-    navigate("/");
-    return null;
-  }
+  useEffect(() => {
+    if (session) {
+      navigate("/");
+    }
+  }, [session, navigate]);
 
   if (isLoading) {
     return (
@@ -73,10 +75,17 @@ export const AuthContainer = () => {
             button_label: 'Sign In to Dashboard',
             loading_button_label: 'Signing in...',
             social_provider_text: 'Sign in with',
-            link_text: ''  // Remove "Don't have an account? Sign up"
+            link_text: ''
+          },
+          sign_up: {
+            email_label: 'Work Email',
+            password_label: 'Password',
+            button_label: 'Create Account',
+            loading_button_label: 'Creating account...',
+            link_text: 'Don\'t have an account? Sign up',
           },
           forgotten_password: {
-            link_text: '',  // Remove "Forgot your password?"
+            link_text: '',
             button_label: 'Send reset email',
           }
         }
