@@ -25,6 +25,7 @@ const Dashboard = () => {
   const { data: statsData, error } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
+      // Using the get_dashboard_stats database function
       const { data, error } = await supabase.rpc('get_dashboard_stats');
       
       if (error) {
