@@ -1,6 +1,7 @@
 
 import { Car, Key, Wrench, Users } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
+import { VehicleStatusChart } from "@/components/dashboard/VehicleStatusChart";
 import { formatCurrency } from "@/lib/utils";
 
 interface DashboardStatsProps {
@@ -58,6 +59,8 @@ export const DashboardStats = ({ stats }: DashboardStatsProps) => {
           }
         />
       </div>
+      
+      <VehicleStatusChart />
     </div>
   );
 };

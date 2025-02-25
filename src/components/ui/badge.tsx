@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
@@ -10,24 +9,18 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground",
+          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground",
+          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground",
+          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
-        active: "border-transparent bg-emerald-500 text-white",
-        pending_payment: "border-transparent bg-amber-500 text-white",
-        pending_deposit: "border-transparent bg-amber-600 text-white",
-        closed: "border-transparent bg-rose-500 text-white",
-        success: "border-transparent bg-[#10B981] text-white", // Exact green from image
-        warning: "border-transparent bg-[#F59E0B] text-white", // Exact amber from image
-        rented: "border-transparent bg-[#3B82F6] text-white", // Exact blue from image
-        reserve: "border-transparent bg-[#8B5CF6] text-white", // Exact purple from image
-        maintenance: "border-transparent bg-[#F59E0B] text-white", // Exact amber from image
-        police_station: "border-transparent bg-[#8B5CF6] text-white", // Exact purple from image
-        accident: "border-transparent bg-[#EF4444] text-white", // Exact red from image
-        stolen: "border-transparent bg-[#1F2937] text-white", // Exact black from image
+        active: "border-transparent bg-green-500 text-white hover:bg-green-600",
+        pending_payment: "border-transparent bg-yellow-500 text-white hover:bg-yellow-600",
+        pending_deposit: "border-transparent bg-orange-500 text-white hover:bg-orange-600",
+        closed: "border-transparent bg-red-500 text-white hover:bg-red-600",
+        success: "border-transparent bg-green-500 text-white hover:bg-green-600",
+        warning: "border-transparent bg-yellow-500 text-white hover:bg-yellow-600",
       },
     },
     defaultVariants: {
@@ -47,4 +40,3 @@ function Badge({ className, variant, ...props }: BadgeProps) {
 }
 
 export { Badge, badgeVariants }
-

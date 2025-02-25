@@ -1,3 +1,4 @@
+
 import { useState, ReactNode, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -10,7 +11,6 @@ import { CustomerFormFields } from "./CustomerFormFields";
 import { EnhancedButton } from "@/components/ui/enhanced-button";
 import { useNavigate } from "react-router-dom";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { CustomCustomerFormFields } from "./CustomCustomerFormFields";
 
 interface CreateCustomerDialogProps {
   children?: ReactNode;
@@ -44,6 +44,7 @@ export const CreateCustomerDialog = ({
     }
   });
 
+  // Initialize customer ID for autosave
   useEffect(() => {
     if (!customerId) {
       setCustomerId(crypto.randomUUID());
@@ -61,6 +62,7 @@ export const CreateCustomerDialog = ({
       throw new Error("Email is required");
     }
     
+    // Validate document expiry dates
     if (values.id_document_expiry && new Date(values.id_document_expiry) < new Date()) {
       throw new Error("ID document is expired");
     }
@@ -78,8 +80,10 @@ export const CreateCustomerDialog = ({
     setError(false);
     
     try {
+      // Validate customer data
       validateCustomerData(values);
 
+      // Prepare the customer data
       const customerData = {
         id: customerId,
         ...values,
@@ -90,7 +94,7 @@ export const CreateCustomerDialog = ({
         document_verification_status: 'pending',
         preferred_communication_channel: 'email',
         welcome_email_sent: false,
-        form_data: null
+        form_data: null // Clear form data after successful submission
       };
 
       const { error: supabaseError } = await supabase
@@ -101,6 +105,7 @@ export const CreateCustomerDialog = ({
         throw supabaseError;
       }
 
+      // Create onboarding checklist
       const onboardingSteps = [
         "Document Verification",
         "Welcome Email",
@@ -125,6 +130,7 @@ export const CreateCustomerDialog = ({
       setSuccess(true);
       toast.success("Customer created successfully");
 
+      // Invalidate and refetch customers query
       await queryClient.invalidateQueries({ queryKey: ["customers"] });
 
       setShowContractPrompt(true);
@@ -169,7 +175,7 @@ export const CreateCustomerDialog = ({
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <CustomCustomerFormFields 
+              <CustomerFormFields 
                 form={form} 
                 customerId={customerId || undefined}
               />

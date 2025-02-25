@@ -1,4 +1,0 @@
-
-project_id = "vqdlsidkucrownbfuouq"
-[functions.process-email-rules]
-verify_jwt = false
