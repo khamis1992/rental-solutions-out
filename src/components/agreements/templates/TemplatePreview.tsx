@@ -6,8 +6,6 @@ import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TextStyle, Table } from "@/types/agreement.types";
 import { useState, useEffect } from "react";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 
 interface TemplatePreviewProps {
   content: string;
@@ -30,7 +28,6 @@ export const TemplatePreview = ({
 }: TemplatePreviewProps) => {
   const [pageCount, setPageCount] = useState(1);
   const [processedContent, setProcessedContent] = useState(content);
-  const [showSampleData, setShowSampleData] = useState(true);
 
   // Sample data for preview
   const sampleData = {
@@ -63,8 +60,6 @@ export const TemplatePreview = ({
   };
 
   const replaceVariables = (text: string) => {
-    if (!showSampleData) return text;
-    
     let replacedContent = text;
 
     // Replace customer variables
@@ -92,7 +87,7 @@ export const TemplatePreview = ({
     const isArabic = containsArabic(text);
     const dirAttribute = isArabic ? 'rtl' : 'ltr';
 
-    // First replace variables with sample data if enabled
+    // First replace variables with sample data
     let processedText = replaceVariables(text);
 
     // Then apply styling
@@ -101,12 +96,10 @@ export const TemplatePreview = ({
       '<strong class="block text-center mb-4">$1</strong>'
     );
 
-    // Highlight variables differently based on view mode
+    // Highlight remaining variables that weren't replaced
     processedText = processedText.replace(
       /{{(.*?)}}/g,
-      showSampleData 
-        ? '<span class="template-variable bg-yellow-100 px-1 rounded border border-yellow-300">{{$1}}</span>'
-        : '<span class="template-variable bg-blue-100 px-1 rounded border border-blue-300">{{$1}}</span>'
+      '<span class="template-variable bg-yellow-100 px-1 rounded border border-yellow-300">{{$1}}</span>'
     );
 
     // Process section headers
@@ -159,7 +152,7 @@ export const TemplatePreview = ({
   useEffect(() => {
     const processed = processContent(content);
     setProcessedContent(processed);
-  }, [content, showSampleData]);
+  }, [content]);
 
   const isArabic = containsArabic(content);
 
@@ -179,14 +172,6 @@ export const TemplatePreview = ({
           <DialogTitle className="text-xl font-semibold">
             {containsArabic(content) ? "معاينة النموذج" : "Template Preview"}
           </DialogTitle>
-          <div className="flex items-center space-x-2">
-            <Label htmlFor="preview-mode">Show Sample Data</Label>
-            <Switch
-              id="preview-mode"
-              checked={showSampleData}
-              onCheckedChange={setShowSampleData}
-            />
-          </div>
         </div>
       </DialogHeader>
       
@@ -202,21 +187,11 @@ export const TemplatePreview = ({
         </Alert>
       )}
 
-      {showSampleData && (
-        <div className="bg-yellow-50 p-4 rounded-md">
-          <p className="text-sm text-yellow-800">
-            Preview is showing sample data. Variables will be replaced with actual data when processing the document.
-          </p>
-        </div>
-      )}
-
-      {!showSampleData && (
-        <div className="bg-blue-50 p-4 rounded-md">
-          <p className="text-sm text-blue-800">
-            Showing raw template with variable placeholders. Switch to sample data view to see how the document will look with actual data.
-          </p>
-        </div>
-      )}
+      <div className="bg-yellow-50 p-4 rounded-md">
+        <p className="text-sm text-yellow-800">
+          Preview is showing sample data. Variables will be replaced with actual data when processing the document.
+        </p>
+      </div>
       
       <ScrollArea className="h-[calc(80vh-120px)] w-full rounded-md border">
         <div className="preview-container mx-auto bg-white">

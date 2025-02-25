@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -58,14 +59,15 @@ export const CreateUserForm = ({ isAdmin, onSuccess }: CreateUserFormProps) => {
 
       if (authError) throw authError;
 
-      // Update profile with role
+      // Create profile record using the auth user's ID
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ 
-          role: values.role,
+        .insert({
+          id: authData.user!.id,
           full_name: values.full_name,
-        })
-        .eq('id', authData.user!.id);
+          email: values.email,
+          role: values.role,
+        });
 
       if (profileError) throw profileError;
 
