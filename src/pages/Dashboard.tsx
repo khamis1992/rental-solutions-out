@@ -90,6 +90,28 @@ const Dashboard = () => {
     queryFn: async () => {
       console.log("Fetching dashboard stats...");
 
+      // Save current version
+      const timestamp = new Date().toISOString();
+      const { error: versionError } = await supabase
+        .from('system_versions')
+        .insert([{
+          name: 'khamis',
+          created_at: timestamp,
+          data: {
+            vehicles: rawVehicles,
+            customers: rawCustomers,
+            leases: rawLeases
+          },
+          status: 'active'
+        }]);
+
+      if (versionError) {
+        console.error("Error saving version:", versionError);
+        toast.error("Failed to save version");
+      } else {
+        toast.success("System version 'khamis' saved successfully");
+      }
+
       // First try the RPC
       const { data: rpcData, error: rpcError } = await supabase.rpc<DashboardStatsResponse>('get_dashboard_stats');
       
