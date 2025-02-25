@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
@@ -7,21 +6,22 @@ import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { AuthProvider } from '@/contexts/AuthContext';
 import App from './App.tsx';
 import './index.css';
 
+// Create root element once
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
 
 const root = createRoot(rootElement);
 
+// Configure query client with optimized caching settings
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 15, // 15 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes
-      retry: 1,
+      staleTime: 1000 * 60 * 15, // Data remains fresh for 15 minutes
+      gcTime: 1000 * 60 * 30, // Cache is garbage collected after 30 minutes
+      retry: 1, // Only retry failed requests once
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       refetchOnMount: false,
@@ -36,11 +36,9 @@ root.render(
       <SessionContextProvider supabaseClient={supabase}>
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
-            <AuthProvider>
-              <TooltipProvider>
-                <App />
-              </TooltipProvider>
-            </AuthProvider>
+            <TooltipProvider>
+              <App />
+            </TooltipProvider>
           </BrowserRouter>
         </QueryClientProvider>
       </SessionContextProvider>
