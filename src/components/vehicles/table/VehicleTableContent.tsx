@@ -1,4 +1,3 @@
-
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Vehicle } from "@/types/vehicle";
 import { VehicleStatusCell } from "./VehicleStatusCell";
@@ -16,14 +15,23 @@ import {
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { DeleteVehicleDialog } from "../DeleteVehicleDialog";
 
 interface VehicleTableContentProps {
   vehicles: Vehicle[];
+  onDelete: () => Promise<void>;
 }
 
-export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
+export const VehicleTableContent = ({ vehicles, onDelete }: VehicleTableContentProps) => {
   const [editingLocation, setEditingLocation] = useState<string | null>(null);
   const [editingInsurance, setEditingInsurance] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [vehicleToDelete, setVehicleToDelete] = useState<string | null>(null);
+
+  const handleDeleteClick = (vehicleId: string) => {
+    setVehicleToDelete(vehicleId);
+    setShowDeleteDialog(true);
+  };
 
   return (
     <>
@@ -107,6 +115,7 @@ export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
                       variant="ghost" 
                       size="sm" 
                       className="hover:bg-destructive/10 hover:text-destructive transition-colors"
+                      onClick={() => handleDeleteClick(vehicle.id)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -120,6 +129,21 @@ export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
           </TableCell>
         </TableRow>
       ))}
+
+      <DeleteVehicleDialog
+        isOpen={showDeleteDialog}
+        onClose={() => {
+          setShowDeleteDialog(false);
+          setVehicleToDelete(null);
+        }}
+        onDelete={async () => {
+          if (!vehicleToDelete) return;
+          const selectedVehicles = [vehicleToDelete];
+          // Using existing delete functionality from parent
+          await onDelete();
+        }}
+        count={1}
+      />
     </>
   );
 };
