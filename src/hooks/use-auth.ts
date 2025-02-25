@@ -1,3 +1,4 @@
+
 import { useSessionContext } from "@supabase/auth-helpers-react";
 
 export const useAuth = () => {
