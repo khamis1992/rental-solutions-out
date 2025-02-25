@@ -1,8 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useSessionContext } from "@supabase/auth-helpers-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -11,18 +10,15 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { session } = useSessionContext();
+  const { session, profile, isLoading, error } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [isLoading, setIsLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkUserRole = async () => {
+    const checkAccess = async () => {
       try {
         // Allow access to auth page
         if (window.location.pathname === "/auth") {
-          setIsLoading(false);
           return;
         }
 
@@ -30,28 +26,19 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         if (!session?.user) {
           const currentPath = `${location.pathname}${location.search}`;
           navigate(`/auth?returnUrl=${encodeURIComponent(currentPath)}`);
-          setIsLoading(false);
           return;
         }
 
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", session.user.id)
-          .maybeSingle();
-
-        if (error) {
-          console.error("Error fetching user role:", error);
-          toast.error("Error fetching user profile");
+        // If there's an error or no profile, show error
+        if (error || !profile) {
+          console.error("Profile access error:", error);
+          toast.error("Error accessing user profile");
           navigate("/auth");
           return;
         }
 
-        setUserRole(profile?.role || null);
-
         // Special handling for vehicle routes - allow both staff and customers
         if (location.pathname.startsWith('/vehicles/')) {
-          setIsLoading(false);
           return;
         }
 
@@ -60,16 +47,16 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
           navigate("/customer-portal");
         }
       } catch (error) {
-        console.error("Error in checkUserRole:", error);
+        console.error("Error in checkAccess:", error);
         toast.error("An error occurred while checking user access");
         navigate("/auth");
-      } finally {
-        setIsLoading(false);
       }
     };
 
-    checkUserRole();
-  }, [session, navigate, location]);
+    if (!isLoading) {
+      checkAccess();
+    }
+  }, [session, profile, navigate, location, isLoading, error]);
 
   if (isLoading) {
     return (
