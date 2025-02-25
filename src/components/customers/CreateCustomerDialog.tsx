@@ -3,15 +3,11 @@ import { useState, ReactNode, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { UserPlus } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { CustomerFormFields } from "./CustomerFormFields";
 import { EnhancedButton } from "@/components/ui/enhanced-button";
-import { useNavigate } from "react-router-dom";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { CustomCustomerFormFields } from "./CustomCustomerFormFields";
+import { ContractPromptDialog } from "./ContractPromptDialog";
+import { useCreateCustomer } from "./hooks/useCreateCustomer";
 
 interface CreateCustomerDialogProps {
   children?: ReactNode;
@@ -24,13 +20,8 @@ export const CreateCustomerDialog = ({
   open,
   onOpenChange
 }: CreateCustomerDialogProps) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState(false);
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [showContractPrompt, setShowContractPrompt] = useState(false);
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   const form = useForm({
     defaultValues: {
@@ -51,128 +42,12 @@ export const CreateCustomerDialog = ({
     }
   }, []);
 
-  const validateCustomerData = (values: any) => {
-    if (!values.full_name?.trim()) {
-      throw new Error("Full name is required");
-    }
-    if (!values.phone_number?.trim()) {
-      throw new Error("Phone number is required");
-    }
-    if (!values.email?.trim()) {
-      throw new Error("Email is required");
-    }
-    
-    if (values.id_document_expiry && new Date(values.id_document_expiry) < new Date()) {
-      throw new Error("ID document is expired");
-    }
-    if (values.license_document_expiry && new Date(values.license_document_expiry) < new Date()) {
-      throw new Error("Driver's license is expired");
-    }
-    
-    return true;
-  };
+  const { isLoading, success, error, createCustomer } = useCreateCustomer(customerId, () => {
+    setShowContractPrompt(true);
+  });
 
-  const onSubmit = async (values: any) => {
-    console.log("Starting form submission with values:", values);
-    setIsLoading(true);
-    setSuccess(false);
-    setError(false);
-    
-    try {
-      console.log("Validating customer data...");
-      validateCustomerData(values);
-
-      const customerData = {
-        id: customerId,
-        ...values,
-        role: "customer",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        status: 'pending_review',
-        document_verification_status: 'pending',
-        preferred_communication_channel: 'email',
-        welcome_email_sent: false,
-        form_data: null
-      };
-
-      console.log("Attempting to insert customer data:", customerData);
-
-      const { data, error: supabaseError } = await supabase
-        .from("profiles")
-        .insert(customerData)
-        .select();
-
-      console.log("Supabase insert response - Data:", data, "Error:", supabaseError);
-
-      if (supabaseError) {
-        console.error("Detailed Supabase error:", {
-          message: supabaseError.message,
-          details: supabaseError.details,
-          hint: supabaseError.hint,
-          code: supabaseError.code
-        });
-        throw supabaseError;
-      }
-
-      console.log("Customer created successfully, creating onboarding steps...");
-
-      const onboardingSteps = [
-        "Document Verification",
-        "Welcome Email",
-        "Initial Contact",
-        "Profile Review"
-      ];
-
-      const onboardingData = onboardingSteps.map(step => ({
-        customer_id: customerId,
-        step_name: step,
-        completed: false
-      }));
-
-      const { error: onboardingError } = await supabase
-        .from("customer_onboarding")
-        .insert(onboardingData);
-
-      if (onboardingError) {
-        console.error("Error creating onboarding checklist:", {
-          message: onboardingError.message,
-          details: onboardingError.details,
-          hint: onboardingError.hint,
-          code: onboardingError.code
-        });
-      }
-
-      setSuccess(true);
-      toast.success("Customer created successfully");
-
-      console.log("Invalidating customers query...");
-      await queryClient.invalidateQueries({ queryKey: ["customers"] });
-
-      setShowContractPrompt(true);
-
-    } catch (error: any) {
-      console.error("Detailed error in onSubmit:", {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-        cause: error.cause
-      });
-      setError(true);
-      toast.error(error.message || "Failed to create customer");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCreateAgreement = () => {
-    setShowContractPrompt(false);
-    if (onOpenChange) {
-      onOpenChange(false);
-    }
-    
-    if (customerId) {
-      navigate(`/agreements/new?customerId=${customerId}`);
-    }
+  const onSubmit = (values: any) => {
+    createCustomer(values);
   };
 
   return (
@@ -217,29 +92,12 @@ export const CreateCustomerDialog = ({
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={showContractPrompt} onOpenChange={setShowContractPrompt}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Create Agreement</AlertDialogTitle>
-            <AlertDialogDescription>
-              Would you like to create a new agreement for this customer?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              setShowContractPrompt(false);
-              if (onOpenChange) {
-                onOpenChange(false);
-              }
-            }}>
-              Skip for now
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleCreateAgreement}>
-              Create Agreement
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ContractPromptDialog 
+        open={showContractPrompt} 
+        onOpenChange={setShowContractPrompt}
+        customerId={customerId}
+        onClose={() => onOpenChange?.(false)}
+      />
     </>
   );
 };
