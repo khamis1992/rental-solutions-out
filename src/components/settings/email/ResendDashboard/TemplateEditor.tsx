@@ -13,13 +13,6 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from "@/integrations/supabase/client"
 import { cn } from "@/lib/utils"
 
-// Add standard variable groups
-const VARIABLE_GROUPS = {
-  customer: ['full_name', 'email', 'phone_number', 'address', 'nationality', 'driver_license'],
-  agreement: ['agreement_number', 'start_date', 'end_date', 'rent_amount', 'total_amount', 'agreement_duration', 'daily_late_fee'],
-  vehicle: ['make', 'model', 'year', 'color', 'license_plate', 'vin']
-} as const;
-
 interface TemplateEditorProps {
   templateId?: string;
   onSave?: () => void;
@@ -28,7 +21,6 @@ interface TemplateEditorProps {
 export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
   const [name, setName] = useState('')
   const [category, setCategory] = useState('')
-  const [templateType, setTemplateType] = useState<string>('')
   const [showPreview, setShowPreview] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const { toast } = useToast()
@@ -60,13 +52,6 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
     },
   })
 
-  const handleInsertVariable = (group: keyof typeof VARIABLE_GROUPS, variable: string) => {
-    if (editor) {
-      const variableText = `{{${group}.${variable}}}`
-      editor.commands.insertContent(variableText)
-    }
-  }
-
   // Load template data if templateId is provided
   useEffect(() => {
     if (templateId) {
@@ -95,7 +80,6 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
         if (data) {
           setName(data.name)
           setCategory(data.category)
-          setTemplateType(data.template_type || '')
           editor?.commands.setContent(data.content)
         }
       }
@@ -135,35 +119,15 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
       return
     }
 
-    if (!templateType) {
-      toast({
-        title: "خطأ",
-        description: "يرجى اختيار نوع القالب",
-        variant: "destructive"
-      })
-      return
-    }
-
     setIsSaving(true)
 
     try {
-      // Extract used variables from content
-      const content = editor.getHTML()
-      const variableRegex = /\{\{([^}]+)\}\}/g
-      const usedVariables = Array.from(content.matchAll(variableRegex)).map(match => match[1])
-
       const template = {
         name,
         category: category,
         subject: name,
         content: editor.getHTML(),
-        template_type: templateType,
-        variable_mappings: {
-          used_variables: usedVariables,
-          groups: Object.keys(VARIABLE_GROUPS).filter(group => 
-            usedVariables.some(v => v.startsWith(`${group}.`))
-          )
-        },
+        variables: [],
         is_active: true
       }
 
@@ -221,7 +185,6 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
         setName('')
         editor?.commands.setContent('')
         setCategory('')
-        setTemplateType('')
       }
       
     } catch (error) {
@@ -234,7 +197,7 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
     } finally {
       setIsSaving(false)
     }
-  }, [name, category, templateType, editor, templateId, toast, onSave])
+  }, [name, category, editor, templateId, toast, onSave])
 
   return (
     <>
@@ -270,46 +233,6 @@ export const TemplateEditor = ({ templateId, onSave }: TemplateEditorProps) => {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="templateType">نوع القالب</Label>
-            <Select value={templateType} onValueChange={setTemplateType}>
-              <SelectTrigger id="templateType" className="text-right">
-                <SelectValue placeholder="اختر نوع القالب" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="welcome">رسالة ترحيب</SelectItem>
-                <SelectItem value="contract_confirmation">تأكيد العقد</SelectItem>
-                <SelectItem value="payment_reminder">تذكير بالدفع</SelectItem>
-                <SelectItem value="late_payment">تأخير الدفع</SelectItem>
-                <SelectItem value="legal_notice">إشعار قانوني</SelectItem>
-                <SelectItem value="insurance_renewal">تجديد التأمين</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label>المتغيرات المتاحة</Label>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(VARIABLE_GROUPS).map(([group, variables]) => (
-                <div key={group} className="space-y-1">
-                  <Label className="text-sm font-medium">{group}</Label>
-                  <div className="flex flex-wrap gap-1">
-                    {variables.map((variable) => (
-                      <Button
-                        key={variable}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleInsertVariable(group as keyof typeof VARIABLE_GROUPS, variable)}
-                      >
-                        {variable}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
 
           <div className="space-y-2">

@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query"
 import { 
   Card,
@@ -37,88 +36,9 @@ type AutomationRule = {
   }
 }
 
-// Default automation rules
-const DEFAULT_RULES: Partial<AutomationRule>[] = [
-  {
-    name: "رسالة ترحيب للعملاء الجدد",
-    description: "إرسال رسالة ترحيب تلقائية عند إنشاء حساب العميل",
-    trigger_type: "welcome",
-    conditions: { 
-      event: "new_customer",
-      required_attachments: ['id', 'license']
-    },
-    timing_type: "after",
-    timing_value: 0,
-    is_active: true
-  },
-  {
-    name: "تأكيد العقد",
-    description: "إرسال تأكيد تلقائي عند توقيع العقد",
-    trigger_type: "contract_confirmation",
-    conditions: { 
-      event: "contract_signed",
-      required_attachments: ['contract', 'id', 'license']
-    },
-    timing_type: "after",
-    timing_value: 0,
-    is_active: true
-  },
-  {
-    name: "تذكير بموعد الدفع",
-    description: "تذكير قبل موعد الدفع بثلاثة أيام",
-    trigger_type: "payment_reminder",
-    conditions: { 
-      event: "payment_due",
-      recurrence: "daily"
-    },
-    timing_type: "before",
-    timing_value: 3,
-    is_active: true
-  },
-  {
-    name: "إشعار التأخر في السداد",
-    description: "إشعار عند تأخر الدفع",
-    trigger_type: "late_payment",
-    conditions: { 
-      event: "payment_overdue",
-      recurrence: "daily"
-    },
-    timing_type: "after",
-    timing_value: 1,
-    is_active: true
-  },
-  {
-    name: "تذكير تجديد التأمين",
-    description: "تذكير قبل انتهاء التأمين بأسبوع",
-    trigger_type: "insurance_renewal",
-    conditions: { 
-      event: "insurance_expiring",
-      required_attachments: ['insurance']
-    },
-    timing_type: "before",
-    timing_value: 7,
-    is_active: true
-  },
-  {
-    name: "إشعار قانوني",
-    description: "إرسال إشعار قانوني للمدفوعات المتأخرة",
-    trigger_type: "legal_notice",
-    conditions: { 
-      event: "payment_very_late", 
-      days_overdue: 30,
-      required_attachments: ['contract'],
-      recurrence: "weekly"
-    },
-    timing_type: "after",
-    timing_value: 30,
-    is_active: true
-  }
-];
-
 export const AutomationRulesList = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [editingRule, setEditingRule] = useState<AutomationRule | null>(null)
-  const [showDefaultRules, setShowDefaultRules] = useState(false)
 
   const { data: rules, refetch } = useQuery({
     queryKey: ['automation-rules'],
@@ -138,45 +58,6 @@ export const AutomationRulesList = () => {
       return data as AutomationRule[]
     }
   })
-
-  const handleAddDefaultRules = async () => {
-    try {
-      // Get templates by trigger type
-      const { data: templates } = await supabase
-        .from('email_templates')
-        .select('id, template_type')
-      
-      if (!templates) {
-        throw new Error('No templates found')
-      }
-
-      // Create a map of template types to template IDs
-      const templatesByType = templates.reduce((acc, template) => {
-        if (template.template_type) {
-          acc[template.template_type] = template.id;
-        }
-        return acc;
-      }, {} as Record<string, string>);
-
-      // Add default rules with matching templates
-      const rulesToAdd = DEFAULT_RULES.map(rule => ({
-        ...rule,
-        template_id: templatesByType[rule.trigger_type] || null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }));
-
-      const { error } = await supabase
-        .from('email_automation_rules')
-        .insert(rulesToAdd)
-
-      if (error) throw error
-
-      refetch()
-    } catch (error) {
-      console.error('Error adding default rules:', error)
-    }
-  }
 
   const handleStatusChange = async (id: string, isActive: boolean) => {
     const { error } = await supabase
@@ -222,25 +103,16 @@ export const AutomationRulesList = () => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>قواعد البريد التلقائي</CardTitle>
-        <div className="space-x-2 rtl:space-x-reverse">
-          {!rules?.length && (
-            <Button 
-              onClick={handleAddDefaultRules}
-              variant="outline"
-            >
-              إضافة القواعد الافتراضية
-            </Button>
-          )}
-          <Button 
-            onClick={() => {
-              setEditingRule(null)
-              setShowCreateDialog(true)
-            }}
-          >
-            <Plus className="w-4 h-4 ml-2" />
-            إضافة قاعدة جديدة
-          </Button>
-        </div>
+        <Button 
+          onClick={() => {
+            setEditingRule(null)
+            setShowCreateDialog(true)
+          }}
+          className="mr-2"
+        >
+          <Plus className="w-4 h-4 ml-2" />
+          إضافة قاعدة جديدة
+        </Button>
       </CardHeader>
       <CardContent>
         <Table>
@@ -257,7 +129,7 @@ export const AutomationRulesList = () => {
           <TableBody>
             {rules?.map((rule) => (
               <TableRow key={rule.id}>
-                <TableCell className="font-medium">{rule.name}</TableCell>
+                <TableCell>{rule.name}</TableCell>
                 <TableCell>{getTriggerTypeLabel(rule.trigger_type)}</TableCell>
                 <TableCell>{rule.email_templates?.name}</TableCell>
                 <TableCell>
