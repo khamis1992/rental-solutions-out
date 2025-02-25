@@ -22,20 +22,27 @@ interface DashboardStats {
 }
 
 const Dashboard = () => {
-  const { data: statsData, error } = useQuery({
+  const { data: statsData, error, isLoading } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
+      // First, let's log the query execution
+      console.log("Fetching dashboard stats...");
+
       const { data, error } = await supabase.rpc('get_dashboard_stats');
       
       if (error) {
+        console.error("Error fetching dashboard stats:", error);
         throw error;
       }
 
       if (!data) {
+        console.error("No data returned from dashboard stats");
         throw new Error("No data returned from dashboard stats");
       }
 
-      // Convert the data to the correct format
+      console.log("Received dashboard stats:", data);
+
+      // Convert the data to the correct format with default values
       const statsData: DashboardStats = {
         total_vehicles: Number(data.total_vehicles || 0),
         available_vehicles: Number(data.available_vehicles || 0),
@@ -48,12 +55,23 @@ const Dashboard = () => {
 
       return statsData;
     },
+    staleTime: 30000, // Consider data fresh for 30 seconds
     meta: {
       onError: (err: Error) => {
+        console.error("Dashboard stats error:", err);
         toast.error("Failed to load dashboard stats: " + err.message);
       }
     }
   });
+
+  // If there's an error, show it
+  if (error) {
+    console.error("Dashboard query error:", error);
+    toast.error("Error loading dashboard data");
+  }
+
+  // Log the current stats data for debugging
+  console.log("Current stats data:", statsData);
 
   return (
     <div className="space-y-6 mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-[1400px] animate-fade-in">
