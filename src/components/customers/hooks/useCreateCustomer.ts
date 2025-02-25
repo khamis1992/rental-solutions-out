@@ -39,14 +39,12 @@ export const useCreateCustomer = (customerId: string | null, onSuccess?: () => v
         document_verification_status: 'pending',
         preferred_communication_channel: 'email',
         welcome_email_sent: false,
-        creation_status: 'pending',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        creation_status: 'pending'
       };
 
       console.log("Attempting to insert profile data:", profileData);
 
-      const { data: profileData, error: profileError } = await supabase
+      const { data: createdProfile, error: profileError } = await supabase
         .from("profiles")
         .insert([profileData])
         .select('id, full_name, email')
@@ -62,7 +60,7 @@ export const useCreateCustomer = (customerId: string | null, onSuccess?: () => v
         throw profileError;
       }
 
-      console.log("Profile created successfully:", profileData);
+      console.log("Profile created successfully:", createdProfile);
 
       // Queue the onboarding steps creation
       const { error: queueError } = await supabase
