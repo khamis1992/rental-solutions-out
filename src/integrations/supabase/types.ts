@@ -6667,6 +6667,60 @@ export type Database = {
           },
         ]
       }
+      profile_creation_queue: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          operation_type: string
+          payload: Json | null
+          processed_at: string | null
+          profile_id: string | null
+          retry_count: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          operation_type: string
+          payload?: Json | null
+          processed_at?: string | null
+          profile_id?: string | null
+          retry_count?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          operation_type?: string
+          payload?: Json | null
+          processed_at?: string | null
+          profile_id?: string | null
+          retry_count?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_creation_queue_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "customer_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_creation_queue_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
@@ -6675,6 +6729,10 @@ export type Database = {
           analysis_confidence_score: number | null
           contract_document_url: string | null
           created_at: string
+          creation_error: string | null
+          creation_status:
+            | Database["public"]["Enums"]["profile_creation_status"]
+            | null
           document_analysis_status: string | null
           document_verification_status: string | null
           driver_license: string | null
@@ -6703,6 +6761,7 @@ export type Database = {
           portal_password: string | null
           portal_username: string | null
           preferred_communication_channel: string | null
+          process_completed_at: string | null
           profile_completion_score: number | null
           role: Database["public"]["Enums"]["user_role"] | null
           status: Database["public"]["Enums"]["customer_status_type"] | null
@@ -6718,6 +6777,10 @@ export type Database = {
           analysis_confidence_score?: number | null
           contract_document_url?: string | null
           created_at?: string
+          creation_error?: string | null
+          creation_status?:
+            | Database["public"]["Enums"]["profile_creation_status"]
+            | null
           document_analysis_status?: string | null
           document_verification_status?: string | null
           driver_license?: string | null
@@ -6746,6 +6809,7 @@ export type Database = {
           portal_password?: string | null
           portal_username?: string | null
           preferred_communication_channel?: string | null
+          process_completed_at?: string | null
           profile_completion_score?: number | null
           role?: Database["public"]["Enums"]["user_role"] | null
           status?: Database["public"]["Enums"]["customer_status_type"] | null
@@ -6761,6 +6825,10 @@ export type Database = {
           analysis_confidence_score?: number | null
           contract_document_url?: string | null
           created_at?: string
+          creation_error?: string | null
+          creation_status?:
+            | Database["public"]["Enums"]["profile_creation_status"]
+            | null
           document_analysis_status?: string | null
           document_verification_status?: string | null
           driver_license?: string | null
@@ -6789,6 +6857,7 @@ export type Database = {
           portal_password?: string | null
           portal_username?: string | null
           preferred_communication_channel?: string | null
+          process_completed_at?: string | null
           profile_completion_score?: number | null
           role?: Database["public"]["Enums"]["user_role"] | null
           status?: Database["public"]["Enums"]["customer_status_type"] | null
@@ -10659,6 +10728,7 @@ export type Database = {
       payment_status_type: "pending" | "paid" | "overdue" | "cancelled"
       portal_user_status: "active" | "inactive" | "locked"
       pre_registration_status: "pending" | "approved" | "rejected" | "waitlist"
+      profile_creation_status: "pending" | "onboarding" | "completed" | "failed"
       recurrence_type: "once" | "daily" | "weekly"
       seeker_target_status: "active" | "inactive" | "paused"
       tax_filing_status:
