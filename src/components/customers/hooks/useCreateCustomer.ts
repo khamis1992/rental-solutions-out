@@ -21,6 +21,10 @@ export const useCreateCustomer = (customerId: string | null, onSuccess?: () => v
       console.log("Validating customer data...");
       validateCustomerData(values);
 
+      if (!customerId) {
+        throw new Error("Customer ID is required");
+      }
+
       const customerData = {
         id: customerId,
         ...values,
@@ -38,7 +42,7 @@ export const useCreateCustomer = (customerId: string | null, onSuccess?: () => v
 
       const { data, error: supabaseError } = await supabase
         .from("profiles")
-        .insert(customerData)
+        .insert([customerData]) // Ensure we're passing an array
         .select();
 
       console.log("Supabase insert response - Data:", data, "Error:", supabaseError);
@@ -76,6 +80,11 @@ export const useCreateCustomer = (customerId: string | null, onSuccess?: () => v
 
   const createOnboardingSteps = async () => {
     console.log("Creating onboarding steps...");
+    if (!customerId) {
+      console.error("Cannot create onboarding steps: customerId is null");
+      return;
+    }
+
     const onboardingSteps = [
       "Document Verification",
       "Welcome Email",
