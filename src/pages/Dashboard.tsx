@@ -21,152 +21,39 @@ interface DashboardStats {
   monthly_revenue: number;
 }
 
-interface DashboardStatsResponse {
-  total_vehicles: number;
-  available_vehicles: number;
-  rented_vehicles: number;
-  maintenance_vehicles: number;
-  total_customers: number;
-  active_rentals: number;
-  monthly_revenue: number;
-}
-
 const Dashboard = () => {
-  // Add a direct query to verify raw data
-  const { data: rawVehicles } = useQuery({
-    queryKey: ["raw-vehicles"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('vehicles')
-        .select('*');
-      
-      if (error) {
-        console.error("Error fetching raw vehicles:", error);
-        throw error;
-      }
-      console.log("Raw vehicles data:", data);
-      return data;
-    }
-  });
-
-  // Add a direct query to verify raw customers
-  const { data: rawCustomers } = useQuery({
-    queryKey: ["raw-customers"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('role', 'customer');
-      
-      if (error) {
-        console.error("Error fetching raw customers:", error);
-        throw error;
-      }
-      console.log("Raw customers data:", data);
-      return data;
-    }
-  });
-
-  // Add a direct query to verify raw leases
-  const { data: rawLeases } = useQuery({
-    queryKey: ["raw-leases"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('leases')
-        .select('*')
-        .eq('status', 'active');
-      
-      if (error) {
-        console.error("Error fetching raw leases:", error);
-        throw error;
-      }
-      console.log("Raw active leases data:", data);
-      return data;
-    }
-  });
-
-  const { data: statsData, error, isLoading } = useQuery({
+  const { data: statsData, error } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
-      console.log("Fetching dashboard stats...");
-
-      // Save current version
-      const timestamp = new Date().toISOString();
-      const { error: versionError } = await supabase
-        .from('system_versions')
-        .insert([{
-          name: 'khamis',
-          created_at: timestamp,
-          data: {
-            vehicles: rawVehicles,
-            customers: rawCustomers,
-            leases: rawLeases
-          },
-          status: 'active'
-        }]);
-
-      if (versionError) {
-        console.error("Error saving version:", versionError);
-        toast.error("Failed to save version");
-      } else {
-        toast.success("System version 'khamis' saved successfully");
-      }
-
-      // First try the RPC
-      const { data: rpcData, error: rpcError } = await supabase.rpc<DashboardStatsResponse>('get_dashboard_stats');
+      const { data, error } = await supabase.rpc('get_dashboard_stats');
       
-      if (rpcError) {
-        console.error("RPC Error, falling back to direct queries:", rpcError);
-        
-        // Fallback to direct calculation if RPC fails
-        const statsData: DashboardStats = {
-          total_vehicles: rawVehicles?.length || 0,
-          available_vehicles: rawVehicles?.filter(v => v.status === 'available').length || 0,
-          rented_vehicles: rawVehicles?.filter(v => v.status === 'rented').length || 0,
-          maintenance_vehicles: rawVehicles?.filter(v => v.status === 'maintenance').length || 0,
-          total_customers: rawCustomers?.length || 0,
-          active_rentals: rawLeases?.length || 0,
-          monthly_revenue: rawLeases?.reduce((sum, lease) => sum + (lease.rent_amount || 0), 0) || 0
-        };
-
-        console.log("Calculated fallback stats:", statsData);
-        return statsData;
+      if (error) {
+        throw error;
       }
 
-      if (!rpcData) {
-        console.error("No data returned from dashboard stats");
+      if (!data) {
         throw new Error("No data returned from dashboard stats");
       }
 
-      console.log("Received RPC stats:", rpcData);
-
+      // Convert the data to the correct format
       const statsData: DashboardStats = {
-        total_vehicles: Number(rpcData.total_vehicles ?? 0),
-        available_vehicles: Number(rpcData.available_vehicles ?? 0),
-        rented_vehicles: Number(rpcData.rented_vehicles ?? 0),
-        maintenance_vehicles: Number(rpcData.maintenance_vehicles ?? 0),
-        total_customers: Number(rpcData.total_customers ?? 0),
-        active_rentals: Number(rpcData.active_rentals ?? 0),
-        monthly_revenue: Number(rpcData.monthly_revenue ?? 0)
+        total_vehicles: Number(data.total_vehicles || 0),
+        available_vehicles: Number(data.available_vehicles || 0),
+        rented_vehicles: Number(data.rented_vehicles || 0),
+        maintenance_vehicles: Number(data.maintenance_vehicles || 0),
+        total_customers: Number(data.total_customers || 0),
+        active_rentals: Number(data.active_rentals || 0),
+        monthly_revenue: Number(data.monthly_revenue || 0)
       };
 
       return statsData;
     },
-    staleTime: 30000,
     meta: {
       onError: (err: Error) => {
-        console.error("Dashboard stats error:", err);
         toast.error("Failed to load dashboard stats: " + err.message);
       }
     }
   });
-
-  if (error) {
-    console.error("Dashboard query error:", error);
-    toast.error("Error loading dashboard data");
-  }
-
-  console.log("Current stats data:", statsData);
 
   return (
     <div className="space-y-6 mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-[1400px] animate-fade-in">

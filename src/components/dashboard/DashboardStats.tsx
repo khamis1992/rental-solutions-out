@@ -16,24 +16,9 @@ interface DashboardStatsProps {
 }
 
 export const DashboardStats = ({ stats }: DashboardStatsProps) => {
-  // Add debug logging
-  console.log("DashboardStats received stats:", stats);
-
   const fleetUtilization = stats?.total_vehicles 
     ? ((stats.rented_vehicles / stats.total_vehicles) * 100).toFixed(1) 
     : '0';
-
-  // Ensure all values are numbers and not undefined
-  const safeStats = {
-    total_vehicles: stats?.total_vehicles || 0,
-    rented_vehicles: stats?.rented_vehicles || 0,
-    maintenance_vehicles: stats?.maintenance_vehicles || 0,
-    active_rentals: stats?.active_rentals || 0,
-    total_customers: stats?.total_customers || 0,
-    monthly_revenue: stats?.monthly_revenue || 0
-  };
-
-  console.log("Calculated safe stats:", safeStats);
 
   return (
     <div className="space-y-8">
@@ -51,24 +36,24 @@ export const DashboardStats = ({ stats }: DashboardStatsProps) => {
         />
         <StatsCard
           title="Active Rentals"
-          value={safeStats.active_rentals.toString()}
+          value={stats?.active_rentals?.toString() || "0"}
           icon={Key}
           iconClassName="purple"
           description={
             <span className="text-amber-600 text-xs flex items-center">
               <Wrench className="mr-1 h-4 w-4" />
-              {safeStats.maintenance_vehicles} in maintenance
+              {stats?.maintenance_vehicles || 0} in maintenance
             </span>
           }
         />
         <StatsCard
           title="Monthly Revenue"
-          value={formatCurrency(safeStats.monthly_revenue)}
+          value={formatCurrency(stats?.monthly_revenue || 0)}
           icon={Users}
           iconClassName="green"
           description={
             <span className="text-muted-foreground text-xs">
-              {safeStats.total_customers} total customers
+              {stats?.total_customers || 0} total customers
             </span>
           }
         />
