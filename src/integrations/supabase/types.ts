@@ -5255,7 +5255,6 @@ export type Database = {
             | null
           recurring_interval: unknown | null
           security_deposit_id: string | null
-          status: Database["public"]["Enums"]["payment_status"] | null
           transaction_id: string | null
           type: string | null
           updated_at: string | null
@@ -5281,7 +5280,6 @@ export type Database = {
             | null
           recurring_interval?: unknown | null
           security_deposit_id?: string | null
-          status?: Database["public"]["Enums"]["payment_status"] | null
           transaction_id?: string | null
           type?: string | null
           updated_at?: string | null
@@ -5307,7 +5305,6 @@ export type Database = {
             | null
           recurring_interval?: unknown | null
           security_deposit_id?: string | null
-          status?: Database["public"]["Enums"]["payment_status"] | null
           transaction_id?: string | null
           type?: string | null
           updated_at?: string | null
@@ -5813,7 +5810,6 @@ export type Database = {
           lease_id: string | null
           original_due_date: string | null
           remaining_balance: number | null
-          status: Database["public"]["Enums"]["payment_status"] | null
           updated_at: string | null
         }
         Insert: {
@@ -5826,7 +5822,6 @@ export type Database = {
           lease_id?: string | null
           original_due_date?: string | null
           remaining_balance?: number | null
-          status?: Database["public"]["Enums"]["payment_status"] | null
           updated_at?: string | null
         }
         Update: {
@@ -5839,7 +5834,6 @@ export type Database = {
           lease_id?: string | null
           original_due_date?: string | null
           remaining_balance?: number | null
-          status?: Database["public"]["Enums"]["payment_status"] | null
           updated_at?: string | null
         }
         Relationships: []
@@ -6212,7 +6206,6 @@ export type Database = {
           reconciliation_status: string | null
           reminder_sent_at: string | null
           security_deposit_id: string | null
-          status: Database["public"]["Enums"]["payment_status"] | null
           transaction_id: string | null
           updated_at: string | null
         }
@@ -6231,7 +6224,6 @@ export type Database = {
           reconciliation_status?: string | null
           reminder_sent_at?: string | null
           security_deposit_id?: string | null
-          status?: Database["public"]["Enums"]["payment_status"] | null
           transaction_id?: string | null
           updated_at?: string | null
         }
@@ -6250,7 +6242,6 @@ export type Database = {
           reconciliation_status?: string | null
           reminder_sent_at?: string | null
           security_deposit_id?: string | null
-          status?: Database["public"]["Enums"]["payment_status"] | null
           transaction_id?: string | null
           updated_at?: string | null
         }
@@ -7541,7 +7532,6 @@ export type Database = {
           notes: string | null
           refund_amount: number | null
           refund_date: string | null
-          status: Database["public"]["Enums"]["payment_status"] | null
           updated_at: string
         }
         Insert: {
@@ -7552,7 +7542,6 @@ export type Database = {
           notes?: string | null
           refund_amount?: number | null
           refund_date?: string | null
-          status?: Database["public"]["Enums"]["payment_status"] | null
           updated_at?: string
         }
         Update: {
@@ -7563,7 +7552,6 @@ export type Database = {
           notes?: string | null
           refund_amount?: number | null
           refund_date?: string | null
-          status?: Database["public"]["Enums"]["payment_status"] | null
           updated_at?: string
         }
         Relationships: [
@@ -9541,7 +9529,6 @@ export type Database = {
           mileage: number | null
           model: string
           rent_amount: number | null
-          status: Database["public"]["Enums"]["vehicle_status"] | null
           updated_at: string
           vehicle_type_id: string | null
           vin: string
@@ -9562,7 +9549,6 @@ export type Database = {
           mileage?: number | null
           model: string
           rent_amount?: number | null
-          status?: Database["public"]["Enums"]["vehicle_status"] | null
           updated_at?: string
           vehicle_type_id?: string | null
           vin: string
@@ -9583,7 +9569,6 @@ export type Database = {
           mileage?: number | null
           model?: string
           rent_amount?: number | null
-          status?: Database["public"]["Enums"]["vehicle_status"] | null
           updated_at?: string
           vehicle_type_id?: string | null
           vin?: string
@@ -10584,6 +10569,7 @@ export type Database = {
         | "payment"
         | "status_change"
         | "document_upload"
+      customer_status: "active" | "inactive"
       customer_status_type:
         | "active"
         | "inactive"
@@ -10655,7 +10641,7 @@ export type Database = {
         | "Cheque"
         | "Deposit"
         | "On_hold"
-      payment_status: "pending" | "completed" | "failed" | "refunded"
+      payment_status: "pending" | "completed" | "failed"
       payment_status_type: "pending" | "paid" | "overdue" | "cancelled"
       portal_user_status: "active" | "inactive" | "locked"
       pre_registration_status: "pending" | "approved" | "rejected" | "waitlist"
@@ -10695,15 +10681,7 @@ export type Database = {
         | "suv"
         | "van"
         | "luxury"
-      vehicle_status:
-        | "available"
-        | "rented"
-        | "maintenance"
-        | "retired"
-        | "police_station"
-        | "accident"
-        | "reserve"
-        | "stolen"
+      vehicle_status: "available" | "rented" | "maintenance"
       vehicle_status_enum:
         | "maintenance"
         | "available"
