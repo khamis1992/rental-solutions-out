@@ -25,6 +25,7 @@ export const useCreateCustomer = (customerId: string | null, onSuccess?: () => v
         throw new Error("Customer ID is required");
       }
 
+      // Create the customer profile first
       const customerData = {
         id: customerId,
         ...values,
@@ -35,29 +36,59 @@ export const useCreateCustomer = (customerId: string | null, onSuccess?: () => v
         document_verification_status: 'pending',
         preferred_communication_channel: 'email',
         welcome_email_sent: false,
-        form_data: null
+        creation_status: 'pending',
+        form_data: values
       };
 
       console.log("Attempting to insert customer data:", customerData);
 
-      const { data, error: supabaseError } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .insert([customerData]) // Ensure we're passing an array
+        .insert([customerData])
         .select();
 
-      console.log("Supabase insert response - Data:", data, "Error:", supabaseError);
-
-      if (supabaseError) {
-        console.error("Detailed Supabase error:", {
-          message: supabaseError.message,
-          details: supabaseError.details,
-          hint: supabaseError.hint,
-          code: supabaseError.code
+      if (profileError) {
+        console.error("Profile creation error:", {
+          message: profileError.message,
+          details: profileError.details,
+          hint: profileError.hint,
+          code: profileError.code
         });
-        throw supabaseError;
+        throw profileError;
       }
 
-      await createOnboardingSteps();
+      // Queue the onboarding steps creation
+      const { error: queueError } = await supabase
+        .from("profile_creation_queue")
+        .insert([{
+          profile_id: customerId,
+          operation_type: 'create_onboarding_steps',
+          status: 'pending',
+          payload: {
+            steps: [
+              "Document Verification",
+              "Welcome Email",
+              "Initial Contact",
+              "Profile Review"
+            ]
+          }
+        }]);
+
+      if (queueError) {
+        console.error("Error queueing onboarding steps:", queueError);
+        // Don't throw here - we've already created the profile
+        toast.error("Onboarding steps will be created shortly");
+      }
+
+      // Update profile status to onboarding
+      const { error: statusError } = await supabase
+        .from("profiles")
+        .update({ creation_status: 'onboarding' })
+        .eq('id', customerId);
+
+      if (statusError) {
+        console.error("Error updating profile status:", statusError);
+      }
 
       setSuccess(true);
       toast.success("Customer created successfully");
@@ -71,44 +102,22 @@ export const useCreateCustomer = (customerId: string | null, onSuccess?: () => v
         name: error.name,
         cause: error.cause
       });
+      
+      // Update profile with error status if possible
+      if (customerId) {
+        await supabase
+          .from("profiles")
+          .update({ 
+            creation_status: 'failed',
+            creation_error: error.message
+          })
+          .eq('id', customerId);
+      }
+
       setError(true);
       toast.error(error.message || "Failed to create customer");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const createOnboardingSteps = async () => {
-    console.log("Creating onboarding steps...");
-    if (!customerId) {
-      console.error("Cannot create onboarding steps: customerId is null");
-      return;
-    }
-
-    const onboardingSteps = [
-      "Document Verification",
-      "Welcome Email",
-      "Initial Contact",
-      "Profile Review"
-    ];
-
-    const onboardingData = onboardingSteps.map(step => ({
-      customer_id: customerId,
-      step_name: step,
-      completed: false
-    }));
-
-    const { error: onboardingError } = await supabase
-      .from("customer_onboarding")
-      .insert(onboardingData);
-
-    if (onboardingError) {
-      console.error("Error creating onboarding checklist:", {
-        message: onboardingError.message,
-        details: onboardingError.details,
-        hint: onboardingError.hint,
-        code: onboardingError.code
-      });
     }
   };
 
