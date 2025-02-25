@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { TemplateEditor } from "./TemplateEditor";
 
 export const TemplateList = () => {
@@ -111,15 +110,11 @@ export const TemplateList = () => {
       </div>
 
       <Dialog open={showEditor} onOpenChange={setShowEditor}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-          <ScrollArea className="flex-1">
-            <div className="p-6">
-              <TemplateEditor 
-                templateId={selectedTemplate} 
-                onSave={handleClose}
-              />
-            </div>
-          </ScrollArea>
+        <DialogContent className="max-w-4xl">
+          <TemplateEditor 
+            templateId={selectedTemplate} 
+            onSave={handleClose}
+          />
         </DialogContent>
       </Dialog>
     </div>
