@@ -82,7 +82,7 @@ export const CreateCustomerDialog = ({
       validateCustomerData(values);
 
       const customerData = {
-        customer_id: customerId, // Changed from 'id' to 'customer_id'
+        id: customerId,
         ...values,
         role: "customer",
         created_at: new Date().toISOString(),
