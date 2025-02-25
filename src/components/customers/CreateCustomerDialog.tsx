@@ -73,12 +73,13 @@ export const CreateCustomerDialog = ({
   };
 
   const onSubmit = async (values: any) => {
-    console.log("Submitting form with values:", values);
+    console.log("Starting form submission with values:", values);
     setIsLoading(true);
     setSuccess(false);
     setError(false);
     
     try {
+      console.log("Validating customer data...");
       validateCustomerData(values);
 
       const customerData = {
@@ -94,16 +95,26 @@ export const CreateCustomerDialog = ({
         form_data: null
       };
 
-      console.log("Inserting customer data:", customerData);
+      console.log("Attempting to insert customer data:", customerData);
 
-      const { error: supabaseError } = await supabase
+      const { data, error: supabaseError } = await supabase
         .from("profiles")
-        .insert(customerData);
+        .insert(customerData)
+        .select();
+
+      console.log("Supabase insert response - Data:", data, "Error:", supabaseError);
 
       if (supabaseError) {
-        console.error("Supabase insertion error:", supabaseError);
+        console.error("Detailed Supabase error:", {
+          message: supabaseError.message,
+          details: supabaseError.details,
+          hint: supabaseError.hint,
+          code: supabaseError.code
+        });
         throw supabaseError;
       }
+
+      console.log("Customer created successfully, creating onboarding steps...");
 
       const onboardingSteps = [
         "Document Verification",
@@ -123,18 +134,29 @@ export const CreateCustomerDialog = ({
         .insert(onboardingData);
 
       if (onboardingError) {
-        console.error("Error creating onboarding checklist:", onboardingError);
+        console.error("Error creating onboarding checklist:", {
+          message: onboardingError.message,
+          details: onboardingError.details,
+          hint: onboardingError.hint,
+          code: onboardingError.code
+        });
       }
 
       setSuccess(true);
       toast.success("Customer created successfully");
 
+      console.log("Invalidating customers query...");
       await queryClient.invalidateQueries({ queryKey: ["customers"] });
 
       setShowContractPrompt(true);
 
     } catch (error: any) {
-      console.error("Error in onSubmit:", error);
+      console.error("Detailed error in onSubmit:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        cause: error.cause
+      });
       setError(true);
       toast.error(error.message || "Failed to create customer");
     } finally {
