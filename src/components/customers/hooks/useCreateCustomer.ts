@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -25,21 +24,17 @@ export const useCreateCustomer = (customerId: string | null, onSuccess?: () => v
         throw new Error("Customer ID is required");
       }
 
-      // Create the base profile data
+      // Create the base profile data with only necessary fields
+      // Other fields will use database defaults
       const profileData = {
-        id: customerId, // Explicitly set the ID field
+        id: customerId,
         full_name: values.full_name,
         email: values.email,
         phone_number: values.phone_number,
         address: values.address,
         nationality: values.nationality,
         driver_license: values.driver_license,
-        role: "customer",
-        status: 'pending_review',
-        document_verification_status: 'pending',
-        preferred_communication_channel: 'email',
-        welcome_email_sent: false,
-        creation_status: 'pending'
+        role: "customer"
       };
 
       console.log("Attempting to insert profile data:", profileData);
@@ -81,7 +76,6 @@ export const useCreateCustomer = (customerId: string | null, onSuccess?: () => v
 
       if (queueError) {
         console.error("Error queueing onboarding steps:", queueError);
-        // Don't throw here - we've already created the profile
         toast.error("Onboarding steps will be created shortly");
       }
 
