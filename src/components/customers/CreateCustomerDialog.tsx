@@ -27,7 +27,11 @@ export const CreateCustomerDialog = ({
   const [customerId, setCustomerId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   
+  // Mode: 'onSubmit' means validation only happens on submit
+  // ReValidateMode: 'never' means fields won't be revalidated after submission
   const form = useForm({
+    mode: 'onSubmit',
+    reValidateMode: 'never',
     defaultValues: {
       full_name: "",
       phone_number: "",
@@ -38,9 +42,17 @@ export const CreateCustomerDialog = ({
       contract_document_url: "",
       email: "",
       nationality: "",
+    },
+    // This will prevent any validation from running
+    resolver: async (values) => {
+      return {
+        values,
+        errors: {}
+      };
     }
   });
 
+  // Direct form submission without validation
   const onSubmit = async (values: any) => {
     console.log("Submitting form with values:", values);
     setIsLoading(true);
@@ -50,9 +62,15 @@ export const CreateCustomerDialog = ({
     try {
       const newCustomerId = customerId || crypto.randomUUID();
       
+      // Clean up phone number - remove any validation formatting
+      const cleanedValues = {
+        ...values,
+        phone_number: values.phone_number?.replace(/[^0-9+]/g, '') || ''
+      };
+      
       const customerData = {
         id: newCustomerId,
-        ...values,
+        ...cleanedValues,
         role: "customer",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
