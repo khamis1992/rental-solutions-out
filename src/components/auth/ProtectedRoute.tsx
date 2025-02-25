@@ -1,13 +1,13 @@
 
-import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { isLoading } = useAuth();
+  const [isLoading] = useState(false);
 
   if (isLoading) {
     return (
@@ -19,3 +19,4 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   return <>{children}</>;
 };
+
