@@ -8777,6 +8777,27 @@ export type Database = {
         }
         Relationships: []
       }
+      welcome_email_tracking: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          sent_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          sent_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          sent_at?: string
+        }
+        Relationships: []
+      }
       word_templates: {
         Row: {
           content: string | null
@@ -9312,6 +9333,13 @@ export type Database = {
         Args: {
           primary_id: string
           duplicate_ids: string[]
+        }
+        Returns: undefined
+      }
+      merge_duplicate_profiles: {
+        Args: {
+          target_profile_id: string
+          source_profile_id: string
         }
         Returns: undefined
       }
