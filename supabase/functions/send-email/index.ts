@@ -6,7 +6,6 @@ import { Resend } from "npm:resend@2.0.0";
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const fromEmail = Deno.env.get("FROM_EMAIL") || "info@alaraf.online";
 
-// Create a Supabase client
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -14,6 +13,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Content-Type': 'application/json',
 };
 
 interface EmailRequest {
@@ -23,31 +23,43 @@ interface EmailRequest {
   variables: Record<string, any>;
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Parse request body
+    if (!resend) {
+      throw new Error('Resend API key not configured');
+    }
+
     const { templateId, recipientEmail, recipientName, variables } = await req.json() as EmailRequest;
+
+    if (!templateId || !recipientEmail) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields' }),
+        { status: 400, headers: corsHeaders }
+      );
+    }
 
     // Fetch template from database
     const { data: template, error: templateError } = await supabase
       .from('email_templates')
       .select('*')
       .eq('id', templateId)
-      .single();
+      .maybeSingle();
 
     if (templateError || !template) {
       console.error('Template fetch error:', templateError);
-      throw new Error('Template not found');
+      return new Response(
+        JSON.stringify({ error: 'Template not found' }),
+        { status: 404, headers: corsHeaders }
+      );
     }
 
     // Process template content with variables
     let processedContent = template.content;
-    const variableMappings = template.variable_mappings || {};
 
     // Replace all variables in the template
     for (const [key, value] of Object.entries(variables)) {
@@ -69,14 +81,8 @@ serve(async (req) => {
       html: processedContent,
     });
 
-    console.log('Email sent successfully:', {
-      templateId,
-      recipientEmail,
-      messageId: emailResponse.id,
-    });
-
-    // Log the email sending in our database
-    const { error: logError } = await supabase
+    // Log the email sending
+    await supabase
       .from('email_notification_logs')
       .insert({
         template_id: templateId,
@@ -89,22 +95,18 @@ serve(async (req) => {
         },
       });
 
-    if (logError) {
-      console.error('Error logging email:', logError);
-    }
-
-    return new Response(JSON.stringify(emailResponse), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    });
+    return new Response(
+      JSON.stringify({ success: true, id: emailResponse.id }),
+      { headers: corsHeaders }
+    );
   } catch (error) {
     console.error('Error sending email:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        success: false
+      }),
+      { status: 500, headers: corsHeaders }
     );
   }
 });

@@ -15,14 +15,16 @@ interface TemplateFormData {
   subject: string;
   content: string;
   category_id?: string;
+  category: string;
   is_active: boolean;
+  template_type?: 'welcome' | 'contract_confirmation' | 'payment_reminder' | 'late_payment' | 'insurance_renewal' | 'legal_notice';
 }
 
 const AVAILABLE_VARIABLES = {
   customer: ['full_name', 'email', 'phone_number', 'address'],
   agreement: ['agreement_number', 'start_date', 'end_date', 'rent_amount', 'total_amount'],
   vehicle: ['make', 'model', 'year', 'license_plate'],
-};
+} as const;
 
 export const CustomTemplateEditor = ({ 
   templateId,
@@ -37,6 +39,7 @@ export const CustomTemplateEditor = ({
   const { register, handleSubmit, setValue, watch } = useForm<TemplateFormData>({
     defaultValues: {
       is_active: true,
+      category: 'general'
     }
   });
 
@@ -62,7 +65,9 @@ export const CustomTemplateEditor = ({
         setValue('subject', template.subject);
         setValue('content', template.content);
         setValue('category_id', template.category_id);
+        setValue('category', template.category);
         setValue('is_active', template.is_active);
+        setValue('template_type', template.template_type);
       }
     };
 
@@ -103,37 +108,39 @@ export const CustomTemplateEditor = ({
         return;
       }
 
-      const variableMappings = {
-        customer: AVAILABLE_VARIABLES.customer.reduce((acc, field) => ({
+      const variableMappings = Object.fromEntries(
+        Object.entries(AVAILABLE_VARIABLES).map(([category, fields]) => [
+          category,
+          Object.fromEntries(
+            fields.map(field => [field, `{{${category}.${field}}}`])
+          )
+        ])
+      );
+
+      const templateData = {
+        name: data.name,
+        subject: data.subject,
+        content: data.content,
+        category: data.category,
+        category_id: data.category_id,
+        template_type: data.template_type,
+        is_active: data.is_active,
+        variable_mappings: variableMappings,
+        variables: Object.keys(AVAILABLE_VARIABLES).reduce((acc, category) => ({
           ...acc,
-          [field]: `{{customer.${field}}}`
-        }), {}),
-        agreement: AVAILABLE_VARIABLES.agreement.reduce((acc, field) => ({
-          ...acc,
-          [field]: `{{agreement.${field}}}`
-        }), {}),
-        vehicle: AVAILABLE_VARIABLES.vehicle.reduce((acc, field) => ({
-          ...acc,
-          [field]: `{{vehicle.${field}}}`
+          [category]: AVAILABLE_VARIABLES[category as keyof typeof AVAILABLE_VARIABLES]
         }), {})
       };
 
       if (templateId) {
         await supabase
           .from('email_templates')
-          .update({
-            ...data,
-            variable_mappings: variableMappings,
-            updated_at: new Date().toISOString()
-          })
+          .update(templateData)
           .eq('id', templateId);
       } else {
         await supabase
           .from('email_templates')
-          .insert({
-            ...data,
-            variable_mappings: variableMappings
-          });
+          .insert([templateData]);
       }
 
       toast.success('Template saved successfully');
@@ -171,6 +178,22 @@ export const CustomTemplateEditor = ({
                 {category.name}
               </option>
             ))}
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="template_type">Template Type</Label>
+          <select 
+            {...register('template_type')}
+            className="w-full p-2 border rounded-md"
+          >
+            <option value="">Select type</option>
+            <option value="welcome">Welcome</option>
+            <option value="contract_confirmation">Contract Confirmation</option>
+            <option value="payment_reminder">Payment Reminder</option>
+            <option value="late_payment">Late Payment</option>
+            <option value="insurance_renewal">Insurance Renewal</option>
+            <option value="legal_notice">Legal Notice</option>
           </select>
         </div>
 
