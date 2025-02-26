@@ -1,111 +1,123 @@
 
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { Resend } from "npm:resend@2.0.0";
+
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const fromEmail = Deno.env.get('FROM_EMAIL') || 'noreply@alaraf.online';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS'
-}
+};
 
-interface EmailRequest {
+// Rate limiting configuration
+const RATE_LIMIT = 2; // requests per second
+const QUEUE_SIZE_LIMIT = 100; // Maximum queue size
+let lastRequestTime = 0;
+let requestQueue: Array<{
   email: string;
   name: string;
+  resolve: (value: Response) => void;
+  reject: (reason: any) => void;
+}> = [];
+let isProcessingQueue = false;
+
+async function processQueue() {
+  if (isProcessingQueue || requestQueue.length === 0) return;
+  
+  isProcessingQueue = true;
+  console.log(`Processing queue. Current size: ${requestQueue.length}`);
+
+  try {
+    while (requestQueue.length > 0) {
+      const now = Date.now();
+      const timeSinceLastRequest = now - lastRequestTime;
+      const requiredDelay = (1000 / RATE_LIMIT) - timeSinceLastRequest;
+
+      if (requiredDelay > 0) {
+        await new Promise(resolve => setTimeout(resolve, requiredDelay));
+      }
+
+      const request = requestQueue.shift();
+      if (!request) continue;
+
+      try {
+        const { email, name } = request;
+        console.log(`Sending email to ${email}`);
+
+        const emailResponse = await resend.emails.send({
+          from: fromEmail,
+          to: [email],
+          subject: "Welcome to Alaraf",
+          html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px;">
+              <h2>مرحباً ${name}!</h2>
+              <p>شكراً لتسجيلك في العراف. نحن سعداء بانضمامك إلينا.</p>
+              <p>سنبقيك على اطلاع بكل جديد.</p>
+              <br>
+              <p>مع تحياتنا،<br>فريق العراف</p>
+            </div>
+          `,
+        });
+
+        console.log("Email sent successfully:", emailResponse);
+        request.resolve(new Response(JSON.stringify(emailResponse), {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }));
+
+      } catch (error) {
+        console.error("Error sending email:", error);
+        request.reject(error);
+      }
+
+      lastRequestTime = Date.now();
+    }
+  } finally {
+    isProcessingQueue = false;
+  }
 }
 
 serve(async (req) => {
-  console.log("Starting send-email function");
-
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { 
-      status: 204,
-      headers: corsHeaders
-    });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const apiKey = Deno.env.get('RESEND_API_KEY');
-    const fromEmail = Deno.env.get('FROM_EMAIL') || 'noreply@alaraf.online';
-    console.log("API Key present:", !!apiKey);
-
-    if (!apiKey) {
-      throw new Error("Missing RESEND_API_KEY environment variable");
-    }
-
-    const body = await req.json();
-    console.log("Received request body:", body);
-
-    const { email, name } = body as EmailRequest;
+    const { email, name } = await req.json();
 
     if (!email || !name) {
-      throw new Error("Missing required fields: email and name are required");
+      return new Response(
+        JSON.stringify({ error: "Missing required fields: email and name" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
 
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: fromEmail,
-        to: email,
-        subject: 'Test Email',
-        html: `
-          <div style="font-family: Arial, sans-serif; padding: 20px;">
-            <h2>Test Email Configuration</h2>
-            <p>Hi ${name},</p>
-            <p>This is a test email to verify your email configuration!</p>
-            <p>If you're receiving this, your email integration is working correctly.</p>
-            <br>
-            <p>Best regards,<br>Lovable Team</p>
-          </div>
-        `
-      })
+    // Check queue size
+    if (requestQueue.length >= QUEUE_SIZE_LIMIT) {
+      return new Response(
+        JSON.stringify({ error: "Server is busy. Please try again later." }),
+        { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Create a promise that will be resolved when the email is sent
+    const responsePromise = new Promise<Response>((resolve, reject) => {
+      requestQueue.push({ email, name, resolve, reject });
     });
 
-    const data = await response.json();
-    console.log("Email API response:", data);
+    // Start processing the queue if it's not already being processed
+    processQueue();
 
-    if (!response.ok) {
-      // Handle specific error cases
-      if (data.message?.includes('verify a domain')) {
-        throw new Error(`Domain verification required. Please verify your domain at resend.com/domains and update the FROM_EMAIL environment variable to use an email from your verified domain.`);
-      }
-      throw new Error(data.message || 'Failed to send email');
-    }
+    // Wait for the email to be sent and return the response
+    return await responsePromise;
 
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: "Email sent successfully",
-        data 
-      }),
-      { 
-        status: 200,
-        headers: { 
-          "Content-Type": "application/json",
-          ...corsHeaders
-        } 
-      }
-    );
   } catch (error) {
     console.error("Error in send-email function:", error);
-    
-    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-    
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: errorMessage
-      }), 
-      { 
-        status: 500,
-        headers: { 
-          "Content-Type": "application/json",
-          ...corsHeaders
-        }
-      }
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
-})
+});
