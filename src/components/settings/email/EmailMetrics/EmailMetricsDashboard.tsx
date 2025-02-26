@@ -5,25 +5,78 @@ import { supabase } from "@/integrations/supabase/client";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Loader2, AlertCircle, CheckCircle, Clock } from "lucide-react";
 
+interface EmailMetrics {
+  total_sent: number;
+  successful_sent: number;
+  failed_sent: number;
+  rate_limited_count: number;
+  date_bucket: string;
+}
+
+interface EmailActivityData {
+  time_bucket: string;
+  status: string;
+  count: number;
+  avg_retries: number;
+  max_retries: number;
+  retried_count: number;
+}
+
 export const EmailMetricsDashboard = () => {
   const { data: metrics, isLoading } = useQuery({
     queryKey: ['email-metrics'],
     queryFn: async () => {
-      const { data: dashboardData } = await supabase
-        .from('email_sending_dashboard')
-        .select('*')
-        .order('time_bucket', { ascending: false })
-        .limit(24);
+      const { data: activityData, error: activityError } = await supabase
+        .from('unified_payments')
+        .select('created_at, status')
+        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .order('created_at', { ascending: false });
 
-      const { data: currentMetrics } = await supabase
+      if (activityError) {
+        console.error('Error fetching activity data:', activityError);
+        throw activityError;
+      }
+
+      const { data: currentMetrics, error: metricsError } = await supabase
         .from('email_sending_metrics')
         .select('*')
         .order('date_bucket', { ascending: false })
         .limit(1);
 
+      if (metricsError) {
+        console.error('Error fetching metrics:', metricsError);
+        throw metricsError;
+      }
+
+      // Process activity data into hourly buckets
+      const hourlyData = activityData?.reduce((acc: EmailActivityData[], curr) => {
+        const hour = new Date(curr.created_at).setMinutes(0, 0, 0);
+        const existing = acc.find(d => new Date(d.time_bucket).getTime() === hour);
+        
+        if (existing) {
+          existing.count += 1;
+        } else {
+          acc.push({
+            time_bucket: new Date(hour).toISOString(),
+            status: curr.status,
+            count: 1,
+            avg_retries: 0,
+            max_retries: 0,
+            retried_count: 0
+          });
+        }
+        return acc;
+      }, []);
+
       return {
-        dashboard: dashboardData || [],
-        current: currentMetrics?.[0] || null
+        dashboard: hourlyData || [],
+        current: currentMetrics?.[0] as EmailMetrics || {
+          total_sent: 0,
+          successful_sent: 0,
+          failed_sent: 0,
+          rate_limited_count: 0,
+          date_bucket: new Date().toISOString()
+        }
       };
     },
     refetchInterval: 30000 // Refresh every 30 seconds
@@ -37,13 +90,6 @@ export const EmailMetricsDashboard = () => {
     );
   }
 
-  const currentStats = metrics?.current || {
-    total_sent: 0,
-    successful_sent: 0,
-    failed_sent: 0,
-    rate_limited_count: 0
-  };
-
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-4">
@@ -53,7 +99,7 @@ export const EmailMetricsDashboard = () => {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{currentStats.total_sent}</div>
+            <div className="text-2xl font-bold">{metrics?.current.total_sent || 0}</div>
             <p className="text-xs text-muted-foreground">Last hour</p>
           </CardContent>
         </Card>
@@ -64,10 +110,10 @@ export const EmailMetricsDashboard = () => {
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{currentStats.successful_sent}</div>
+            <div className="text-2xl font-bold">{metrics?.current.successful_sent || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {currentStats.total_sent ? 
-                `${Math.round((currentStats.successful_sent / currentStats.total_sent) * 100)}% success rate` : 
+              {metrics?.current.total_sent ? 
+                `${Math.round((metrics.current.successful_sent / metrics.current.total_sent) * 100)}% success rate` : 
                 'No emails sent'}
             </p>
           </CardContent>
@@ -79,10 +125,10 @@ export const EmailMetricsDashboard = () => {
             <AlertCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{currentStats.failed_sent}</div>
+            <div className="text-2xl font-bold">{metrics?.current.failed_sent || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {currentStats.total_sent ? 
-                `${Math.round((currentStats.failed_sent / currentStats.total_sent) * 100)}% failure rate` : 
+              {metrics?.current.total_sent ? 
+                `${Math.round((metrics.current.failed_sent / metrics.current.total_sent) * 100)}% failure rate` : 
                 'No emails sent'}
             </p>
           </CardContent>
@@ -94,7 +140,7 @@ export const EmailMetricsDashboard = () => {
             <Clock className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{currentStats.rate_limited_count}</div>
+            <div className="text-2xl font-bold">{metrics?.current.rate_limited_count || 0}</div>
             <p className="text-xs text-muted-foreground">Last hour</p>
           </CardContent>
         </Card>
