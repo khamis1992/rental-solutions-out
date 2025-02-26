@@ -1516,18 +1516,21 @@ export type Database = {
       contract_confirmation_emails: {
         Row: {
           created_at: string
+          cutoff_date: string | null
           id: string
           lease_id: string
           sent_at: string
         }
         Insert: {
           created_at?: string
+          cutoff_date?: string | null
           id?: string
           lease_id: string
           sent_at?: string
         }
         Update: {
           created_at?: string
+          cutoff_date?: string | null
           id?: string
           lease_id?: string
           sent_at?: string
@@ -8801,18 +8804,21 @@ export type Database = {
       welcome_email_tracking: {
         Row: {
           created_at: string
+          cutoff_date: string | null
           email: string
           id: string
           sent_at: string
         }
         Insert: {
           created_at?: string
+          cutoff_date?: string | null
           email: string
           id?: string
           sent_at?: string
         }
         Update: {
           created_at?: string
+          cutoff_date?: string | null
           email?: string
           id?: string
           sent_at?: string
