@@ -13,6 +13,7 @@ import { TemplateRecommendations } from "./email/ResendDashboard/TemplateRecomme
 import { AutomationRulesList } from "./email/AutomationRules/AutomationRulesList";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { EmailMetricsDashboard } from "./email/EmailMetrics/EmailMetricsDashboard";
 
 export const IntegrationSettings = () => {
   const [resendApiKey, setResendApiKey] = useState("");
@@ -81,6 +82,7 @@ export const IntegrationSettings = () => {
             <Tabs defaultValue="overview" className="w-full">
               <TabsList>
                 <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="metrics">Metrics</TabsTrigger>
                 <TabsTrigger value="templates">Templates</TabsTrigger>
                 <TabsTrigger value="automation">Automation</TabsTrigger>
                 <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
@@ -89,6 +91,10 @@ export const IntegrationSettings = () => {
               
               <TabsContent value="overview">
                 <ResendOverview />
+              </TabsContent>
+
+              <TabsContent value="metrics">
+                <EmailMetricsDashboard />
               </TabsContent>
               
               <TabsContent value="templates">
