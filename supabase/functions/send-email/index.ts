@@ -1,81 +1,26 @@
 
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import { Resend } from "npm:resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-const fromEmail = Deno.env.get('FROM_EMAIL') || 'noreply@alaraf.online';
+const fromEmail = Deno.env.get("FROM_EMAIL") || "info@alaraf.online";
+
+// Create a Supabase client
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Rate limiting configuration
-const RATE_LIMIT = 2; // requests per second
-const QUEUE_SIZE_LIMIT = 100; // Maximum queue size
-let lastRequestTime = 0;
-let requestQueue: Array<{
-  email: string;
-  name: string;
-  resolve: (value: Response) => void;
-  reject: (reason: any) => void;
-}> = [];
-let isProcessingQueue = false;
-
-async function processQueue() {
-  if (isProcessingQueue || requestQueue.length === 0) return;
-  
-  isProcessingQueue = true;
-  console.log(`Processing queue. Current size: ${requestQueue.length}`);
-
-  try {
-    while (requestQueue.length > 0) {
-      const now = Date.now();
-      const timeSinceLastRequest = now - lastRequestTime;
-      const requiredDelay = (1000 / RATE_LIMIT) - timeSinceLastRequest;
-
-      if (requiredDelay > 0) {
-        await new Promise(resolve => setTimeout(resolve, requiredDelay));
-      }
-
-      const request = requestQueue.shift();
-      if (!request) continue;
-
-      try {
-        const { email, name } = request;
-        console.log(`Sending email to ${email}`);
-
-        const emailResponse = await resend.emails.send({
-          from: fromEmail,
-          to: [email],
-          subject: "Welcome to Alaraf",
-          html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px;">
-              <h2>مرحباً ${name}!</h2>
-              <p>شكراً لتسجيلك في العراف. نحن سعداء بانضمامك إلينا.</p>
-              <p>سنبقيك على اطلاع بكل جديد.</p>
-              <br>
-              <p>مع تحياتنا،<br>فريق العراف</p>
-            </div>
-          `,
-        });
-
-        console.log("Email sent successfully:", emailResponse);
-        request.resolve(new Response(JSON.stringify(emailResponse), {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }));
-
-      } catch (error) {
-        console.error("Error sending email:", error);
-        request.reject(error);
-      }
-
-      lastRequestTime = Date.now();
-    }
-  } finally {
-    isProcessingQueue = false;
-  }
+interface EmailRequest {
+  templateId: string;
+  recipientEmail: string;
+  recipientName: string;
+  variables: Record<string, any>;
 }
 
 serve(async (req) => {
@@ -85,39 +30,81 @@ serve(async (req) => {
   }
 
   try {
-    const { email, name } = await req.json();
+    // Parse request body
+    const { templateId, recipientEmail, recipientName, variables } = await req.json() as EmailRequest;
 
-    if (!email || !name) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields: email and name" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+    // Fetch template from database
+    const { data: template, error: templateError } = await supabase
+      .from('email_templates')
+      .select('*')
+      .eq('id', templateId)
+      .single();
+
+    if (templateError || !template) {
+      console.error('Template fetch error:', templateError);
+      throw new Error('Template not found');
     }
 
-    // Check queue size
-    if (requestQueue.length >= QUEUE_SIZE_LIMIT) {
-      return new Response(
-        JSON.stringify({ error: "Server is busy. Please try again later." }),
-        { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+    // Process template content with variables
+    let processedContent = template.content;
+    const variableMappings = template.variable_mappings || {};
+
+    // Replace all variables in the template
+    for (const [key, value] of Object.entries(variables)) {
+      const regex = new RegExp(`{{${key}}}`, 'g');
+      processedContent = processedContent.replace(regex, value?.toString() || '');
     }
 
-    // Create a promise that will be resolved when the email is sent
-    const responsePromise = new Promise<Response>((resolve, reject) => {
-      requestQueue.push({ email, name, resolve, reject });
+    // Replace any remaining standard variables
+    processedContent = processedContent
+      .replace(/{{customer\.full_name}}/g, recipientName)
+      .replace(/{{customer\.email}}/g, recipientEmail)
+      .replace(/{{date}}/g, new Date().toLocaleDateString('ar-AE'));
+
+    // Send email using Resend
+    const emailResponse = await resend.emails.send({
+      from: fromEmail,
+      to: recipientEmail,
+      subject: template.subject || 'No Subject',
+      html: processedContent,
     });
 
-    // Start processing the queue if it's not already being processed
-    processQueue();
+    console.log('Email sent successfully:', {
+      templateId,
+      recipientEmail,
+      messageId: emailResponse.id,
+    });
 
-    // Wait for the email to be sent and return the response
-    return await responsePromise;
+    // Log the email sending in our database
+    const { error: logError } = await supabase
+      .from('email_notification_logs')
+      .insert({
+        template_id: templateId,
+        recipient_email: recipientEmail,
+        status: 'sent',
+        message_id: emailResponse.id,
+        metadata: {
+          variables,
+          processed_content: processedContent,
+        },
+      });
 
+    if (logError) {
+      console.error('Error logging email:', logError);
+    }
+
+    return new Response(JSON.stringify(emailResponse), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    });
   } catch (error) {
-    console.error("Error in send-email function:", error);
+    console.error('Error sending email:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      }
     );
   }
 });
