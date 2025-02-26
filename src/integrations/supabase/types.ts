@@ -91,6 +91,13 @@ export type Database = {
             referencedRelation: "email_templates"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "ab_test_variants_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "template_recommendations_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       accounting_categories: {
@@ -2295,6 +2302,13 @@ export type Database = {
             referencedRelation: "email_templates"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "email_automation_rules_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "template_recommendations_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       email_clicks: {
@@ -2389,6 +2403,13 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_communications_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "template_recommendations_view"
             referencedColumns: ["id"]
           },
         ]
@@ -2506,6 +2527,13 @@ export type Database = {
             referencedRelation: "email_templates"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "email_metrics_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "template_recommendations_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       email_notification_logs: {
@@ -2561,6 +2589,13 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_notification_logs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "template_recommendations_view"
             referencedColumns: ["id"]
           },
         ]
@@ -2630,6 +2665,13 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_notification_queue_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "template_recommendations_view"
             referencedColumns: ["id"]
           },
         ]
@@ -2745,6 +2787,13 @@ export type Database = {
             referencedRelation: "email_templates"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "email_template_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "template_recommendations_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       email_templates: {
@@ -2756,6 +2805,7 @@ export type Database = {
           created_by: string | null
           id: string
           is_active: boolean | null
+          metrics: Json | null
           name: string
           required_attachments: Json | null
           subject: string
@@ -2774,6 +2824,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           is_active?: boolean | null
+          metrics?: Json | null
           name: string
           required_attachments?: Json | null
           subject: string
@@ -2792,6 +2843,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           is_active?: boolean | null
+          metrics?: Json | null
           name?: string
           required_attachments?: Json | null
           subject?: string
@@ -5542,6 +5594,13 @@ export type Database = {
             foreignKeyName: "payment_reminders_payment_id_fkey"
             columns: ["payment_id"]
             isOneToOne: false
+            referencedRelation: "payment_history_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_reminders_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
             referencedRelation: "payments"
             referencedColumns: ["id"]
           },
@@ -7264,6 +7323,13 @@ export type Database = {
             referencedRelation: "email_templates"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "template_analytics_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "template_recommendations_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       template_recommendations: {
@@ -7312,6 +7378,13 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_recommendations_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "template_recommendations_view"
             referencedColumns: ["id"]
           },
         ]
@@ -9086,6 +9159,58 @@ export type Database = {
           },
         ]
       }
+      payment_history_view: {
+        Row: {
+          agreement_number: string | null
+          amount: number | null
+          amount_paid: number | null
+          balance: number | null
+          created_at: string | null
+          customer_email: string | null
+          customer_id: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          days_overdue: number | null
+          description: string | null
+          due_date: string | null
+          id: string | null
+          import_batch_id: string | null
+          import_reference: string | null
+          invoice_id: string | null
+          is_recurring: boolean | null
+          late_fine_amount: number | null
+          lease_id: string | null
+          match_confidence: number | null
+          next_payment_date: string | null
+          original_due_date: string | null
+          payment_date: string | null
+          payment_method: string | null
+          reconciliation_date: string | null
+          reconciliation_status: string | null
+          recurring_interval: unknown | null
+          security_deposit_id: string | null
+          status: string | null
+          transaction_id: string | null
+          type: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unified_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unified_payments_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "leases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number | null
@@ -9155,6 +9280,36 @@ export type Database = {
           year: number | null
         }
         Relationships: []
+      }
+      template_recommendations_view: {
+        Row: {
+          category: string | null
+          category_id: string | null
+          click_rate: number | null
+          content: string | null
+          created_at: string | null
+          id: string | null
+          is_active: boolean | null
+          name: string | null
+          open_rate: number | null
+          subject: string | null
+          template_type:
+            | Database["public"]["Enums"]["email_trigger_type"]
+            | null
+          updated_at: string | null
+          usage_count: number | null
+          variable_mappings: Json | null
+          variables: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_templates_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "email_template_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
