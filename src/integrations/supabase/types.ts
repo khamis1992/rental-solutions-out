@@ -2543,9 +2543,11 @@ export type Database = {
       }
       email_notification_queue: {
         Row: {
+          attempts: number | null
           created_at: string | null
           error_message: string | null
           id: string
+          last_attempt: string | null
           last_retry_at: string | null
           metadata: Json | null
           recipient_email: string
@@ -2558,9 +2560,11 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          attempts?: number | null
           created_at?: string | null
           error_message?: string | null
           id?: string
+          last_attempt?: string | null
           last_retry_at?: string | null
           metadata?: Json | null
           recipient_email: string
@@ -2573,9 +2577,11 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          attempts?: number | null
           created_at?: string | null
           error_message?: string | null
           id?: string
+          last_attempt?: string | null
           last_retry_at?: string | null
           metadata?: Json | null
           recipient_email?: string
@@ -2631,6 +2637,21 @@ export type Database = {
           location?: Json | null
           opened_at?: string
           user_agent?: string | null
+        }
+        Relationships: []
+      }
+      email_rate_limiting: {
+        Row: {
+          id: string
+          last_email_sent: string
+        }
+        Insert: {
+          id?: string
+          last_email_sent?: string
+        }
+        Update: {
+          id?: string
+          last_email_sent?: string
         }
         Relationships: []
       }
