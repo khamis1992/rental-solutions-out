@@ -1513,6 +1513,27 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_confirmation_emails: {
+        Row: {
+          created_at: string
+          id: string
+          lease_id: string
+          sent_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lease_id: string
+          sent_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lease_id?: string
+          sent_at?: string
+        }
+        Relationships: []
+      }
       conversation_contexts: {
         Row: {
           context_data: Json
