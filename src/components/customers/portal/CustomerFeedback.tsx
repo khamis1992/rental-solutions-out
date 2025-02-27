@@ -61,8 +61,10 @@ export const CustomerFeedback = ({ customerId, agreementId }: CustomerFeedbackPr
             {[1, 2, 3, 4, 5].map((value) => (
               <button
                 key={value}
+                type="button"
                 onClick={() => setRating(value)}
                 className="hover:scale-110 transition-transform"
+                aria-label={`Rate ${value} star${value !== 1 ? 's' : ''}`}
               >
                 {value <= rating ? (
                   <Star className="w-8 h-8 fill-yellow-400 text-yellow-400" />
@@ -85,7 +87,7 @@ export const CustomerFeedback = ({ customerId, agreementId }: CustomerFeedbackPr
             disabled={isSubmitting || rating === 0}
             className="w-full"
           >
-            Submit Feedback
+            {isSubmitting ? "Submitting..." : "Submit Feedback"}
           </Button>
         </div>
       </CardContent>

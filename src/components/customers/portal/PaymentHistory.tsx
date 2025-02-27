@@ -14,39 +14,44 @@ interface PaymentHistoryProps {
 }
 
 export const PaymentHistory = ({ customerId, agreementId }: PaymentHistoryProps) => {
-  const { data: payments, isLoading } = useQuery({
+  const { data: payments, isLoading, error } = useQuery({
     queryKey: ['customer-payment-history', customerId, agreementId],
     queryFn: async () => {
-      // Start with a base query
-      let query = supabase
-        .from('payment_history_view')
-        .select(`
-          id,
-          amount,
-          amount_paid,
-          balance,
-          actual_payment_date,
-          original_due_date,
-          late_fine_amount,
-          days_overdue,
-          status,
-          payment_method,
-          description,
-          type,
-          agreement_number
-        `)
-        .eq('customer_id', customerId);
-      
-      // Add agreement filter if provided
-      if (agreementId) {
-        query = query.eq('lease_id', agreementId);
-      }
-      
-      // Execute the query
-      const { data, error } = await query.order('actual_payment_date', { ascending: false });
+      try {
+        // Start with a base query
+        let query = supabase
+          .from('payment_history_view')
+          .select(`
+            id,
+            amount,
+            amount_paid,
+            balance,
+            actual_payment_date,
+            original_due_date,
+            late_fine_amount,
+            days_overdue,
+            status,
+            payment_method,
+            description,
+            type,
+            agreement_number
+          `)
+          .eq('customer_id', customerId);
+        
+        // Add agreement filter if provided
+        if (agreementId) {
+          query = query.eq('lease_id', agreementId);
+        }
+        
+        // Execute the query
+        const { data, error } = await query.order('actual_payment_date', { ascending: false });
 
-      if (error) throw error;
-      return data;
+        if (error) throw error;
+        return data || [];
+      } catch (err) {
+        console.error("Error fetching payment history:", err);
+        throw err;
+      }
     },
   });
 
@@ -61,6 +66,19 @@ export const PaymentHistory = ({ customerId, agreementId }: PaymentHistoryProps)
       <Card>
         <CardContent className="flex items-center justify-center p-6">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-destructive">
+            <p>Error loading payment history</p>
+            <p className="text-sm">{error instanceof Error ? error.message : "Unknown error"}</p>
+          </div>
         </CardContent>
       </Card>
     );

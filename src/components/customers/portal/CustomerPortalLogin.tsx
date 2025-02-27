@@ -5,22 +5,67 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useCustomerPortal } from "@/hooks/use-customer-portal";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface CustomerPortalLoginProps {
-  onLoginSuccess?: () => void;
+  onLoginSuccess?: (agrNumber: string, customerId: string) => void;
 }
 
 export const CustomerPortalLogin = ({ onLoginSuccess }: CustomerPortalLoginProps) => {
   const [agrNumber, setAgrNumber] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const { isLoading, handleLogin } = useCustomerPortal();
+  const [isLoading, setIsLoading] = useState(false);
 
   const submitLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await handleLogin(agrNumber, phoneNumber);
-    if (success && onLoginSuccess) {
-      onLoginSuccess();
+    
+    if (!agrNumber || !phoneNumber) {
+      toast.error("Please enter all required information");
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      // First, fetch the agreement by agreement number
+      const { data: agreementData, error: agreementError } = await supabase
+        .from("leases")
+        .select("id, customer_id")
+        .eq("agreement_number", agrNumber)
+        .single();
+
+      if (agreementError || !agreementData) {
+        throw new Error("Agreement not found. Please check your agreement number.");
+      }
+
+      // Then fetch the customer to verify phone number
+      const { data: customerData, error: customerError } = await supabase
+        .from("profiles")
+        .select("id, phone_number")
+        .eq("id", agreementData.customer_id)
+        .single();
+
+      if (customerError || !customerData) {
+        throw new Error("Customer information not found.");
+      }
+
+      // Verify phone number matches
+      if (customerData.phone_number !== phoneNumber) {
+        throw new Error("Phone number does not match our records.");
+      }
+
+      toast.success("Login successful!");
+      
+      if (onLoginSuccess) {
+        onLoginSuccess(agrNumber, customerData.id);
+      }
+      
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error(error instanceof Error ? error.message : "An error occurred during login. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -56,7 +101,7 @@ export const CustomerPortalLogin = ({ onLoginSuccess }: CustomerPortalLoginProps
           </div>
           <Button 
             type="submit" 
-            className="w-full bg-primary" 
+            className="w-full" 
             disabled={isLoading}
           >
             {isLoading ? (

@@ -18,8 +18,15 @@ export function ProfileManagement({ profile }: ProfileManagementProps) {
   const [phoneNumber, setPhoneNumber] = useState(profile?.phone_number || '');
   const [email, setEmail] = useState(profile?.email || '');
   const [address, setAddress] = useState(profile?.address || '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleUpdateProfile = async () => {
+    if (!profile || !profile.id) {
+      toast.error("Profile information is missing");
+      return;
+    }
+    
+    setIsSubmitting(true);
     try {
       const { error } = await supabase
         .from('profiles')
@@ -38,6 +45,8 @@ export function ProfileManagement({ profile }: ProfileManagementProps) {
     } catch (error: any) {
       console.error('Error updating profile:', error);
       toast.error(error.message || 'Failed to update profile');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -89,29 +98,31 @@ export function ProfileManagement({ profile }: ProfileManagementProps) {
                 />
               </div>
               <div className="flex justify-end gap-2">
-                <Button variant="ghost" onClick={() => setIsEditing(false)}>
+                <Button variant="ghost" onClick={() => setIsEditing(false)} disabled={isSubmitting}>
                   Cancel
                 </Button>
-                <Button onClick={handleUpdateProfile}>Update Profile</Button>
+                <Button onClick={handleUpdateProfile} disabled={isSubmitting}>
+                  {isSubmitting ? "Updating..." : "Update Profile"}
+                </Button>
               </div>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Full Name</Label>
-                <p>{profile?.full_name}</p>
+                <p>{profile?.full_name || 'Not provided'}</p>
               </div>
               <div className="space-y-2">
                 <Label>Phone Number</Label>
-                <p>{profile?.phone_number}</p>
+                <p>{profile?.phone_number || 'Not provided'}</p>
               </div>
               <div className="space-y-2">
                 <Label>Email Address</Label>
-                <p>{profile?.email}</p>
+                <p>{profile?.email || 'Not provided'}</p>
               </div>
               <div className="space-y-2">
                 <Label>Address</Label>
-                <p>{profile?.address}</p>
+                <p>{profile?.address || 'Not provided'}</p>
               </div>
               <Button variant="outline" onClick={() => setIsEditing(true)}>
                 Edit Profile
@@ -122,7 +133,7 @@ export function ProfileManagement({ profile }: ProfileManagementProps) {
       </Card>
 
       {/* Document Upload Section */}
-      <CustomerDocumentSection profile={profile} />
+      {profile && <CustomerDocumentSection profile={profile} />}
     </div>
   );
 }
