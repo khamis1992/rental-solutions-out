@@ -63,13 +63,13 @@ export const useAgreementDetails = (agreementId: string, enabled: boolean) => {
           .from('leases')
           .select(`
             *,
-            customer:profiles(
+            customer:customer_id(
               id,
               full_name,
               phone_number,
               address
             ),
-            vehicle:vehicles(
+            vehicle:vehicle_id(
               id,
               make,
               model,

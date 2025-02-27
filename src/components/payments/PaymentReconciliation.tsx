@@ -1,9 +1,10 @@
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { PaymentReconciliationTable } from "./PaymentReconciliationTable";
+import { PaymentReconciliationTable } from "../finance/payments/PaymentReconciliationTable";
 import { Loader2 } from "lucide-react";
 
 export const PaymentReconciliation = () => {
@@ -16,7 +17,7 @@ export const PaymentReconciliation = () => {
         .from("unified_payments")
         .select(`
           *,
-          lease:leases (
+          lease:lease_id (
             agreement_number,
             customer_id,
             profiles:customer_id (
