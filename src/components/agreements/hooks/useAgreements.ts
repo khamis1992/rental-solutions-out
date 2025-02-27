@@ -44,11 +44,11 @@ export const useAgreements = () => {
           .from("leases")
           .select(`
             *,
-            customer:customer_id (
+            customer:profiles!leases_customer_id_fkey(
               id,
               full_name
             ),
-            vehicle:vehicle_id (
+            vehicle:vehicles!leases_vehicle_id_fkey(
               id,
               make,
               model,
