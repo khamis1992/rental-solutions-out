@@ -1,8 +1,8 @@
 
 import { useParams } from "react-router-dom";
-import { PaymentForm } from "@/components/payments/PaymentForm";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { StandardizedPaymentSystem } from "@/components/payments/StandardizedPaymentSystem";
 
 export default function AgreementPayments() {
   const { id } = useParams();
@@ -23,11 +23,9 @@ export default function AgreementPayments() {
 
   return (
     <div className="container mx-auto py-6">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Process Payment</h1>
-        <div className="bg-card rounded-lg border p-6">
-          <PaymentForm agreementId={id} />
-        </div>
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-2xl font-bold mb-6">Payment Management</h1>
+        <StandardizedPaymentSystem agreementId={id} />
       </div>
     </div>
   );
