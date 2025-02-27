@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +10,9 @@ import { PaymentHistory } from '@/components/customers/portal/PaymentHistory';
 import { CustomerFeedback } from '@/components/customers/portal/CustomerFeedback';
 import { ProfileManagement } from '@/components/customers/portal/ProfileManagement';
 import { LoyaltyDashboard } from '@/components/customers/portal/LoyaltyDashboard';
+import { SadadPaymentForm } from '@/components/customers/portal/SadadPaymentForm';
 import { toast } from 'sonner';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface PortalLoginResponse {
@@ -29,7 +30,49 @@ export default function CustomerPortal() {
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile] = useState<any>(null);
+  const [agreementData, setAgreementData] = useState<any>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check for payment callback in URL
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const isCallback = searchParams.get('payment') === 'callback';
+    const orderId = searchParams.get('orderId');
+    const status = searchParams.get('STATUS');
+    
+    if (isCallback && orderId) {
+      // Handle the callback by sending the data to our edge function
+      const handlePaymentCallback = async () => {
+        try {
+          const formData = new FormData();
+          // Add all URL parameters to the form data
+          searchParams.forEach((value, key) => {
+            formData.append(key, value);
+          });
+          
+          await supabase.functions.invoke('process-sadad-payment/callback', {
+            body: formData
+          });
+          
+          // Show appropriate toast message
+          if (status === 'TXN_SUCCESS') {
+            toast.success("Payment completed successfully!");
+          } else if (status === 'TXN_FAILURE') {
+            toast.error("Payment failed. Please try again.");
+          }
+          
+          // Clear URL parameters after handling
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, '', newUrl);
+        } catch (error) {
+          console.error("Error handling payment callback:", error);
+        }
+      };
+      
+      handlePaymentCallback();
+    }
+  }, [location]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +108,7 @@ export default function CustomerPortal() {
 
         if (agreementData) {
           setProfile(agreementData.customer);
+          setAgreementData(agreementData);
         }
         toast.success('Login successful');
       } else {
@@ -81,13 +125,14 @@ export default function CustomerPortal() {
   const handleLogout = () => {
     setIsAuthenticated(false);
     setProfile(null);
+    setAgreementData(null);
     setAgreementNumber('');
     setPhoneNumber('');
     toast.success('Logged out successfully');
     navigate('/customer-portal');
   };
 
-  if (isAuthenticated && profile) {
+  if (isAuthenticated && profile && agreementData) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container py-8 space-y-8">
@@ -145,6 +190,18 @@ export default function CustomerPortal() {
                 <h3 className="text-2xl font-bold mt-2">1</h3>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Payment Section - Add this first for visibility */}
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold mb-4">Make a Payment</h2>
+            <SadadPaymentForm 
+              agreementId={agreementData.id}
+              customerId={profile.id}
+              customerEmail={profile.email}
+              customerPhone={profile.phone_number}
+              amount={agreementData.rent_amount || 0}
+            />
           </div>
 
           <Tabs defaultValue="profile" className="space-y-4">
