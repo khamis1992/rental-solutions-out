@@ -14,6 +14,7 @@ export function PaymentSystemEmailTest() {
   const [name, setName] = useState("Test User");
   const [isSending, setIsSending] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleSendWelcomeEmail = async () => {
@@ -28,8 +29,11 @@ export function PaymentSystemEmailTest() {
 
     setIsSending(true);
     setProgress(25);
+    setErrorDetails(null);
 
     try {
+      console.log("Sending email to:", email);
+      
       const { data, error } = await supabase.functions.invoke('send-welcome-email', {
         body: {
           recipientEmail: email,
@@ -38,9 +42,20 @@ export function PaymentSystemEmailTest() {
         }
       });
 
+      console.log("Response:", data, error);
+      
       setProgress(75);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase function error:", error);
+        throw new Error(`Function error: ${error.message}`);
+      }
+      
+      // Check for API error in the response
+      if (data && data.error) {
+        console.error("API error in response:", data.error);
+        throw new Error(data.error + (data.details ? `: ${data.details}` : ''));
+      }
       
       setProgress(100);
       
@@ -50,9 +65,11 @@ export function PaymentSystemEmailTest() {
       });
     } catch (error: any) {
       console.error("Error sending welcome email:", error);
+      const errorMessage = error.message || "Unknown error";
+      setErrorDetails(errorMessage);
       toast({
         title: "Error",
-        description: `Failed to send email: ${error.message || "Unknown error"}`,
+        description: `Failed to send email: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
@@ -108,6 +125,25 @@ export function PaymentSystemEmailTest() {
               placeholder="Customer Name"
             />
           </div>
+
+          {errorDetails && (
+            <div className="rounded-md bg-red-50 p-4 border border-red-200">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">Error Details</h3>
+                  <div className="mt-2 text-sm text-red-700">
+                    <p>{errorDetails}</p>
+                    <p className="mt-2">Note: Make sure the RESEND_API_KEY is properly set in the Supabase Edge Functions settings.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {isSending && (
             <div className="space-y-2">
