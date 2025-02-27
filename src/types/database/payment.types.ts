@@ -1,63 +1,32 @@
 
-export type PaymentMethodType = 'Invoice' | 'Cash' | 'WireTransfer' | 'Cheque' | 'Deposit' | 'On_hold';
-export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded' | 'partially_paid';
+export interface PaymentHistoryView {
+  id: string;
+  lease_id?: string;
+  customer_id?: string;
+  amount: number;
+  amount_paid?: number;
+  balance?: number;
+  actual_payment_date?: string | null;
+  original_due_date?: string | null;
+  late_fine_amount?: number;
+  days_overdue?: number;
+  status?: string;
+  payment_method?: string;
+  description?: string;
+  type?: string;
+  agreement_number?: string;
+}
 
-export interface Payment {
+export interface PaymentView {
   id: string;
   lease_id: string;
   amount: number;
-  amount_paid: number;
-  balance: number;
-  status: PaymentStatus | null;
-  payment_date: string | null;
-  transaction_id: string | null;
-  payment_method: PaymentMethodType | null;
-  security_deposit_id: string | null;
-  created_at: string;
-  updated_at: string;
-  description: string | null;
-  is_recurring: boolean;
-  recurring_interval: string | null | unknown;
-  next_payment_date: string | null;
-  type: string;
-  late_fine_amount: number;
-  days_overdue: number;
+  amount_paid?: number;
+  payment_date?: string;
+  payment_method?: string;
+  status?: string;
+  description?: string;
+  type?: string;
+  created_at?: string;
+  updated_at?: string;
 }
-
-export interface PaymentHistoryView extends Payment {
-  actual_payment_date: string | null;
-  original_due_date: string | null;
-  agreement_number: string | null;
-  customer_id: string | null;
-  customer_name: string | null;
-  customer_phone: string | null;
-  customer_email?: string | null;
-}
-
-export type PaymentView = {
-  id: string;
-  lease_id: string;
-  amount: number;
-  amount_paid: number;
-  balance: number;
-  status: PaymentStatus;
-  payment_date: string | null;
-  transaction_id: string | null;
-  payment_method: PaymentMethodType | null;
-  security_deposit_id: string | null;
-  created_at: string;
-  updated_at: string;
-  description: string | null;
-  is_recurring: boolean;
-  recurring_interval: string | null;
-  next_payment_date: string | null;
-  type: string;
-  late_fine_amount: number;
-  days_overdue: number;
-  agreement_number: string;
-  customer_name: string;
-  customer_phone: string;
-  customer_email: string;
-  actual_payment_date: string | null;
-  original_due_date: string | null;
-};

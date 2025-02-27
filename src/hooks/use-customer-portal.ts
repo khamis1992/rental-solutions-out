@@ -3,14 +3,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-interface CustomerPortalSession {
-  agreementId: string;
-  customerId: string;
-  customerName: string | null;
-  customerEmail: string | null;
-  customerPhone: string | null;
-}
-
 export const useCustomerPortal = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,7 +17,7 @@ export const useCustomerPortal = () => {
     const portalSession = localStorage.getItem("customerPortalSession");
     if (portalSession) {
       try {
-        const sessionData = JSON.parse(portalSession) as CustomerPortalSession;
+        const sessionData = JSON.parse(portalSession);
         if (sessionData && sessionData.agreementId) {
           setActiveAgreementId(sessionData.agreementId);
           setCustomerId(sessionData.customerId || "");
@@ -52,7 +44,7 @@ export const useCustomerPortal = () => {
           id,
           agreement_number,
           customer_id,
-          customer:profiles(
+          customer:profiles!leases_customer_id_fkey (
             id,
             full_name,
             phone_number,
@@ -63,14 +55,15 @@ export const useCustomerPortal = () => {
         .single();
 
       if (agreementError || !agreementData) {
+        console.error("Agreement fetch error:", agreementError);
         toast.error("Agreement not found. Please check your agreement number.");
         setIsLoading(false);
         return false;
       }
 
       // Verify phone number matches
-      const customerPhone = agreementData.customer?.phone_number;
-      if (!customerPhone || customerPhone !== phoneNumber) {
+      const customer = agreementData.customer;
+      if (!customer || !customer.phone_number || customer.phone_number !== phoneNumber) {
         toast.error("Phone number does not match our records.");
         setIsLoading(false);
         return false;
@@ -83,17 +76,17 @@ export const useCustomerPortal = () => {
       const sessionData = {
         agreementId: agreementData.id,
         customerId: agreementData.customer_id,
-        customerName: agreementData.customer?.full_name,
-        customerEmail: agreementData.customer?.email,
-        customerPhone: agreementData.customer?.phone_number
+        customerName: customer.full_name,
+        customerEmail: customer.email,
+        customerPhone: customer.phone_number
       };
       
       // Save to state
       setActiveAgreementId(agreementData.id);
       setCustomerId(agreementData.customer_id);
-      setCustomerName(agreementData.customer?.full_name || null);
-      setCustomerEmail(agreementData.customer?.email || null);
-      setCustomerPhone(agreementData.customer?.phone_number || null);
+      setCustomerName(customer.full_name || null);
+      setCustomerEmail(customer.email || null);
+      setCustomerPhone(customer.phone_number || null);
       
       // Save to localStorage
       localStorage.setItem("customerPortalSession", JSON.stringify(sessionData));

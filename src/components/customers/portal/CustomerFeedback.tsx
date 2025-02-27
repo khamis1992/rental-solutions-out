@@ -1,96 +1,112 @@
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMutation } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Star, StarOff } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { useSessionContext } from "@supabase/auth-helpers-react";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader2, Star, StarOff } from "lucide-react";
 
 interface CustomerFeedbackProps {
-  customerId?: string;
+  customerId: string;
   agreementId?: string;
 }
 
 export const CustomerFeedback = ({ customerId, agreementId }: CustomerFeedbackProps) => {
   const [rating, setRating] = useState<number>(0);
   const [feedback, setFeedback] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { session } = useSessionContext();
-
-  const handleSubmit = async () => {
-    const userId = customerId || session?.user?.id;
-    if (!userId) {
-      toast.error("User identification required");
-      return;
-    }
-    
-    setIsSubmitting(true);
-    try {
+  
+  const feedbackMutation = useMutation({
+    mutationFn: async () => {
       const { error } = await supabase
         .from("customer_feedback")
         .insert({
-          customer_id: userId,
+          customer_id: customerId,
           agreement_id: agreementId,
           rating,
           feedback_text: feedback
         });
 
       if (error) throw error;
-
+      return true;
+    },
+    onSuccess: () => {
       toast.success("Thank you for your feedback!");
       setRating(0);
       setFeedback("");
-    } catch (error: any) {
-      toast.error("Failed to submit feedback");
+    },
+    onError: (error) => {
       console.error("Error submitting feedback:", error);
-    } finally {
-      setIsSubmitting(false);
+      toast.error("Failed to submit feedback");
     }
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (rating === 0) {
+      toast.error("Please provide a rating");
+      return;
+    }
+    
+    feedbackMutation.mutate();
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Your Feedback</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            {[1, 2, 3, 4, 5].map((value) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setRating(value)}
-                className="hover:scale-110 transition-transform"
-                aria-label={`Rate ${value} star${value !== 1 ? 's' : ''}`}
-              >
-                {value <= rating ? (
-                  <Star className="w-8 h-8 fill-yellow-400 text-yellow-400" />
-                ) : (
-                  <StarOff className="w-8 h-8 text-muted-foreground" />
-                )}
-              </button>
-            ))}
-          </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-center gap-2 py-4">
+        {[1, 2, 3, 4, 5].map((value) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => setRating(value)}
+            className="hover:scale-110 transition-transform"
+            aria-label={`Rate ${value} star${value !== 1 ? 's' : ''}`}
+          >
+            {value <= rating ? (
+              <Star className="w-8 h-8 fill-yellow-400 text-yellow-400" />
+            ) : (
+              <StarOff className="w-8 h-8 text-muted-foreground" />
+            )}
+          </button>
+        ))}
+      </div>
 
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="feedback">Your Feedback</Label>
           <Textarea
-            placeholder="Share your experience with our service..."
+            id="feedback"
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
+            placeholder="Share your experience with our service..."
             className="min-h-[100px]"
           />
-
-          <Button 
-            onClick={handleSubmit}
-            disabled={isSubmitting || rating === 0}
-            className="w-full"
-          >
-            {isSubmitting ? "Submitting..." : "Submit Feedback"}
-          </Button>
         </div>
-      </CardContent>
-    </Card>
+        
+        <Button 
+          type="submit"
+          className="w-full" 
+          disabled={feedbackMutation.isPending || rating === 0}
+        >
+          {feedbackMutation.isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Submitting...
+            </>
+          ) : (
+            "Submit Feedback"
+          )}
+        </Button>
+      </form>
+    </div>
   );
 };

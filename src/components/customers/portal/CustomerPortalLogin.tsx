@@ -5,67 +5,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 interface CustomerPortalLoginProps {
-  onLoginSuccess?: (agrNumber: string, customerId: string) => void;
+  onLoginSuccess?: (agrNumber: string, phoneNumber: string) => void;
+  onLogin: (agreementNumber: string, phoneNumber: string) => Promise<boolean>;
+  isLoading: boolean;
 }
 
-export const CustomerPortalLogin = ({ onLoginSuccess }: CustomerPortalLoginProps) => {
+export const CustomerPortalLogin = ({ onLoginSuccess, onLogin, isLoading }: CustomerPortalLoginProps) => {
   const [agrNumber, setAgrNumber] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const submitLogin = async (e: React.FormEvent) => {
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!agrNumber || !phoneNumber) {
-      toast.error("Please enter all required information");
       return;
     }
     
-    setIsLoading(true);
+    const success = await onLogin(agrNumber, phoneNumber);
     
-    try {
-      // First, fetch the agreement by agreement number
-      const { data: agreementData, error: agreementError } = await supabase
-        .from("leases")
-        .select("id, customer_id")
-        .eq("agreement_number", agrNumber)
-        .single();
-
-      if (agreementError || !agreementData) {
-        throw new Error("Agreement not found. Please check your agreement number.");
-      }
-
-      // Then fetch the customer to verify phone number
-      const { data: customerData, error: customerError } = await supabase
-        .from("profiles")
-        .select("id, phone_number")
-        .eq("id", agreementData.customer_id)
-        .single();
-
-      if (customerError || !customerData) {
-        throw new Error("Customer information not found.");
-      }
-
-      // Verify phone number matches
-      if (customerData.phone_number !== phoneNumber) {
-        throw new Error("Phone number does not match our records.");
-      }
-
-      toast.success("Login successful!");
-      
-      if (onLoginSuccess) {
-        onLoginSuccess(agrNumber, customerData.id);
-      }
-      
-    } catch (error) {
-      console.error("Login error:", error);
-      toast.error(error instanceof Error ? error.message : "An error occurred during login. Please try again.");
-    } finally {
-      setIsLoading(false);
+    if (success && onLoginSuccess) {
+      onLoginSuccess(agrNumber, phoneNumber);
     }
   };
 
@@ -76,7 +37,7 @@ export const CustomerPortalLogin = ({ onLoginSuccess }: CustomerPortalLoginProps
         <p className="text-center text-muted-foreground">Enter your agreement details to login</p>
       </CardHeader>
       <CardContent>
-        <form onSubmit={submitLogin} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="agreementNumber">Agreement Number</Label>
             <Input 
