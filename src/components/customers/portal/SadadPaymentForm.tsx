@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
@@ -36,7 +36,7 @@ export const SadadPaymentForm = ({
   const txStatus = searchParams.get('STATUS');
 
   // Handle payment callback
-  useState(() => {
+  useEffect(() => {
     if (isCallback && orderId) {
       setPaymentStatus(txStatus === 'TXN_SUCCESS' ? 'success' : txStatus === 'TXN_FAILURE' ? 'error' : 'idle');
       

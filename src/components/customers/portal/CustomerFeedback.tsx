@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,24 +9,29 @@ import { toast } from "sonner";
 import { useSessionContext } from "@supabase/auth-helpers-react";
 
 interface CustomerFeedbackProps {
+  customerId?: string;
   agreementId?: string;
 }
 
-export const CustomerFeedback = ({ agreementId }: CustomerFeedbackProps) => {
+export const CustomerFeedback = ({ customerId, agreementId }: CustomerFeedbackProps) => {
   const [rating, setRating] = useState<number>(0);
   const [feedback, setFeedback] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { session } = useSessionContext();
 
   const handleSubmit = async () => {
-    if (!session?.user?.id) return;
+    const userId = customerId || session?.user?.id;
+    if (!userId) {
+      toast.error("User identification required");
+      return;
+    }
     
     setIsSubmitting(true);
     try {
       const { error } = await supabase
         .from("customer_feedback")
         .insert({
-          customer_id: session.user.id,
+          customer_id: userId,
           agreement_id: agreementId,
           rating,
           feedback_text: feedback

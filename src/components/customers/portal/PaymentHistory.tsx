@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,13 +10,15 @@ import { Loader2 } from "lucide-react";
 
 interface PaymentHistoryProps {
   customerId: string;
+  agreementId?: string; // Optional, to filter by specific agreement
 }
 
-export const PaymentHistory = ({ customerId }: PaymentHistoryProps) => {
+export const PaymentHistory = ({ customerId, agreementId }: PaymentHistoryProps) => {
   const { data: payments, isLoading } = useQuery({
-    queryKey: ['customer-payment-history', customerId],
+    queryKey: ['customer-payment-history', customerId, agreementId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Start with a base query
+      let query = supabase
         .from('payment_history_view')
         .select(`
           id,
@@ -32,8 +35,15 @@ export const PaymentHistory = ({ customerId }: PaymentHistoryProps) => {
           type,
           agreement_number
         `)
-        .eq('customer_id', customerId)
-        .order('actual_payment_date', { ascending: false });
+        .eq('customer_id', customerId);
+      
+      // Add agreement filter if provided
+      if (agreementId) {
+        query = query.eq('lease_id', agreementId);
+      }
+      
+      // Execute the query
+      const { data, error } = await query.order('actual_payment_date', { ascending: false });
 
       if (error) throw error;
       return data;
