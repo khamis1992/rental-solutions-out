@@ -2,10 +2,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
-// Initialize the Resend client with the API key
-const resendApiKey = Deno.env.get("RESEND_API_KEY");
-const resend = new Resend(resendApiKey);
-
 // CORS headers for browser requests
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,13 +22,18 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    console.log("Received welcome email request");
+    // Initialize the Resend client with the API key
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    console.log("Received email request");
     
     // Check if Resend API key is available
     if (!resendApiKey) {
       console.error("RESEND_API_KEY is not set");
       return new Response(
-        JSON.stringify({ error: "RESEND_API_KEY is not configured on the server" }),
+        JSON.stringify({ 
+          error: "RESEND_API_KEY is not configured on the server",
+          details: "Please add the RESEND_API_KEY to your Supabase Edge Functions environment variables"
+        }),
         {
           status: 500,
           headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -40,9 +41,11 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
     
+    const resend = new Resend(resendApiKey);
+    
     // Process POST requests for sending emails
     const requestData = await req.json();
-    console.log("Request body:", JSON.stringify(requestData));
+    console.log("Request data:", JSON.stringify(requestData, null, 2));
     
     const { recipientEmail, recipientName, emailType = "welcome" } = requestData as EmailRequest;
     
