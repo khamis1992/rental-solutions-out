@@ -35,6 +35,7 @@ export function PaymentSystemEmailTest() {
     try {
       console.log("Sending email to:", email);
       
+      // This is the fixed line - using the correct function name "send-welcome-email" instead of "send-email"
       const { data, error } = await supabase.functions.invoke('send-welcome-email', {
         body: {
           recipientEmail: email,
