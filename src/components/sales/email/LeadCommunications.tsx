@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { CallLog } from "../communications/CallLog";
 import { SMSLog } from "../communications/SMSLog";
+import { WhatsAppLog } from "../communications/WhatsAppLog";
 
 interface LeadCommunicationsProps {
   leadId: string;
@@ -96,6 +97,7 @@ export function LeadCommunications({ leadId, leadEmail, phoneNumber }: LeadCommu
         <TabsTrigger value="email">Email</TabsTrigger>
         <TabsTrigger value="calls">Calls</TabsTrigger>
         <TabsTrigger value="sms">SMS</TabsTrigger>
+        <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
       </TabsList>
 
       <TabsContent value="email">
@@ -169,6 +171,10 @@ export function LeadCommunications({ leadId, leadEmail, phoneNumber }: LeadCommu
 
       <TabsContent value="sms">
         <SMSLog leadId={leadId} phoneNumber={phoneNumber} />
+      </TabsContent>
+
+      <TabsContent value="whatsapp">
+        <WhatsAppLog leadId={leadId} phoneNumber={phoneNumber} />
       </TabsContent>
     </Tabs>
   );

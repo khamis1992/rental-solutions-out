@@ -8,6 +8,7 @@ import { AgreementTemplateManagement } from "@/components/agreements/templates/A
 import { WordTemplateManagement } from "@/components/agreements/templates/WordTemplateManagement";
 import { LoyaltyProgramSettings } from "@/components/settings/LoyaltyProgramSettings";
 import { PaymentSystemEmailTest } from "@/components/payments/PaymentSystemEmailTest";
+import { WhatsAppTemplateSettings } from "@/components/settings/WhatsAppTemplateSettings";
 
 const Settings = () => {
   return (
@@ -28,6 +29,7 @@ const Settings = () => {
             <TabsTrigger value="templates">Templates</TabsTrigger>
             <TabsTrigger value="loyalty">Loyalty Program</TabsTrigger>
             <TabsTrigger value="email-testing">Email Testing</TabsTrigger>
+            <TabsTrigger value="whatsapp-templates">WhatsApp</TabsTrigger>
           </TabsList>
           
           <TabsContent value="integrations">
@@ -50,6 +52,9 @@ const Settings = () => {
           </TabsContent>
           <TabsContent value="email-testing">
             <PaymentSystemEmailTest />
+          </TabsContent>
+          <TabsContent value="whatsapp-templates">
+            <WhatsAppTemplateSettings />
           </TabsContent>
         </Tabs>
       </div>
