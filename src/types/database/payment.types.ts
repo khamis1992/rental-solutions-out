@@ -33,3 +33,31 @@ export interface PaymentHistoryView extends Payment {
   customer_phone: string | null;
   customer_email?: string | null;
 }
+
+export type PaymentView = {
+  id: string;
+  lease_id: string;
+  amount: number;
+  amount_paid: number;
+  balance: number;
+  status: PaymentStatus;
+  payment_date: string | null;
+  transaction_id: string | null;
+  payment_method: PaymentMethodType | null;
+  security_deposit_id: string | null;
+  created_at: string;
+  updated_at: string;
+  description: string | null;
+  is_recurring: boolean;
+  recurring_interval: string | null;
+  next_payment_date: string | null;
+  type: string;
+  late_fine_amount: number;
+  days_overdue: number;
+  agreement_number: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_email: string;
+  actual_payment_date: string | null;
+  original_due_date: string | null;
+};
