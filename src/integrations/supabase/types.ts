@@ -8898,6 +8898,42 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_templates: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string | null
+          id: string
+          language: string | null
+          name: string
+          status: string | null
+          template_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          language?: string | null
+          name: string
+          status?: string | null
+          template_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          language?: string | null
+          name?: string
+          status?: string | null
+          template_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       word_templates: {
         Row: {
           content: string | null
