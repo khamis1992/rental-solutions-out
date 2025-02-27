@@ -16,6 +16,7 @@ export function PaymentSystemEmailTest() {
   const [isSending, setIsSending] = useState(false);
   const [progress, setProgress] = useState(0);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
+  const [responseData, setResponseData] = useState<any>(null);
   const { toast } = useToast();
 
   const handleSendWelcomeEmail = async () => {
@@ -31,11 +32,12 @@ export function PaymentSystemEmailTest() {
     setIsSending(true);
     setProgress(25);
     setErrorDetails(null);
+    setResponseData(null);
 
     try {
       console.log("Sending email to:", email);
       
-      // This is the fixed line - using the correct function name "send-welcome-email" instead of "send-email"
+      // Invoke the Edge Function with additional debugging information in the response
       const { data, error } = await supabase.functions.invoke('send-welcome-email', {
         body: {
           recipientEmail: email,
@@ -45,6 +47,7 @@ export function PaymentSystemEmailTest() {
       });
 
       console.log("Response:", data, error);
+      setResponseData(data);
       
       setProgress(75);
       
@@ -140,6 +143,24 @@ export function PaymentSystemEmailTest() {
                     <p>{errorDetails}</p>
                     <p className="mt-2">Note: Make sure the RESEND_API_KEY is properly set in the Supabase Edge Functions settings. Go to Supabase Dashboard → Edge Functions → send-welcome-email → Environment Variables.</p>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {responseData && (
+            <div className="rounded-md bg-green-50 p-4 border border-green-200">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-green-800">API Response</h3>
+                  <pre className="mt-2 text-xs text-green-700 overflow-auto max-h-32 p-2 bg-green-100 rounded">
+                    {JSON.stringify(responseData, null, 2)}
+                  </pre>
                 </div>
               </div>
             </div>
