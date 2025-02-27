@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { EmailMetricsDashboard } from "./email/EmailMetrics/EmailMetricsDashboard";
 import { EmailSystemSettings } from "./email/EmailSystemSettings";
+import { EnhancedEmailSettings } from "./email/EnhancedEmailSettings";
+import { EmailOptOutManager } from "./email/EmailOptOutManager";
 
 export const IntegrationSettings = () => {
   const [resendApiKey, setResendApiKey] = useState("");
@@ -94,6 +96,8 @@ export const IntegrationSettings = () => {
                 <TabsTrigger value="templates">Templates</TabsTrigger>
                 <TabsTrigger value="automation">Automation</TabsTrigger>
                 <TabsTrigger value="system">System</TabsTrigger>
+                <TabsTrigger value="enhanced">Advanced Settings</TabsTrigger>
+                <TabsTrigger value="opt-out">Opt-Out Manager</TabsTrigger>
                 <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
                 <TabsTrigger value="test">Test</TabsTrigger>
               </TabsList>
@@ -116,6 +120,14 @@ export const IntegrationSettings = () => {
               
               <TabsContent value="system">
                 <EmailSystemSettings />
+              </TabsContent>
+
+              <TabsContent value="enhanced">
+                <EnhancedEmailSettings />
+              </TabsContent>
+
+              <TabsContent value="opt-out">
+                <EmailOptOutManager />
               </TabsContent>
 
               <TabsContent value="recommendations">
