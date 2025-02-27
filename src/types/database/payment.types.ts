@@ -1,6 +1,6 @@
 
 export type PaymentMethodType = 'Invoice' | 'Cash' | 'WireTransfer' | 'Cheque' | 'Deposit' | 'On_hold';
-export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
+export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded' | 'partially_paid';
 
 export interface Payment {
   id: string;
@@ -31,4 +31,5 @@ export interface PaymentHistoryView extends Payment {
   customer_id: string | null;
   customer_name: string | null;
   customer_phone: string | null;
+  customer_email?: string | null;
 }
