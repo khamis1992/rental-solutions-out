@@ -22,17 +22,18 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    console.log("Received email request");
+    
     // Initialize the Resend client with the API key
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    console.log("Received email request");
     
     // Check if Resend API key is available
     if (!resendApiKey) {
       console.error("RESEND_API_KEY is not set");
       return new Response(
         JSON.stringify({ 
-          error: "RESEND_API_KEY is not configured on the server",
-          details: "Please add the RESEND_API_KEY to your Supabase Edge Functions environment variables"
+          error: "RESEND_API_KEY is not configured",
+          details: "Please add the RESEND_API_KEY to your Supabase Edge Functions environment variables in the Supabase dashboard."
         }),
         {
           status: 500,
@@ -60,7 +61,7 @@ const handler = async (req: Request): Promise<Response> => {
     let subject = "";
 
     if (emailType === 'welcome') {
-      subject = "Welcome to our Vehicle Rental Service!";
+      subject = "Payment System: Standardized Monthly Payments";
       htmlContent = `
         <!DOCTYPE html>
         <html>
@@ -70,26 +71,27 @@ const handler = async (req: Request): Promise<Response> => {
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
             .header { background: #f4f4f4; padding: 20px; text-align: center; }
             .content { padding: 20px; }
+            .highlight { background-color: #ffffcc; padding: 2px 5px; font-weight: bold; }
             .footer { background: #f4f4f4; padding: 10px; text-align: center; font-size: 12px; }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h2>Welcome to Our Vehicle Rental Service!</h2>
+              <h2>Standardized Payment System</h2>
             </div>
             <div class="content">
               <p>Dear ${recipientName || recipientEmail},</p>
               <p>Thank you for joining our vehicle rental platform. We're excited to have you as part of our community!</p>
-              <p>With your account, you can:</p>
+              <p>We want to inform you about our standardized payment system:</p>
               <ul>
-                <li>Browse our extensive fleet of vehicles</li>
-                <li>Make reservations online</li>
-                <li>Manage your rental agreements</li>
-                <li>Track your payment history</li>
+                <li><span class="highlight">All monthly payments are due on the 1st of each month.</span></li>
+                <li>Late payments after the 1st will incur a daily fee of 120 QAR per day.</li>
+                <li>Payment confirmations are sent automatically.</li>
+                <li>You can view your payment history and upcoming payments in your account dashboard.</li>
               </ul>
-              <p>Your monthly payments are standardized to be due on the <strong>1st of each month</strong>.</p>
-              <p>If you have any questions or need assistance, please don't hesitate to contact our customer support team.</p>
+              <p>This standardized system helps ensure clarity and consistency for all our customers.</p>
+              <p>If you have any questions about payments, please don't hesitate to contact our customer support team.</p>
               <p>Best regards,<br>The Vehicle Rental Team</p>
             </div>
             <div class="footer">
@@ -100,7 +102,7 @@ const handler = async (req: Request): Promise<Response> => {
         </html>
       `;
     } else {
-      subject = "Email System Test";
+      subject = "Payment System Test Email";
       htmlContent = `
         <!DOCTYPE html>
         <html>
@@ -110,6 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
             .header { background: #f4f4f4; padding: 20px; text-align: center; }
             .content { padding: 20px; }
+            .highlight { background-color: #ffffcc; padding: 2px 5px; font-weight: bold; }
             .footer { background: #f4f4f4; padding: 10px; text-align: center; font-size: 12px; }
           </style>
         </head>
@@ -124,8 +127,8 @@ const handler = async (req: Request): Promise<Response> => {
               <p>If you received this email, it means our system is functioning as expected.</p>
               <p>Key features of our standardized payment system:</p>
               <ul>
-                <li>All payments are due on the 1st of each month</li>
-                <li>Late payments are subject to automatic fees</li>
+                <li><span class="highlight">All payments are due on the 1st of each month</span></li>
+                <li>Late payments are subject to automatic fees of 120 QAR per day</li>
                 <li>Payment confirmations are sent automatically</li>
               </ul>
               <p>Best regards,<br>The System Admin Team</p>
