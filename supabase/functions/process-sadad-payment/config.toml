@@ -1,2 +1,8 @@
 
 project_id = "vqdlsidkucrownbfuouq"
+
+[env]
+SADAD_MERCHANT_ID = "8432581"
+SADAD_SECRET_KEY = "your-secret-key"
+SADAD_WEBSITE = "https://rental-management.com"
+PUBLIC_URL = "https://rental-management.com"
