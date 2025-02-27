@@ -5,8 +5,7 @@ import { Resend } from "npm:resend@2.0.0";
 // CORS headers for browser requests
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 interface EmailRequest {
@@ -33,7 +32,7 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response(
         JSON.stringify({ 
           error: "RESEND_API_KEY is not configured",
-          details: "Please add the RESEND_API_KEY to your Supabase Edge Functions environment variables in the Supabase dashboard."
+          details: "Please add the RESEND_API_KEY to your Supabase Edge Functions environment variables"
         }),
         {
           status: 500,
