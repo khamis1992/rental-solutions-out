@@ -7,6 +7,7 @@ import { VehicleStatusSettings } from "@/components/settings/VehicleStatusSettin
 import { AgreementTemplateManagement } from "@/components/agreements/templates/AgreementTemplateManagement";
 import { WordTemplateManagement } from "@/components/agreements/templates/WordTemplateManagement";
 import { LoyaltyProgramSettings } from "@/components/settings/LoyaltyProgramSettings";
+import { PaymentSystemEmailTest } from "@/components/payments/PaymentSystemEmailTest";
 
 const Settings = () => {
   return (
@@ -26,6 +27,7 @@ const Settings = () => {
             <TabsTrigger value="vehicle-status">Vehicle Status</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
             <TabsTrigger value="loyalty">Loyalty Program</TabsTrigger>
+            <TabsTrigger value="email-testing">Email Testing</TabsTrigger>
           </TabsList>
           
           <TabsContent value="integrations">
@@ -45,6 +47,9 @@ const Settings = () => {
           </TabsContent>
           <TabsContent value="loyalty">
             <LoyaltyProgramSettings />
+          </TabsContent>
+          <TabsContent value="email-testing">
+            <PaymentSystemEmailTest />
           </TabsContent>
         </Tabs>
       </div>

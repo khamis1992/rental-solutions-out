@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { StandardizedPaymentSystem } from "@/components/payments/StandardizedPaymentSystem";
+import { PaymentSystemEmailTest } from "@/components/payments/PaymentSystemEmailTest";
 
 export default function AgreementPayments() {
   const { id } = useParams();
@@ -26,6 +27,9 @@ export default function AgreementPayments() {
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold mb-6">Payment Management</h1>
         <StandardizedPaymentSystem agreementId={id} />
+        <div className="mt-6">
+          <PaymentSystemEmailTest />
+        </div>
       </div>
     </div>
   );
