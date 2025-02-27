@@ -8,8 +8,17 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CustomerDocumentSection } from "../profile/CustomerDocumentSection";
 
+interface ProfileData {
+  id?: string;
+  full_name?: string | null;
+  phone_number?: string | null;
+  email?: string | null;
+  address?: string | null;
+  [key: string]: any;
+}
+
 interface ProfileManagementProps {
-  profile: any;
+  profile: ProfileData;
 }
 
 export function ProfileManagement({ profile }: ProfileManagementProps) {
@@ -133,7 +142,7 @@ export function ProfileManagement({ profile }: ProfileManagementProps) {
       </Card>
 
       {/* Document Upload Section */}
-      {profile && <CustomerDocumentSection profile={profile} />}
+      {profile && profile.id && <CustomerDocumentSection profile={profile} />}
     </div>
   );
 }

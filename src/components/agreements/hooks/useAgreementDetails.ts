@@ -2,6 +2,51 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Agreement, AgreementWithRelations } from "@/types/agreement.types";
+
+// Type definitions for API responses
+interface CustomerProfile {
+  id: string;
+  full_name: string | null;
+  phone_number: string | null;
+  address: string | null;
+  email?: string | null;
+  nationality?: string | null;
+  driver_license?: string | null;
+}
+
+interface VehicleData {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  license_plate: string;
+}
+
+interface RemainingAmount {
+  rent_amount?: number;
+  final_price?: number;
+  remaining_amount?: number;
+}
+
+interface UnifiedPayment {
+  id: string;
+  amount: number;
+  amount_paid: number;
+  payment_date: string | null;
+  payment_method: string | null;
+  status: string | null;
+  late_fine_amount: number;
+  days_overdue?: number;
+  balance?: number;
+  description?: string;
+  actual_payment_date?: string | null;
+}
+
+// Type guards
+function isAgreementWithRelations(data: any): data is AgreementWithRelations {
+  return data !== null && typeof data === 'object' && 'id' in data;
+}
 
 export const useAgreementDetails = (agreementId: string, enabled: boolean) => {
   const { data: agreement, isLoading, error, refetch } = useQuery({
@@ -14,7 +59,7 @@ export const useAgreementDetails = (agreementId: string, enabled: boolean) => {
 
       try {
         // First attempt: using join with dot notation
-        const { data: agreement, error } = await supabase
+        const { data: agreementData, error } = await supabase
           .from('leases')
           .select(`
             *,
@@ -55,7 +100,7 @@ export const useAgreementDetails = (agreementId: string, enabled: boolean) => {
           console.error('Error fetching agreement:', error);
           
           // Second attempt: get the agreement first then fetch related data
-          const { data: agreementData, error: agreementError } = await supabase
+          const { data: fallbackAgreementData, error: agreementError } = await supabase
             .from('leases')
             .select('*')
             .eq('id', agreementId)
@@ -65,7 +110,7 @@ export const useAgreementDetails = (agreementId: string, enabled: boolean) => {
             throw agreementError;
           }
           
-          if (!agreementData) {
+          if (!fallbackAgreementData) {
             throw new Error('Agreement not found');
           }
           
@@ -73,14 +118,14 @@ export const useAgreementDetails = (agreementId: string, enabled: boolean) => {
           const { data: customerData } = await supabase
             .from('profiles')
             .select('id, full_name, phone_number, address')
-            .eq('id', agreementData.customer_id)
+            .eq('id', fallbackAgreementData.customer_id)
             .maybeSingle();
             
           // Fetch vehicle
           const { data: vehicleData } = await supabase
             .from('vehicles')
             .select('id, make, model, year, license_plate')
-            .eq('id', agreementData.vehicle_id)
+            .eq('id', fallbackAgreementData.vehicle_id)
             .maybeSingle();
             
           // Fetch remaining amount
@@ -97,20 +142,32 @@ export const useAgreementDetails = (agreementId: string, enabled: boolean) => {
             .eq('lease_id', agreementId);
           
           // Combine all the data
-          return {
-            ...agreementData,
+          const combinedData = {
+            ...fallbackAgreementData,
             customer: customerData || null,
             vehicle: vehicleData || null,
             remainingAmount: remainingData ? [remainingData] : [],
             unified_payments: paymentsData || []
           };
+          
+          // Ensure the result conforms to expected type
+          if (isAgreementWithRelations(combinedData)) {
+            return combinedData;
+          } else {
+            throw new Error('Failed to build complete agreement data');
+          }
         }
 
-        if (!agreement) {
+        if (!agreementData) {
           throw new Error('Agreement not found');
         }
 
-        return agreement;
+        // Type check the result
+        if (isAgreementWithRelations(agreementData)) {
+          return agreementData;
+        } else {
+          throw new Error('Invalid agreement data format');
+        }
       } catch (err) {
         console.error('Error in agreement details query:', err);
         toast.error('Failed to fetch agreement details');

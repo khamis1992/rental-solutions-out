@@ -1,3 +1,4 @@
+
 // Format date to display format (e.g., "Jan 15, 2023")
 export const formatDateToDisplay = (date: Date | string | null): string => {
   if (!date) return 'N/A';
@@ -38,18 +39,19 @@ export const getRelativeTime = (date: Date | string | null): string => {
     const now = new Date();
     const diffInSeconds = Math.floor((dateObj.getTime() - now.getTime()) / 1000);
     
-    const intervals = {
+    const intervals: Record<Intl.RelativeTimeFormatUnit, number> = {
       year: 31536000,
       month: 2592000,
       week: 604800,
       day: 86400,
       hour: 3600,
       minute: 60,
-      second: 1
+      second: 1,
+      quarter: 7776000, // Not commonly used but added for completeness
     };
     
     for (const [unit, secondsInUnit] of Object.entries(intervals)) {
-      const value = Math.floor(diffInSeconds / (secondsInUnit as number));
+      const value = Math.floor(diffInSeconds / secondsInUnit);
       if (Math.abs(value) >= 1) {
         return rtf.format(value, unit as Intl.RelativeTimeFormatUnit);
       }
