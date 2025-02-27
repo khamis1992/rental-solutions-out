@@ -3,6 +3,6 @@ project_id = "vqdlsidkucrownbfuouq"
 
 [env]
 SADAD_MERCHANT_ID = "8432581"
-SADAD_SECRET_KEY = "your-secret-key"
-SADAD_WEBSITE = "https://rental-management.com"
-PUBLIC_URL = "https://rental-management.com"
+SADAD_SECRET_KEY = "STqZIjv58VQ+eYB/"
+SADAD_WEBSITE = "https://alaraf.online"
+PUBLIC_URL = "https://alaraf.online/customer-portal"
