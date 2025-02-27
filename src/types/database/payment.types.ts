@@ -1,3 +1,4 @@
+
 export type PaymentMethodType = 'Invoice' | 'Cash' | 'WireTransfer' | 'Cheque' | 'Deposit' | 'On_hold';
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
 

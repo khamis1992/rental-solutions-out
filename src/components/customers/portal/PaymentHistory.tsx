@@ -7,6 +7,7 @@ import { formatCurrency } from "@/lib/utils";
 import { formatDateToDisplay } from "@/lib/dateUtils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
+import { PaymentHistoryView } from "@/types/database/payment.types";
 
 interface PaymentHistoryProps {
   customerId: string;
@@ -47,7 +48,7 @@ export const PaymentHistory = ({ customerId, agreementId }: PaymentHistoryProps)
         const { data, error } = await query.order('actual_payment_date', { ascending: false });
 
         if (error) throw error;
-        return data || [];
+        return (data || []) as PaymentHistoryView[];
       } catch (err) {
         console.error("Error fetching payment history:", err);
         throw err;
