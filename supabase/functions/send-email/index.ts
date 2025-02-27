@@ -23,6 +23,55 @@ interface EmailRequest {
   variables: Record<string, any>;
 }
 
+// Validate email format
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+// Check if recipient has opted out
+async function hasOptedOut(email: string): Promise<boolean> {
+  const { data } = await supabase
+    .from('email_opt_outs')
+    .select('*')
+    .eq('email', email.toLowerCase())
+    .single();
+  
+  return !!data;
+}
+
+// Validate template variables
+function validateTemplateVariables(template: any, variables: Record<string, any>): string[] {
+  const missingVariables: string[] = [];
+  
+  if (!template || !template.variable_mappings) {
+    return missingVariables;
+  }
+  
+  // Extract required variables from template
+  const requiredVars: string[] = [];
+  const variableMappings = template.variable_mappings;
+  
+  for (const category in variableMappings) {
+    for (const field in variableMappings[category]) {
+      const varName = `${category}.${field}`;
+      if (template.content.includes(`{{${varName}}}`)) {
+        requiredVars.push(varName);
+      }
+    }
+  }
+  
+  // Check if all required variables are provided
+  for (const varName of requiredVars) {
+    const [category, field] = varName.split('.');
+    if (!variables[category] || variables[category][field] === undefined) {
+      missingVariables.push(varName);
+    }
+  }
+  
+  return missingVariables;
+}
+
 serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -43,6 +92,23 @@ serve(async (req: Request) => {
       );
     }
 
+    // Validate email format
+    if (!isValidEmail(recipientEmail)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid email format' }),
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    // Check if user has opted out
+    if (await hasOptedOut(recipientEmail)) {
+      console.log(`Skipping email to ${recipientEmail} - user has opted out`);
+      return new Response(
+        JSON.stringify({ skipped: true, reason: 'recipient_opted_out' }),
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
     // Fetch template from database
     const { data: template, error: templateError } = await supabase
       .from('email_templates')
@@ -58,13 +124,22 @@ serve(async (req: Request) => {
       );
     }
 
+    // Validate template variables
+    const missingVariables = validateTemplateVariables(template, variables);
+    if (missingVariables.length > 0) {
+      console.warn('Missing template variables:', missingVariables);
+      // Log the warning but continue with sending
+    }
+
     // Process template content with variables
     let processedContent = template.content;
 
     // Replace all variables in the template
-    for (const [key, value] of Object.entries(variables)) {
-      const regex = new RegExp(`{{${key}}}`, 'g');
-      processedContent = processedContent.replace(regex, value?.toString() || '');
+    for (const category in variables) {
+      for (const [key, value] of Object.entries(variables[category] || {})) {
+        const regex = new RegExp(`{{${category}\\.${key}}}`, 'g');
+        processedContent = processedContent.replace(regex, value?.toString() || '');
+      }
     }
 
     // Replace any remaining standard variables
@@ -95,12 +170,32 @@ serve(async (req: Request) => {
         },
       });
 
+    // Update metrics
+    await supabase.rpc('increment_email_metric', {
+      p_metric_type: 'successful_sent',
+      p_count: 1
+    });
+
     return new Response(
       JSON.stringify({ success: true, id: emailResponse.id }),
       { headers: corsHeaders }
     );
   } catch (error) {
     console.error('Error sending email:', error);
+    
+    // Update failure metrics
+    if (error.message?.includes('rate limit')) {
+      await supabase.rpc('increment_email_metric', {
+        p_metric_type: 'rate_limited_count',
+        p_count: 1
+      });
+    } else {
+      await supabase.rpc('increment_email_metric', {
+        p_metric_type: 'failed_sent',
+        p_count: 1
+      });
+    }
+
     return new Response(
       JSON.stringify({ 
         error: error instanceof Error ? error.message : 'Unknown error occurred',

@@ -14,6 +14,7 @@ import { AutomationRulesList } from "./email/AutomationRules/AutomationRulesList
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { EmailMetricsDashboard } from "./email/EmailMetrics/EmailMetricsDashboard";
+import { EmailSystemSettings } from "./email/EmailSystemSettings";
 
 export const IntegrationSettings = () => {
   const [resendApiKey, setResendApiKey] = useState("");
@@ -35,8 +36,15 @@ export const IntegrationSettings = () => {
     try {
       const { data, error } = await supabase.functions.invoke('send-email', {
         body: {
-          email: testEmail,
-          name: "Test User"
+          templateId: 'test-template',
+          recipientEmail: testEmail,
+          recipientName: "Test User",
+          variables: {
+            customer: {
+              full_name: "Test User",
+              email: testEmail
+            }
+          }
         }
       });
 
@@ -85,6 +93,7 @@ export const IntegrationSettings = () => {
                 <TabsTrigger value="metrics">Metrics</TabsTrigger>
                 <TabsTrigger value="templates">Templates</TabsTrigger>
                 <TabsTrigger value="automation">Automation</TabsTrigger>
+                <TabsTrigger value="system">System</TabsTrigger>
                 <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
                 <TabsTrigger value="test">Test</TabsTrigger>
               </TabsList>
@@ -103,6 +112,10 @@ export const IntegrationSettings = () => {
 
               <TabsContent value="automation">
                 <AutomationRulesList />
+              </TabsContent>
+              
+              <TabsContent value="system">
+                <EmailSystemSettings />
               </TabsContent>
 
               <TabsContent value="recommendations">

@@ -1,2 +1,7 @@
 
 project_id = "vqdlsidkucrownbfuouq"
+
+[email-config]
+max_retries = 5
+base_retry_delay_ms = 200
+max_retry_delay_ms = 30000
