@@ -5,7 +5,7 @@ import { AgreementListHeader } from "@/components/agreements/list/AgreementListH
 import { AgreementStats } from "@/components/agreements/AgreementStats";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { PaymentImport } from "@/components/agreements/PaymentImport";
-import { ChevronRight, Building2, FileText, Search } from "lucide-react";
+import { ChevronRight, Building2, FileText, Search, AlertCircle } from "lucide-react";
 import { useAgreements } from "@/components/agreements/hooks/useAgreements";
 import { AgreementDetailsDialog } from "@/components/agreements/AgreementDetailsDialog";
 import { type Agreement } from "@/types/agreement.types";
@@ -13,6 +13,8 @@ import { DeleteAgreementDialog } from "@/components/agreements/DeleteAgreementDi
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { EnhancedAgreementListV2 } from "@/components/agreements/v2/EnhancedAgreementListV2";
+import { Button } from "@/components/ui/button";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 const Agreements = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -24,6 +26,8 @@ const Agreements = () => {
   const { 
     data: agreements = [], 
     isLoading,
+    isError,
+    error,
     refetch 
   } = useAgreements();
 
@@ -120,15 +124,34 @@ const Agreements = () => {
             <AgreementStats />
           </div>
 
-          {/* Enhanced Agreements List with Loading State */}
+          {/* Enhanced Agreements List with Loading/Error State */}
           <div className="pb-12">
-            <EnhancedAgreementListV2 
-              agreements={agreements}
-              onViewDetails={handleViewDetails}
-              onDelete={handleDeleteClick}
-              viewMode="grid"
-              showLoadingState={isLoading}
-            />
+            <ErrorBoundary>
+              {isError ? (
+                <div className="bg-white border rounded-lg p-8 text-center shadow-sm">
+                  <div className="flex flex-col items-center justify-center gap-4">
+                    <AlertCircle className="h-12 w-12 text-red-500" />
+                    <h3 className="text-xl font-semibold text-gray-800">Unable to load agreements</h3>
+                    <p className="text-gray-600 max-w-md mb-4">
+                      {error instanceof Error 
+                        ? error.message 
+                        : "There was an error fetching your agreements. This might be due to insufficient permissions."}
+                    </p>
+                    <Button onClick={() => refetch()} className="bg-[#2D2942] hover:bg-[#2D2942]/90">
+                      Try Again
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <EnhancedAgreementListV2 
+                  agreements={agreements}
+                  onViewDetails={handleViewDetails}
+                  onDelete={handleDeleteClick}
+                  viewMode="grid"
+                  showLoadingState={isLoading}
+                />
+              )}
+            </ErrorBoundary>
           </div>
         </div>
 
