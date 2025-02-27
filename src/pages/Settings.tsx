@@ -9,6 +9,7 @@ import { WordTemplateManagement } from "@/components/agreements/templates/WordTe
 import { LoyaltyProgramSettings } from "@/components/settings/LoyaltyProgramSettings";
 import { PaymentSystemEmailTest } from "@/components/payments/PaymentSystemEmailTest";
 import { WhatsAppTemplateSettings } from "@/components/settings/WhatsAppTemplateSettings";
+import { WhatsAppTester } from "@/components/settings/WhatsAppTester";
 
 const Settings = () => {
   return (
@@ -54,7 +55,10 @@ const Settings = () => {
             <PaymentSystemEmailTest />
           </TabsContent>
           <TabsContent value="whatsapp-templates">
-            <WhatsAppTemplateSettings />
+            <div className="space-y-6">
+              <WhatsAppTemplateSettings />
+              <WhatsAppTester />
+            </div>
           </TabsContent>
         </Tabs>
       </div>
