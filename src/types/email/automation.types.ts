@@ -53,7 +53,7 @@ export interface DatabaseAutomationRule {
   email_templates?: EmailTemplate;
 }
 
-// Create a helper function to convert database response to the proper type
+// Helper function to convert database response to proper type
 export function convertToAutomationRule(data: DatabaseAutomationRule): AutomationRule {
   return {
     id: data.id,
@@ -72,7 +72,7 @@ export function convertToAutomationRule(data: DatabaseAutomationRule): Automatio
   };
 }
 
-// Create a helper to process an array of database rules
+// Helper to process an array of database rules
 export function processAutomationRules(data: DatabaseAutomationRule[]): AutomationRule[] {
   return data.map(convertToAutomationRule);
 }
