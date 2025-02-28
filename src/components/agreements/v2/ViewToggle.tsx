@@ -112,9 +112,7 @@ export const ViewToggle = ({
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant={viewMode === "list" ? "default" : "ghost"} size="sm" className="p-2" onClick={() => handleViewChange("list")} aria-label="List view" aria-pressed={viewMode === "list"}>
-              <List className="h-4 w-4" />
-            </Button>
+            
           </TooltipTrigger>
           <TooltipContent side="bottom">
             <div className="text-xs">
