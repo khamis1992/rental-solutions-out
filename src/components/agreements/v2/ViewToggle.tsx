@@ -1,15 +1,19 @@
+
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, LayoutList, LayoutDashboard, Search } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState, useEffect, useRef } from "react";
 import { useTouchGestures } from "@/hooks/use-touch-gestures";
 import { useHotkeys } from "react-hotkeys-hook";
 import { toast } from "sonner";
+// Use actual React components for the icons rather than dynamic imports
+import { Grid, List, LayoutPanelTop } from "lucide-react";
+
 interface ViewToggleProps {
   viewMode: "grid" | "list" | "compact";
   onChange: (mode: "grid" | "list" | "compact") => void;
   onSearchFocus?: () => void;
 }
+
 export const ViewToggle = ({
   viewMode,
   onChange,
@@ -79,29 +83,13 @@ export const ViewToggle = ({
     onChange(mode);
   };
 
-  // Function to handle search button click
-  const handleSearchClick = () => {
-    if (onSearchFocus) {
-      onSearchFocus();
-    }
-  };
-  return <TooltipProvider>
+  return (
+    <TooltipProvider>
       <div ref={containerRef} className="flex items-center gap-1 border rounded-md shadow-sm bg-background">
         <Tooltip>
           <TooltipTrigger asChild>
-            
-          </TooltipTrigger>
-          <TooltipContent side="bottom">
-            <div className="text-xs">
-              Focus search (Shift+F)
-            </div>
-          </TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant={viewMode === "grid" ? "default" : "ghost"} size="sm" onClick={() => handleViewChange("grid")} className={`h-9 px-3 rounded-none transition-all duration-200 ${viewMode === "grid" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`} aria-label="Grid view">
-              <LayoutGrid className="h-4 w-4" />
+            <Button variant={viewMode === "grid" ? "default" : "ghost"} size="sm" onClick={() => handleViewChange("grid")} className={`h-9 px-3 rounded-l-md transition-all duration-200 ${viewMode === "grid" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`} aria-label="Grid view">
+              <Grid className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">
@@ -113,8 +101,8 @@ export const ViewToggle = ({
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant={viewMode === "list" ? "default" : "ghost"} size="sm" onClick={() => handleViewChange("list")} className={`h-9 px-3 rounded-none transition-all duration-200 ${viewMode === "list" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`} aria-label="List view">
-              <LayoutList className="h-4 w-4" />
+            <Button variant={viewMode === "list" ? "default" : "ghost"} size="sm" onClick={() => handleViewChange("list")} className={`h-9 px-3 transition-all duration-200 ${viewMode === "list" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`} aria-label="List view">
+              <List className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">
@@ -126,8 +114,8 @@ export const ViewToggle = ({
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant={viewMode === "compact" ? "default" : "ghost"} size="sm" onClick={() => handleViewChange("compact")} className={`h-9 px-3 rounded-none rounded-r-md transition-all duration-200 ${viewMode === "compact" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`} aria-label="Compact view">
-              <LayoutDashboard className="h-4 w-4" />
+            <Button variant={viewMode === "compact" ? "default" : "ghost"} size="sm" onClick={() => handleViewChange("compact")} className={`h-9 px-3 rounded-r-md transition-all duration-200 ${viewMode === "compact" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`} aria-label="Compact view">
+              <LayoutPanelTop className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">
@@ -137,5 +125,6 @@ export const ViewToggle = ({
           </TooltipContent>
         </Tooltip>
       </div>
-    </TooltipProvider>;
+    </TooltipProvider>
+  );
 };
