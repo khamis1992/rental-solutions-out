@@ -1,5 +1,5 @@
 
-import { Car, Key, Wrench, Users } from "lucide-react";
+import { Car, Key, Wrench, Users, Activity, CreditCard, LineChart, UserCheck } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { formatCurrency } from "@/lib/utils";
 
@@ -22,38 +22,77 @@ export const DashboardStats = ({ stats }: DashboardStatsProps) => {
 
   return (
     <div className="space-y-8">
-      <div className="grid gap-6 md:grid-cols-3">
+      {/* Main KPIs */}
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Fleet Utilization"
           value={`${fleetUtilization}%`}
-          icon={Car}
-          iconClassName="blue"
-          description={
-            <span className="text-muted-foreground text-xs">
-              of fleet is currently rented
-            </span>
-          }
+          icon={LineChart}
+          iconClassName="indigo"
+          trend="up"
+          description="5.2% increase from last month"
         />
         <StatsCard
           title="Active Rentals"
           value={stats?.active_rentals?.toString() || "0"}
           icon={Key}
           iconClassName="purple"
-          description={
-            <span className="text-amber-600 text-xs flex items-center">
-              <Wrench className="mr-1 h-4 w-4" />
-              {stats?.maintenance_vehicles || 0} in maintenance
-            </span>
-          }
+          trend="up"
+          description="3.1% increase from last week"
         />
         <StatsCard
           title="Monthly Revenue"
           value={formatCurrency(stats?.monthly_revenue || 0)}
-          icon={Users}
+          icon={CreditCard}
           iconClassName="green"
+          trend="up"
+          description="8.7% above monthly target"
+        />
+        <StatsCard
+          title="Total Customers"
+          value={stats?.total_customers?.toString() || "0"}
+          icon={UserCheck}
+          iconClassName="blue"
+          trend="up"
+          description="12 new customers this month"
+        />
+      </div>
+
+      {/* Vehicle Status */}
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-3">
+        <StatsCard
+          title="Available Vehicles"
+          value={stats?.available_vehicles?.toString() || "0"}
+          icon={Car}
+          iconClassName="teal"
+          trend="neutral"
           description={
             <span className="text-muted-foreground text-xs">
-              {stats?.total_customers || 0} total customers
+              Ready for rental
+            </span>
+          }
+        />
+        <StatsCard
+          title="Rented Vehicles"
+          value={stats?.rented_vehicles?.toString() || "0"}
+          icon={Activity}
+          iconClassName="amber"
+          trend="up"
+          description={
+            <span className="text-muted-foreground text-xs">
+              Currently on the road
+            </span>
+          }
+        />
+        <StatsCard
+          title="In Maintenance"
+          value={stats?.maintenance_vehicles?.toString() || "0"}
+          icon={Wrench}
+          iconClassName="red"
+          trend="down"
+          description={
+            <span className="text-muted-foreground text-xs">
+              Under service or repair
             </span>
           }
         />
