@@ -39,11 +39,11 @@ export function DuplicateWarning({ duplicates, onDismiss }: DuplicateWarningProp
       <AlertCircle className="h-4 w-4" />
       <AlertTitle>Potential Duplicate Customer{duplicates.length > 1 ? 's' : ''} Found</AlertTitle>
       <AlertDescription className="pt-2">
-        <div className="h-[300px] overflow-hidden">
-          <ScrollArea className="h-full pr-4">
-            <div className="space-y-2">
+        <div className="h-[300px] overflow-hidden relative border rounded-md mb-2">
+          <ScrollArea className="h-full w-full absolute">
+            <div className="space-y-2 p-4">
               {duplicates.map((duplicate) => (
-                <div key={duplicate.id} className="flex items-center justify-between gap-4 text-sm">
+                <div key={duplicate.id} className="flex items-center justify-between gap-4 text-sm border-b pb-2 last:border-0">
                   <div>
                     <div className="font-medium">{duplicate.full_name}</div>
                     <div className="text-muted-foreground">
