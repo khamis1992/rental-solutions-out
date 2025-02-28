@@ -5,15 +5,17 @@ export interface EnhancedAgreementListV2Props {
   agreements: Agreement[];
   onViewDetails?: (agreement: Agreement) => void;
   onDelete?: (agreement: Agreement) => void;
-  viewMode?: "grid" | "list";
+  viewMode?: "grid" | "list" | "compact";
   showLoadingState?: boolean;
-  onViewModeChange?: (mode: "grid" | "list") => void;
+  onViewModeChange?: (mode: "grid" | "list" | "compact") => void;
 }
 
 export interface AgreementCardProps {
   agreement: Agreement;
   onViewDetails?: (agreement: Agreement) => void;
   onDelete?: (agreement: Agreement) => void;
+  onSelect?: (agreement: Agreement, selected: boolean) => void;
+  isSelected?: boolean;
 }
 
 export type SortField = "date" | "amount" | "status" | "customer";
@@ -30,6 +32,15 @@ export interface FilterConfig {
   dateRange?: {
     start?: Date;
     end?: Date;
+  };
+  amountRange?: {
+    min: number;
+    max: number;
+  };
+  vehicleDetails?: {
+    make: string;
+    model: string;
+    year: string;
   };
 }
 

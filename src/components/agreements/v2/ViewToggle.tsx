@@ -1,34 +1,42 @@
 
-import { Grid2X2, List } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { LayoutGrid, LayoutList, LayoutDashboard } from "lucide-react";
 
 interface ViewToggleProps {
-  initialMode?: "grid" | "list";
-  onViewModeChange: (mode: "grid" | "list") => void;
+  viewMode: "grid" | "list" | "compact";
+  onChange: (mode: "grid" | "list" | "compact") => void;
 }
 
-export const ViewToggle = ({ initialMode = "grid", onViewModeChange }: ViewToggleProps) => {
-  const [isGridView, setIsGridView] = useState(initialMode === "grid");
-
-  useEffect(() => {
-    setIsGridView(initialMode === "grid");
-  }, [initialMode]);
-
-  const handleToggleChange = (checked: boolean) => {
-    const newMode = checked ? "grid" : "list";
-    setIsGridView(checked);
-    onViewModeChange(newMode);
-  };
-
+export const ViewToggle = ({ viewMode, onChange }: ViewToggleProps) => {
   return (
-    <div className="flex items-center space-x-3 bg-white rounded-lg p-2 border shadow-sm">
-      <List className={`h-5 w-5 ${!isGridView ? "text-blue-600" : "text-gray-400"}`} />
-      <Switch 
-        checked={isGridView}
-        onCheckedChange={handleToggleChange}
-      />
-      <Grid2X2 className={`h-5 w-5 ${isGridView ? "text-blue-600" : "text-gray-400"}`} />
+    <div className="flex items-center gap-1 border rounded-md">
+      <Button
+        variant={viewMode === "grid" ? "default" : "ghost"}
+        size="sm"
+        onClick={() => onChange("grid")}
+        className="h-9 px-3 rounded-none rounded-l-md"
+        aria-label="Grid view"
+      >
+        <LayoutGrid className="h-4 w-4" />
+      </Button>
+      <Button
+        variant={viewMode === "list" ? "default" : "ghost"}
+        size="sm"
+        onClick={() => onChange("list")}
+        className="h-9 px-3 rounded-none"
+        aria-label="List view"
+      >
+        <LayoutList className="h-4 w-4" />
+      </Button>
+      <Button
+        variant={viewMode === "compact" ? "default" : "ghost"}
+        size="sm"
+        onClick={() => onChange("compact")}
+        className="h-9 px-3 rounded-none rounded-r-md"
+        aria-label="Compact view"
+      >
+        <LayoutDashboard className="h-4 w-4" />
+      </Button>
     </div>
   );
 };

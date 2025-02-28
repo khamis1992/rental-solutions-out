@@ -57,6 +57,12 @@ export const getPaymentConfig = (status: string): PaymentConfig => {
       icon: XCircle,
       badge: "Payment Failed",
       description: "Payment transaction failed"
+    },
+    partially_paid: {
+      color: "border-blue-200 bg-blue-50 text-blue-700",
+      icon: DollarSign,
+      badge: "Partially Paid",
+      description: "Partial payment has been received"
     }
   };
 
@@ -69,4 +75,37 @@ export const calculatePaymentProgress = (agreement: Agreement): number => {
   
   if (totalAmount === 0) return 0;
   return ((totalAmount - remainingAmount) / totalAmount) * 100;
+};
+
+export const formatShortDate = (dateString: string | null): string => {
+  if (!dateString) return "N/A";
+  
+  const date = new Date(dateString);
+  return date.toLocaleDateString(undefined, { 
+    day: 'numeric', 
+    month: 'short', 
+    year: 'numeric' 
+  });
+};
+
+export const getUniqueVehicleMakes = (agreements: Agreement[]): string[] => {
+  const makes = agreements
+    .filter(a => a.vehicle?.make)
+    .map(a => a.vehicle?.make || "")
+    .filter(Boolean);
+  
+  return [...new Set(makes)];
+};
+
+export const getKeyboardShortcuts = () => {
+  return {
+    "Shift+A": "Select all agreements",
+    "Shift+C": "Clear selection",
+    "Shift+F": "Focus search",
+    "Shift+G": "Toggle grid view",
+    "Shift+L": "Toggle list view",
+    "Shift+T": "Toggle compact view",
+    "Shift+S": "Toggle summary",
+    "Esc": "Clear selection"
+  };
 };
