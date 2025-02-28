@@ -32,3 +32,26 @@ html body [role="button"]:has(svg[data-lucide]) svg {
   color: #3B82F6 !important;
   stroke: #3B82F6 !important;
 }
+
+/* Target class names of the route-specific icons */
+body[class*="agreements"] svg, 
+*[class*="agreements"] svg,
+*[class*="sort"] svg,
+*[class*="dropdown"] svg {
+  color: #3B82F6 !important;
+  stroke: #3B82F6 !important;
+}
+
+/* Target all SVG inside buttons specifically in the agreements route */
+.agreements button svg,
+[data-current-route="agreements"] button svg {
+  color: #3B82F6 !important;
+  stroke: #3B82F6 !important;
+}
+
+/* Absolute force override for all icons in sort contexts */
+button svg,
+[role="menuitem"] svg {
+  color: #3B82F6 !important;
+  stroke: #3B82F6 !important;
+}
