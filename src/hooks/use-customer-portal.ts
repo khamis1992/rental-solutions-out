@@ -14,23 +14,55 @@ export const useCustomerPortal = () => {
 
   // Check if user is already logged in from localStorage
   useEffect(() => {
-    const portalSession = localStorage.getItem("customerPortalSession");
-    if (portalSession) {
+    const checkExistingSession = () => {
       try {
-        const sessionData = JSON.parse(portalSession);
-        if (sessionData && sessionData.agreementId && sessionData.customerId) {
-          setActiveAgreementId(sessionData.agreementId);
-          setCustomerId(sessionData.customerId || "");
-          setCustomerName(sessionData.customerName || "");
-          setCustomerEmail(sessionData.customerEmail || "");
-          setCustomerPhone(sessionData.customerPhone || "");
-          setIsLoggedIn(true);
+        const portalSession = localStorage.getItem("customerPortalSession");
+        if (portalSession) {
+          const sessionData = JSON.parse(portalSession);
+          if (sessionData && sessionData.agreementId && sessionData.customerId) {
+            console.log("Found existing session:", sessionData);
+            setActiveAgreementId(sessionData.agreementId);
+            setCustomerId(sessionData.customerId || "");
+            setCustomerName(sessionData.customerName || "");
+            setCustomerEmail(sessionData.customerEmail || "");
+            setCustomerPhone(sessionData.customerPhone || "");
+            setIsLoggedIn(true);
+          }
         }
       } catch (error) {
-        console.error("Error parsing stored session:", error);
+        console.error("Error checking session:", error);
         localStorage.removeItem("customerPortalSession");
       }
-    }
+    };
+
+    checkExistingSession();
+  }, []);
+
+  // Listen for login events
+  useEffect(() => {
+    const handleLoginEvent = (event: CustomEvent<{ customerId: string; agreementId: string }>) => {
+      console.log("Received customerPortalLogin event:", event);
+      const { customerId, agreementId } = event.detail;
+      setCustomerId(customerId);
+      setActiveAgreementId(agreementId);
+      setIsLoggedIn(true);
+      
+      // Get other customer details from localStorage
+      try {
+        const sessionData = JSON.parse(localStorage.getItem("customerPortalSession") || "{}");
+        setCustomerName(sessionData.customerName || null);
+        setCustomerEmail(sessionData.customerEmail || null);
+        setCustomerPhone(sessionData.customerPhone || null);
+      } catch (error) {
+        console.error("Error parsing session data:", error);
+      }
+    };
+
+    window.addEventListener('customerPortalLogin', handleLoginEvent as EventListener);
+    
+    return () => {
+      window.removeEventListener('customerPortalLogin', handleLoginEvent as EventListener);
+    };
   }, []);
 
   const handleLogin = async (agrNumber: string, phoneNumber: string) => {
@@ -65,6 +97,14 @@ export const useCustomerPortal = () => {
 
       console.log("Agreement found:", agreementData);
 
+      // Handle potential issues with profiles data
+      if (!agreementData.profiles || typeof agreementData.profiles === 'string') {
+        console.error("Invalid profiles data:", agreementData.profiles);
+        toast.error("Customer profile data is incomplete. Please contact support.");
+        setIsLoading(false);
+        return false;
+      }
+
       // Verify phone number matches
       const customerProfile = agreementData.profiles;
       
@@ -81,9 +121,9 @@ export const useCustomerPortal = () => {
       const sessionData = {
         agreementId: agreementData.id,
         customerId: agreementData.customer_id,
-        customerName: customerProfile.full_name,
-        customerEmail: customerProfile.email,
-        customerPhone: customerProfile.phone_number
+        customerName: customerProfile.full_name || null,
+        customerEmail: customerProfile.email || null,
+        customerPhone: customerProfile.phone_number || null
       };
       
       // Save to state

@@ -76,9 +76,17 @@ export const CustomerPortalLogin = ({ onLoginSuccess }: CustomerPortalLoginProps
       
       console.log("Agreement data:", agreementData);
       
+      // Handle possible null profile or missing phone_number
+      if (!agreementData.profiles || typeof agreementData.profiles === 'string' || 
+          !agreementData.profiles.phone_number) {
+        console.error("Invalid profile data:", agreementData.profiles);
+        toast.error("Customer profile data is incomplete. Please contact support.");
+        setIsLoading(false);
+        return;
+      }
+      
       // Check if phone number matches
-      const profile = agreementData.profiles;
-      if (!profile || profile.phone_number !== phoneNumber) {
+      if (agreementData.profiles.phone_number !== phoneNumber) {
         toast.error("Phone number does not match our records.");
         setIsLoading(false);
         return;
@@ -88,30 +96,38 @@ export const CustomerPortalLogin = ({ onLoginSuccess }: CustomerPortalLoginProps
       const sessionData = {
         customerId: agreementData.customer_id,
         agreementId: agreementData.id,
-        customerName: profile.full_name,
-        customerEmail: profile.email,
-        customerPhone: profile.phone_number,
+        customerName: agreementData.profiles.full_name || "",
+        customerEmail: agreementData.profiles.email || "",
+        customerPhone: agreementData.profiles.phone_number || "",
         agrNumber: agreementData.agreement_number
       };
       
       localStorage.setItem("customerPortalSession", JSON.stringify(sessionData));
       
       // Login successful
-      console.log("Login successful");
+      console.log("Login successful, session data saved:", sessionData);
       toast.success("Login successful!");
       
       // Call the onLoginSuccess callback if provided
       if (onLoginSuccess) {
+        console.log("Calling onLoginSuccess with:", agreementData.customer_id, agreementData.id);
         onLoginSuccess(agreementData.customer_id, agreementData.id);
       }
       
-      // Allow the parent component to handle navigation
-      window.dispatchEvent(new CustomEvent('customerPortalLogin', { 
+      // Dispatch a global event for components that might not be directly connected
+      const event = new CustomEvent('customerPortalLogin', { 
         detail: { 
           customerId: agreementData.customer_id,
           agreementId: agreementData.id
         }
-      }));
+      });
+      console.log("Dispatching customerPortalLogin event:", event);
+      window.dispatchEvent(event);
+      
+      // Force a page reload if nothing else works
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
       
     } catch (error) {
       console.error("Login error:", error);

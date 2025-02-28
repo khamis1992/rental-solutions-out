@@ -1,49 +1,53 @@
 
-export interface PaymentHistoryView {
-  id: string;
-  lease_id?: string;
-  customer_id?: string;
-  amount: number;
-  amount_paid?: number;
-  balance?: number;
-  actual_payment_date?: string | null;
-  original_due_date?: string | null;
-  late_fine_amount?: number;
-  days_overdue?: number;
-  status?: string;
-  payment_method?: string;
-  description?: string;
-  type?: string;
-  agreement_number?: string;
-  payment_date?: string;
-}
+import { Json } from './json.types';
 
-export interface PaymentView {
+export interface PaymentHistoryView {
   id: string;
   lease_id: string;
   amount: number;
-  amount_paid?: number;
-  payment_date?: string;
-  payment_method?: string;
-  status?: string;
-  description?: string;
-  type?: string;
-  created_at?: string;
-  updated_at?: string;
+  amount_paid: number;
+  payment_date: string;
+  payment_method: string;
+  status: string;
+  description: string;
+  customer_id?: string;
+  balance?: number;
+  days_overdue?: number;
+  late_fine_amount?: number;
+}
+
+export interface Payment {
+  id: string;
+  lease_id: string;
+  amount: number;
+  amount_paid: number;
+  payment_date: string;
+  payment_method: string;
+  status: string;
+  description: string;
+  type: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaymentView extends Payment {
+  customer_name?: string;
+  agreement_number?: string;
 }
 
 export type PaymentMethodType = 
-  | 'cash'
-  | 'credit_card'
-  | 'debit_card'
-  | 'bank_transfer'
-  | 'check'
-  | 'SADAD'
-  | 'other';
+  'cash' | 
+  'bank_transfer' | 
+  'credit_card' | 
+  'debit_card' | 
+  'check' | 
+  'paypal' | 
+  'sadad' | 
+  'other';
 
 export type PaymentStatus = 
-  | 'pending'
-  | 'completed'
-  | 'failed'
-  | 'refunded'
-  | 'partially_paid';
+  'pending' | 
+  'completed' | 
+  'failed' | 
+  'refunded' | 
+  'partially_paid';
