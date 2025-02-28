@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState, useEffect, useRef } from "react";
@@ -6,13 +5,11 @@ import { useTouchGestures } from "@/hooks/use-touch-gestures";
 import { useHotkeys } from "react-hotkeys-hook";
 import { toast } from "sonner";
 import { Grid, List, LayoutPanelTop } from "lucide-react";
-
 interface ViewToggleProps {
   viewMode: "grid" | "list" | "compact";
   onChange: (mode: "grid" | "list" | "compact") => void;
   onSearchFocus?: () => void;
 }
-
 export const ViewToggle = ({
   viewMode,
   onChange,
@@ -100,15 +97,11 @@ export const ViewToggle = ({
     onChange(mode);
     toast.success(`${mode.charAt(0).toUpperCase() + mode.slice(1)} view activated`);
   };
-
-  return (
-    <TooltipProvider>
+  return <TooltipProvider>
       <div ref={containerRef} className="flex items-center gap-1 border rounded-md shadow-sm bg-background" role="group" aria-label="View options">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant={viewMode === "grid" ? "default" : "ghost"} size="sm" className="p-2" onClick={() => handleViewChange("grid")} aria-label="Grid view" aria-pressed={viewMode === "grid"}>
-              <Grid className="h-4 w-4" />
-            </Button>
+            
           </TooltipTrigger>
           <TooltipContent side="bottom">
             <div className="text-xs">
@@ -143,6 +136,5 @@ export const ViewToggle = ({
           </TooltipContent>
         </Tooltip>
       </div>
-    </TooltipProvider>
-  );
+    </TooltipProvider>;
 };
