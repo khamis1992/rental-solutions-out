@@ -36,20 +36,23 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   
   // Apply RTL direction to document
   useEffect(() => {
+    // Force RTL direction
     document.documentElement.dir = "rtl";
     document.documentElement.lang = "ar";
+    document.documentElement.classList.add("rtl-layout");
     
     // Cleanup on unmount
     return () => {
       document.documentElement.dir = "ltr";
       document.documentElement.lang = "en";
+      document.documentElement.classList.remove("rtl-layout");
     };
   }, []);
   
   return (
     <SidebarProvider defaultCollapsed={isMobile}>
       <TourProvider steps={tourSteps}>
-        <div className="relative flex min-h-screen w-full rtl">
+        <div className="relative flex min-h-screen w-full rtl" style={{ direction: 'rtl' }}>
           <DashboardSidebar />
           <div className="flex-1 flex flex-col min-h-screen">
             <main className="page-container pb-safe">
