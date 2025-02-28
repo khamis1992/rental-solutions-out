@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, LayoutList, LayoutDashboard, Search } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -6,14 +5,16 @@ import { useState, useEffect, useRef } from "react";
 import { useTouchGestures } from "@/hooks/use-touch-gestures";
 import { useHotkeys } from "react-hotkeys-hook";
 import { toast } from "sonner";
-
 interface ViewToggleProps {
   viewMode: "grid" | "list" | "compact";
   onChange: (mode: "grid" | "list" | "compact") => void;
   onSearchFocus?: () => void;
 }
-
-export const ViewToggle = ({ viewMode, onChange, onSearchFocus }: ViewToggleProps) => {
+export const ViewToggle = ({
+  viewMode,
+  onChange,
+  onSearchFocus
+}: ViewToggleProps) => {
   const [previousMode, setPreviousMode] = useState<"grid" | "list" | "compact">(viewMode);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -36,39 +37,40 @@ export const ViewToggle = ({ viewMode, onChange, onSearchFocus }: ViewToggleProp
   useHotkeys('shift+g', () => {
     onChange("grid");
     toast.success("Grid view activated");
-  }, { preventDefault: true });
-  
+  }, {
+    preventDefault: true
+  });
   useHotkeys('shift+l', () => {
     onChange("list");
     toast.success("List view activated");
-  }, { preventDefault: true });
-  
+  }, {
+    preventDefault: true
+  });
   useHotkeys('shift+t', () => {
     onChange("compact");
     toast.success("Compact view activated");
-  }, { preventDefault: true });
-  
+  }, {
+    preventDefault: true
+  });
   useHotkeys('shift+f', () => {
     if (onSearchFocus) {
       onSearchFocus();
       toast.success("Search focused");
     }
-  }, { preventDefault: true });
+  }, {
+    preventDefault: true
+  });
 
   // Setup touch gestures for mobile
   useTouchGestures(containerRef, {
     onSwipeLeft: () => {
       // Cycle forward through views: grid -> list -> compact -> grid
-      if (viewMode === "grid") onChange("list");
-      else if (viewMode === "list") onChange("compact");
-      else onChange("grid");
+      if (viewMode === "grid") onChange("list");else if (viewMode === "list") onChange("compact");else onChange("grid");
     },
     onSwipeRight: () => {
       // Cycle backward through views: grid -> compact -> list -> grid
-      if (viewMode === "grid") onChange("compact");
-      else if (viewMode === "compact") onChange("list");
-      else onChange("grid");
-    },
+      if (viewMode === "grid") onChange("compact");else if (viewMode === "compact") onChange("list");else onChange("grid");
+    }
   });
 
   // Save previous mode before changing to enable toggling back
@@ -83,25 +85,11 @@ export const ViewToggle = ({ viewMode, onChange, onSearchFocus }: ViewToggleProp
       onSearchFocus();
     }
   };
-
-  return (
-    <TooltipProvider>
-      <div 
-        ref={containerRef}
-        className="flex items-center gap-1 border rounded-md shadow-sm bg-background"
-      >
+  return <TooltipProvider>
+      <div ref={containerRef} className="flex items-center gap-1 border rounded-md shadow-sm bg-background">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSearchClick}
-              className={`h-9 px-3 rounded-none rounded-l-md transition-all duration-200 ${onSearchFocus ? 'hover:bg-muted' : 'cursor-not-allowed opacity-50'}`}
-              aria-label="Focus search"
-              disabled={!onSearchFocus}
-            >
-              <Search className="h-4 w-4" />
-            </Button>
+            
           </TooltipTrigger>
           <TooltipContent side="bottom">
             <div className="text-xs">
@@ -112,13 +100,7 @@ export const ViewToggle = ({ viewMode, onChange, onSearchFocus }: ViewToggleProp
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant={viewMode === "grid" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => handleViewChange("grid")}
-              className={`h-9 px-3 rounded-none transition-all duration-200 ${viewMode === "grid" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
-              aria-label="Grid view"
-            >
+            <Button variant={viewMode === "grid" ? "default" : "ghost"} size="sm" onClick={() => handleViewChange("grid")} className={`h-9 px-3 rounded-none transition-all duration-200 ${viewMode === "grid" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`} aria-label="Grid view">
               <LayoutGrid className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -131,13 +113,7 @@ export const ViewToggle = ({ viewMode, onChange, onSearchFocus }: ViewToggleProp
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant={viewMode === "list" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => handleViewChange("list")}
-              className={`h-9 px-3 rounded-none transition-all duration-200 ${viewMode === "list" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
-              aria-label="List view"
-            >
+            <Button variant={viewMode === "list" ? "default" : "ghost"} size="sm" onClick={() => handleViewChange("list")} className={`h-9 px-3 rounded-none transition-all duration-200 ${viewMode === "list" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`} aria-label="List view">
               <LayoutList className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -150,13 +126,7 @@ export const ViewToggle = ({ viewMode, onChange, onSearchFocus }: ViewToggleProp
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant={viewMode === "compact" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => handleViewChange("compact")}
-              className={`h-9 px-3 rounded-none rounded-r-md transition-all duration-200 ${viewMode === "compact" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
-              aria-label="Compact view"
-            >
+            <Button variant={viewMode === "compact" ? "default" : "ghost"} size="sm" onClick={() => handleViewChange("compact")} className={`h-9 px-3 rounded-none rounded-r-md transition-all duration-200 ${viewMode === "compact" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`} aria-label="Compact view">
               <LayoutDashboard className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -167,6 +137,5 @@ export const ViewToggle = ({ viewMode, onChange, onSearchFocus }: ViewToggleProp
           </TooltipContent>
         </Tooltip>
       </div>
-    </TooltipProvider>
-  );
+    </TooltipProvider>;
 };
