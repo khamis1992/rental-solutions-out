@@ -15,6 +15,7 @@ export interface PaymentHistoryView {
   description?: string;
   type?: string;
   agreement_number?: string;
+  payment_date?: string;
 }
 
 export interface PaymentView {
@@ -30,3 +31,19 @@ export interface PaymentView {
   created_at?: string;
   updated_at?: string;
 }
+
+export type PaymentMethodType = 
+  | 'cash'
+  | 'credit_card'
+  | 'debit_card'
+  | 'bank_transfer'
+  | 'check'
+  | 'SADAD'
+  | 'other';
+
+export type PaymentStatus = 
+  | 'pending'
+  | 'completed'
+  | 'failed'
+  | 'refunded'
+  | 'partially_paid';

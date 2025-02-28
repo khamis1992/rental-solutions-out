@@ -21,6 +21,7 @@ export const ProfileManagement = ({ customerId }: ProfileManagementProps) => {
     address: ""
   });
 
+  // Fetch profile data
   const { data: profile, isLoading } = useQuery({
     queryKey: ['customer-profile', customerId],
     queryFn: async () => {
@@ -50,6 +51,7 @@ export const ProfileManagement = ({ customerId }: ProfileManagementProps) => {
     }
   }, [profile]);
 
+  // Mutation for updating profile
   const updateProfileMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const { error } = await supabase
@@ -81,11 +83,9 @@ export const ProfileManagement = ({ customerId }: ProfileManagementProps) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!customerId) return;
-    
     updateProfileMutation.mutate(formData);
   };
 

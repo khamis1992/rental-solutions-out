@@ -23,7 +23,9 @@ export const CustomerPortalLogin = ({ onLoginSuccess, onLogin, isLoading }: Cust
       return;
     }
     
+    console.log("Login form submitted:", { agrNumber, phoneNumber });
     const success = await onLogin(agrNumber, phoneNumber);
+    console.log("Login result:", success);
     
     if (success && onLoginSuccess) {
       onLoginSuccess(agrNumber, phoneNumber);

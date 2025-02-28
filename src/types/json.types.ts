@@ -1,4 +1,7 @@
 
+/**
+ * Define basic JSON types for TypeScript
+ */
 export type Json =
   | string
   | number
@@ -6,3 +9,5 @@ export type Json =
   | null
   | { [key: string]: Json | undefined }
   | Json[];
+
+export type JsonObject = { [key: string]: Json | undefined };

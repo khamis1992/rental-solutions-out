@@ -22,3 +22,32 @@ export interface CustomerProfile {
   status?: string;
   form_data?: Json;
 }
+
+export interface LoyaltyPoints {
+  id: string;
+  customer_id: string;
+  points: number;
+  tier: string;
+  points_history?: Json[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomerReward {
+  id: string;
+  customer_id: string;
+  reward_id: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  expiry_date?: string;
+  redeemed_at?: string;
+  rewards?: {
+    id: string;
+    name: string;
+    description?: string;
+    points_cost: number;
+    reward_type: string;
+    tier_requirement?: string;
+  };
+}

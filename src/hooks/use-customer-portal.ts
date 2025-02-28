@@ -18,7 +18,7 @@ export const useCustomerPortal = () => {
     if (portalSession) {
       try {
         const sessionData = JSON.parse(portalSession);
-        if (sessionData && sessionData.agreementId) {
+        if (sessionData && sessionData.agreementId && sessionData.customerId) {
           setActiveAgreementId(sessionData.agreementId);
           setCustomerId(sessionData.customerId || "");
           setCustomerName(sessionData.customerName || "");
@@ -37,6 +37,8 @@ export const useCustomerPortal = () => {
     setIsLoading(true);
 
     try {
+      console.log("Attempting to login with:", { agrNumber, phoneNumber });
+      
       // Get agreement by agreement number
       const { data: agreementData, error: agreementError } = await supabase
         .from("leases")
@@ -44,7 +46,7 @@ export const useCustomerPortal = () => {
           id,
           agreement_number,
           customer_id,
-          customer:profiles!leases_customer_id_fkey (
+          profiles(
             id,
             full_name,
             phone_number,
@@ -61,9 +63,12 @@ export const useCustomerPortal = () => {
         return false;
       }
 
+      console.log("Agreement found:", agreementData);
+
       // Verify phone number matches
-      const customer = agreementData.customer;
-      if (!customer || !customer.phone_number || customer.phone_number !== phoneNumber) {
+      const customerProfile = agreementData.profiles;
+      
+      if (!customerProfile || !customerProfile.phone_number || customerProfile.phone_number !== phoneNumber) {
         toast.error("Phone number does not match our records.");
         setIsLoading(false);
         return false;
@@ -76,23 +81,27 @@ export const useCustomerPortal = () => {
       const sessionData = {
         agreementId: agreementData.id,
         customerId: agreementData.customer_id,
-        customerName: customer.full_name,
-        customerEmail: customer.email,
-        customerPhone: customer.phone_number
+        customerName: customerProfile.full_name,
+        customerEmail: customerProfile.email,
+        customerPhone: customerProfile.phone_number
       };
       
       // Save to state
       setActiveAgreementId(agreementData.id);
       setCustomerId(agreementData.customer_id);
-      setCustomerName(customer.full_name || null);
-      setCustomerEmail(customer.email || null);
-      setCustomerPhone(customer.phone_number || null);
+      setCustomerName(customerProfile.full_name || null);
+      setCustomerEmail(customerProfile.email || null);
+      setCustomerPhone(customerProfile.phone_number || null);
       
       // Save to localStorage
       localStorage.setItem("customerPortalSession", JSON.stringify(sessionData));
-      setIsLoggedIn(true);
-      return true;
       
+      // Update login state
+      setIsLoggedIn(true);
+      
+      console.log("Login successful, session saved:", sessionData);
+      
+      return true;
     } catch (error) {
       console.error("Login error:", error);
       toast.error("An error occurred during login. Please try again.");
@@ -103,6 +112,7 @@ export const useCustomerPortal = () => {
   };
 
   const handleLogout = () => {
+    console.log("Logging out...");
     setIsLoggedIn(false);
     setActiveAgreementId(null);
     setCustomerId(null);
