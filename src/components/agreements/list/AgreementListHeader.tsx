@@ -23,6 +23,13 @@ export const AgreementListHeader = ({
   onSearchChange
 }: AgreementListHeaderProps) => {
   const [showProcessTemplates, setShowProcessTemplates] = useState(false);
+  
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("Search input changed:", e.target.value);
+    if (onSearchChange) {
+      onSearchChange(e.target.value);
+    }
+  };
 
   return <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full mb-6">
       <div className="relative w-full max-w-md">
@@ -32,7 +39,7 @@ export const AgreementListHeader = ({
           placeholder="Search agreements..."
           className="pl-9 w-full"
           value={searchQuery}
-          onChange={(e) => onSearchChange?.(e.target.value)}
+          onChange={handleSearchChange}
         />
       </div>
       
