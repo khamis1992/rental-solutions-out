@@ -1,56 +1,24 @@
-/* Add RTL support for ReactQuill */
-.rtl-editor {
-  direction: rtl;
-  text-align: right;
+
+/* Sort icon styles */
+/* Target ArrowUpDown icon in sort buttons */
+button svg[class*="lucide-ArrowUpDown"] {
+  color: #3B82F6 !important; /* blue-600 */
 }
 
-.rtl-editor .ql-editor {
-  direction: rtl;
-  text-align: right;
+/* Target ArrowUpAZ and ArrowDownAZ icons in badges */
+span[class*="badge"] svg[class*="lucide-ArrowUpAZ"],
+span[class*="badge"] svg[class*="lucide-ArrowDownAZ"] {
+  color: #3B82F6 !important; /* blue-600 */
 }
 
-.rtl-editor .ql-snow .ql-picker {
-  direction: rtl;
+/* Make sure our selectors are specific enough by adding context */
+[class*="dropdown"] button svg[class*="lucide-ArrowUpDown"],
+button[class*="gap-2"] svg[class*="lucide-ArrowUpDown"] {
+  color: #3B82F6 !important; /* blue-600 */
 }
 
-/* Additional RTL styles */
-.dir-rtl {
-  direction: rtl;
-}
-
-.text-right {
-  text-align: right;
-}
-
-/* Print styles for RTL */
-@media print {
-  .rtl-content {
-    direction: rtl;
-    text-align: right;
-  }
-}
-
-/* Override ReactQuill default alignment */
-.ql-editor {
-  direction: rtl !important;
-  text-align: right !important;
-}
-
-.ql-snow .ql-picker.ql-header {
-  direction: rtl !important;
-}
-
-/* Force RTL for all editor content */
-.ql-container {
-  direction: rtl !important;
-}
-
-/* Adjust toolbar buttons for RTL */
-.ql-snow .ql-toolbar button {
-  float: right;
-}
-
-.ql-snow .ql-formats {
-  margin-right: 0;
-  margin-left: 15px;
+/* Ensure all related sorting icons are colored */
+[data-radix-popper-content-wrapper] [role="menuitem"] svg,
+[class*="dropdown"] [role="menuitem"] svg {
+  color: #3B82F6 !important; /* blue-600 when selected */
 }
