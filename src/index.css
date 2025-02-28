@@ -90,26 +90,3 @@
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-
-/* Mobile optimization for form elements */
-@media (max-width: 640px) {
-  input, 
-  button,
-  .touch-button {
-    font-size: 16px !important; /* Prevents iOS zoom on focus */
-  }
-  
-  input, 
-  button,
-  select,
-  textarea {
-    -webkit-appearance: none; /* Removes iOS default styling */
-    border-radius: 0.75rem;
-  }
-  
-  /* Fix for iOS momentum scrolling */
-  .overflow-auto,
-  .overflow-y-auto {
-    -webkit-overflow-scrolling: touch;
-  }
-}
