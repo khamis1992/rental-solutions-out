@@ -1,10 +1,12 @@
+
 import { Button } from "@/components/ui/button";
 import { Upload, Download, FileText, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { ProcessTemplatesDialog } from "@/components/agreements/ProcessTemplatesDialog";
 import { useState } from "react";
+import { SearchInput } from "@/components/agreements/search/SearchInput";
+
 interface AgreementListHeaderProps {
   onImportClick: () => void;
   onDeleteClick: () => void;
@@ -12,6 +14,7 @@ interface AgreementListHeaderProps {
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
 }
+
 export const AgreementListHeader = ({
   onImportClick,
   onDeleteClick,
@@ -20,16 +23,22 @@ export const AgreementListHeader = ({
   onSearchChange
 }: AgreementListHeaderProps) => {
   const [showProcessTemplates, setShowProcessTemplates] = useState(false);
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("Search input changed:", e.target.value);
+  
+  const handleSearchChange = (query: string) => {
+    console.log("Search input changed:", query);
     if (onSearchChange) {
-      onSearchChange(e.target.value);
+      onSearchChange(query);
     }
   };
-  return <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full mb-6">
+  
+  return (
+    <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full mb-6">
       <div className="relative w-full max-w-md">
-        
-        
+        <SearchInput 
+          onSearch={handleSearchChange}
+          placeholder="Search agreements..."
+          initialValue={searchQuery}
+        />
       </div>
       
       <div className="flex items-center gap-4">
@@ -79,5 +88,6 @@ export const AgreementListHeader = ({
 
         <ProcessTemplatesDialog open={showProcessTemplates} onOpenChange={setShowProcessTemplates} />
       </div>
-    </div>;
+    </div>
+  );
 };
