@@ -1,6 +1,6 @@
 
-import { useState, useCallback } from "react";
-import { Search } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { Search, Keyboard } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   CommandDialog,
@@ -15,6 +15,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { SearchResults } from "@/components/search/SearchResults";
 import { useSearch } from "@/components/search/useSearch";
+import { useHotkeys } from "react-hotkeys-hook";
+import { toast } from "sonner";
 
 export const SearchBox = () => {
   const [open, setOpen] = useState(false);
@@ -44,6 +46,31 @@ export const SearchBox = () => {
     }
   }, []);
 
+  // Register keyboard shortcut
+  useHotkeys('ctrl+k, cmd+k', (event) => {
+    event.preventDefault();
+    setOpen(true);
+  });
+
+  // Clear search when dialog closes
+  useEffect(() => {
+    if (!open) {
+      // Wait a bit before clearing to avoid flickering during closing animation
+      const timer = setTimeout(() => {
+        setSearchQuery("");
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
+
+  const handleOpenSearchDialog = () => {
+    setOpen(true);
+    toast.info("Pro tip: Press Ctrl+K to quickly search", {
+      duration: 3000,
+      position: "bottom-center",
+    });
+  };
+
   return (
     <>
       <div className="relative w-[200px]">
@@ -51,19 +78,23 @@ export const SearchBox = () => {
         <Input
           placeholder={isMobile ? "Search..." : "Search..."}
           className="pl-8 h-8 text-sm"
-          onClick={() => setOpen(true)}
+          onClick={handleOpenSearchDialog}
         />
+        <div className="absolute right-2 top-1.5">
+          <Keyboard className="h-4 w-4 text-muted-foreground opacity-70" />
+        </div>
       </div>
 
       <CommandDialog open={open} onOpenChange={setOpen}>
         <div className={cn("max-w-[90vw] md:max-w-[640px]")}>
           <CommandInput 
-            placeholder="Type to search..." 
+            placeholder="Type to search vehicles, customers, agreements..." 
             value={searchQuery}
             onValueChange={setSearchQuery}
             className="h-10 md:h-12"
+            autoFocus
           />
-          <CommandList className="max-h-[50vh] md:max-h-[400px]">
+          <CommandList className="max-h-[50vh] md:max-h-[400px] overflow-auto">
             <SearchResults
               isLoading={isLoading}
               error={error}
