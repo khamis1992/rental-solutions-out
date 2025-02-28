@@ -101,9 +101,7 @@ export const ViewToggle = ({
       <div ref={containerRef} className="flex items-center gap-1 border rounded-md shadow-sm bg-background" role="group" aria-label="View options">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant={viewMode === "grid" ? "default" : "ghost"} size="sm" className="p-2" onClick={() => handleViewChange("grid")} aria-label="Grid view" aria-pressed={viewMode === "grid"}>
-              <Grid className="h-4 w-4" />
-            </Button>
+            
           </TooltipTrigger>
           <TooltipContent side="bottom">
             <div className="text-xs">
