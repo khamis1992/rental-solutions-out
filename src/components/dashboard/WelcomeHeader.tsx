@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
-import { Sun, Moon, CloudSun, UserRound, Settings, LucideIcon } from "lucide-react";
+import { Sun, Moon, CloudSun, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
@@ -21,7 +21,7 @@ const motivationalQuotes = [
   "طريق النجاح دائمًا قيد الإنشاء.",
 ];
 
-const getTimeConfig = (hour: number): { icon: LucideIcon; gradient: string; greeting: string } => {
+const getTimeConfig = (hour: number): { icon: React.ElementType; gradient: string; greeting: string } => {
   if (hour < 12) {
     return {
       icon: Sun,
@@ -90,11 +90,24 @@ export const WelcomeHeader = () => {
         </div>
         <div className="flex items-center gap-2 animate-fade-in">
           <TooltipProvider>
-            <NotificationsButton />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-foreground/80 hover:text-foreground hover:bg-background/80 transition-colors notifications"
+                >
+                  <NotificationsButton />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>الإشعارات</p>
+              </TooltipContent>
+            </Tooltip>
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <div>
+                <div className="user-menu">
                   <UserProfileMenu />
                 </div>
               </TooltipTrigger>
@@ -125,7 +138,7 @@ export const WelcomeHeader = () => {
         <p className="text-sm text-foreground/70 italic animate-fade-in hover:text-foreground/90 transition-colors">
           "{quote}"
         </p>
-        <p className="text-sm text-foreground/60 whitespace-nowrap animate-fade-in font-mono">
+        <p className="text-sm text-foreground/60 whitespace-nowrap animate-fade-in font-mono text-left ltr">
           {format(currentTime, "EEEE, MMMM do, yyyy • h:mm a")}
         </p>
       </div>

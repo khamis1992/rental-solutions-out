@@ -101,6 +101,7 @@
   direction: rtl;
 }
 
+/* RTL margin adjustments */
 .rtl .mr-2 {
   margin-right: 0;
   margin-left: 0.5rem;
@@ -121,6 +122,7 @@
   margin-right: 1rem;
 }
 
+/* RTL spacing adjustments */
 .rtl .space-x-2 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 1;
 }
@@ -140,3 +142,45 @@
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 
+/* Sidebar specific RTL adjustments */
+[dir="rtl"] .sidebar {
+  border-right: none;
+  border-left: 1px solid var(--border);
+}
+
+[dir="rtl"] [data-sidebar-menu] {
+  text-align: right;
+}
+
+[dir="rtl"] [data-sidebar-trigger] {
+  right: auto;
+  left: 0;
+  transform: rotate(180deg);
+}
+
+/* Adjust sidebar menu items for RTL */
+[dir="rtl"] [data-sidebar-menu-item] > div {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] [data-sidebar-menu-item] svg {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+/* Adjust chevron icons in dropdowns */
+[dir="rtl"] [data-state="open"] > [data-chevron],
+[dir="rtl"] [data-radix-accordion-trigger][data-state="open"] > svg {
+  transform: rotate(-90deg);
+}
+
+[dir="rtl"] [data-chevron],
+[dir="rtl"] [data-radix-accordion-trigger] > svg {
+  transform: rotate(90deg);
+}
+
+/* Adjust positioning of sidebar submenus */
+[dir="rtl"] [data-sidebar-menu-sub] {
+  padding-left: 0;
+  padding-right: 1.5rem;
+}
