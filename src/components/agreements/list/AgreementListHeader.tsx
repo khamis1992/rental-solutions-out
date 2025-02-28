@@ -1,22 +1,10 @@
-
 import { Button } from "@/components/ui/button";
-import { 
-  Upload,
-  Download,
-  FileText,
-  Search
-} from "lucide-react";
+import { Upload, Download, FileText, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { ProcessTemplatesDialog } from "@/components/agreements/ProcessTemplatesDialog";
 import { useState } from "react";
-
 interface AgreementListHeaderProps {
   onImportClick: () => void;
   onDeleteClick: () => void;
@@ -24,38 +12,25 @@ interface AgreementListHeaderProps {
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
 }
-
-export const AgreementListHeader = ({ 
-  onImportClick, 
-  onDeleteClick, 
+export const AgreementListHeader = ({
+  onImportClick,
+  onDeleteClick,
   isDeleting,
-  searchQuery = "", 
+  searchQuery = "",
   onSearchChange
 }: AgreementListHeaderProps) => {
   const [showProcessTemplates, setShowProcessTemplates] = useState(false);
-
-  return (
-    <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full mb-6">
+  return <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full mb-6">
       <div className="relative w-full max-w-md">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search agreements..."
-          className="pl-9 h-10"
-          value={searchQuery}
-          onChange={(e) => onSearchChange?.(e.target.value)}
-        />
+        
       </div>
       
       <div className="flex items-center gap-4">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="lg"
-                className="bg-white text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all duration-300 gap-2 group shadow-sm hover:shadow-md h-11"
-                onClick={() => setShowProcessTemplates(true)}
-              >
+              <Button variant="outline" size="lg" className="bg-white text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all duration-300 gap-2 group shadow-sm hover:shadow-md h-11" onClick={() => setShowProcessTemplates(true)}>
                 <FileText className="h-5 w-5" />
                 Process Templates
               </Button>
@@ -69,11 +44,7 @@ export const AgreementListHeader = ({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="lg"
-                className="bg-white text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all duration-300 gap-2 group shadow-sm hover:shadow-md h-11"
-              >
+              <Button variant="outline" size="lg" className="bg-white text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all duration-300 gap-2 group shadow-sm hover:shadow-md h-11">
                 <Download className="h-5 w-5 group-hover:translate-y-[2px] transition-transform duration-300" />
                 Export
               </Button>
@@ -88,11 +59,7 @@ export const AgreementListHeader = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <CreateAgreementDialog>
-                <Button 
-                  variant="default"
-                  size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 text-white h-11"
-                >
+                <Button variant="default" size="lg" className="bg-blue-600 hover:bg-blue-700 text-white h-11">
                   <Upload className="h-5 w-5 mr-2" />
                   Create Agreement
                 </Button>
@@ -104,11 +71,7 @@ export const AgreementListHeader = ({
           </Tooltip>
         </TooltipProvider>
 
-        <ProcessTemplatesDialog
-          open={showProcessTemplates}
-          onOpenChange={setShowProcessTemplates}
-        />
+        <ProcessTemplatesDialog open={showProcessTemplates} onOpenChange={setShowProcessTemplates} />
       </div>
-    </div>
-  );
+    </div>;
 };
