@@ -65,6 +65,10 @@ export const UpcomingMaintenance = ({ vehicleId }: UpcomingMaintenanceProps) => 
 
   return (
     <div className="space-y-4">
+      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+        <span className="inline-block w-2 h-5 bg-amber-500 rounded-sm mr-1"></span>
+        Upcoming Maintenance
+      </h3>
       {upcomingMaintenance.map((item) => {
         const daysFromNow = calculateDaysFromNow(item.scheduled_date);
         const isUrgent = item.status === "urgent" || daysFromNow <= 3;

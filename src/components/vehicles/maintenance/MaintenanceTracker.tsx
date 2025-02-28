@@ -1,7 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { MaintenanceTimeline } from "./MaintenanceTimeline";
 import { MaintenanceStats } from "./MaintenanceStats";
 import { UpcomingMaintenance } from "./UpcomingMaintenance";
@@ -40,12 +40,6 @@ export const MaintenanceTracker = ({ vehicleId }: MaintenanceTrackerProps) => {
       
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="border border-border/40 shadow-sm hover:shadow-md transition-shadow duration-300">
-          <CardHeader className="bg-muted/30">
-            <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              <span className="inline-block w-2 h-5 bg-primary rounded-sm mr-1"></span>
-              Maintenance Timeline
-            </CardTitle>
-          </CardHeader>
           <CardContent className="p-5">
             <MaintenanceTimeline 
               maintenanceHistory={maintenanceHistory || []} 
@@ -55,12 +49,6 @@ export const MaintenanceTracker = ({ vehicleId }: MaintenanceTrackerProps) => {
         </Card>
 
         <Card className="border border-border/40 shadow-sm hover:shadow-md transition-shadow duration-300">
-          <CardHeader className="bg-muted/30">
-            <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              <span className="inline-block w-2 h-5 bg-amber-500 rounded-sm mr-1"></span>
-              Upcoming Maintenance
-            </CardTitle>
-          </CardHeader>
           <CardContent className="p-5">
             <UpcomingMaintenance vehicleId={vehicleId} />
           </CardContent>

@@ -50,6 +50,10 @@ export const MaintenanceTimeline = ({ maintenanceHistory, isLoading }: Maintenan
 
   return (
     <div className="space-y-4 relative before:absolute before:left-[22px] before:top-0 before:h-full before:w-[2px] before:bg-muted">
+      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+        <span className="inline-block w-2 h-5 bg-primary rounded-sm mr-1"></span>
+        Maintenance Timeline
+      </h3>
       {maintenanceHistory.map((record, index) => (
         <div key={record.id} className="flex items-start gap-4 ml-2">
           <div className="flex-shrink-0 z-10 p-1 rounded-full bg-background border border-border">
