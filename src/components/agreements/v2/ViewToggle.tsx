@@ -6,11 +6,13 @@ import { useTouchGestures } from "@/hooks/use-touch-gestures";
 import { useHotkeys } from "react-hotkeys-hook";
 import { toast } from "sonner";
 import { Grid, List, LayoutPanelTop } from "lucide-react";
+
 interface ViewToggleProps {
   viewMode: "grid" | "list" | "compact";
   onChange: (mode: "grid" | "list" | "compact") => void;
   onSearchFocus?: () => void;
 }
+
 export const ViewToggle = ({
   viewMode,
   onChange,
@@ -98,7 +100,9 @@ export const ViewToggle = ({
     onChange(mode);
     toast.success(`${mode.charAt(0).toUpperCase() + mode.slice(1)} view activated`);
   };
-  return <TooltipProvider>
+  
+  return (
+    <TooltipProvider>
       <div ref={containerRef} className="flex items-center gap-1 border rounded-md shadow-sm bg-background" role="group" aria-label="View options">
         <Tooltip>
           <TooltipTrigger asChild>
@@ -139,5 +143,6 @@ export const ViewToggle = ({
           </TooltipContent>
         </Tooltip>
       </div>
-    </TooltipProvider>;
+    </TooltipProvider>
+  );
 };
