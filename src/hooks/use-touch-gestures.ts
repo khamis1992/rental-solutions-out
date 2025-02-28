@@ -1,66 +1,77 @@
 
-import { RefObject, useEffect } from "react";
+import { useEffect, RefObject } from "react";
 
-interface TouchGestureHandlers {
+interface TouchGestureOptions {
   onSwipeLeft?: () => void;
   onSwipeRight?: () => void;
   onSwipeUp?: () => void;
   onSwipeDown?: () => void;
+  minDistance?: number;
 }
 
 export function useTouchGestures(
-  elementRef: RefObject<HTMLElement>,
-  handlers: TouchGestureHandlers,
-  threshold: number = 50
+  ref: RefObject<HTMLElement>, 
+  options: TouchGestureOptions
 ) {
+  const { 
+    onSwipeLeft, 
+    onSwipeRight, 
+    onSwipeUp, 
+    onSwipeDown, 
+    minDistance = 50 
+  } = options;
+
   useEffect(() => {
-    const element = elementRef.current;
+    const element = ref.current;
     if (!element) return;
 
-    let startX = 0;
-    let startY = 0;
+    let touchStartX = 0;
+    let touchStartY = 0;
 
     const handleTouchStart = (e: TouchEvent) => {
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
       if (!e.changedTouches[0]) return;
       
-      const endX = e.changedTouches[0].clientX;
-      const endY = e.changedTouches[0].clientY;
+      const touchEndX = e.changedTouches[0].clientX;
+      const touchEndY = e.changedTouches[0].clientY;
       
-      const diffX = endX - startX;
-      const diffY = endY - startY;
+      const diffX = touchStartX - touchEndX;
+      const diffY = touchStartY - touchEndY;
       
-      // Only trigger if the swipe distance exceeds the threshold
-      if (Math.abs(diffX) < threshold && Math.abs(diffY) < threshold) return;
-      
-      // Determine the direction of the swipe based on which axis had a greater change
+      // Check if horizontal swipe is longer than vertical swipe
       if (Math.abs(diffX) > Math.abs(diffY)) {
-        // Horizontal swipe
-        if (diffX > 0) {
-          handlers.onSwipeRight?.();
-        } else {
-          handlers.onSwipeLeft?.();
+        if (Math.abs(diffX) > minDistance) {
+          if (diffX > 0) {
+            // Swipe left
+            onSwipeLeft?.();
+          } else {
+            // Swipe right
+            onSwipeRight?.();
+          }
         }
       } else {
-        // Vertical swipe
-        if (diffY > 0) {
-          handlers.onSwipeDown?.();
-        } else {
-          handlers.onSwipeUp?.();
+        if (Math.abs(diffY) > minDistance) {
+          if (diffY > 0) {
+            // Swipe up
+            onSwipeUp?.();
+          } else {
+            // Swipe down
+            onSwipeDown?.();
+          }
         }
       }
     };
 
-    element.addEventListener("touchstart", handleTouchStart);
-    element.addEventListener("touchend", handleTouchEnd);
+    element.addEventListener('touchstart', handleTouchStart);
+    element.addEventListener('touchend', handleTouchEnd);
 
     return () => {
-      element.removeEventListener("touchstart", handleTouchStart);
-      element.removeEventListener("touchend", handleTouchEnd);
+      element.removeEventListener('touchstart', handleTouchStart);
+      element.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [elementRef, handlers, threshold]);
+  }, [ref, onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, minDistance]);
 }
