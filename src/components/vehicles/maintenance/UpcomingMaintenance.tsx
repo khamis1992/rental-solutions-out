@@ -5,6 +5,7 @@ import { formatDateToDisplay } from "@/lib/dateUtils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Clock, AlertTriangle, Calendar } from "lucide-react";
+import { MaintenanceStatus } from "@/types/maintenance";
 
 interface UpcomingMaintenanceProps {
   vehicleId: string;
@@ -18,7 +19,7 @@ export const UpcomingMaintenance = ({ vehicleId }: UpcomingMaintenanceProps) => 
         .from("maintenance")
         .select("*")
         .eq("vehicle_id", vehicleId)
-        .in("status", ["scheduled", "urgent"])
+        .in("status", ["scheduled", "urgent" as MaintenanceStatus])
         .gte("scheduled_date", new Date().toISOString())
         .order("scheduled_date", { ascending: true })
         .limit(5);
