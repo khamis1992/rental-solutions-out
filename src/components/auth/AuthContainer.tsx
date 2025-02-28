@@ -18,10 +18,10 @@ export const AuthContainer = () => {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-8 w-3/4 mx-auto rounded-md" />
-        <Skeleton className="h-4 w-1/2 mx-auto rounded-md" />
-        <Skeleton className="h-10 w-full rounded-md" />
-        <Skeleton className="h-10 w-full rounded-md" />
+        <Skeleton className="h-8 w-3/4 mx-auto rounded-md animate-pulse" />
+        <Skeleton className="h-4 w-1/2 mx-auto rounded-md animate-pulse" />
+        <Skeleton className="h-10 w-full rounded-md animate-pulse" />
+        <Skeleton className="h-10 w-full rounded-md animate-pulse" />
       </div>
     );
   }
@@ -72,7 +72,7 @@ export const AuthContainer = () => {
         },
         className: {
           container: 'w-full space-y-4',
-          button: 'w-full px-4 py-3 rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md hover:translate-y-[-1px]',
+          button: 'w-full px-4 py-3 rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md hover:translate-y-[-1px] bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900',
           input: 'w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-orange-500/20 transition-all duration-200',
           label: 'text-sm font-medium text-gray-700 mb-1.5',
           anchor: 'text-orange-600 hover:text-orange-700 transition-colors duration-200 hover:underline',
