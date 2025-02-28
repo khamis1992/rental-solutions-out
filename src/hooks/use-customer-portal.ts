@@ -98,7 +98,7 @@ export const useCustomerPortal = () => {
           id,
           agreement_number,
           customer_id,
-          profiles:customer_id (
+          customer:customer_id (
             id,
             full_name,
             phone_number,
@@ -117,29 +117,26 @@ export const useCustomerPortal = () => {
 
       console.log("Agreement found:", data);
 
-      // Type safety handling for response data
-      const agreementData = data as {
-        id: string;
-        agreement_number: string;
-        customer_id: string;
-        profiles: {
-          id: string;
-          full_name: string | null;
-          phone_number: string | null;
-          email: string | null;
-        } | null;
-      };
+      // First check if it's an error response from Supabase (happens with missing relations)
+      if (data.customer && data.customer.error === true) {
+        console.error("Customer relation error:", data.customer);
+        toast.error("Customer information not found. Please contact support.");
+        setIsLoading(false);
+        return false;
+      }
 
-      // Handle potential issues with customer data
-      if (!agreementData.profiles) {
-        console.error("Invalid customer data:", agreementData.profiles);
+      // Safe access to customer data with proper type checking
+      const customerData = data.customer;
+      
+      if (!customerData || typeof customerData !== 'object') {
+        console.error("Invalid customer data:", customerData);
         toast.error("Customer profile data is incomplete. Please contact support.");
         setIsLoading(false);
         return false;
       }
 
       // Verify phone number matches
-      if (!agreementData.profiles.phone_number || agreementData.profiles.phone_number !== phoneNumber) {
+      if (!customerData.phone_number || customerData.phone_number !== phoneNumber) {
         toast.error("Phone number does not match our records.");
         setIsLoading(false);
         return false;
@@ -150,20 +147,20 @@ export const useCustomerPortal = () => {
       
       // Save session info
       const sessionData: CustomerPortalSession = {
-        agreementId: agreementData.id,
-        customerId: agreementData.customer_id,
-        customerName: agreementData.profiles.full_name || undefined,
-        customerEmail: agreementData.profiles.email || undefined,
-        customerPhone: agreementData.profiles.phone_number || undefined,
-        agrNumber: agreementData.agreement_number
+        agreementId: data.id,
+        customerId: data.customer_id,
+        customerName: customerData.full_name || undefined,
+        customerEmail: customerData.email || undefined,
+        customerPhone: customerData.phone_number || undefined,
+        agrNumber: data.agreement_number
       };
       
       // Save to state
-      setActiveAgreementId(agreementData.id);
-      setCustomerId(agreementData.customer_id);
-      setCustomerName(agreementData.profiles.full_name);
-      setCustomerEmail(agreementData.profiles.email);
-      setCustomerPhone(agreementData.profiles.phone_number);
+      setActiveAgreementId(data.id);
+      setCustomerId(data.customer_id);
+      setCustomerName(customerData.full_name || null);
+      setCustomerEmail(customerData.email || null);
+      setCustomerPhone(customerData.phone_number || null);
       
       // Save to localStorage
       localStorage.setItem("customerPortalSession", JSON.stringify(sessionData));
@@ -176,8 +173,8 @@ export const useCustomerPortal = () => {
       // Dispatch an event that the CustomerPortalLogin component can listen for
       const event = new CustomEvent('customerPortalLogin', { 
         detail: { 
-          customerId: agreementData.customer_id,
-          agreementId: agreementData.id
+          customerId: data.customer_id,
+          agreementId: data.id
         }
       });
       window.dispatchEvent(event);
