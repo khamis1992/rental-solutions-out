@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { useTouchGestures } from "@/hooks/use-touch-gestures";
 import { useHotkeys } from "react-hotkeys-hook";
 import { toast } from "sonner";
-// Import proper Lucide icons
+// Import Lucide icons correctly as React components
 import { Grid, List, LayoutPanelTop } from "lucide-react";
 
 interface ViewToggleProps {
