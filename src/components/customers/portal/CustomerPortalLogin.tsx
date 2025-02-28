@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,16 +8,24 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface CustomerPortalLoginProps {
   onLoginSuccess?: (customerId: string, agreementId: string) => void;
+  onLogin?: (agreementNumber: string, phoneNumber: string) => Promise<boolean>;
+  isLoading?: boolean;
 }
 
-export const CustomerPortalLogin = ({ onLoginSuccess }: CustomerPortalLoginProps) => {
+export const CustomerPortalLogin = ({ 
+  onLoginSuccess, 
+  onLogin,
+  isLoading: externalIsLoading 
+}: CustomerPortalLoginProps) => {
   const [agrNumber, setAgrNumber] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [internalIsLoading, setInternalIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState({
     agreementNumber: "",
     phoneNumber: ""
   });
+  
+  const isLoading = externalIsLoading !== undefined ? externalIsLoading : internalIsLoading;
   
   const validateForm = () => {
     const errors = {
@@ -42,10 +49,10 @@ export const CustomerPortalLogin = ({ onLoginSuccess }: CustomerPortalLoginProps
     return !errors.agreementNumber && !errors.phoneNumber;
   };
 
-  const handleLogin = async () => {
-    if (!validateForm()) return;
+  const handleDefaultLogin = async () => {
+    if (!validateForm()) return false;
     
-    setIsLoading(true);
+    setInternalIsLoading(true);
     
     try {
       console.log("Logging in with:", { agrNumber, phoneNumber });
@@ -70,26 +77,33 @@ export const CustomerPortalLogin = ({ onLoginSuccess }: CustomerPortalLoginProps
       if (agreementError || !agreementData) {
         console.error("Agreement fetch error:", agreementError);
         toast.error("Agreement not found. Please check your agreement number.");
-        setIsLoading(false);
-        return;
+        setInternalIsLoading(false);
+        return false;
       }
       
       console.log("Agreement data:", agreementData);
       
-      // Handle possible null profile or missing phone_number
-      if (!agreementData.profiles || typeof agreementData.profiles === 'string' || 
-          !agreementData.profiles.phone_number) {
-        console.error("Invalid profile data:", agreementData.profiles);
+      // Check if customer_id exists
+      if (!agreementData.customer_id) {
+        console.error("No customer_id found in agreement data");
+        toast.error("Customer information not found. Please contact support.");
+        setInternalIsLoading(false);
+        return false;
+      }
+      
+      // Check if profiles data exists and is valid
+      if (!agreementData.profiles || typeof agreementData.profiles !== 'object') {
+        console.error("Invalid profiles data:", agreementData.profiles);
         toast.error("Customer profile data is incomplete. Please contact support.");
-        setIsLoading(false);
-        return;
+        setInternalIsLoading(false);
+        return false;
       }
       
       // Check if phone number matches
       if (agreementData.profiles.phone_number !== phoneNumber) {
         toast.error("Phone number does not match our records.");
-        setIsLoading(false);
-        return;
+        setInternalIsLoading(false);
+        return false;
       }
       
       // Store in local storage for persistence
@@ -121,25 +135,38 @@ export const CustomerPortalLogin = ({ onLoginSuccess }: CustomerPortalLoginProps
           agreementId: agreementData.id
         }
       });
-      console.log("Dispatching customerPortalLogin event:", event);
+      console.log("Dispatching customerPortalLogin event");
       window.dispatchEvent(event);
       
-      // Force a page reload if nothing else works
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      // Force reload the page to ensure state is refreshed
+      window.location.reload();
       
+      return true;
     } catch (error) {
       console.error("Login error:", error);
       toast.error("An error occurred. Please try again.");
+      return false;
     } finally {
-      setIsLoading(false);
+      setInternalIsLoading(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    handleLogin();
+    
+    // If external onLogin handler is provided, use that
+    if (onLogin) {
+      if (validateForm()) {
+        const success = await onLogin(agrNumber, phoneNumber);
+        if (success) {
+          console.log("External login successful");
+          // The external handler should handle state changes
+        }
+      }
+    } else {
+      // Otherwise use the default login handler
+      await handleDefaultLogin();
+    }
   };
 
   return (
