@@ -1,10 +1,11 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { AgreementListHeader } from "@/components/agreements/list/AgreementListHeader";
 import { AgreementStats } from "@/components/agreements/AgreementStats";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { PaymentImport } from "@/components/agreements/PaymentImport";
-import { ChevronRight, Building2, FileText, Search, AlertCircle } from "lucide-react";
+import { ChevronRight, Building2, FileText, Search, AlertCircle, List, Grid2X2 } from "lucide-react";
 import { useAgreements } from "@/components/agreements/hooks/useAgreements";
 import { AgreementDetailsDialog } from "@/components/agreements/AgreementDetailsDialog";
 import { type Agreement } from "@/types/agreement.types";
@@ -14,36 +15,61 @@ import { Input } from "@/components/ui/input";
 import { EnhancedAgreementListV2 } from "@/components/agreements/v2/EnhancedAgreementListV2";
 import { Button } from "@/components/ui/button";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { SearchInput } from "@/components/agreements/search/SearchInput";
+import { ViewToggle } from "@/components/agreements/v2/ViewToggle";
+
 const Agreements = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedAgreement, setSelectedAgreement] = useState<Agreement | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
+    // Get from localStorage or default to grid
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem("agreement-view-mode") as "grid" | "list") || "grid";
+    }
+    return "grid";
+  });
+
   const {
     data: agreements = [],
     isLoading,
     isError,
     error,
     refetch
-  } = useAgreements();
+  } = useAgreements(searchQuery);
+
   const handleImportClick = () => {
     // Import handling logic
   };
+
   const handleViewDetails = (agreement: Agreement) => {
     setSelectedAgreement(agreement);
     setShowDetailsDialog(true);
   };
+
   const handleDeleteClick = (agreement: Agreement) => {
     setSelectedAgreement(agreement);
     setShowDeleteDialog(true);
   };
+
   const handleDeleteComplete = () => {
     toast.success("Agreement deleted successfully");
     refetch();
     setShowDeleteDialog(false);
     setSelectedAgreement(null);
   };
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleViewModeChange = (mode: "grid" | "list") => {
+    setViewMode(mode);
+    localStorage.setItem("agreement-view-mode", mode);
+  };
+
   return <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         {/* Enhanced Header Section */}
@@ -84,11 +110,15 @@ const Agreements = () => {
             {/* Enhanced Search and Action Buttons */}
             <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
               <div className="flex-1 relative">
-                
-                
+                <SearchInput 
+                  onSearch={handleSearchChange}
+                  placeholder="Search agreements..."
+                  initialValue={searchQuery}
+                />
               </div>
               <div className="flex gap-4 flex-shrink-0">
-                <div className="flex-1">
+                <div className="flex items-center gap-4">
+                  <ViewToggle initialMode={viewMode} onViewModeChange={handleViewModeChange} />
                   <AgreementListHeader onImportClick={handleImportClick} onDeleteClick={() => {}} isDeleting={false} />
                 </div>
                 <div className="flex-shrink-0">
@@ -120,7 +150,14 @@ const Agreements = () => {
                       Try Again
                     </Button>
                   </div>
-                </div> : <EnhancedAgreementListV2 agreements={agreements} onViewDetails={handleViewDetails} onDelete={handleDeleteClick} viewMode="grid" showLoadingState={isLoading} />}
+                </div> : <EnhancedAgreementListV2 
+                  agreements={agreements} 
+                  onViewDetails={handleViewDetails} 
+                  onDelete={handleDeleteClick} 
+                  viewMode={viewMode} 
+                  showLoadingState={isLoading} 
+                  onViewModeChange={handleViewModeChange}
+                />}
             </ErrorBoundary>
           </div>
         </div>
@@ -135,4 +172,5 @@ const Agreements = () => {
       </div>
     </DashboardLayout>;
 };
+
 export default Agreements;

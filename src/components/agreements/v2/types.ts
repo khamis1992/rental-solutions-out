@@ -7,4 +7,5 @@ export interface EnhancedAgreementListV2Props {
   onDelete?: (agreement: Agreement) => void;
   viewMode?: "grid" | "list";
   showLoadingState?: boolean;
+  onViewModeChange?: (mode: "grid" | "list") => void;
 }
