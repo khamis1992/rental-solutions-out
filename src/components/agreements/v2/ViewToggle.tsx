@@ -43,18 +43,21 @@ export const ViewToggle = ({
   }, {
     preventDefault: true
   });
+
   useHotkeys('shift+l', () => {
     onChange("list");
     toast.success("List view activated");
   }, {
     preventDefault: true
   });
+
   useHotkeys('shift+t', () => {
     onChange("compact");
     toast.success("Compact view activated");
   }, {
     preventDefault: true
   });
+
   useHotkeys('shift+f', () => {
     if (onSearchFocus) {
       onSearchFocus();

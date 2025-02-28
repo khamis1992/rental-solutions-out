@@ -37,8 +37,13 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(({
         value={searchTerm} 
         onChange={handleInputChange} 
         placeholder={placeholder} 
-        className="pl-9 w-full text-black dark:text-white" 
-        style={{ color: 'var(--foreground)', fontWeight: '500' }}
+        className="pl-9 w-full" 
+        style={{ 
+          color: 'var(--foreground)',
+          fontWeight: '500',
+          backgroundColor: 'var(--background)',
+          border: '1px solid var(--input)'
+        }}
       />
     </div>
   );
