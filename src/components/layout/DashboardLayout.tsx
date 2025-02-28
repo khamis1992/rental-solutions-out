@@ -4,6 +4,7 @@ import { DashboardSidebar } from "./DashboardSidebar";
 import { Outlet } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { TourProvider } from "@/contexts/TourContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const tourSteps = [
   {
@@ -31,13 +32,15 @@ interface DashboardLayoutProps {
 }
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+  const isMobile = useIsMobile();
+  
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultCollapsed={isMobile}>
       <TourProvider steps={tourSteps}>
         <div className="relative flex min-h-screen w-full">
           <DashboardSidebar />
           <div className="flex-1 flex flex-col min-h-screen">
-            <main className="page-container">
+            <main className="page-container pb-safe">
               <div className="content-wrapper">
                 {children || <Outlet />}
               </div>

@@ -2,6 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 import { Agreement } from "@/types/agreement.types";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ProfitabilityTrackingProps {
   agreements: Agreement[] | null;
@@ -11,6 +12,7 @@ interface ProfitabilityTrackingProps {
 export const ProfitabilityTracking = ({ agreements, isLoading }: ProfitabilityTrackingProps) => {
   const totalMonthlyRevenue = agreements?.reduce((sum, agreement) => sum + (agreement.rent_amount || 0), 0) || 0;
   const totalContractValue = agreements?.reduce((sum, agreement) => sum + (agreement.total_amount || 0), 0) || 0;
+  const isMobile = useIsMobile();
 
   return (
     <div className="space-y-4">
@@ -19,12 +21,12 @@ export const ProfitabilityTracking = ({ agreements, isLoading }: ProfitabilityTr
           <CardTitle>Profitability Overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
+            <div className="p-3">
               <div className="text-sm text-muted-foreground">Monthly Revenue</div>
               <div className="text-2xl font-bold">{formatCurrency(totalMonthlyRevenue)}</div>
             </div>
-            <div>
+            <div className="p-3">
               <div className="text-sm text-muted-foreground">Total Contract Value</div>
               <div className="text-2xl font-bold">{formatCurrency(totalContractValue)}</div>
             </div>

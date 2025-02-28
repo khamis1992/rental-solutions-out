@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Vehicle {
   id: string;
@@ -17,6 +18,8 @@ interface VehicleStatsProps {
 }
 
 export const VehicleStats = ({ vehicles, isLoading }: VehicleStatsProps) => {
+  const isMobile = useIsMobile();
+  
   const { data: vehicleCounts, isLoading: isLoadingCounts } = useQuery({
     queryKey: ["vehicle-counts"],
     queryFn: async () => {
@@ -88,7 +91,7 @@ export const VehicleStats = ({ vehicles, isLoading }: VehicleStatsProps) => {
 
   if (isLoadingCounts) {
     return (
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-3'}`}>
         {[1, 2, 3].map((i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-6">
@@ -102,16 +105,16 @@ export const VehicleStats = ({ vehicles, isLoading }: VehicleStatsProps) => {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-3'}`}>
       {mainStats.map((stat) => (
         <Card 
           key={stat.title}
           className={cn(
-            "group hover:shadow-lg transition-all duration-300",
+            "group hover:shadow-lg transition-all duration-300 touch-target",
             "bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30",
             "backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50",
             "hover:border-gray-300 dark:hover:border-gray-600",
-            "hover:translate-y-[-2px]"
+            isMobile ? "" : "hover:translate-y-[-2px]"
           )}
         >
           <CardContent className="p-6">

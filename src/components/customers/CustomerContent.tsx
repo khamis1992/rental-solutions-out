@@ -6,6 +6,7 @@ import { CustomerGrid } from "./CustomerGrid";
 import type { Customer } from "./types/customer";
 import { ViewSwitcher } from "./ViewSwitcher";
 import { useState, useEffect } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CustomerContentProps {
   customers: Customer[];
@@ -20,23 +21,41 @@ export const CustomerContent = ({
   onCustomerClick,
   onCustomerDeleted 
 }: CustomerContentProps) => {
+  const isMobile = useIsMobile();
   const [view, setView] = useState<"grid" | "table">(() => {
+    // Default to grid on mobile, otherwise use stored preference
     if (typeof window !== "undefined") {
-      return (localStorage.getItem(VIEW_STORAGE_KEY) as "grid" | "table") || "grid";
+      return isMobile 
+        ? "grid" 
+        : (localStorage.getItem(VIEW_STORAGE_KEY) as "grid" | "table") || "grid";
     }
     return "grid";
   });
 
+  // Update view when mobile status changes
   useEffect(() => {
-    localStorage.setItem(VIEW_STORAGE_KEY, view);
-  }, [view]);
+    if (isMobile && view === "table") {
+      setView("grid");
+    }
+  }, [isMobile, view]);
 
-  if (view === "grid") {
+  useEffect(() => {
+    if (!isMobile) {  // Only store preference on non-mobile
+      localStorage.setItem(VIEW_STORAGE_KEY, view);
+    }
+  }, [view, isMobile]);
+
+  // Force grid view on mobile
+  const effectiveView = isMobile ? "grid" : view;
+
+  if (effectiveView === "grid") {
     return (
       <div className="space-y-6">
-        <div className="flex justify-end">
-          <ViewSwitcher view={view} onViewChange={setView} />
-        </div>
+        {!isMobile && (
+          <div className="flex justify-end">
+            <ViewSwitcher view={view} onViewChange={setView} />
+          </div>
+        )}
         <CustomerGrid 
           customers={customers}
           onCustomerClick={onCustomerClick}
@@ -50,7 +69,7 @@ export const CustomerContent = ({
       <div className="flex justify-end">
         <ViewSwitcher view={view} onViewChange={setView} />
       </div>
-      <div className="rounded-md border bg-card overflow-hidden">
+      <div className="rounded-md border bg-card overflow-hidden overflow-x-auto">
         <Table>
           <CustomerTableHeader />
           <TableBody>

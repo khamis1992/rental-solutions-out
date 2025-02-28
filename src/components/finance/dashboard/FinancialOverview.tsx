@@ -5,8 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/utils";
 import { ArrowUpRight, ArrowDownRight, DollarSign, Wallet, CreditCard, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const FinancialOverview = () => {
+  const isMobile = useIsMobile();
   const { data: metrics, isLoading } = useQuery({
     queryKey: ["financial-metrics"],
     queryFn: async () => {
@@ -53,7 +55,7 @@ export const FinancialOverview = () => {
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-3'}`}>
         {[...Array(3)].map((_, i) => (
           <Skeleton key={i} className="h-[160px]" />
         ))}
@@ -88,9 +90,9 @@ export const FinancialOverview = () => {
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-3'}`}>
       {cards.map((card, index) => (
-        <Card key={index} className="relative overflow-hidden">
+        <Card key={index} className="relative overflow-hidden touch-target">
           <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} pointer-events-none`} />
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">

@@ -70,6 +70,39 @@
   .responsive-margin {
     @apply m-4 sm:m-6 md:m-8;
   }
+  
+  /* Safe Area Insets for Mobile */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0);
+  }
+  
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  
+  .pl-safe {
+    padding-left: env(safe-area-inset-left, 0);
+  }
+  
+  .pr-safe {
+    padding-right: env(safe-area-inset-right, 0);
+  }
+  
+  /* Improved button accessibility for touch */
+  .touch-button {
+    @apply min-h-[44px] min-w-[44px] p-3 flex items-center justify-center;
+  }
+  
+  /* Prevent text from becoming too small on mobile */
+  .min-text {
+    font-size: max(16px, 1rem);
+  }
+  
+  /* Overscroll behavior control for momentum scrolling */
+  .momentum-scroll {
+    -webkit-overflow-scrolling: touch;
+    @apply overflow-auto overscroll-contain;
+  }
 }
 
 /* Print Styles */
@@ -87,6 +120,24 @@
   
   .no-touch-only {
     @apply hidden;
+  }
+  
+  /* Adjust tap targets for touch */
+  button, 
+  [role="button"],
+  a, 
+  input[type="submit"],
+  input[type="button"],
+  input[type="checkbox"],
+  input[type="radio"],
+  select,
+  .interactive {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Add more space between interactive elements */
+  .touch-spacing > * + * {
+    @apply mt-4;
   }
 }
 
