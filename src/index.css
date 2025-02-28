@@ -142,113 +142,45 @@
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 
-/* Enhanced Sidebar RTL adjustments */
-html[dir="rtl"] .sidebar,
-[dir="rtl"] .sidebar,
-.rtl-mode .sidebar,
-.rtl-layout .sidebar {
-  border-right: none !important;
-  border-left: 1px solid var(--border) !important;
-  right: 0 !important;
-  left: auto !important;
-  position: relative !important;
+/* Sidebar specific RTL adjustments */
+[dir="rtl"] .sidebar {
+  border-right: none;
+  border-left: 1px solid var(--border);
 }
 
-/* Fixed order of sidebar items for RTL */
-[dir="rtl"] [data-sidebar-menu],
-.rtl-mode [data-sidebar-menu],
-.rtl-layout [data-sidebar-menu] {
-  text-align: right !important;
+[dir="rtl"] [data-sidebar-menu] {
+  text-align: right;
 }
 
-/* Fix sidebar trigger position for RTL */
-[dir="rtl"] [data-sidebar-trigger],
-.rtl-mode [data-sidebar-trigger],
-.rtl-layout [data-sidebar-trigger] {
-  right: auto !important;
-  left: 0 !important;
-  transform: rotate(180deg) !important;
+[dir="rtl"] [data-sidebar-trigger] {
+  right: auto;
+  left: 0;
+  transform: rotate(180deg);
 }
 
-/* Reorder sidebar menu items for RTL */
-[dir="rtl"] [data-sidebar-menu-item] > div,
-.rtl-mode [data-sidebar-menu-item] > div,
-.rtl-layout [data-sidebar-menu-item] > div {
-  flex-direction: row-reverse !important;
+/* Adjust sidebar menu items for RTL */
+[dir="rtl"] [data-sidebar-menu-item] > div {
+  flex-direction: row-reverse;
 }
 
-[dir="rtl"] [data-sidebar-menu-item] svg,
-.rtl-mode [data-sidebar-menu-item] svg,
-.rtl-layout [data-sidebar-menu-item] svg {
-  margin-right: 0 !important;
-  margin-left: 0.75rem !important;
+[dir="rtl"] [data-sidebar-menu-item] svg {
+  margin-right: 0;
+  margin-left: 0.5rem;
 }
 
-/* Fix chevron icons in dropdowns */
+/* Adjust chevron icons in dropdowns */
 [dir="rtl"] [data-state="open"] > [data-chevron],
-[dir="rtl"] [data-radix-accordion-trigger][data-state="open"] > svg,
-.rtl-mode [data-state="open"] > [data-chevron],
-.rtl-mode [data-radix-accordion-trigger][data-state="open"] > svg,
-.rtl-layout [data-state="open"] > [data-chevron],
-.rtl-layout [data-radix-accordion-trigger][data-state="open"] > svg {
-  transform: rotate(-90deg) !important;
+[dir="rtl"] [data-radix-accordion-trigger][data-state="open"] > svg {
+  transform: rotate(-90deg);
 }
 
 [dir="rtl"] [data-chevron],
-[dir="rtl"] [data-radix-accordion-trigger] > svg,
-.rtl-mode [data-chevron],
-.rtl-mode [data-radix-accordion-trigger] > svg,
-.rtl-layout [data-chevron],
-.rtl-layout [data-radix-accordion-trigger] > svg {
-  transform: rotate(90deg) !important;
+[dir="rtl"] [data-radix-accordion-trigger] > svg {
+  transform: rotate(90deg);
 }
 
-/* Fix submenu positioning */
-[dir="rtl"] [data-sidebar-menu-sub],
-.rtl-mode [data-sidebar-menu-sub],
-.rtl-layout [data-sidebar-menu-sub] {
-  padding-left: 0 !important;
-  padding-right: 1.5rem !important;
-}
-
-/* Override default sidebar direction in RTL mode */
-[dir="rtl"] .peer,
-[dir="rtl"] [data-sidebar="sidebar"],
-.rtl-mode .peer,
-.rtl-mode [data-sidebar="sidebar"],
-.rtl-layout .peer,
-.rtl-layout [data-sidebar="sidebar"] {
-  direction: rtl !important;
-}
-
-/* Force Layout Direction */
-html[dir="rtl"] body > div,
-html[dir="rtl"] #root,
-html[dir="rtl"] main,
-html[dir="rtl"] .peer,
-html[dir="rtl"] [data-sidebar="sidebar"],
-.rtl-mode body > div,
-.rtl-mode #root,
-.rtl-mode main,
-.rtl-mode .peer,
-.rtl-mode [data-sidebar="sidebar"],
-.rtl-layout body > div,
-.rtl-layout #root,
-.rtl-layout main,
-.rtl-layout .peer,
-.rtl-layout [data-sidebar="sidebar"] {
-  direction: rtl !important;
-}
-
-/* Fix layout for RTL sidebar positioning */
-html[dir="rtl"] .relative.flex,
-.rtl-mode .relative.flex,
-.rtl-layout .relative.flex {
-  flex-direction: row-reverse !important;
-}
-
-/* Fix english dates and other ltr content inside rtl documents */
-.ltr {
-  direction: ltr;
-  text-align: left;
+/* Adjust positioning of sidebar submenus */
+[dir="rtl"] [data-sidebar-menu-sub] {
+  padding-left: 0;
+  padding-right: 1.5rem;
 }
