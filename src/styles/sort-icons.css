@@ -85,3 +85,30 @@ button > svg,
   --icon-color: #3B82F6 !important;
   --icon-stroke: #3B82F6 !important;
 }
+
+/* Background color changes for selected elements */
+[data-state="checked"],
+[data-state="active"],
+[data-selected="true"],
+[role="menuitem"][data-highlighted],
+.selected,
+.active,
+[aria-selected="true"] {
+  background-color: #EBF5FF !important; /* Light blue background */
+  color: #3B82F6 !important; /* Blue text */
+}
+
+/* Target dropdown menus in agreement route specifically */
+[data-current-route="agreements"] [role="menuitem"]:hover,
+.agreements [role="menuitem"]:hover,
+[class*="dropdown"] [role="menuitem"]:hover {
+  background-color: #EBF5FF !important;
+}
+
+/* Ensure selected menu items have blue background */
+[role="menuitem"][data-highlighted],
+[role="option"][data-highlighted],
+[role="menuitemcheckbox"][data-highlighted],
+[role="menuitemradio"][data-highlighted] {
+  background-color: #EBF5FF !important;
+}
