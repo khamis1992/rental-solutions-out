@@ -89,7 +89,7 @@ export const SadadPaymentForm = ({
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="amount">Payment Amount (SAR)</Label>
+          <Label htmlFor="amount">Payment Amount (QAR)</Label>
           <Input
             id="amount"
             type="number"

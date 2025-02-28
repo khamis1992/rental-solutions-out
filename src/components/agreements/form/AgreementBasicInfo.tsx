@@ -1,3 +1,4 @@
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UseFormRegister, FieldErrors, UseFormWatch } from "react-hook-form";
@@ -31,7 +32,7 @@ export const AgreementBasicInfo = ({ register, errors, watch }: AgreementBasicIn
         <AgreementTypeSelect register={register} />
 
         <div className="space-y-2">
-          <Label htmlFor="rentAmount">Rent Amount</Label>
+          <Label htmlFor="rentAmount">Rent Amount (QAR)</Label>
           <Input
             id="rentAmount"
             type="number"
@@ -45,7 +46,7 @@ export const AgreementBasicInfo = ({ register, errors, watch }: AgreementBasicIn
 
         {agreementType === "lease_to_own" && (
           <div className="space-y-2">
-            <Label htmlFor="downPayment">Down Payment</Label>
+            <Label htmlFor="downPayment">Down Payment (QAR)</Label>
             <Input
               id="downPayment"
               type="number"

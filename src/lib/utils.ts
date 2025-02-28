@@ -19,4 +19,3 @@ export function formatDate(date: Date | string): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   return format(dateObj, 'PPP');
 }
-

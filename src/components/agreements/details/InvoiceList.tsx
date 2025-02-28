@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -6,6 +7,7 @@ import { useState } from "react";
 import { InvoiceDialog } from "../InvoiceDialog";
 import { FileText, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/utils";
 
 interface InvoiceListProps {
   agreementId: string;
@@ -66,7 +68,7 @@ export const InvoiceList = ({ agreementId }: InvoiceListProps) => {
                     ? format(new Date(invoice.issued_date), 'dd/MM/yyyy')
                     : '-'}
                 </TableCell>
-                <TableCell>{invoice.amount} QAR</TableCell>
+                <TableCell>{formatCurrency(invoice.amount)}</TableCell>
                 <TableCell className="capitalize">
                   {invoice.status?.toLowerCase() || '-'}
                 </TableCell>
