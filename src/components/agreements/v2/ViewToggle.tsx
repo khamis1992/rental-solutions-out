@@ -10,13 +10,11 @@ import { Grid, List, LayoutPanelTop } from "lucide-react";
 interface ViewToggleProps {
   viewMode: "grid" | "list" | "compact";
   onChange: (mode: "grid" | "list" | "compact") => void;
-  onSearchFocus?: () => void;
 }
 
 export const ViewToggle = ({
   viewMode,
-  onChange,
-  onSearchFocus
+  onChange
 }: ViewToggleProps) => {
   const [previousMode, setPreviousMode] = useState<"grid" | "list" | "compact">(viewMode);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -52,14 +50,6 @@ export const ViewToggle = ({
   useHotkeys('shift+t', () => {
     onChange("compact");
     toast.success("Compact view activated");
-  }, {
-    preventDefault: true
-  });
-  useHotkeys('shift+f', () => {
-    if (onSearchFocus) {
-      onSearchFocus();
-      toast.success("Search focused");
-    }
   }, {
     preventDefault: true
   });
