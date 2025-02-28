@@ -66,7 +66,7 @@ export function useTouchGestures(
       }
     };
 
-    element.addEventListener('touchstart', handleTouchStart);
+    element.addEventListener('touchstart', handleTouchStart, { passive: true });
     element.addEventListener('touchend', handleTouchEnd);
 
     return () => {
