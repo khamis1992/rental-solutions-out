@@ -30,7 +30,7 @@ export const SearchInput = ({
 
   return (
     <div className={`relative w-full ${className}`}>
-      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" style={{ color: '#3B82F6', stroke: '#3B82F6' }} />
       <Input
         type="text"
         value={searchTerm}

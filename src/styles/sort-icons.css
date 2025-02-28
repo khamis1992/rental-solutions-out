@@ -55,3 +55,33 @@ button svg,
   color: #3B82F6 !important;
   stroke: #3B82F6 !important;
 }
+
+/* Global override for all SVG elements - USE WITH CAUTION */
+svg {
+  color: #3B82F6 !important;
+  stroke: #3B82F6 !important;
+}
+
+/* Direct targeting of button element styles */
+button {
+  --icon-color: #3B82F6 !important;
+  --icon-stroke: #3B82F6 !important;
+}
+
+/* Target SVG children directly */
+button > svg, 
+[role="menuitem"] > svg,
+.dropdown > svg,
+[class*="sort"] > svg {
+  color: #3B82F6 !important;
+  stroke: #3B82F6 !important;
+}
+
+/* !important everywhere */
+[class], 
+[id], 
+*[data-*] {
+  --tw-text-opacity: 1 !important;
+  --icon-color: #3B82F6 !important;
+  --icon-stroke: #3B82F6 !important;
+}
