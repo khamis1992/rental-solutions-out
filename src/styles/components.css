@@ -1,6 +1,4 @@
 
-
-
 /* Sort icon styles */
 /* Target ArrowUpDown icon in sort buttons */
 button svg[class*="lucide-ArrowUpDown"] {
@@ -24,4 +22,3 @@ button[class*="gap-2"] svg[class*="lucide-ArrowUpDown"] {
 [class*="dropdown"] [role="menuitem"] svg {
   color: #3B82F6 !important; /* blue-600 when selected */
 }
-
