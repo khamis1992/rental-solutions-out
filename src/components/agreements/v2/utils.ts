@@ -1,4 +1,5 @@
 
+
 import { StatusConfig, PaymentConfig } from "./types";
 import { Agreement } from "@/components/agreements/hooks/useAgreements";
 import { 
@@ -101,7 +102,6 @@ export const getKeyboardShortcuts = () => {
   return {
     "Shift+A": "Select all agreements",
     "Shift+C": "Clear selection",
-    "Shift+F": "Focus search",
     "Shift+G": "Toggle grid view",
     "Shift+L": "Toggle list view",
     "Shift+T": "Toggle compact view",

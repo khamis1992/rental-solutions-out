@@ -1,8 +1,4 @@
-
-import { UserProfileMenu } from "@/components/layout/UserProfileMenu";
-import { NotificationsButton } from "@/components/layout/NotificationsButton";
 import { Button } from "@/components/ui/button";
-import { MenuIcon } from "lucide-react";
 
 interface DashboardHeaderProps {
   onMenuButtonClick: () => void;
@@ -18,11 +14,10 @@ export const DashboardHeader = ({ onMenuButtonClick }: DashboardHeaderProps) => 
         className="md:hidden"
         aria-label="Toggle menu"
       >
-        <MenuIcon className="h-5 w-5" />
+        {/* Menu button without icon */}
       </Button>
       <div className="ml-auto flex items-center space-x-4">
-        <NotificationsButton />
-        <UserProfileMenu />
+        {/* All icons and components removed */}
       </div>
     </div>
   );
