@@ -28,6 +28,8 @@ export const SadadPaymentForm = ({
   
   const paymentMutation = useMutation({
     mutationFn: async (amount: number) => {
+      console.log("Processing payment:", { amount, agreementId, customerId });
+      
       // In a real implementation, this would communicate with the SADAD API
       // For now, we'll just add the payment to our database directly
       const { data, error } = await supabase
@@ -43,12 +45,20 @@ export const SadadPaymentForm = ({
           type: "Income"
         });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Payment error:", error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
       toast.success("Payment submitted successfully!");
       setPaymentAmount(amount > 0 ? amount.toString() : "");
+      
+      // Simulate redirect to SADAD payment page
+      setTimeout(() => {
+        toast.info("Redirecting to payment gateway...");
+      }, 1000);
     },
     onError: (error) => {
       console.error("Payment error:", error);

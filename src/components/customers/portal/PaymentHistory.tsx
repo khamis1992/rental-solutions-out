@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
@@ -12,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 
 interface PaymentHistoryProps {
   customerId: string;
@@ -91,6 +92,17 @@ export const PaymentHistory = ({ customerId, agreementId }: PaymentHistoryProps)
     );
   }
 
+  // Helper to format dates safely
+  const formatDate = (dateString?: string | null) => {
+    if (!dateString) return "N/A";
+    try {
+      return format(parseISO(dateString), "dd/MM/yyyy");
+    } catch (e) {
+      console.error("Date format error:", e);
+      return "Invalid date";
+    }
+  };
+
   return (
     <div className="overflow-auto">
       <Table>
@@ -107,7 +119,7 @@ export const PaymentHistory = ({ customerId, agreementId }: PaymentHistoryProps)
             <TableRow key={payment.id}>
               <TableCell>
                 {payment.payment_date ? 
-                  format(new Date(payment.payment_date), "dd/MM/yyyy") : 
+                  formatDate(payment.payment_date) : 
                   "N/A"}
               </TableCell>
               <TableCell>{formatCurrency(payment.amount)}</TableCell>

@@ -1,83 +1,188 @@
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CustomerPortalLoginProps {
-  onLoginSuccess?: (agrNumber: string, phoneNumber: string) => void;
-  onLogin: (agreementNumber: string, phoneNumber: string) => Promise<boolean>;
-  isLoading: boolean;
+  onLoginSuccess?: (customerId: string, agreementId: string) => void;
 }
 
-export const CustomerPortalLogin = ({ onLoginSuccess, onLogin, isLoading }: CustomerPortalLoginProps) => {
+export const CustomerPortalLogin = ({ onLoginSuccess }: CustomerPortalLoginProps) => {
   const [agrNumber, setAgrNumber] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({
+    agreementNumber: "",
+    phoneNumber: ""
+  });
   
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const validateForm = () => {
+    const errors = {
+      agreementNumber: "",
+      phoneNumber: ""
+    };
     
-    if (!agrNumber || !phoneNumber) {
-      return;
+    if (!agrNumber.trim()) {
+      errors.agreementNumber = "Agreement number is required";
+    } else if (agrNumber.length < 3) {
+      errors.agreementNumber = "Please enter a valid agreement number";
     }
     
-    console.log("Login form submitted:", { agrNumber, phoneNumber });
-    const success = await onLogin(agrNumber, phoneNumber);
-    console.log("Login result:", success);
+    if (!phoneNumber.trim()) {
+      errors.phoneNumber = "Phone number is required";
+    } else if (phoneNumber.length < 8) {
+      errors.phoneNumber = "Please enter a valid phone number";
+    }
     
-    if (success && onLoginSuccess) {
-      onLoginSuccess(agrNumber, phoneNumber);
+    setValidationErrors(errors);
+    return !errors.agreementNumber && !errors.phoneNumber;
+  };
+
+  const handleLogin = async () => {
+    if (!validateForm()) return;
+    
+    setIsLoading(true);
+    
+    try {
+      console.log("Logging in with:", { agrNumber, phoneNumber });
+      
+      // First, get the agreement details
+      const { data: agreementData, error: agreementError } = await supabase
+        .from("leases")
+        .select(`
+          id, 
+          agreement_number,
+          customer_id,
+          profiles:customer_id (
+            id,
+            full_name,
+            phone_number,
+            email
+          )
+        `)
+        .eq("agreement_number", agrNumber)
+        .single();
+      
+      if (agreementError || !agreementData) {
+        console.error("Agreement fetch error:", agreementError);
+        toast.error("Agreement not found. Please check your agreement number.");
+        setIsLoading(false);
+        return;
+      }
+      
+      console.log("Agreement data:", agreementData);
+      
+      // Check if phone number matches
+      const profile = agreementData.profiles;
+      if (!profile || profile.phone_number !== phoneNumber) {
+        toast.error("Phone number does not match our records.");
+        setIsLoading(false);
+        return;
+      }
+      
+      // Store in local storage for persistence
+      const sessionData = {
+        customerId: agreementData.customer_id,
+        agreementId: agreementData.id,
+        customerName: profile.full_name,
+        customerEmail: profile.email,
+        customerPhone: profile.phone_number,
+        agrNumber: agreementData.agreement_number
+      };
+      
+      localStorage.setItem("customerPortalSession", JSON.stringify(sessionData));
+      
+      // Login successful
+      console.log("Login successful");
+      toast.success("Login successful!");
+      
+      // Call the onLoginSuccess callback if provided
+      if (onLoginSuccess) {
+        onLoginSuccess(agreementData.customer_id, agreementData.id);
+      }
+      
+      // Allow the parent component to handle navigation
+      window.dispatchEvent(new CustomEvent('customerPortalLogin', { 
+        detail: { 
+          customerId: agreementData.customer_id,
+          agreementId: agreementData.id
+        }
+      }));
+      
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleLogin();
+  };
+
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">Customer Portal</CardTitle>
-        <p className="text-center text-muted-foreground">Enter your agreement details to login</p>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="agreementNumber">Agreement Number</Label>
-            <Input 
-              id="agreementNumber" 
-              type="text" 
-              placeholder="Enter your agreement number" 
-              value={agrNumber}
-              onChange={(e) => setAgrNumber(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="phoneNumber">Phone Number</Label>
-            <Input 
-              id="phoneNumber" 
-              type="tel" 
-              placeholder="Enter your phone number" 
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              required
-            />
-          </div>
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Logging in...
-              </>
-            ) : (
-              "Login"
-            )}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="agreementNumber">Agreement Number</Label>
+        <Input 
+          id="agreementNumber" 
+          type="text" 
+          placeholder="Enter your agreement number" 
+          value={agrNumber}
+          onChange={(e) => {
+            setAgrNumber(e.target.value);
+            if (validationErrors.agreementNumber) {
+              setValidationErrors(prev => ({...prev, agreementNumber: ""}));
+            }
+          }}
+          className={validationErrors.agreementNumber ? "border-destructive" : ""}
+        />
+        {validationErrors.agreementNumber && (
+          <p className="text-destructive text-sm">{validationErrors.agreementNumber}</p>
+        )}
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="phoneNumber">Phone Number</Label>
+        <Input 
+          id="phoneNumber" 
+          type="tel" 
+          placeholder="Enter your phone number" 
+          value={phoneNumber}
+          onChange={(e) => {
+            setPhoneNumber(e.target.value);
+            if (validationErrors.phoneNumber) {
+              setValidationErrors(prev => ({...prev, phoneNumber: ""}));
+            }
+          }}
+          className={validationErrors.phoneNumber ? "border-destructive" : ""}
+        />
+        {validationErrors.phoneNumber && (
+          <p className="text-destructive text-sm">{validationErrors.phoneNumber}</p>
+        )}
+      </div>
+      <Button 
+        type="submit" 
+        className="w-full" 
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Logging in...
+          </>
+        ) : (
+          "Login"
+        )}
+      </Button>
+      <p className="text-center text-sm text-muted-foreground mt-2">
+        Enter the agreement number and phone number associated with your account
+      </p>
+    </form>
   );
 };

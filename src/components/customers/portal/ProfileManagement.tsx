@@ -27,13 +27,19 @@ export const ProfileManagement = ({ customerId }: ProfileManagementProps) => {
     queryFn: async () => {
       if (!customerId) throw new Error("No customer ID provided");
       
+      console.log("Fetching profile for customer ID:", customerId);
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", customerId)
         .single();
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching profile:", error);
+        throw error;
+      }
+      
+      console.log("Profile data fetched:", data);
       return data;
     },
     enabled: !!customerId
@@ -54,6 +60,9 @@ export const ProfileManagement = ({ customerId }: ProfileManagementProps) => {
   // Mutation for updating profile
   const updateProfileMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      console.log("Updating profile for customer ID:", customerId);
+      console.log("Update data:", data);
+      
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -65,7 +74,11 @@ export const ProfileManagement = ({ customerId }: ProfileManagementProps) => {
         })
         .eq("id", customerId);
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error in profile update:", error);
+        throw error;
+      }
+      
       return true;
     },
     onSuccess: () => {
@@ -85,7 +98,11 @@ export const ProfileManagement = ({ customerId }: ProfileManagementProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerId) return;
+    if (!customerId) {
+      toast.error("Customer ID is required");
+      return;
+    }
+    console.log("Submitting profile update:", formData);
     updateProfileMutation.mutate(formData);
   };
 

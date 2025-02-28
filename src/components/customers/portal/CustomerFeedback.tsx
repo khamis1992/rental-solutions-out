@@ -26,6 +26,8 @@ export const CustomerFeedback = ({ customerId, agreementId }: CustomerFeedbackPr
   
   const feedbackMutation = useMutation({
     mutationFn: async () => {
+      console.log("Submitting feedback:", { customerId, agreementId, rating, feedback });
+      
       const { error } = await supabase
         .from("customer_feedback")
         .insert({
@@ -35,7 +37,10 @@ export const CustomerFeedback = ({ customerId, agreementId }: CustomerFeedbackPr
           feedback_text: feedback
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Feedback submission error:", error);
+        throw error;
+      }
       return true;
     },
     onSuccess: () => {
