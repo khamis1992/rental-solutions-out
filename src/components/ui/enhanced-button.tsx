@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button as BaseButton } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -22,9 +23,9 @@ export const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButton
       loading = false,
       success = false,
       error = false,
-      successText = "Success!",
-      errorText = "Error",
-      loadingText = "Loading...",
+      successText = "تم بنجاح!",  // Arabic translation
+      errorText = "خطأ",          // Arabic translation
+      loadingText = "جاري التحميل...", // Arabic translation
       duration = 2000,
       onStateEnd,
       disabled,
@@ -60,7 +61,7 @@ export const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButton
     const getButtonContent = () => {
       if (loading) {
         return (
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-2 enhanced-button">
             <Loader2 className="h-4 w-4 animate-spin" />
             {loadingText}
           </span>
@@ -69,7 +70,7 @@ export const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButton
 
       if (showSuccess) {
         return (
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-2 enhanced-button">
             <CheckCircle className="h-4 w-4" />
             {successText}
           </span>
@@ -78,7 +79,7 @@ export const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButton
 
       if (showError) {
         return (
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-2 enhanced-button">
             <XCircle className="h-4 w-4" />
             {errorText}
           </span>

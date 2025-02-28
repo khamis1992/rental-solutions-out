@@ -9,20 +9,20 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const tourSteps = [
   {
     target: '.sidebar',
-    title: 'Navigation Menu',
-    content: 'Access all your important features from here.',
+    title: 'قائمة التنقل',
+    content: 'الوصول إلى جميع الميزات المهمة من هنا.',
     position: 'right'
   },
   {
     target: '.notifications',
-    title: 'Notifications',
-    content: 'Stay updated with important alerts and reminders.',
+    title: 'الإشعارات',
+    content: 'البقاء على اطلاع بالتنبيهات والتذكيرات المهمة.',
     position: 'bottom'
   },
   {
     target: '.user-menu',
-    title: 'User Settings',
-    content: 'Access your profile and preferences here.',
+    title: 'إعدادات المستخدم',
+    content: 'الوصول إلى ملفك الشخصي والتفضيلات هنا.',
     position: 'bottom'
   }
 ];
@@ -37,18 +37,19 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   // Apply RTL direction to document
   useEffect(() => {
     document.documentElement.dir = "rtl";
+    document.documentElement.classList.add('rtl-mode');
     
     // Cleanup on unmount
     return () => {
       document.documentElement.dir = "ltr";
+      document.documentElement.classList.remove('rtl-mode');
     };
   }, []);
   
   return (
     <SidebarProvider defaultCollapsed={isMobile}>
       <TourProvider steps={tourSteps}>
-        <div className="relative flex min-h-screen w-full rtl">
-          <DashboardSidebar />
+        <div className="relative flex min-h-screen w-full rtl rtl-layout">
           <div className="flex-1 flex flex-col min-h-screen">
             <main className="page-container pb-safe">
               <div className="content-wrapper">
@@ -56,6 +57,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </div>
             </main>
           </div>
+          <DashboardSidebar />
         </div>
       </TourProvider>
     </SidebarProvider>
