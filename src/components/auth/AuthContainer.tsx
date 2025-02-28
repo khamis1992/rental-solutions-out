@@ -64,7 +64,7 @@ export const AuthContainer = () => {
             },
             fontSizes: {
               baseBodySize: '0.875rem',
-              baseInputSize: '0.875rem',
+              baseInputSize: '1rem',
               baseLabelSize: '0.875rem',
               baseButtonSize: '0.875rem',
             },
@@ -72,10 +72,10 @@ export const AuthContainer = () => {
         },
         className: {
           container: 'w-full space-y-4',
-          button: 'w-full px-4 py-3 rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md hover:translate-y-[-1px] bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900',
-          input: 'w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-orange-500/20 transition-all duration-200',
+          button: 'w-full px-4 py-3 rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md hover:translate-y-[-1px] bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 min-h-[48px] touch-button',
+          input: 'w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-orange-500/20 transition-all duration-200 min-h-[48px] text-base',
           label: 'text-sm font-medium text-gray-700 mb-1.5',
-          anchor: 'text-orange-600 hover:text-orange-700 transition-colors duration-200 hover:underline',
+          anchor: 'text-orange-600 hover:text-orange-700 transition-colors duration-200 hover:underline touch-target',
           message: 'text-sm text-gray-600 rounded-lg p-2 bg-gray-50 border border-gray-100',
           divider: 'bg-gray-200 h-px',
         }
