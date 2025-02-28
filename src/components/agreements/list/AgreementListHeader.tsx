@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Upload, Download, FileText, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -5,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { ProcessTemplatesDialog } from "@/components/agreements/ProcessTemplatesDialog";
 import { useState } from "react";
+
 interface AgreementListHeaderProps {
   onImportClick: () => void;
   onDeleteClick: () => void;
@@ -12,6 +14,7 @@ interface AgreementListHeaderProps {
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
 }
+
 export const AgreementListHeader = ({
   onImportClick,
   onDeleteClick,
@@ -20,10 +23,17 @@ export const AgreementListHeader = ({
   onSearchChange
 }: AgreementListHeaderProps) => {
   const [showProcessTemplates, setShowProcessTemplates] = useState(false);
+
   return <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full mb-6">
       <div className="relative w-full max-w-md">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        
+        <Input
+          type="text"
+          placeholder="Search agreements..."
+          className="pl-9 w-full"
+          value={searchQuery}
+          onChange={(e) => onSearchChange?.(e.target.value)}
+        />
       </div>
       
       <div className="flex items-center gap-4">
