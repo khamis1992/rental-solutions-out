@@ -9,20 +9,20 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const tourSteps = [
   {
     target: '.sidebar',
-    title: 'قائمة التنقل',
-    content: 'قم بالوصول إلى جميع الميزات المهمة من هنا.',
+    title: 'Navigation Menu',
+    content: 'Access all your important features from here.',
     position: 'right'
   },
   {
     target: '.notifications',
-    title: 'الإشعارات',
-    content: 'ابق على اطلاع بالتنبيهات والتذكيرات المهمة.',
+    title: 'Notifications',
+    content: 'Stay updated with important alerts and reminders.',
     position: 'bottom'
   },
   {
     target: '.user-menu',
-    title: 'إعدادات المستخدم',
-    content: 'قم بالوصول إلى ملفك الشخصي وتفضيلاتك هنا.',
+    title: 'User Settings',
+    content: 'Access your profile and preferences here.',
     position: 'bottom'
   }
 ];
@@ -37,12 +37,10 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   // Apply RTL direction to document
   useEffect(() => {
     document.documentElement.dir = "rtl";
-    document.documentElement.lang = "ar";
     
     // Cleanup on unmount
     return () => {
       document.documentElement.dir = "ltr";
-      document.documentElement.lang = "en";
     };
   }, []);
   
