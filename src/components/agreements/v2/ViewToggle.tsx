@@ -1,10 +1,11 @@
 
 import { Button } from "@/components/ui/button";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useState, useEffect, useRef } from "react";
 import { useTouchGestures } from "@/hooks/use-touch-gestures";
 import { useHotkeys } from "react-hotkeys-hook";
 import { toast } from "sonner";
+import { Grid, List, LayoutPanelTop } from "lucide-react";
 
 interface ViewToggleProps {
   viewMode: "grid" | "list" | "compact";
@@ -93,15 +94,56 @@ export const ViewToggle = ({
   return (
     <TooltipProvider>
       <div ref={containerRef} className="flex items-center gap-1 border rounded-md shadow-sm bg-background" role="group" aria-label="View options">
-        <Button variant={viewMode === "grid" ? "default" : "ghost"} size="sm" className="p-2" onClick={() => handleViewChange("grid")} aria-label="Grid view" aria-pressed={viewMode === "grid"}>
-          Grid
-        </Button>
-        <Button variant={viewMode === "list" ? "default" : "ghost"} size="sm" className="p-2" onClick={() => handleViewChange("list")} aria-label="List view" aria-pressed={viewMode === "list"}>
-          List
-        </Button>
-        <Button variant={viewMode === "compact" ? "default" : "ghost"} size="sm" className="p-2" onClick={() => handleViewChange("compact")} aria-label="Compact view" aria-pressed={viewMode === "compact"}>
-          Compact
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant={viewMode === "grid" ? "default" : "ghost"} 
+              size="icon" 
+              onClick={() => handleViewChange("grid")} 
+              aria-label="Grid view" 
+              aria-pressed={viewMode === "grid"}
+            >
+              <Grid className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Grid view (Shift+G)</p>
+          </TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant={viewMode === "list" ? "default" : "ghost"} 
+              size="icon" 
+              onClick={() => handleViewChange("list")} 
+              aria-label="List view" 
+              aria-pressed={viewMode === "list"}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>List view (Shift+L)</p>
+          </TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant={viewMode === "compact" ? "default" : "ghost"} 
+              size="icon" 
+              onClick={() => handleViewChange("compact")} 
+              aria-label="Compact view" 
+              aria-pressed={viewMode === "compact"}
+            >
+              <LayoutPanelTop className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Compact view (Shift+T)</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
     </TooltipProvider>
   );
