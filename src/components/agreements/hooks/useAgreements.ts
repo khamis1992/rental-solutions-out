@@ -38,12 +38,13 @@ export interface Agreement {
   };
 }
 
-export const useAgreements = () => {
+export const useAgreements = (searchQuery: string = "") => {
   return useQuery({
-    queryKey: ["agreements"],
+    queryKey: ["agreements", searchQuery],
     queryFn: async () => {
       try {
         console.log("Fetching agreements...");
+        console.log("Search query:", searchQuery);
         
         // First try direct join with specific relationship constraint
         let { data, error } = await supabase
@@ -120,8 +121,45 @@ export const useAgreements = () => {
           return [];
         }
 
-        console.log(`Retrieved ${data.length} agreements`);
-        return data as Agreement[];
+        // Filter by search query if provided
+        let filteredData = data;
+        if (searchQuery && searchQuery.trim() !== "") {
+          const query = searchQuery.toLowerCase().trim();
+          filteredData = data.filter((agreement: any) => {
+            // Check agreement number
+            if (agreement.agreement_number && 
+                agreement.agreement_number.toLowerCase().includes(query)) {
+              return true;
+            }
+            
+            // Check customer name
+            if (agreement.customer && 
+                agreement.customer.full_name && 
+                agreement.customer.full_name.toLowerCase().includes(query)) {
+              return true;
+            }
+            
+            // Check vehicle license plate
+            if (agreement.vehicle && 
+                agreement.vehicle.license_plate && 
+                agreement.vehicle.license_plate.toLowerCase().includes(query)) {
+              return true;
+            }
+            
+            // Check vehicle make and model
+            if (agreement.vehicle) {
+              const vehicleInfo = `${agreement.vehicle.make} ${agreement.vehicle.model}`.toLowerCase();
+              if (vehicleInfo.includes(query)) {
+                return true;
+              }
+            }
+            
+            return false;
+          });
+        }
+
+        console.log(`Retrieved ${filteredData.length} agreements after filtering`);
+        return filteredData as Agreement[];
       } catch (err) {
         console.error("Error in agreements query:", err);
         throw err;
