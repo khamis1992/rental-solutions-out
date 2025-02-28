@@ -1,6 +1,6 @@
 
 import { StatusConfig, PaymentConfig } from "./types";
-import { Agreement } from "@/types/agreement.types";
+import { Agreement } from "@/components/agreements/hooks/useAgreements";
 import { 
   CheckCircle2, 
   Clock, 
@@ -106,6 +106,7 @@ export const getKeyboardShortcuts = () => {
     "Shift+L": "Toggle list view",
     "Shift+T": "Toggle compact view",
     "Shift+S": "Toggle summary",
+    "Shift+K": "Show keyboard shortcuts",
     "Esc": "Clear selection"
   };
 };

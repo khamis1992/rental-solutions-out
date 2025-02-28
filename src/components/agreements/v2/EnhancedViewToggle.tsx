@@ -1,50 +1,39 @@
 
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, LayoutList, LayoutDashboard, Search } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState, useEffect, useRef } from "react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTouchGestures } from "@/hooks/use-touch-gestures";
 import { useHotkeys } from "react-hotkeys-hook";
 import { toast } from "sonner";
+import { useViewMode } from "@/hooks/use-view-mode";
 
-interface ViewToggleProps {
-  viewMode: "grid" | "list" | "compact";
-  onChange: (mode: "grid" | "list" | "compact") => void;
+interface EnhancedViewToggleProps {
   onSearchFocus?: () => void;
+  onViewModeChange?: (mode: "grid" | "list" | "compact") => void;
 }
 
-export const ViewToggle = ({ viewMode, onChange, onSearchFocus }: ViewToggleProps) => {
+export const EnhancedViewToggle = ({ 
+  onSearchFocus,
+  onViewModeChange 
+}: EnhancedViewToggleProps) => {
+  const { viewMode, setViewMode } = useViewMode();
   const [previousMode, setPreviousMode] = useState<"grid" | "list" | "compact">(viewMode);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Save view preference to localStorage
-  useEffect(() => {
-    localStorage.setItem("agreements-view-mode", viewMode);
-  }, [viewMode]);
-
-  // Load preference on mount
-  useEffect(() => {
-    const savedMode = localStorage.getItem("agreements-view-mode");
-    if (savedMode && (savedMode === "grid" || savedMode === "list" || savedMode === "compact")) {
-      if (savedMode !== viewMode) {
-        onChange(savedMode as "grid" | "list" | "compact");
-      }
-    }
-  }, []);
-
   // Setup keyboard shortcuts
   useHotkeys('shift+g', () => {
-    onChange("grid");
+    handleViewChange("grid");
     toast.success("Grid view activated");
   }, { preventDefault: true });
   
   useHotkeys('shift+l', () => {
-    onChange("list");
+    handleViewChange("list");
     toast.success("List view activated");
   }, { preventDefault: true });
   
   useHotkeys('shift+t', () => {
-    onChange("compact");
+    handleViewChange("compact");
     toast.success("Compact view activated");
   }, { preventDefault: true });
   
@@ -59,22 +48,25 @@ export const ViewToggle = ({ viewMode, onChange, onSearchFocus }: ViewToggleProp
   useTouchGestures(containerRef, {
     onSwipeLeft: () => {
       // Cycle forward through views: grid -> list -> compact -> grid
-      if (viewMode === "grid") onChange("list");
-      else if (viewMode === "list") onChange("compact");
-      else onChange("grid");
+      if (viewMode === "grid") handleViewChange("list");
+      else if (viewMode === "list") handleViewChange("compact");
+      else handleViewChange("grid");
     },
     onSwipeRight: () => {
       // Cycle backward through views: grid -> compact -> list -> grid
-      if (viewMode === "grid") onChange("compact");
-      else if (viewMode === "compact") onChange("list");
-      else onChange("grid");
+      if (viewMode === "grid") handleViewChange("compact");
+      else if (viewMode === "compact") handleViewChange("list");
+      else handleViewChange("grid");
     },
   });
 
   // Save previous mode before changing to enable toggling back
   const handleViewChange = (mode: "grid" | "list" | "compact") => {
     setPreviousMode(viewMode);
-    onChange(mode);
+    setViewMode(mode);
+    if (onViewModeChange) {
+      onViewModeChange(mode);
+    }
   };
 
   // Function to handle search button click

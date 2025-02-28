@@ -1,74 +1,66 @@
 
-import { useState, useEffect } from 'react';
+import { RefObject, useEffect } from "react";
 
-interface TouchGestureOptions {
+interface TouchGestureHandlers {
   onSwipeLeft?: () => void;
   onSwipeRight?: () => void;
   onSwipeUp?: () => void;
   onSwipeDown?: () => void;
-  threshold?: number;
 }
 
-export const useTouchGestures = (
-  ref: React.RefObject<HTMLElement>,
-  options: TouchGestureOptions = {}
-) => {
-  const {
-    onSwipeLeft,
-    onSwipeRight,
-    onSwipeUp,
-    onSwipeDown,
-    threshold = 50
-  } = options;
-
-  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
-
+export function useTouchGestures(
+  elementRef: RefObject<HTMLElement>,
+  handlers: TouchGestureHandlers,
+  threshold: number = 50
+) {
   useEffect(() => {
-    const element = ref.current;
+    const element = elementRef.current;
     if (!element) return;
 
+    let startX = 0;
+    let startY = 0;
+
     const handleTouchStart = (e: TouchEvent) => {
-      setTouchStart({
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY
-      });
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
-      if (!touchStart) return;
-
-      const deltaX = e.changedTouches[0].clientX - touchStart.x;
-      const deltaY = e.changedTouches[0].clientY - touchStart.y;
-
-      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (!e.changedTouches[0]) return;
+      
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+      
+      const diffX = endX - startX;
+      const diffY = endY - startY;
+      
+      // Only trigger if the swipe distance exceeds the threshold
+      if (Math.abs(diffX) < threshold && Math.abs(diffY) < threshold) return;
+      
+      // Determine the direction of the swipe based on which axis had a greater change
+      if (Math.abs(diffX) > Math.abs(diffY)) {
         // Horizontal swipe
-        if (Math.abs(deltaX) > threshold) {
-          if (deltaX > 0 && onSwipeRight) {
-            onSwipeRight();
-          } else if (deltaX < 0 && onSwipeLeft) {
-            onSwipeLeft();
-          }
+        if (diffX > 0) {
+          handlers.onSwipeRight?.();
+        } else {
+          handlers.onSwipeLeft?.();
         }
       } else {
         // Vertical swipe
-        if (Math.abs(deltaY) > threshold) {
-          if (deltaY > 0 && onSwipeDown) {
-            onSwipeDown();
-          } else if (deltaY < 0 && onSwipeUp) {
-            onSwipeUp();
-          }
+        if (diffY > 0) {
+          handlers.onSwipeDown?.();
+        } else {
+          handlers.onSwipeUp?.();
         }
       }
-
-      setTouchStart(null);
     };
 
-    element.addEventListener('touchstart', handleTouchStart);
-    element.addEventListener('touchend', handleTouchEnd);
+    element.addEventListener("touchstart", handleTouchStart);
+    element.addEventListener("touchend", handleTouchEnd);
 
     return () => {
-      element.removeEventListener('touchstart', handleTouchStart);
-      element.removeEventListener('touchend', handleTouchEnd);
+      element.removeEventListener("touchstart", handleTouchStart);
+      element.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [ref, touchStart, onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, threshold]);
-};
+  }, [elementRef, handlers, threshold]);
+}
