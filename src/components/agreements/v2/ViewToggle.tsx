@@ -123,9 +123,7 @@ export const ViewToggle = ({
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant={viewMode === "compact" ? "default" : "ghost"} size="sm" className="p-2" onClick={() => handleViewChange("compact")} aria-label="Compact view" aria-pressed={viewMode === "compact"}>
-              <LayoutPanelTop className="h-4 w-4" />
-            </Button>
+            
           </TooltipTrigger>
           <TooltipContent side="bottom">
             <div className="text-xs">
