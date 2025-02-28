@@ -1,6 +1,6 @@
 
-import { Agreement } from "@/types/agreement.types";
 import { StatusConfig, PaymentConfig } from "./types";
+import { Agreement } from "@/types/agreement.types";
 import { 
   CheckCircle2, 
   Clock, 
