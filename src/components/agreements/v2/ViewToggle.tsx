@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { useTouchGestures } from "@/hooks/use-touch-gestures";
 import { useHotkeys } from "react-hotkeys-hook";
 import { toast } from "sonner";
+// Import Lucide icons directly as components
 import { Grid, List, LayoutPanelTop } from "lucide-react";
 
 interface ViewToggleProps {
@@ -34,7 +35,7 @@ export const ViewToggle = ({
         onChange(savedMode as "grid" | "list" | "compact");
       }
     }
-  }, []);
+  }, [onChange, viewMode]);
 
   // Setup keyboard shortcuts
   useHotkeys('shift+g', () => {
@@ -43,18 +44,21 @@ export const ViewToggle = ({
   }, {
     preventDefault: true
   });
+  
   useHotkeys('shift+l', () => {
     onChange("list");
     toast.success("List view activated");
   }, {
     preventDefault: true
   });
+  
   useHotkeys('shift+t', () => {
     onChange("compact");
     toast.success("Compact view activated");
   }, {
     preventDefault: true
   });
+  
   useHotkeys('shift+f', () => {
     if (onSearchFocus) {
       onSearchFocus();
@@ -68,19 +72,27 @@ export const ViewToggle = ({
   useTouchGestures(containerRef, {
     onSwipeLeft: () => {
       // Cycle forward through views: grid -> list -> compact -> grid
-      if (viewMode === "grid") onChange("list");
-      else if (viewMode === "list") onChange("compact");
-      else onChange("grid");
+      if (viewMode === "grid") {
+        onChange("list");
+      } else if (viewMode === "list") {
+        onChange("compact");
+      } else {
+        onChange("grid");
+      }
     },
     onSwipeRight: () => {
       // Cycle backward through views: grid -> compact -> list -> grid
-      if (viewMode === "grid") onChange("compact");
-      else if (viewMode === "compact") onChange("list");
-      else onChange("grid");
+      if (viewMode === "grid") {
+        onChange("compact");
+      } else if (viewMode === "compact") {
+        onChange("list");
+      } else {
+        onChange("grid");
+      }
     }
   });
 
-  // Save previous mode before changing to enable toggling back
+  // Handle view change
   const handleViewChange = (mode: "grid" | "list" | "compact") => {
     setPreviousMode(viewMode);
     onChange(mode);
@@ -98,7 +110,7 @@ export const ViewToggle = ({
               className={`h-9 px-3 rounded-l-md transition-all duration-200 ${viewMode === "grid" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`} 
               aria-label="Grid view"
             >
-              <Grid className="h-4 w-4" />
+              <Grid size={16} />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">
@@ -117,7 +129,7 @@ export const ViewToggle = ({
               className={`h-9 px-3 transition-all duration-200 ${viewMode === "list" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`} 
               aria-label="List view"
             >
-              <List className="h-4 w-4" />
+              <List size={16} />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">
@@ -136,7 +148,7 @@ export const ViewToggle = ({
               className={`h-9 px-3 rounded-r-md transition-all duration-200 ${viewMode === "compact" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`} 
               aria-label="Compact view"
             >
-              <LayoutPanelTop className="h-4 w-4" />
+              <LayoutPanelTop size={16} />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">
