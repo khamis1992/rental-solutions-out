@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface MaintenanceHistoryProps {
   vehicleId: string;
@@ -34,48 +35,71 @@ export const MaintenanceHistory = ({ vehicleId }: MaintenanceHistoryProps) => {
   });
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="border border-border/40 shadow-sm hover:shadow-md transition-shadow duration-300">
+      <CardHeader className="bg-muted/20">
         <CardTitle className="flex items-center">
-          <Wrench className="mr-2 h-5 w-5" />
+          <div className="mr-2 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <Wrench className="h-4 w-4 text-primary" />
+          </div>
           Maintenance History
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Service Type</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Cost</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {records?.map((record) => (
-              <TableRow key={record.id}>
-                <TableCell>{record.service_type}</TableCell>
-                <TableCell>
-                  {new Date(record.scheduled_date).toLocaleDateString()}
-                </TableCell>
-                <TableCell>{formatCurrency(record.cost || 0)}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant={
-                      record.status === "completed"
-                        ? "default"
-                        : record.status === "in_progress"
-                        ? "secondary"
-                        : "outline"
-                    }
-                  >
-                    {record.status}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      <CardContent className="p-0">
+        {isLoading ? (
+          <div className="p-4 space-y-4">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+          </div>
+        ) : records?.length === 0 ? (
+          <div className="p-6 text-center text-muted-foreground">
+            No maintenance history found for this vehicle
+          </div>
+        ) : (
+          <div className="overflow-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Service Type</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Cost</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {records?.map((record) => (
+                  <TableRow key={record.id} className="hover:bg-muted/30 transition-colors">
+                    <TableCell className="font-medium">{record.service_type}</TableCell>
+                    <TableCell>
+                      {new Date(record.scheduled_date).toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                    </TableCell>
+                    <TableCell>{formatCurrency(record.cost || 0)}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={
+                          record.status === "completed"
+                            ? "bg-green-100 text-green-800 border-green-300"
+                            : record.status === "in_progress"
+                            ? "bg-blue-100 text-blue-800 border-blue-300"
+                            : record.status === "urgent"
+                            ? "bg-red-100 text-red-800 border-red-300"
+                            : "bg-amber-100 text-amber-800 border-amber-300"
+                        }
+                      >
+                        {record.status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

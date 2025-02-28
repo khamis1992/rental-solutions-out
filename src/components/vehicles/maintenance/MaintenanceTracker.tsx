@@ -39,11 +39,14 @@ export const MaintenanceTracker = ({ vehicleId }: MaintenanceTrackerProps) => {
       <MaintenanceStats maintenanceData={maintenanceHistory || []} />
       
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Maintenance Timeline</CardTitle>
+        <Card className="border border-border/40 shadow-sm hover:shadow-md transition-shadow duration-300">
+          <CardHeader className="bg-muted/30">
+            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              <span className="inline-block w-2 h-5 bg-primary rounded-sm mr-1"></span>
+              Maintenance Timeline
+            </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-5">
             <MaintenanceTimeline 
               maintenanceHistory={maintenanceHistory || []} 
               isLoading={isLoading} 
@@ -51,11 +54,14 @@ export const MaintenanceTracker = ({ vehicleId }: MaintenanceTrackerProps) => {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Upcoming Maintenance</CardTitle>
+        <Card className="border border-border/40 shadow-sm hover:shadow-md transition-shadow duration-300">
+          <CardHeader className="bg-muted/30">
+            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              <span className="inline-block w-2 h-5 bg-amber-500 rounded-sm mr-1"></span>
+              Upcoming Maintenance
+            </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-5">
             <UpcomingMaintenance vehicleId={vehicleId} />
           </CardContent>
         </Card>
