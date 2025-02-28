@@ -38,22 +38,19 @@ export const ViewToggle = ({
 
   // Setup keyboard shortcuts
   useHotkeys('shift+g', () => {
-    onChange("grid");
-    toast.success("Grid view activated");
+    handleViewChange("grid");
   }, {
     preventDefault: true
   });
 
   useHotkeys('shift+l', () => {
-    onChange("list");
-    toast.success("List view activated");
+    handleViewChange("list");
   }, {
     preventDefault: true
   });
 
   useHotkeys('shift+t', () => {
-    onChange("compact");
-    toast.success("Compact view activated");
+    handleViewChange("compact");
   }, {
     preventDefault: true
   });
@@ -72,36 +69,37 @@ export const ViewToggle = ({
     onSwipeLeft: () => {
       // Cycle forward through views: grid -> list -> compact -> grid
       if (viewMode === "grid") {
-        onChange("list");
-        toast.success("List view activated");
+        handleViewChange("list");
       } else if (viewMode === "list") {
-        onChange("compact");
-        toast.success("Compact view activated");
+        handleViewChange("compact");
       } else {
-        onChange("grid");
-        toast.success("Grid view activated");
+        handleViewChange("grid");
       }
     },
     onSwipeRight: () => {
       // Cycle backward through views: grid -> compact -> list -> grid
       if (viewMode === "grid") {
-        onChange("compact");
-        toast.success("Compact view activated");
+        handleViewChange("compact");
       } else if (viewMode === "compact") {
-        onChange("list");
-        toast.success("List view activated");
+        handleViewChange("list");
       } else {
-        onChange("grid");
-        toast.success("Grid view activated");
+        handleViewChange("grid");
       }
     }
   });
 
   // Handle view change
   const handleViewChange = (mode: "grid" | "list" | "compact") => {
+    if (mode === viewMode) return; // Avoid unnecessary updates if mode is the same
+    
     setPreviousMode(viewMode);
     onChange(mode);
+    
+    // Show toast notification
     toast.success(`${mode.charAt(0).toUpperCase() + mode.slice(1)} view activated`);
+    
+    // Make sure the change is saved to localStorage
+    localStorage.setItem("agreements-view-mode", mode);
   };
 
   return (
