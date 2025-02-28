@@ -25,9 +25,17 @@ interface DashboardStats {
 
 const Dashboard = () => {
   const [mounted, setMounted] = useState(false);
+  const [isRTL, setIsRTL] = useState(true);
 
   useEffect(() => {
     setMounted(true);
+    // Apply RTL direction to the document
+    document.documentElement.dir = "rtl";
+    
+    // Cleanup function to reset direction when component unmounts
+    return () => {
+      document.documentElement.dir = "ltr";
+    };
   }, []);
 
   const { data: statsData, error } = useQuery({
@@ -66,7 +74,7 @@ const Dashboard = () => {
   const fadeInClass = mounted ? "opacity-100" : "opacity-0";
 
   return (
-    <div className={`space-y-6 mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-[1400px] transition-opacity duration-500 ${fadeInClass}`}>
+    <div className={`space-y-6 mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-[1400px] transition-opacity duration-500 ${fadeInClass} rtl`}>
       {/* Enhanced Welcome Card with Gradient Background */}
       <Card className="bg-gradient-to-r from-slate-50 via-indigo-50 to-purple-50 dark:from-slate-900/90 dark:via-indigo-900/30 dark:to-purple-900/20 border-none shadow-lg hover:shadow-xl transition-all duration-300">
         <div className="p-6">

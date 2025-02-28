@@ -1,5 +1,5 @@
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { Outlet } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -34,10 +34,20 @@ interface DashboardLayoutProps {
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const isMobile = useIsMobile();
   
+  // Apply RTL direction to document
+  useEffect(() => {
+    document.documentElement.dir = "rtl";
+    
+    // Cleanup on unmount
+    return () => {
+      document.documentElement.dir = "ltr";
+    };
+  }, []);
+  
   return (
     <SidebarProvider defaultCollapsed={isMobile}>
       <TourProvider steps={tourSteps}>
-        <div className="relative flex min-h-screen w-full">
+        <div className="relative flex min-h-screen w-full rtl">
           <DashboardSidebar />
           <div className="flex-1 flex flex-col min-h-screen">
             <main className="page-container pb-safe">
