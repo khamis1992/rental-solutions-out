@@ -1,3 +1,4 @@
+
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { FAQSection } from "@/components/help/FAQSection";
 import { SystemOverview } from "@/components/help/SystemOverview";

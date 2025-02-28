@@ -66,7 +66,7 @@ const Dashboard = () => {
     },
     meta: {
       onError: (err: Error) => {
-        toast.error("Failed to load dashboard stats: " + err.message);
+        toast.error("فشل في تحميل إحصائيات لوحة التحكم: " + err.message);
       }
     }
   });
@@ -98,7 +98,7 @@ const Dashboard = () => {
           <div className="flex items-center justify-between p-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
               <span className="flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>
-              Notifications & Alerts
+              الإشعارات والتنبيهات
             </h3>
           </div>
           <ScrollArea className="h-[336px]">
@@ -112,13 +112,13 @@ const Dashboard = () => {
           <div className="flex items-center justify-between p-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
               <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              Recent Activity
+              النشاطات الأخيرة
             </h3>
             <Tabs defaultValue="all" className="w-[200px]">
               <TabsList className="grid grid-cols-3 h-8">
-                <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
-                <TabsTrigger value="important" className="text-xs">Important</TabsTrigger>
-                <TabsTrigger value="new" className="text-xs">New</TabsTrigger>
+                <TabsTrigger value="all" className="text-xs">الكل</TabsTrigger>
+                <TabsTrigger value="important" className="text-xs">مهم</TabsTrigger>
+                <TabsTrigger value="new" className="text-xs">جديد</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -137,3 +137,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
