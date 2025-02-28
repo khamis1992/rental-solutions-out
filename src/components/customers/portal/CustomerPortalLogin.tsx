@@ -1,70 +1,104 @@
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
-interface CustomerPortalLoginProps {
-  onLoginSuccess?: (customerId: string, agreementId: string) => void;
-  onLogin?: (agreementNumber: string, phoneNumber: string) => Promise<boolean>;
-  isLoading?: boolean;
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+interface CustomerPortalSession {
+  customerId: string;
+  agreementId: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  agrNumber?: string;
 }
 
-export const CustomerPortalLogin = ({ 
-  onLoginSuccess, 
-  onLogin,
-  isLoading: externalIsLoading 
-}: CustomerPortalLoginProps) => {
-  const [agrNumber, setAgrNumber] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [internalIsLoading, setInternalIsLoading] = useState(false);
-  const [validationErrors, setValidationErrors] = useState({
-    agreementNumber: "",
-    phoneNumber: ""
-  });
-  
-  const isLoading = externalIsLoading !== undefined ? externalIsLoading : internalIsLoading;
-  
-  const validateForm = () => {
-    const errors = {
-      agreementNumber: "",
-      phoneNumber: ""
-    };
-    
-    if (!agrNumber.trim()) {
-      errors.agreementNumber = "Agreement number is required";
-    } else if (agrNumber.length < 3) {
-      errors.agreementNumber = "Please enter a valid agreement number";
-    }
-    
-    if (!phoneNumber.trim()) {
-      errors.phoneNumber = "Phone number is required";
-    } else if (phoneNumber.length < 8) {
-      errors.phoneNumber = "Please enter a valid phone number";
-    }
-    
-    setValidationErrors(errors);
-    return !errors.agreementNumber && !errors.phoneNumber;
-  };
+export const useCustomerPortal = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [customerName, setCustomerName] = useState<string | null>(null);
+  const [customerEmail, setCustomerEmail] = useState<string | null>(null);
+  const [customerPhone, setCustomerPhone] = useState<string | null>(null);
+  const [activeAgreementId, setActiveAgreementId] = useState<string | null>(null);
 
-  const handleDefaultLogin = async () => {
-    if (!validateForm()) return false;
-    
-    setInternalIsLoading(true);
-    
-    try {
-      console.log("Logging in with:", { agrNumber, phoneNumber });
+  // Check if user is already logged in from localStorage
+  useEffect(() => {
+    const checkExistingSession = () => {
+      try {
+        const portalSession = localStorage.getItem("customerPortalSession");
+        if (portalSession) {
+          const sessionData = JSON.parse(portalSession) as CustomerPortalSession;
+          if (sessionData && sessionData.customerId && sessionData.agreementId) {
+            console.log("Found existing session:", sessionData);
+            setActiveAgreementId(sessionData.agreementId);
+            setCustomerId(sessionData.customerId);
+            setCustomerName(sessionData.customerName || null);
+            setCustomerEmail(sessionData.customerEmail || null);
+            setCustomerPhone(sessionData.customerPhone || null);
+            setIsLoggedIn(true);
+          }
+        }
+      } catch (error) {
+        console.error("Error checking session:", error);
+        localStorage.removeItem("customerPortalSession");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkExistingSession();
+  }, []);
+
+  // Listen for login events
+  useEffect(() => {
+    const handleLoginEvent = (event: Event) => {
+      const customEvent = event as CustomEvent<{ customerId: string; agreementId: string }>;
+      console.log("Received customerPortalLogin event:", customEvent);
       
-      // First, get the agreement details
-      const { data: agreementData, error: agreementError } = await supabase
+      if (customEvent.detail) {
+        const { customerId, agreementId } = customEvent.detail;
+        setCustomerId(customerId);
+        setActiveAgreementId(agreementId);
+        setIsLoggedIn(true);
+      
+        // Get other customer details from localStorage
+        try {
+          const sessionData = JSON.parse(localStorage.getItem("customerPortalSession") || "{}") as CustomerPortalSession;
+          setCustomerName(sessionData.customerName || null);
+          setCustomerEmail(sessionData.customerEmail || null);
+          setCustomerPhone(sessionData.customerPhone || null);
+        } catch (error) {
+          console.error("Error parsing session data:", error);
+        }
+        
+        // Redirect to customer portal
+        setTimeout(() => {
+          window.location.href = "/customer-portal";
+        }, 500);
+      }
+    };
+
+    window.addEventListener('customerPortalLogin', handleLoginEvent);
+    
+    return () => {
+      window.removeEventListener('customerPortalLogin', handleLoginEvent);
+    };
+  }, []);
+
+  const handleLogin = async (agrNumber: string, phoneNumber: string): Promise<boolean> => {
+    setIsLoading(true);
+
+    try {
+      console.log("Attempting to login with:", { agrNumber, phoneNumber });
+      
+      // Get agreement by agreement number
+      const { data, error } = await supabase
         .from("leases")
         .select(`
-          id, 
+          id,
           agreement_number,
           customer_id,
-          profiles:customer_id (
+          customer:customer_id (
             id,
             full_name,
             phone_number,
@@ -73,159 +107,117 @@ export const CustomerPortalLogin = ({
         `)
         .eq("agreement_number", agrNumber)
         .single();
-      
-      if (agreementError || !agreementData) {
-        console.error("Agreement fetch error:", agreementError);
+
+      if (error || !data) {
+        console.error("Agreement fetch error:", error);
         toast.error("Agreement not found. Please check your agreement number.");
-        setInternalIsLoading(false);
+        setIsLoading(false);
         return false;
       }
-      
-      console.log("Agreement data:", agreementData);
-      
-      // Check if customer_id exists
-      if (!agreementData.customer_id) {
-        console.error("No customer_id found in agreement data");
+
+      console.log("Agreement found:", data);
+
+      // First check if it's an error response from Supabase (happens with missing relations)
+      if (data.customer && data.customer.error === true) {
+        console.error("Customer relation error:", data.customer);
         toast.error("Customer information not found. Please contact support.");
-        setInternalIsLoading(false);
+        setIsLoading(false);
         return false;
       }
+
+      // Safe access to customer data with proper type checking
+      const customerData = data.customer;
       
-      // Check if profiles data exists and is valid
-      if (!agreementData.profiles || typeof agreementData.profiles !== 'object') {
-        console.error("Invalid profiles data:", agreementData.profiles);
+      if (!customerData || typeof customerData !== 'object') {
+        console.error("Invalid customer data:", customerData);
         toast.error("Customer profile data is incomplete. Please contact support.");
-        setInternalIsLoading(false);
+        setIsLoading(false);
         return false;
       }
-      
-      // Check if phone number matches
-      if (agreementData.profiles.phone_number !== phoneNumber) {
+
+      // Verify phone number matches
+      if (!customerData.phone_number || customerData.phone_number !== phoneNumber) {
         toast.error("Phone number does not match our records.");
-        setInternalIsLoading(false);
+        setIsLoading(false);
         return false;
       }
-      
-      // Store in local storage for persistence
-      const sessionData = {
-        customerId: agreementData.customer_id,
-        agreementId: agreementData.id,
-        customerName: agreementData.profiles.full_name || "",
-        customerEmail: agreementData.profiles.email || "",
-        customerPhone: agreementData.profiles.phone_number || "",
-        agrNumber: agreementData.agreement_number
-      };
-      
-      localStorage.setItem("customerPortalSession", JSON.stringify(sessionData));
-      
+
       // Login successful
-      console.log("Login successful, session data saved:", sessionData);
       toast.success("Login successful!");
       
-      // Call the onLoginSuccess callback if provided
-      if (onLoginSuccess) {
-        console.log("Calling onLoginSuccess with:", agreementData.customer_id, agreementData.id);
-        onLoginSuccess(agreementData.customer_id, agreementData.id);
-      }
+      // Save session info
+      const sessionData: CustomerPortalSession = {
+        agreementId: data.id,
+        customerId: data.customer_id,
+        customerName: customerData.full_name || undefined,
+        customerEmail: customerData.email || undefined,
+        customerPhone: customerData.phone_number || undefined,
+        agrNumber: data.agreement_number
+      };
       
-      // Dispatch a global event for components that might not be directly connected
+      // Save to state
+      setActiveAgreementId(data.id);
+      setCustomerId(data.customer_id);
+      setCustomerName(customerData.full_name || null);
+      setCustomerEmail(customerData.email || null);
+      setCustomerPhone(customerData.phone_number || null);
+      
+      // Save to localStorage
+      localStorage.setItem("customerPortalSession", JSON.stringify(sessionData));
+      
+      // Update login state
+      setIsLoggedIn(true);
+      
+      console.log("Login successful, session saved:", sessionData);
+      
+      // Dispatch an event that the CustomerPortalLogin component can listen for
       const event = new CustomEvent('customerPortalLogin', { 
         detail: { 
-          customerId: agreementData.customer_id,
-          agreementId: agreementData.id
+          customerId: data.customer_id,
+          agreementId: data.id
         }
       });
-      console.log("Dispatching customerPortalLogin event");
       window.dispatchEvent(event);
       
-      // Force reload the page to ensure state is refreshed
-      window.location.reload();
+      // Force page redirect
+      setTimeout(() => {
+        window.location.href = "/customer-portal";
+      }, 500);
       
       return true;
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("An error occurred. Please try again.");
+      toast.error("An error occurred during login. Please try again.");
       return false;
     } finally {
-      setInternalIsLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogout = () => {
+    console.log("Logging out...");
+    setIsLoggedIn(false);
+    setActiveAgreementId(null);
+    setCustomerId(null);
+    setCustomerName(null);
+    setCustomerEmail(null);
+    setCustomerPhone(null);
+    localStorage.removeItem("customerPortalSession");
+    toast.info("You have been logged out.");
     
-    // If external onLogin handler is provided, use that
-    if (onLogin) {
-      if (validateForm()) {
-        const success = await onLogin(agrNumber, phoneNumber);
-        if (success) {
-          console.log("External login successful");
-          // The external handler should handle state changes
-        }
-      }
-    } else {
-      // Otherwise use the default login handler
-      await handleDefaultLogin();
-    }
+    // Redirect to login page
+    window.location.href = "/customer-portal";
   };
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="agreementNumber">Agreement Number</Label>
-        <Input 
-          id="agreementNumber" 
-          type="text" 
-          placeholder="Enter your agreement number" 
-          value={agrNumber}
-          onChange={(e) => {
-            setAgrNumber(e.target.value);
-            if (validationErrors.agreementNumber) {
-              setValidationErrors(prev => ({...prev, agreementNumber: ""}));
-            }
-          }}
-          className={validationErrors.agreementNumber ? "border-destructive" : ""}
-        />
-        {validationErrors.agreementNumber && (
-          <p className="text-destructive text-sm">{validationErrors.agreementNumber}</p>
-        )}
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="phoneNumber">Phone Number</Label>
-        <Input 
-          id="phoneNumber" 
-          type="tel" 
-          placeholder="Enter your phone number" 
-          value={phoneNumber}
-          onChange={(e) => {
-            setPhoneNumber(e.target.value);
-            if (validationErrors.phoneNumber) {
-              setValidationErrors(prev => ({...prev, phoneNumber: ""}));
-            }
-          }}
-          className={validationErrors.phoneNumber ? "border-destructive" : ""}
-        />
-        {validationErrors.phoneNumber && (
-          <p className="text-destructive text-sm">{validationErrors.phoneNumber}</p>
-        )}
-      </div>
-      <Button 
-        type="submit" 
-        className="w-full" 
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Logging in...
-          </>
-        ) : (
-          "Login"
-        )}
-      </Button>
-      <p className="text-center text-sm text-muted-foreground mt-2">
-        Enter the agreement number and phone number associated with your account
-      </p>
-    </form>
-  );
+  return {
+    isLoggedIn,
+    isLoading,
+    customerId,
+    customerName,
+    customerEmail,
+    customerPhone,
+    activeAgreementId,
+    handleLogin,
+    handleLogout
+  };
 };
