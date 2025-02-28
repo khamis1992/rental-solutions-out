@@ -25,17 +25,9 @@ interface DashboardStats {
 
 const Dashboard = () => {
   const [mounted, setMounted] = useState(false);
-  const [isRTL, setIsRTL] = useState(true);
 
   useEffect(() => {
     setMounted(true);
-    // Apply RTL direction to the document
-    document.documentElement.dir = "rtl";
-    
-    // Cleanup function to reset direction when component unmounts
-    return () => {
-      document.documentElement.dir = "ltr";
-    };
   }, []);
 
   const { data: statsData, error } = useQuery({
@@ -66,7 +58,7 @@ const Dashboard = () => {
     },
     meta: {
       onError: (err: Error) => {
-        toast.error("فشل في تحميل إحصائيات لوحة التحكم: " + err.message);
+        toast.error("Failed to load dashboard stats: " + err.message);
       }
     }
   });
@@ -74,7 +66,7 @@ const Dashboard = () => {
   const fadeInClass = mounted ? "opacity-100" : "opacity-0";
 
   return (
-    <div className={`space-y-6 mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-[1400px] transition-opacity duration-500 ${fadeInClass} rtl`}>
+    <div className={`space-y-6 mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-[1400px] transition-opacity duration-500 ${fadeInClass}`}>
       {/* Enhanced Welcome Card with Gradient Background */}
       <Card className="bg-gradient-to-r from-slate-50 via-indigo-50 to-purple-50 dark:from-slate-900/90 dark:via-indigo-900/30 dark:to-purple-900/20 border-none shadow-lg hover:shadow-xl transition-all duration-300">
         <div className="p-6">
@@ -98,7 +90,7 @@ const Dashboard = () => {
           <div className="flex items-center justify-between p-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
               <span className="flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>
-              الإشعارات والتنبيهات
+              Notifications & Alerts
             </h3>
           </div>
           <ScrollArea className="h-[336px]">
@@ -112,13 +104,13 @@ const Dashboard = () => {
           <div className="flex items-center justify-between p-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
               <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              النشاطات الأخيرة
+              Recent Activity
             </h3>
             <Tabs defaultValue="all" className="w-[200px]">
               <TabsList className="grid grid-cols-3 h-8">
-                <TabsTrigger value="all" className="text-xs">الكل</TabsTrigger>
-                <TabsTrigger value="important" className="text-xs">مهم</TabsTrigger>
-                <TabsTrigger value="new" className="text-xs">جديد</TabsTrigger>
+                <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
+                <TabsTrigger value="important" className="text-xs">Important</TabsTrigger>
+                <TabsTrigger value="new" className="text-xs">New</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -137,4 +129,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-

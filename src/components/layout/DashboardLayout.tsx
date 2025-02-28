@@ -1,5 +1,5 @@
 
-import { ReactNode, useEffect } from "react";
+import { ReactNode } from "react";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { Outlet } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -9,20 +9,20 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const tourSteps = [
   {
     target: '.sidebar',
-    title: 'قائمة التنقل',
-    content: 'الوصول إلى جميع الميزات المهمة من هنا.',
+    title: 'Navigation Menu',
+    content: 'Access all your important features from here.',
     position: 'right'
   },
   {
     target: '.notifications',
-    title: 'الإشعارات',
-    content: 'البقاء على اطلاع بالتنبيهات والتذكيرات المهمة.',
+    title: 'Notifications',
+    content: 'Stay updated with important alerts and reminders.',
     position: 'bottom'
   },
   {
     target: '.user-menu',
-    title: 'إعدادات المستخدم',
-    content: 'الوصول إلى ملفك الشخصي والتفضيلات هنا.',
+    title: 'User Settings',
+    content: 'Access your profile and preferences here.',
     position: 'bottom'
   }
 ];
@@ -34,22 +34,11 @@ interface DashboardLayoutProps {
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const isMobile = useIsMobile();
   
-  // Apply RTL direction to document
-  useEffect(() => {
-    document.documentElement.dir = "rtl";
-    document.documentElement.classList.add('rtl-mode');
-    
-    // Cleanup on unmount
-    return () => {
-      document.documentElement.dir = "ltr";
-      document.documentElement.classList.remove('rtl-mode');
-    };
-  }, []);
-  
   return (
     <SidebarProvider defaultCollapsed={isMobile}>
       <TourProvider steps={tourSteps}>
-        <div className="relative flex min-h-screen w-full rtl rtl-layout">
+        <div className="relative flex min-h-screen w-full">
+          <DashboardSidebar />
           <div className="flex-1 flex flex-col min-h-screen">
             <main className="page-container pb-safe">
               <div className="content-wrapper">
@@ -57,7 +46,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </div>
             </main>
           </div>
-          <DashboardSidebar />
         </div>
       </TourProvider>
     </SidebarProvider>

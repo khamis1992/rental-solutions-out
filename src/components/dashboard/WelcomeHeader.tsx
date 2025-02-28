@@ -11,14 +11,14 @@ import { UserProfileMenu } from "@/components/layout/UserProfileMenu";
 import { NotificationsButton } from "@/components/layout/NotificationsButton";
 
 const motivationalQuotes = [
-  "النجاح ليس نهائيًا، والفشل ليس قاتلًا: الشجاعة للاستمرار هي ما يهم.",
-  "الطريقة الوحيدة للقيام بعمل رائع هي أن تحب ما تفعله.",
-  "آمن بأنك قادر وقد قطعت نصف الطريق.",
-  "الجودة تعني القيام بالأمر الصحيح عندما لا يراقبك أحد.",
-  "أفضل طريقة للتنبؤ بالمستقبل هي إنشاؤه.",
-  "التميز ليس مهارة، بل هو موقف.",
-  "اجعل كل يوم تحفة فنية خاصة بك.",
-  "طريق النجاح دائمًا قيد الإنشاء.",
+  "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+  "The only way to do great work is to love what you do.",
+  "Believe you can and you're halfway there.",
+  "Quality means doing it right when no one is looking.",
+  "The best way to predict the future is to create it.",
+  "Excellence is not a skill, it's an attitude.",
+  "Make each day your masterpiece.",
+  "The road to success is always under construction.",
 ];
 
 const getTimeConfig = (hour: number): { icon: LucideIcon; gradient: string; greeting: string } => {
@@ -26,20 +26,20 @@ const getTimeConfig = (hour: number): { icon: LucideIcon; gradient: string; gree
     return {
       icon: Sun,
       gradient: "from-amber-500/20 via-yellow-500/20 to-orange-500/20",
-      greeting: "صباح الخير"
+      greeting: "Good morning"
     };
   }
   if (hour < 18) {
     return {
       icon: CloudSun,
       gradient: "from-blue-500/20 via-cyan-500/20 to-sky-500/20",
-      greeting: "مساء الخير"
+      greeting: "Good afternoon"
     };
   }
   return {
     icon: Moon,
     gradient: "from-indigo-500/20 via-purple-500/20 to-violet-500/20",
-    greeting: "مساء الخير"
+    greeting: "Good evening"
   };
 };
 
@@ -85,7 +85,7 @@ export const WelcomeHeader = () => {
             <TimeIcon className="h-6 w-6 text-foreground/80 group-hover:scale-110 transition-transform duration-300" />
           </div>
           <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground/90 to-foreground/70 animate-fade-in">
-            {timeConfig.greeting}، {profile?.full_name || 'المستخدم'}
+            {timeConfig.greeting}, {profile?.full_name || 'User'}
           </h1>
         </div>
         <div className="flex items-center gap-2 animate-fade-in">
@@ -99,7 +99,7 @@ export const WelcomeHeader = () => {
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>الملف الشخصي</p>
+                <p>Profile</p>
               </TooltipContent>
             </Tooltip>
 
@@ -115,7 +115,7 @@ export const WelcomeHeader = () => {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>الإعدادات</p>
+                <p>Settings</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
