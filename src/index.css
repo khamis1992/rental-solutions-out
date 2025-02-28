@@ -90,3 +90,38 @@
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* Print styles for template preview */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  .preview-container,
+  .preview-container * {
+    visibility: visible !important;
+  }
+  
+  .preview-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background-color: white;
+  }
+  
+  .a4-page {
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 20mm !important;
+  }
+  
+  /* Hide dialog elements when printing */
+  .print:hidden {
+    display: none !important;
+  }
+  
+  /* RTL print support */
+  [dir="rtl"] .a4-page {
+    text-align: right;
+  }
+}
