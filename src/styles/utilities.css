@@ -1,4 +1,3 @@
-
 @layer utilities {
   /* Spacing Utilities */
   .space-responsive {
@@ -102,6 +101,51 @@
   .momentum-scroll {
     -webkit-overflow-scrolling: touch;
     @apply overflow-auto overscroll-contain;
+  }
+
+  /* RTL Support */
+  .rtl {
+    direction: rtl;
+  }
+
+  .rtl-mirror {
+    transform: scaleX(-1);
+  }
+
+  .rtl\:pl-0 {
+    padding-left: 0;
+  }
+
+  .rtl\:pr-0 {
+    padding-right: 0;
+  }
+
+  .rtl\:ml-auto {
+    margin-left: auto;
+  }
+
+  .rtl\:mr-auto {
+    margin-right: auto;
+  }
+
+  .rtl\:border-l {
+    border-left: 1px solid;
+    border-right: none;
+  }
+
+  .rtl\:border-r {
+    border-right: 1px solid;
+    border-left: none;
+  }
+
+  .rtl\:rounded-r-none {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .rtl\:rounded-l-none {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
   }
 }
 
