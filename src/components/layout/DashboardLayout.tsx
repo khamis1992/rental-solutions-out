@@ -37,7 +37,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   return (
     <SidebarProvider defaultCollapsed={isMobile}>
       <TourProvider steps={tourSteps}>
-        <div className="relative flex min-h-screen w-full">
+        <div className="relative flex min-h-screen w-full rtl-layout">
           <div className="flex-1 flex flex-col min-h-screen">
             <main className="page-container pb-safe">
               <div className="content-wrapper">

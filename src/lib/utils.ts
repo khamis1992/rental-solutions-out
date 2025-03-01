@@ -19,3 +19,12 @@ export function formatDate(date: Date | string): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   return format(dateObj, 'PPP');
 }
+
+export function isRTL(): boolean {
+  // This can be expanded to check document.dir or other configuration
+  return true; // For now, always return true to force RTL layout
+}
+
+export function getRTLClass(baseClass: string, rtlClass: string): string {
+  return isRTL() ? rtlClass : baseClass;
+}

@@ -1,4 +1,3 @@
-
 @layer utilities {
   /* Spacing Utilities */
   .space-responsive {
@@ -147,6 +146,16 @@
   .rtl\:rounded-l-none {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
+  }
+  
+  /* RTL Layout - Stronger forcing mechanism */
+  .rtl-layout {
+    flex-direction: row-reverse !important;
+  }
+  
+  .rtl-layout > :last-child {
+    border-right: none !important;
+    border-left: 1px solid var(--border-color, rgba(0, 0, 0, 0.1)) !important;
   }
 }
 

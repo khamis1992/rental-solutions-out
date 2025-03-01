@@ -83,9 +83,15 @@
     @apply -mx-4 sm:-mx-6 lg:-mx-8;
   }
 
-  /* RTL Layout Support */
+  /* RTL Layout Support - Enhanced */
   .rtl-layout {
     @apply flex-row-reverse;
+  }
+
+  .rtl-layout > :last-child {
+    border-right: none !important;
+    border-left: 1px solid var(--border-color, rgba(0, 0, 0, 0.1)) !important;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05) !important;
   }
 
   .sidebar-rtl {
