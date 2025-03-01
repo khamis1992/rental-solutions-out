@@ -127,7 +127,7 @@ export const AgreementListHeader = ({
       </div>
       
       {/* Separator line between header and content */}
-      <Separator className="my-8 h-[2px] bg-gray-200" />
+<Separator className="my-8 h-[2px] bg-white" />
     </>
   );
 };
