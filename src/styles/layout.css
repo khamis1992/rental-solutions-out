@@ -1,3 +1,4 @@
+
 @layer components {
   /* Grid System */
   .auto-grid {
@@ -80,19 +81,6 @@
 
   .mobile-wrapper {
     @apply -mx-4 sm:-mx-6 lg:-mx-8;
-  }
-
-  /* RTL Layout Support */
-  .rtl-layout {
-    @apply flex-row-reverse;
-  }
-
-  .sidebar-rtl {
-    @apply border-l border-r-0;
-  }
-
-  .content-rtl {
-    @apply pr-0 pl-4 sm:pl-6 lg:pl-8;
   }
 }
 
