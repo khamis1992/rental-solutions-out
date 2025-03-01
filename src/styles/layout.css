@@ -82,19 +82,9 @@
     @apply -mx-4 sm:-mx-6 lg:-mx-8;
   }
 
-  /* Sidebar container for RTL layout */
-  .sidebar-container {
-    @apply relative;
-    width: var(--sidebar-width, 280px);
-    min-width: var(--sidebar-width, 280px);
-    border-left: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
-    border-right: none;
-  }
-
-  /* RTL specific utilities */
-  .rtl\:border-l {
-    border-left: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
-    border-right: none;
+  /* RTL Layout Support */
+  .rtl-layout {
+    @apply flex-row-reverse;
   }
 
   .sidebar-rtl {
