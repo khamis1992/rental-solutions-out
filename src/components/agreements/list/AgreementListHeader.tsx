@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Upload, Download, FileText, Search } from "lucide-react";
+import { Upload, Download, FileText } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { ProcessTemplatesDialog } from "@/components/agreements/ProcessTemplatesDialog";
