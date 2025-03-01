@@ -127,12 +127,12 @@
   }
 }
 
-/* Properly handle RTL animations for the sidebar */
-.dashboard-container .sidebar {
+/* Sidebar animations for RTL layout */
+.sidebar-container .sidebar {
   animation: slide-in-right 0.3s ease-out forwards;
 }
 
-.dashboard-container .sidebar.collapsed {
+.sidebar-container .sidebar.collapsed {
   animation: slide-out-right 0.3s ease-out forwards;
 }
 

@@ -28,3 +28,18 @@ export function isRTL(): boolean {
 export function getRTLClass(baseClass: string, rtlClass: string): string {
   return isRTL() ? rtlClass : baseClass;
 }
+
+// Add RTL utility functions
+export const rtlUtils = {
+  // Get the appropriate border class for RTL layouts
+  getBorderClass: () => isRTL() ? 'border-l' : 'border-r',
+  
+  // Get the appropriate shadow class for RTL layouts
+  getShadowClass: () => isRTL() ? 'shadow-[-2px_0_5px_rgba(0,0,0,0.05)]' : 'shadow-[2px_0_5px_rgba(0,0,0,0.05)]',
+  
+  // Get the appropriate padding class for RTL layouts
+  getPaddingClass: () => isRTL() ? 'pl-4 sm:pl-6 lg:pl-8 pr-0' : 'pr-4 sm:pr-6 lg:pr-8 pl-0',
+  
+  // Get the appropriate flex direction for RTL layouts
+  getFlexDirection: () => isRTL() ? 'flex-row-reverse' : 'flex-row',
+}
