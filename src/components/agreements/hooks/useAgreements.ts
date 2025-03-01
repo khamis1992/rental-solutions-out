@@ -1,26 +1,8 @@
 
-/**
- * useAgreements Hook
- * 
- * This custom hook handles fetching and filtering agreement data from the Supabase database.
- * It manages the connection with the backend, handles error cases, and provides a unified
- * interface for retrieving agreement data throughout the application.
- * 
- * Features:
- * - Fetches agreements with related customer and vehicle data
- * - Handles search functionality to filter agreements
- * - Provides graceful fallbacks for database relationship issues
- * - Implements caching through React Query
- */
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-/**
- * Agreement interface that defines the shape of agreement data
- * This is used throughout the application to ensure type safety
- */
 export interface Agreement {
   id: string;
   agreement_number: string | null;
@@ -56,12 +38,6 @@ export interface Agreement {
   };
 }
 
-/**
- * Custom hook for fetching and filtering agreements
- * 
- * @param searchQuery - Optional search string to filter agreements
- * @returns Query object containing agreements data, loading state, and error info
- */
 export const useAgreements = (searchQuery: string = "") => {
   return useQuery({
     queryKey: ["agreements", searchQuery],
@@ -70,8 +46,7 @@ export const useAgreements = (searchQuery: string = "") => {
         console.log("Fetching agreements...");
         console.log("Search query:", searchQuery);
         
-        // ----- Section: First Query Approach -----
-        // Try direct join with specific relationship constraint
+        // First try direct join with specific relationship constraint
         let { data, error } = await supabase
           .from("leases")
           .select(`
@@ -90,7 +65,6 @@ export const useAgreements = (searchQuery: string = "") => {
           `)
           .order("created_at", { ascending: false });
 
-        // ----- Section: Fallback Query Approach -----
         // If the first query fails, try a second approach using the customer_id explicitly
         if (error) {
           console.error("First query approach failed:", error);
@@ -147,7 +121,6 @@ export const useAgreements = (searchQuery: string = "") => {
           return [];
         }
 
-        // ----- Section: Search Filtering -----
         // Filter by search query if provided
         let filteredData = data;
         if (searchQuery && searchQuery.trim() !== "") {

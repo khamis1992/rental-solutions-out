@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Upload, FileWarning } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 import { DocumentPreview } from "./DocumentPreview";
 
 interface DocumentUploadWithPreviewProps {
@@ -25,28 +25,14 @@ export function DocumentUploadWithPreview({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setUploadError(null);
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file size
     if (file.size > maxSize) {
-      setUploadError(`File size must be less than ${maxSize / 1024 / 1024}MB`);
       toast.error(`File size must be less than ${maxSize / 1024 / 1024}MB`);
-      event.target.value = '';
-      return;
-    }
-
-    // Validate file type
-    const fileExtension = file.name.split('.').pop()?.toLowerCase();
-    const allowedExtensions = accept.split(',').map(ext => ext.replace('.', '').toLowerCase());
-    if (fileExtension && !allowedExtensions.includes(fileExtension)) {
-      setUploadError(`Only ${accept.replace(/\./g, '')} files are allowed`);
-      toast.error(`Only ${accept.replace(/\./g, '')} files are allowed`);
-      event.target.value = '';
       return;
     }
 
@@ -62,27 +48,9 @@ export function DocumentUploadWithPreview({
 
     try {
       setIsUploading(true);
-      setUploadError(null);
-      
-      // Check if storage bucket exists
-      const { data: buckets, error: bucketsError } = await supabase
-        .storage
-        .listBuckets();
-      
-      if (bucketsError) {
-        throw new Error(`Storage error: ${bucketsError.message}`);
-      }
-      
-      const customerDocumentsBucketExists = buckets?.some(
-        bucket => bucket.name === 'customer_documents'
-      );
-      
-      if (!customerDocumentsBucketExists) {
-        throw new Error('Storage configuration error: customer_documents bucket not found');
-      }
 
       const fileExt = selectedFile.name.split('.').pop();
-      const filePath = `${documentType.replace(/\s+/g, '_')}/${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `${documentType}/${crypto.randomUUID()}.${fileExt}`;
 
       const { error: uploadError, data } = await supabase.storage
         .from('customer_documents')
@@ -102,34 +70,22 @@ export function DocumentUploadWithPreview({
 
       // Clean up
       setSelectedFile(null);
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-        setPreviewUrl(null);
-      }
+      URL.revokeObjectURL(previewUrl!);
+      setPreviewUrl(null);
     } catch (error: any) {
       console.error('Error uploading document:', error);
-      setUploadError(error.message || 'Failed to upload document');
       toast.error(error.message || 'Failed to upload document');
     } finally {
       setIsUploading(false);
     }
   };
 
-  const cancelPreview = () => {
-    setShowPreview(false);
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(null);
-    }
-    setSelectedFile(null);
-  };
-
   return (
     <div className="space-y-4">
       <div className="grid w-full max-w-sm items-center gap-1.5">
-        <Label htmlFor={`document-${documentType}`}>{documentType}</Label>
+        <Label htmlFor="document">{documentType}</Label>
         <Input
-          id={`document-${documentType}`}
+          id="document"
           type="file"
           accept={accept}
           onChange={handleFileSelect}
@@ -140,16 +96,10 @@ export function DocumentUploadWithPreview({
                    file:bg-primary file:text-primary-foreground
                    hover:file:bg-primary/90"
         />
-        {uploadError && (
-          <div className="flex items-center gap-2 text-destructive text-sm mt-1">
-            <FileWarning className="h-4 w-4" />
-            <span>{uploadError}</span>
-          </div>
-        )}
       </div>
 
       {selectedFile && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <Button
             onClick={handleUpload}
             disabled={isUploading}
@@ -165,13 +115,6 @@ export function DocumentUploadWithPreview({
                 Upload
               </>
             )}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={cancelPreview}
-            disabled={isUploading}
-          >
-            Cancel
           </Button>
         </div>
       )}

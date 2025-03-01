@@ -1,14 +1,4 @@
 
-/**
- * InvoiceDialog Component
- * 
- * This component displays a dialog with agreement invoice information.
- * It provides controls for viewing, printing, and downloading the invoice.
- * 
- * The component fetches invoice data based on the agreement ID and renders
- * it in a printable format with options for export and printing.
- */
-
 import {
   Dialog,
   DialogContent,
@@ -27,36 +17,21 @@ import { useState } from "react";
 import { PrintButton } from "@/components/print/PrintButton";
 import { PrintSettingsProvider } from "@/contexts/PrintSettingsContext";
 
-/**
- * Props interface for the InvoiceDialog component
- * 
- * @property agreementId - ID of the agreement to generate invoice for
- * @property open - Boolean controlling dialog visibility
- * @property onOpenChange - Callback when dialog open state changes
- */
 interface InvoiceDialogProps {
   agreementId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-/**
- * Dialog component for displaying, printing, and downloading invoices
- */
 export const InvoiceDialog = ({ agreementId, open, onOpenChange }: InvoiceDialogProps) => {
-  // State to track PDF generation status
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
-  // ----- Section: Data Fetching -----
-  // Fetch invoice data for the agreement
   const { data: invoiceData, isLoading } = useQuery({
     queryKey: ["invoice", agreementId],
     queryFn: () => generateInvoiceData(agreementId),
     enabled: open,
   });
 
-  // ----- Section: PDF Generation -----
-  // Mutation for generating and downloading PDF version of invoice
   const generatePdfMutation = useMutation({
     mutationFn: async (htmlContent: string) => {
       setIsGeneratingPdf(true);
@@ -86,9 +61,6 @@ export const InvoiceDialog = ({ agreementId, open, onOpenChange }: InvoiceDialog
     }
   });
 
-  /**
-   * Handles download button click to generate and download PDF
-   */
   const handleDownload = async () => {
     if (!invoiceData) return;
     
@@ -103,14 +75,10 @@ export const InvoiceDialog = ({ agreementId, open, onOpenChange }: InvoiceDialog
     generatePdfMutation.mutate(invoiceElement.innerHTML);
   };
 
-  /**
-   * Handles print button click to print the invoice
-   */
   const handlePrint = () => {
     window.print();
   };
 
-  // ----- Section: Invoice Dialog UI -----
   return (
     <PrintSettingsProvider>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -120,14 +88,11 @@ export const InvoiceDialog = ({ agreementId, open, onOpenChange }: InvoiceDialog
             <DialogDescription className="flex items-center gap-4">
               <span>Review and download the invoice for this agreement</span>
               <div className="flex gap-2">
-                {/* Print button */}
                 <PrintButton 
                   contentId="invoice-content"
                   buttonText="Print"
                   variant="outline"
                 />
-                
-                {/* Download PDF button */}
                 <Button
                   onClick={handleDownload}
                   disabled={isLoading || isGeneratingPdf}
@@ -147,22 +112,17 @@ export const InvoiceDialog = ({ agreementId, open, onOpenChange }: InvoiceDialog
               </div>
             </DialogDescription>
           </DialogHeader>
-          
-          {/* ----- Section: Invoice Content ----- */}
           {isLoading ? (
-            // Loading state
             <div className="flex justify-center items-center min-h-[400px]">
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
           ) : invoiceData ? (
-            // Invoice content
             <div className="flex-1 overflow-hidden">
               <div id="invoice-content" className="printable-content">
                 <InvoiceView data={invoiceData} onPrint={handlePrint} />
               </div>
             </div>
           ) : (
-            // Error state
             <div className="text-center py-8 text-gray-500">
               Failed to load invoice data
             </div>

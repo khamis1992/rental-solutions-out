@@ -1,15 +1,3 @@
-
-/**
- * AgreementTemplateManagement Component
- * 
- * This component manages the creation, viewing, and editing of agreement templates.
- * It displays a list of templates and provides functionality to create new ones,
- * preview existing ones, and modify or delete them.
- * 
- * It's a central component in the agreement management workflow, allowing standardization
- * of agreement documents across the application.
- */
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,18 +11,11 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Template } from "@/types/agreement.types";
 
-/**
- * Component for managing agreement templates
- */
 export const AgreementTemplateManagement = () => {
-  // ----- Section: State Management -----
-  // Control dialog visibility and template selection
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
-  // ----- Section: Data Fetching -----
-  // Fetch active templates from the database
   const { data: templates, isLoading, refetch } = useQuery({
     queryKey: ["agreement-templates"],
     queryFn: async () => {
@@ -77,32 +58,16 @@ export const AgreementTemplateManagement = () => {
     },
   });
 
-  /**
-   * Handles the preview action for a template
-   * 
-   * @param template - The template to preview
-   */
   const handlePreview = (template: Template) => {
     setSelectedTemplate(template);
     setShowPreview(true);
   };
 
-  /**
-   * Handles the edit action for a template
-   * 
-   * @param template - The template to edit
-   */
   const handleEdit = (template: Template) => {
     setSelectedTemplate(template);
     setShowCreateDialog(true);
   };
 
-  /**
-   * Handles the delete action for a template
-   * (Soft delete by setting is_active to false)
-   * 
-   * @param template - The template to delete
-   */
   const handleDelete = async (template: Template) => {
     try {
       const { error } = await supabase
@@ -120,7 +85,6 @@ export const AgreementTemplateManagement = () => {
     }
   };
 
-  // ----- Section: Template Management UI -----
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -140,15 +104,12 @@ export const AgreementTemplateManagement = () => {
         />
       </CardContent>
 
-      {/* ----- Section: Template Dialogs ----- */}
-      {/* Create/Edit Template Dialog */}
       <CreateTemplateDialog
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
         selectedTemplate={selectedTemplate}
       />
 
-      {/* Template Preview Dialog */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
         <DialogContent className="max-w-4xl">
           <TemplatePreview 

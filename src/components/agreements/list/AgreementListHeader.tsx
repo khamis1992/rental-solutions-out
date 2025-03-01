@@ -1,16 +1,4 @@
 
-/**
- * AgreementListHeader Component
- * 
- * This component renders the header section for the agreements list page. It includes:
- * - Search functionality for filtering agreements
- * - Action buttons for processing templates, exporting data, and creating new agreements
- * - Dialog triggers for additional functionality
- * 
- * The component is responsible for the top control section of the agreement list interface,
- * providing tools for users to manage and interact with agreement data.
- */
-
 import { Button } from "@/components/ui/button";
 import { Upload, Download, FileText } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -20,15 +8,6 @@ import { useState } from "react";
 import { SearchInput } from "@/components/agreements/search/SearchInput";
 import { Separator } from "@/components/ui/separator";
 
-/**
- * Interface for AgreementListHeader component props
- * 
- * @property onImportClick - Function to trigger import action
- * @property onDeleteClick - Function to trigger delete action
- * @property isDeleting - Boolean indicating if delete operation is in progress
- * @property searchQuery - Current search query string
- * @property onSearchChange - Function to handle search query changes
- */
 interface AgreementListHeaderProps {
   onImportClick: () => void;
   onDeleteClick: () => void;
@@ -44,14 +23,8 @@ export const AgreementListHeader = ({
   searchQuery = "",
   onSearchChange
 }: AgreementListHeaderProps) => {
-  // State to control the visibility of the ProcessTemplates dialog
   const [showProcessTemplates, setShowProcessTemplates] = useState(false);
   
-  /**
-   * Handles search input changes and invokes the parent component's search handler
-   * 
-   * @param query - The updated search query string
-   */
   const handleSearchChange = (query: string) => {
     console.log("Search input changed:", query);
     if (onSearchChange) {
@@ -61,9 +34,7 @@ export const AgreementListHeader = ({
   
   return (
     <>
-      {/* ----- Section: Main Header Container ----- */}
       <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full mb-6">
-        {/* Search input area */}
         <div className="relative w-full max-w-md">
           <SearchInput 
             onSearch={handleSearchChange}
@@ -72,9 +43,7 @@ export const AgreementListHeader = ({
           />
         </div>
         
-        {/* ----- Section: Action Buttons ----- */}
         <div className="flex items-center gap-3">
-          {/* Process Templates Button */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -89,7 +58,6 @@ export const AgreementListHeader = ({
             </Tooltip>
           </TooltipProvider>
 
-          {/* Export Button */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -104,7 +72,6 @@ export const AgreementListHeader = ({
             </Tooltip>
           </TooltipProvider>
 
-          {/* Create Agreement Button/Dialog */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -121,13 +88,11 @@ export const AgreementListHeader = ({
             </Tooltip>
           </TooltipProvider>
 
-          {/* Process Templates Dialog - Conditionally rendered based on state */}
           <ProcessTemplatesDialog open={showProcessTemplates} onOpenChange={setShowProcessTemplates} />
         </div>
       </div>
       
-      {/* Separator line between header and content */}
-<Separator className="my-8 h-[4px] bg-white" />
+      <Separator className="my-8 h-[2px] bg-gray-200" />
     </>
   );
 };
