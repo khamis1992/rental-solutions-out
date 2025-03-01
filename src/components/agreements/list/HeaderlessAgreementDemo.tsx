@@ -12,7 +12,7 @@ export const HeaderlessAgreementDemo = () => {
   };
   
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <div className="container mx-auto py-8 space-y-8">
       <h1 className="text-2xl font-bold">Agreements</h1>
       
       <div className="relative max-w-md">
@@ -25,7 +25,9 @@ export const HeaderlessAgreementDemo = () => {
         />
       </div>
       
-      <HeaderlessAgreementList searchQuery={searchQuery} />
+      <div className="mt-8">
+        <HeaderlessAgreementList searchQuery={searchQuery} />
+      </div>
     </div>
   );
 };
