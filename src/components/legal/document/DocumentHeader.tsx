@@ -63,7 +63,9 @@ export function DocumentHeader({ customerName, onPrint }: DocumentHeaderProps) {
           </div>
         </DialogTitle>
       </DialogHeader>
-      <Separator className="my-6" />
+      
+      {/* Enhanced visual separator with thicker line and margin */}
+      <Separator className="my-6 h-[2px] bg-gray-200" />
     </>
   );
 }

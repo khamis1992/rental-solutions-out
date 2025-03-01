@@ -34,7 +34,7 @@ export const AgreementListHeader = ({
   
   return (
     <>
-      <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full mb-6">
+      <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full mb-4">
         <div className="relative w-full max-w-md">
           <SearchInput 
             onSearch={handleSearchChange}
@@ -91,7 +91,9 @@ export const AgreementListHeader = ({
           <ProcessTemplatesDialog open={showProcessTemplates} onOpenChange={setShowProcessTemplates} />
         </div>
       </div>
-      <Separator className="my-6" />
+      
+      {/* Enhanced visual separator with thicker line and margin */}
+      <Separator className="my-6 h-[2px] bg-gray-200" />
     </>
   );
 };
