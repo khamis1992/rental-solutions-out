@@ -91,12 +91,22 @@
 }
 
 /* RTL Support for Sidebar */
-.flex-row-reverse .animate-slide-in-right {
-  animation: slide-in-left 0.3s ease-out forwards;
+@keyframes slide-in-right {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 
-.flex-row-reverse .animate-slide-out-right {
-  animation: slide-out-left 0.3s ease-out forwards;
+@keyframes slide-out-right {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 @keyframes slide-in-left {
@@ -117,13 +127,11 @@
   }
 }
 
-/* Adjust sidebar shadow for RTL */
-.flex-row-reverse .sidebar-shadow {
+/* Sidebar shadows and borders for RTL */
+.sidebar-shadow {
   box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
 }
 
-/* Adjust sidebar border for RTL */
-.flex-row-reverse .sidebar-border {
-  border-right: none;
+.sidebar-border {
   border-left: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
 }

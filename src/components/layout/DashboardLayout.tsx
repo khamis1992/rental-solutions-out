@@ -11,7 +11,7 @@ const tourSteps = [
     target: '.sidebar',
     title: 'Navigation Menu',
     content: 'Access all your important features from here.',
-    position: 'left' // Sidebar is on the right in RTL layout
+    position: 'right' // Changed to 'right' since sidebar is on the right in RTL layout
   },
   {
     target: '.notifications',
@@ -37,8 +37,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   return (
     <SidebarProvider defaultCollapsed={isMobile}>
       <TourProvider steps={tourSteps}>
-        <div className="relative flex min-h-screen w-full flex-row-reverse">
-          <DashboardSidebar />
+        <div className="relative flex min-h-screen w-full">
           <div className="flex-1 flex flex-col min-h-screen">
             <main className="page-container pb-safe">
               <div className="content-wrapper">
@@ -46,6 +45,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </div>
             </main>
           </div>
+          <DashboardSidebar />
         </div>
       </TourProvider>
     </SidebarProvider>
