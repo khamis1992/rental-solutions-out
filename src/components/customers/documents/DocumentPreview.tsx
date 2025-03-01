@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { X, ZoomIn, RotateCw } from "lucide-react";
+import { X, ZoomIn, RotateCw, AlertCircle } from "lucide-react";
 
 interface DocumentPreviewProps {
   fileUrl?: string | null;
@@ -19,6 +19,7 @@ export function DocumentPreview({
 }: DocumentPreviewProps) {
   const [rotation, setRotation] = useState(0);
   const [zoom, setZoom] = useState(1);
+  const [error, setError] = useState(false);
 
   const handleRotate = () => {
     setRotation((prev) => (prev + 90) % 360);
@@ -27,6 +28,15 @@ export function DocumentPreview({
   const handleZoom = () => {
     setZoom((prev) => (prev === 1 ? 1.5 : 1));
   };
+
+  const handleImageError = () => {
+    setError(true);
+  };
+
+  // Reset error state when dialog opens with new file
+  if (!open && error) {
+    setError(false);
+  }
 
   const isImage = fileUrl?.match(/\.(jpg|jpeg|png|gif)$/i);
   const isPDF = fileUrl?.match(/\.pdf$/i);
@@ -51,8 +61,16 @@ export function DocumentPreview({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-auto">
-          {isImage && fileUrl && (
+        <div className="flex-1 overflow-auto flex items-center justify-center">
+          {error ? (
+            <div className="text-center p-8">
+              <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">Document Not Found</h3>
+              <p className="text-muted-foreground">
+                The document could not be loaded. Please check if the file exists and has proper permissions.
+              </p>
+            </div>
+          ) : isImage && fileUrl ? (
             <img
               src={fileUrl}
               alt={fileName}
@@ -60,14 +78,24 @@ export function DocumentPreview({
               style={{
                 transform: `rotate(${rotation}deg) scale(${zoom})`,
               }}
+              onError={handleImageError}
             />
-          )}
-          {isPDF && fileUrl && (
+          ) : isPDF && fileUrl ? (
             <iframe
               src={fileUrl}
               className="w-full h-full border-0"
               title={fileName}
+              onLoad={() => setError(false)}
+              onError={handleImageError}
             />
+          ) : (
+            <div className="text-center p-8">
+              <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">Unsupported Document Format</h3>
+              <p className="text-muted-foreground">
+                This document type cannot be previewed. Only images and PDFs are supported.
+              </p>
+            </div>
           )}
         </div>
       </DialogContent>
