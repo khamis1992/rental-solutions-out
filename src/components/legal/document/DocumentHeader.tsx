@@ -33,7 +33,7 @@ export function DocumentHeader({ customerName, onPrint }: DocumentHeaderProps) {
                   buttonText="Print"
                   variant="outline"
                   className="hover:bg-primary/10"
-                  directPrint={true} // Set to true to print directly
+                  directPrint={false} // Changed from true to false to open the dialog
                 />
               </TooltipTrigger>
               <TooltipContent>
