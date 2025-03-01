@@ -34,7 +34,7 @@ export const AgreementListHeader = ({
   
   return (
     <>
-      <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full mb-4">
+      <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full mb-6">
         <div className="relative w-full max-w-md">
           <SearchInput 
             onSearch={handleSearchChange}
@@ -92,7 +92,7 @@ export const AgreementListHeader = ({
         </div>
       </div>
       
-      <Separator className="my-6 h-[2px] bg-gray-200" />
+      <Separator className="my-8 h-[2px] bg-gray-200" />
     </>
   );
 };
