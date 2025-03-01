@@ -1,7 +1,9 @@
+
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { FileText, Printer, Download } from "lucide-react";
+import { FileText, Download } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { PrintButton } from "@/components/print/PrintButton";
 
 interface DocumentHeaderProps {
   customerName?: string;
@@ -25,14 +27,13 @@ export function DocumentHeader({ customerName, onPrint }: DocumentHeaderProps) {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  onClick={onPrint} 
-                  variant="outline" 
-                  className="print:hidden hover:bg-primary/10"
-                >
-                  <Printer className="h-4 w-4 mr-2" />
-                  Print
-                </Button>
+                <PrintButton 
+                  onBeforePrint={onPrint}
+                  contentId="legal-document-content"
+                  buttonText="Print"
+                  variant="outline"
+                  className="hover:bg-primary/10"
+                />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Print or save as PDF</p>

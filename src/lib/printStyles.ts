@@ -1,3 +1,4 @@
+
 export const injectPrintStyles = () => {
   const style = document.createElement('style');
   style.textContent = `
@@ -71,7 +72,55 @@ export const injectPrintStyles = () => {
         max-width: 100% !important;
         height: auto !important;
       }
+      
+      /* Page break control utilities */
+      .page-break-before {
+        page-break-before: always !important;
+      }
+      
+      .page-break-after {
+        page-break-after: always !important;
+      }
+      
+      .avoid-break {
+        page-break-inside: avoid !important;
+      }
     }
   `;
   document.head.appendChild(style);
+};
+
+export const prepareForPrint = (id: string = 'printable-content') => {
+  // Find the content to print
+  const content = document.getElementById(id);
+  
+  if (!content) {
+    console.error(`Element with ID '${id}' not found for printing`);
+    return false;
+  }
+  
+  // Create a class for the print content
+  content.classList.add('print-content');
+  
+  // Add avoid-break to important elements
+  const importantElements = content.querySelectorAll('.card, .section, table');
+  importantElements.forEach(el => el.classList.add('avoid-break'));
+  
+  return true;
+};
+
+export const triggerPrint = (callback?: () => void) => {
+  // Inject print styles
+  injectPrintStyles();
+  
+  // Set a timeout to ensure styles are applied
+  setTimeout(() => {
+    // Print the document
+    window.print();
+    
+    // Call the callback after printing
+    if (callback) {
+      setTimeout(callback, 500);
+    }
+  }, 300);
 };
