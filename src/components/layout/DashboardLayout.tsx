@@ -11,7 +11,7 @@ const tourSteps = [
     target: '.sidebar',
     title: 'Navigation Menu',
     content: 'Access all your important features from here.',
-    position: 'left' // Changed from 'right' to 'left' because sidebar is now on the right
+    position: 'left' // Sidebar is on the right in RTL layout
   },
   {
     target: '.notifications',
