@@ -35,7 +35,7 @@ export function DocumentHeader({ customerName, onPrint }: DocumentHeaderProps) {
                     buttonText="Print"
                     variant="outline"
                     className="hover:bg-primary/10"
-                    directPrint={false} // Changed from true to false to open the dialog
+                    directPrint={false}
                   />
                 </TooltipTrigger>
                 <TooltipContent>
@@ -64,7 +64,6 @@ export function DocumentHeader({ customerName, onPrint }: DocumentHeaderProps) {
         </DialogTitle>
       </DialogHeader>
       
-      {/* Enhanced visual separator with thicker line and margin */}
       <Separator className="my-6 h-[2px] bg-gray-200" />
     </>
   );

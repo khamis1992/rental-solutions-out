@@ -92,7 +92,6 @@ export const AgreementListHeader = ({
         </div>
       </div>
       
-      {/* Enhanced visual separator with thicker line and margin */}
       <Separator className="my-6 h-[2px] bg-gray-200" />
     </>
   );

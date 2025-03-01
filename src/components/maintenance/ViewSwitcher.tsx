@@ -2,7 +2,6 @@
 import React from 'react';
 import { LayoutGrid, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 
 interface ViewSwitcherProps {
   view: 'grid' | 'table';
