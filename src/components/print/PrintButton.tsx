@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Printer } from "lucide-react";
-import { PrintSettingsDialog } from "./PrintSettingsDialog";
+import { CustomPrintSettingsDialog } from "./CustomPrintSettingsDialog";
 import { triggerPrint, prepareForPrint } from "@/lib/printStyles";
 
 interface PrintButtonProps {
@@ -47,7 +47,7 @@ export function PrintButton({
         {buttonText}
       </Button>
       
-      <PrintSettingsDialog
+      <CustomPrintSettingsDialog
         open={showSettings}
         onOpenChange={setShowSettings}
         onPrint={handlePrint}
