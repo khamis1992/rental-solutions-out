@@ -13,6 +13,7 @@ interface PrintButtonProps {
   buttonText?: string;
   onBeforePrint?: () => void;
   onAfterPrint?: () => void;
+  directPrint?: boolean; // New prop to skip the dialog
 }
 
 export function PrintButton({
@@ -22,7 +23,8 @@ export function PrintButton({
   showIcon = true,
   buttonText = "Print",
   onBeforePrint,
-  onAfterPrint
+  onAfterPrint,
+  directPrint = false // Default to false to maintain backward compatibility
 }: PrintButtonProps) {
   const [showSettings, setShowSettings] = useState(false);
 
@@ -36,22 +38,32 @@ export function PrintButton({
     }
   };
 
+  const handleClick = () => {
+    if (directPrint) {
+      handlePrint();
+    } else {
+      setShowSettings(true);
+    }
+  };
+
   return (
     <>
       <Button
         variant={variant}
         className={`print:hidden ${className}`}
-        onClick={() => setShowSettings(true)}
+        onClick={handleClick}
       >
         {showIcon && <Printer className="h-4 w-4 mr-2" />}
         {buttonText}
       </Button>
       
-      <NewPrintSettingsDialog
-        open={showSettings}
-        onOpenChange={setShowSettings}
-        onPrint={handlePrint}
-      />
+      {!directPrint && (
+        <NewPrintSettingsDialog
+          open={showSettings}
+          onOpenChange={setShowSettings}
+          onPrint={handlePrint}
+        />
+      )}
     </>
   );
 }
