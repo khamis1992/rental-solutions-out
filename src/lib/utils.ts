@@ -1,27 +1,21 @@
 
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+import { format } from "date-fns";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
-/**
- * Formats a number as currency (QAR)
- */
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-QA', {
-    style: 'currency',
-    currency: 'QAR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2
+export function formatCurrency(amount: number, currency = "QAR") {
+  return new Intl.NumberFormat("en-QA", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 2,
   }).format(amount);
 }
 
-/**
- * Checks if a string contains Arabic characters
- */
-export function containsArabic(text: string): boolean {
-  const arabicPattern = /[\u0600-\u06FF]/;
-  return arabicPattern.test(text);
+export function formatDate(date: Date | string): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  return format(dateObj, 'PPP');
 }

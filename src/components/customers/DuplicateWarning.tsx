@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { DuplicateMatch } from "./utils/duplicateDetection";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface DuplicateWarningProps {
   duplicates: DuplicateMatch[];
@@ -38,38 +37,34 @@ export function DuplicateWarning({ duplicates, onDismiss }: DuplicateWarningProp
     <Alert className="mb-4">
       <AlertCircle className="h-4 w-4" />
       <AlertTitle>Potential Duplicate Customer{duplicates.length > 1 ? 's' : ''} Found</AlertTitle>
-      <AlertDescription className="pt-2">
-        <div className="h-[300px] overflow-hidden relative border rounded-md mb-2">
-          <ScrollArea className="h-full w-full absolute">
-            <div className="space-y-2 p-4">
-              {duplicates.map((duplicate) => (
-                <div key={duplicate.id} className="flex items-center justify-between gap-4 text-sm border-b pb-2 last:border-0">
-                  <div>
-                    <div className="font-medium">{duplicate.full_name}</div>
-                    <div className="text-muted-foreground">
-                      {duplicate.match_reason.join(', ')}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate(`/customers/profile/${duplicate.id}`)}
-                    >
-                      View Profile
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDelete(duplicate.id)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
+      <AlertDescription>
+        <div className="mt-2 space-y-2">
+          {duplicates.map((duplicate) => (
+            <div key={duplicate.id} className="flex items-center justify-between gap-4 text-sm">
+              <div>
+                <div className="font-medium">{duplicate.full_name}</div>
+                <div className="text-muted-foreground">
+                  {duplicate.match_reason.join(', ')}
                 </div>
-              ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/customers/profile/${duplicate.id}`)}
+                >
+                  View Profile
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => handleDelete(duplicate.id)}
+                >
+                  Delete
+                </Button>
+              </div>
             </div>
-          </ScrollArea>
+          ))}
         </div>
         <div className="mt-4 flex justify-end">
           <Button variant="ghost" size="sm" onClick={onDismiss}>

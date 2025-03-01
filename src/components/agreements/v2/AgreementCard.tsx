@@ -12,8 +12,7 @@ import {
   Eye,
   Trash2,
   User,
-  Car,
-  Printer
+  Car
 } from "lucide-react";
 import {
   Card,
@@ -43,13 +42,6 @@ export const AgreementCard = ({
   const PaymentIcon = paymentConfig.icon;
 
   const isArabic = containsArabic(agreement.processed_content || "");
-
-  const handlePrint = () => {
-    // Add a slight delay to ensure dialog content is fully rendered
-    setTimeout(() => {
-      window.print();
-    }, 300);
-  };
 
   return (
     <>
@@ -156,17 +148,6 @@ export const AgreementCard = ({
 
       <Dialog open={showTemplatePreview} onOpenChange={setShowTemplatePreview}>
         <DialogContent className="max-w-5xl max-h-[90vh] p-0">
-          <DialogHeader className="p-4 border-b flex flex-row justify-between items-center">
-            <DialogTitle>معاينة النموذج</DialogTitle>
-            <Button 
-              onClick={handlePrint}
-              variant="success"
-              className="print:hidden"
-            >
-              <Printer className="h-4 w-4 mr-2" />
-              طباعة
-            </Button>
-          </DialogHeader>
           <div className="preview-container mx-auto bg-white min-h-[297mm]">
             <div 
               className={cn(

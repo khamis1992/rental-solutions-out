@@ -14,8 +14,6 @@ import { Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
-import { PrintButton } from "@/components/print/PrintButton";
-import { PrintSettingsProvider } from "@/contexts/PrintSettingsContext";
 
 interface InvoiceDialogProps {
   agreementId: string;
@@ -80,55 +78,55 @@ export const InvoiceDialog = ({ agreementId, open, onOpenChange }: InvoiceDialog
   };
 
   return (
-    <PrintSettingsProvider>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle>Invoice</DialogTitle>
-            <DialogDescription className="flex items-center gap-4">
-              <span>Review and download the invoice for this agreement</span>
-              <div className="flex gap-2">
-                <PrintButton 
-                  contentId="invoice-content"
-                  buttonText="Print"
-                  variant="outline"
-                />
-                <Button
-                  onClick={handleDownload}
-                  disabled={isLoading || isGeneratingPdf}
-                >
-                  {isGeneratingPdf ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="mr-2 h-4 w-4" />
-                      Download PDF
-                    </>
-                  )}
-                </Button>
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-          {isLoading ? (
-            <div className="flex justify-center items-center min-h-[400px]">
-              <Loader2 className="h-8 w-8 animate-spin" />
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Invoice</DialogTitle>
+          <DialogDescription className="flex items-center gap-4">
+            <span>Review and download the invoice for this agreement</span>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={handlePrint}
+                disabled={isLoading || isGeneratingPdf}
+              >
+                Print
+              </Button>
+              <Button
+                onClick={handleDownload}
+                disabled={isLoading || isGeneratingPdf}
+              >
+                {isGeneratingPdf ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download PDF
+                  </>
+                )}
+              </Button>
             </div>
-          ) : invoiceData ? (
-            <div className="flex-1 overflow-hidden">
-              <div id="invoice-content" className="printable-content">
-                <InvoiceView data={invoiceData} onPrint={handlePrint} />
-              </div>
+          </DialogDescription>
+        </DialogHeader>
+        {isLoading ? (
+          <div className="flex justify-center items-center min-h-[400px]">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        ) : invoiceData ? (
+          <div className="flex-1 overflow-hidden">
+            <div id="invoice-content">
+              <InvoiceView data={invoiceData} onPrint={handlePrint} />
             </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              Failed to load invoice data
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </PrintSettingsProvider>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            Failed to load invoice data
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 };
