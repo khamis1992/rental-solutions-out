@@ -1,4 +1,14 @@
 
+/**
+ * CreateJobDialog Component
+ * 
+ * This component provides a dialog for creating new maintenance job cards.
+ * It handles the creation process, validation, and submission of maintenance records.
+ * 
+ * Part of the maintenance module, it enables users to initiate maintenance work
+ * by creating job cards that track maintenance activities for vehicles.
+ */
+
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
@@ -10,15 +20,27 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
+/**
+ * Props interface for the CreateJobDialog component
+ * 
+ * @property open - Boolean controlling dialog visibility
+ * @property onOpenChange - Callback when dialog open state changes
+ */
 interface CreateJobDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 
+/**
+ * Dialog component for creating new maintenance job cards
+ */
 export function CreateJobDialog({ open, onOpenChange }: CreateJobDialogProps) {
+  // State for form submission
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // ----- Section: Data Fetching -----
+  // Fetch available vehicles for maintenance
   const { data: vehicles = [] } = useQuery({
     queryKey: ["available-vehicles"],
     queryFn: async () => {
@@ -34,6 +56,7 @@ export function CreateJobDialog({ open, onOpenChange }: CreateJobDialogProps) {
     },
   });
 
+  // Fetch maintenance categories
   const { data: categories = [] } = useQuery({
     queryKey: ["maintenance-categories"],
     queryFn: async () => {
@@ -47,6 +70,7 @@ export function CreateJobDialog({ open, onOpenChange }: CreateJobDialogProps) {
     },
   });
 
+  // Form data state
   const [formData, setFormData] = useState({
     vehicle_id: "",
     category_id: "",
@@ -56,6 +80,12 @@ export function CreateJobDialog({ open, onOpenChange }: CreateJobDialogProps) {
     cost: "",
   });
 
+  /**
+   * Checks if there are existing job cards for the selected vehicle
+   * 
+   * @param vehicleId - ID of the vehicle to check
+   * @returns Boolean indicating if vehicle has existing active job cards
+   */
   const checkExistingJobCard = async (vehicleId: string) => {
     console.log("Checking existing job cards for vehicle:", vehicleId);
     try {
@@ -78,11 +108,18 @@ export function CreateJobDialog({ open, onOpenChange }: CreateJobDialogProps) {
     }
   };
 
+  /**
+   * Handles form submission to create a new job card
+   * 
+   * @param e - Form submission event
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      // ----- Section: Validation -----
+      // Check if vehicle already has active job cards
       const hasExistingJobCard = await checkExistingJobCard(formData.vehicle_id);
       if (hasExistingJobCard) {
         toast.error(
@@ -91,6 +128,8 @@ export function CreateJobDialog({ open, onOpenChange }: CreateJobDialogProps) {
         return;
       }
 
+      // ----- Section: Job Card Creation -----
+      // Create the maintenance record
       const { data: maintenance, error: maintenanceError } = await supabase
         .from("maintenance")
         .insert([
@@ -109,6 +148,7 @@ export function CreateJobDialog({ open, onOpenChange }: CreateJobDialogProps) {
 
       if (maintenanceError) throw maintenanceError;
 
+      // Update vehicle status to maintenance
       const { error: vehicleError } = await supabase
         .from("vehicles")
         .update({ status: "maintenance" })
@@ -116,6 +156,7 @@ export function CreateJobDialog({ open, onOpenChange }: CreateJobDialogProps) {
 
       if (vehicleError) throw vehicleError;
 
+      // Notify success and navigate to inspection page
       toast.success("Job card created successfully");
       if (onOpenChange) onOpenChange(false);
       navigate(`/maintenance/${maintenance.id}/inspection`);
@@ -127,6 +168,7 @@ export function CreateJobDialog({ open, onOpenChange }: CreateJobDialogProps) {
     }
   };
 
+  // ----- Section: Dialog UI -----
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>

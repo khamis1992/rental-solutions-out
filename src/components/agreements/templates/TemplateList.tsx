@@ -1,3 +1,14 @@
+
+/**
+ * TemplateList Component
+ * 
+ * This component displays a list of agreement templates in a tabular format.
+ * It provides information about each template and actions for previewing, editing, and deleting.
+ * 
+ * The component is used in the templates management section to help users
+ * view and manage their agreement templates.
+ */
+
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -10,6 +21,9 @@ import {
 import { Edit, Eye, Trash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
+/**
+ * Template interface defining the shape of template data
+ */
 interface Template {
   id: string;
   name: string;
@@ -25,6 +39,15 @@ interface Template {
   variable_mappings: Record<string, any>;
 }
 
+/**
+ * Props interface for the TemplateList component
+ * 
+ * @property templates - Array of template objects to display
+ * @property isLoading - Boolean indicating if templates are being loaded
+ * @property onPreview - Optional callback when preview button is clicked
+ * @property onEdit - Optional callback when edit button is clicked
+ * @property onDelete - Optional callback when delete button is clicked
+ */
 interface TemplateListProps {
   templates: Template[];
   isLoading: boolean;
@@ -33,6 +56,9 @@ interface TemplateListProps {
   onDelete?: (template: Template) => void;
 }
 
+/**
+ * Component that displays a table of agreement templates with actions
+ */
 export const TemplateList = ({ 
   templates, 
   isLoading,
@@ -40,10 +66,17 @@ export const TemplateList = ({
   onEdit,
   onDelete 
 }: TemplateListProps) => {
+  // ----- Section: Loading State -----
   if (isLoading) {
     return <div>Loading templates...</div>;
   }
 
+  /**
+   * Helper function to count variables in a template
+   * 
+   * @param template - The template to analyze
+   * @returns The total number of variables in the template
+   */
   const getVariableCount = (template: Template) => {
     const mappings = template.variable_mappings || {};
     return Object.values(mappings).reduce((count, section) => 
@@ -51,6 +84,7 @@ export const TemplateList = ({
     );
   };
 
+  // ----- Section: Templates Table -----
   return (
     <Table>
       <TableHeader>
@@ -67,27 +101,37 @@ export const TemplateList = ({
       <TableBody>
         {templates.map((template) => (
           <TableRow key={template.id}>
+            {/* Template name and description */}
             <TableCell className="font-medium">
               {template.name}
               {template.description && (
                 <p className="text-sm text-muted-foreground">{template.description}</p>
               )}
             </TableCell>
+            
+            {/* Agreement type badge */}
             <TableCell>
               <Badge variant={template.agreement_type === "lease_to_own" ? "default" : "secondary"}>
                 {template.agreement_type === "lease_to_own" ? "Lease to Own" : "Short Term"}
               </Badge>
             </TableCell>
+            
+            {/* Template metadata */}
             <TableCell>{getVariableCount(template)} variables</TableCell>
             <TableCell>{(template.template_sections || []).length} sections</TableCell>
             <TableCell>{template.rent_amount} QAR</TableCell>
+            
+            {/* Template status badge */}
             <TableCell>
               <Badge variant={template.is_active ? "success" : "secondary"}>
                 {template.is_active ? "Active" : "Inactive"}
               </Badge>
             </TableCell>
+            
+            {/* Action buttons */}
             <TableCell>
               <div className="flex items-center gap-2">
+                {/* Preview button */}
                 <Button 
                   variant="ghost" 
                   size="icon"
@@ -95,6 +139,8 @@ export const TemplateList = ({
                 >
                   <Eye className="h-4 w-4" />
                 </Button>
+                
+                {/* Edit button */}
                 <Button 
                   variant="ghost" 
                   size="icon"
@@ -102,6 +148,8 @@ export const TemplateList = ({
                 >
                   <Edit className="h-4 w-4" />
                 </Button>
+                
+                {/* Delete button */}
                 <Button 
                   variant="ghost" 
                   size="icon"
@@ -113,6 +161,8 @@ export const TemplateList = ({
             </TableCell>
           </TableRow>
         ))}
+        
+        {/* Empty state when no templates exist */}
         {templates.length === 0 && (
           <TableRow>
             <TableCell colSpan={7} className="text-center">
