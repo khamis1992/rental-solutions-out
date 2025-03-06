@@ -1,129 +1,84 @@
 
-@layer components {
-  /* Grid System */
-  .auto-grid {
-    @apply grid gap-4 md:gap-6;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--min-column-width, 300px)), 1fr));
-  }
+/* Layout Components */
+.page-container {
+  @apply w-full min-h-screen bg-background pb-8;
+}
 
-  .flex-grid {
-    @apply flex flex-wrap gap-4 md:gap-6;
-  }
+.content-wrapper {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6;
+}
 
-  /* Content Containers */
-  .content-container {
-    @apply container mx-auto px-4 sm:px-6 lg:px-8 w-full;
-    max-width: min(100vw - 2rem, var(--content-max-width, 1400px));
-  }
+/* Card Styling */
+.card-minimal {
+  @apply bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow transition-shadow duration-200;
+}
 
-  .section-container {
-    @apply py-4 md:py-6 lg:py-8 space-y-4 md:space-y-6;
-  }
+.card-header {
+  @apply px-5 py-4 border-b border-gray-100 bg-white/50;
+}
 
-  /* Card Layouts */
-  .card-grid {
-    @apply grid gap-4 md:gap-6;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-  }
+.card-content {
+  @apply p-5;
+}
 
-  .stats-grid {
-    @apply grid gap-4;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  }
+/* Panel Layouts */
+.panel-container {
+  @apply bg-white rounded-lg border border-gray-100 shadow-sm;
+}
 
-  /* Form Layouts */
-  .form-grid {
-    @apply grid gap-4;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
-  }
+.panel-header {
+  @apply px-5 py-4 border-b border-gray-100 flex items-center justify-between;
+}
 
-  .form-section {
-    @apply space-y-4 max-w-[var(--text-block-width)] mx-auto;
-  }
+.panel-content {
+  @apply p-5;
+}
 
-  /* Touch-friendly Elements */
-  .touch-target {
-    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
-  }
+/* Dashboard Layout */
+.dashboard-container {
+  @apply grid gap-6;
+}
 
-  /* Responsive Typography */
-  .text-responsive {
-    @apply text-sm md:text-base lg:text-lg;
-  }
-
-  .heading-responsive {
-    @apply text-lg md:text-xl lg:text-2xl font-semibold;
-  }
-
-  /* Layout Components */
-  .page-container {
-    @apply flex-1 w-full max-w-[var(--content-max-width)] mx-auto px-4 sm:px-6 lg:px-8;
-  }
-
-  .content-wrapper {
-    @apply space-y-4 md:space-y-6 lg:space-y-8 py-4 md:py-6 lg:py-8;
-  }
-
-  .card-container {
-    @apply bg-card rounded-lg border shadow-sm hover:shadow-md transition-all duration-300;
-  }
-
-  /* Responsive Containers */
-  .responsive-container {
-    @apply container mx-auto px-4 sm:px-6 lg:px-8;
-    max-width: min(100vw - 2rem, var(--content-max-width, 1400px));
-  }
-
-  /* Mobile Optimizations */
-  .mobile-padding {
-    @apply px-4 sm:px-6 lg:px-8;
-  }
-
-  .mobile-wrapper {
-    @apply -mx-4 sm:-mx-6 lg:-mx-8;
+@media (min-width: 768px) {
+  .dashboard-container {
+    @apply grid-cols-2;
   }
 }
 
-/* Screen Size Adaptations */
-@media (max-width: 640px) {
-  :root {
-    --section-spacing: 1rem;
-    --component-spacing: 0.75rem;
-    --content-padding: 1rem;
+@media (min-width: 1024px) {
+  .dashboard-container {
+    @apply grid-cols-3;
   }
 }
 
-@media (min-width: 641px) and (max-width: 1024px) {
-  :root {
-    --section-spacing: 1.5rem;
-    --component-spacing: 1rem;
-    --content-padding: 1.5rem;
-  }
+/* Sidebar Styling */
+.sidebar {
+  @apply bg-white border-r border-gray-200 h-screen transition-all duration-200 flex flex-col;
 }
 
-@media (min-width: 1025px) {
-  :root {
-    --section-spacing: 2rem;
-    --component-spacing: 1.5rem;
-    --content-padding: 2rem;
-  }
+/* Header Styling */
+.header {
+  @apply bg-white border-b border-gray-200 h-16 flex items-center px-4;
 }
 
-/* Touch Device Optimizations */
-@media (hover: none) {
-  .hover-only {
-    @apply hidden;
-  }
-  
-  .touch-scrolling {
-    -webkit-overflow-scrolling: touch;
-    @apply overflow-auto;
-  }
+/* Data Display Containers */
+.data-container {
+  @apply bg-white rounded-lg border border-gray-100 shadow-sm p-4 h-full;
 }
 
-/* Print Styles */
-@media print {
-  .no-print {
-    display: none;
-  }
+.data-header {
+  @apply text-lg font-medium mb-4 pb-2 border-b border-gray-100;
+}
+
+/* Section Layouts */
+.section-container {
+  @apply py-6;
+}
+
+.section-title {
+  @apply text-xl font-semibold mb-4;
+}
+
+.section-subtitle {
+  @apply text-sm text-gray-500 mb-6;
 }
