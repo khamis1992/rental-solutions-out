@@ -6,6 +6,7 @@ import type { Customer } from "../types/customer";
 import { handleQueryResult, extractCount } from "@/lib/queryUtils";
 import { buildQuery } from "@/lib/supabaseUtils";
 import { Profile, TypedQuery } from "@/types/supabase.types";
+import { safeTransform, safeArray } from "@/lib/transformUtils";
 
 interface UseCustomersOptions {
   searchQuery: string;
@@ -65,28 +66,33 @@ export const useCustomers = ({ searchQuery, page, pageSize }: UseCustomersOption
 
         const result = await customerQuery;
         
-        // Transform database records to match our Customer type
+        // Transform database records to match our Customer type using the safe transform utility
         const profileData = handleQueryResult<Profile[]>(result, []);
-        const customers: Customer[] = profileData?.map(record => ({
-          id: record.id,
-          full_name: record.full_name || '',
-          phone_number: record.phone_number || '',
-          email: record.email || '',
-          address: record.address || '',
-          driver_license: record.driver_license || '',
-          id_document_url: record.id_document_url || '',
-          license_document_url: record.license_document_url || '',
-          contract_document_url: record.contract_document_url || '',
-          created_at: record.created_at || '',
-          role: record.role as 'customer' | 'staff' | 'admin',
-          status: record.status as Customer['status'],
-          document_verification_status: record.document_verification_status as Customer['document_verification_status'],
-          profile_completion_score: record.profile_completion_score || 0,
-          merged_into: record.merged_into || null,
-          nationality: record.nationality || '',
-          id_document_expiry: record.id_document_expiry || null,
-          license_document_expiry: record.license_document_expiry || null
-        })) || [];
+        
+        const customers = safeTransform(
+          profileData,
+          (profiles) => safeArray(profiles).map(record => ({
+            id: record.id,
+            full_name: record.full_name || '',
+            phone_number: record.phone_number || '',
+            email: record.email || '',
+            address: record.address || '',
+            driver_license: record.driver_license || '',
+            id_document_url: record.id_document_url || '',
+            license_document_url: record.license_document_url || '',
+            contract_document_url: record.contract_document_url || '',
+            created_at: record.created_at || '',
+            role: record.role as 'customer' | 'staff' | 'admin',
+            status: record.status as Customer['status'],
+            document_verification_status: record.document_verification_status as Customer['document_verification_status'],
+            profile_completion_score: record.profile_completion_score || 0,
+            merged_into: record.merged_into || null,
+            nationality: record.nationality || '',
+            id_document_expiry: record.id_document_expiry || null,
+            license_document_expiry: record.license_document_expiry || null
+          })),
+          []
+        );
         
         console.log("Fetched customers:", customers.length, "records");
         return {

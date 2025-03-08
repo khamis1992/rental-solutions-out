@@ -6,6 +6,7 @@ import { isDefined } from "@/lib/queryUtils";
 import { UseDashboardStatsResult } from "@/types/hooks.types";
 import { QueryResponse } from "@/types/supabase.types";
 import { callDatabaseFunction } from "@/lib/supabaseUtils";
+import { safeTransform } from "@/lib/transformUtils";
 
 export const useDashboardStats = (): UseDashboardStatsResult => {
   const queryResult = useQuery({
@@ -18,16 +19,28 @@ export const useDashboardStats = (): UseDashboardStatsResult => {
           throw new Error("Failed to fetch dashboard stats");
         }
         
-        // Type-safe transformation of the data
-        const stats: DashboardStats = {
-          total_vehicles: validateNumberField(dashboardStats.total_vehicles, 'total_vehicles'),
-          available_vehicles: validateNumberField(dashboardStats.available_vehicles, 'available_vehicles'),
-          rented_vehicles: validateNumberField(dashboardStats.rented_vehicles, 'rented_vehicles'),
-          maintenance_vehicles: validateNumberField(dashboardStats.maintenance_vehicles, 'maintenance_vehicles'),
-          total_customers: validateNumberField(dashboardStats.total_customers, 'total_customers'),
-          active_rentals: validateNumberField(dashboardStats.active_rentals, 'active_rentals'),
-          monthly_revenue: validateNumberField(dashboardStats.monthly_revenue, 'monthly_revenue'),
-        };
+        // Type-safe transformation of the data using our utility function
+        const stats: DashboardStats = safeTransform(
+          dashboardStats,
+          (data) => ({
+            total_vehicles: validateNumberField(data.total_vehicles, 'total_vehicles'),
+            available_vehicles: validateNumberField(data.available_vehicles, 'available_vehicles'),
+            rented_vehicles: validateNumberField(data.rented_vehicles, 'rented_vehicles'),
+            maintenance_vehicles: validateNumberField(data.maintenance_vehicles, 'maintenance_vehicles'),
+            total_customers: validateNumberField(data.total_customers, 'total_customers'),
+            active_rentals: validateNumberField(data.active_rentals, 'active_rentals'),
+            monthly_revenue: validateNumberField(data.monthly_revenue, 'monthly_revenue'),
+          }),
+          {
+            total_vehicles: 0,
+            available_vehicles: 0,
+            rented_vehicles: 0,
+            maintenance_vehicles: 0,
+            total_customers: 0,
+            active_rentals: 0,
+            monthly_revenue: 0,
+          }
+        );
         
         return stats;
       } catch (error) {
