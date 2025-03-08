@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useMemo } from "react";
 import { getStatusGroup } from "@/components/dashboard/enhanced/VehicleStatusConfig";
 import { StatusGroup } from "@/types/dashboard.types";
+import { CheckCircle2, AlertCircle, AlertTriangle } from "lucide-react";
 
 export const useVehicleStatus = () => {
   const { data: vehicles = [], isLoading, error, refetch } = useQuery({
@@ -87,6 +88,3 @@ export const useVehicleStatus = () => {
     criticalCount: statusGroups.critical.reduce((sum, item) => sum + item.count, 0)
   };
 };
-
-// Import for the types used in the component
-import { CheckCircle2, AlertCircle, AlertTriangle } from "lucide-react";
