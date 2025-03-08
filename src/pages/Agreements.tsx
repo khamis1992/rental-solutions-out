@@ -5,18 +5,17 @@ import { AgreementListHeader } from "@/components/agreements/list/AgreementListH
 import { AgreementStats } from "@/components/agreements/AgreementStats";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { PaymentImport } from "@/components/agreements/PaymentImport";
-import { ChevronRight, Building2, FileText, Search, AlertCircle, List, Grid2X2 } from "lucide-react";
+import { ChevronRight, Building2, FileText } from "lucide-react";
 import { useAgreements } from "@/components/agreements/hooks/useAgreements";
 import { AgreementDetailsDialog } from "@/components/agreements/AgreementDetailsDialog";
 import { type Agreement } from "@/types/agreement.types";
 import { DeleteAgreementDialog } from "@/components/agreements/DeleteAgreementDialog";
 import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
-import { EnhancedAgreementListV2 } from "@/components/agreements/v2/EnhancedAgreementListV2";
-import { Button } from "@/components/ui/button";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { SearchInput } from "@/components/agreements/search/SearchInput";
 import { ViewToggle } from "@/components/agreements/v2/ViewToggle";
+import { EnhancedAgreementListV2 } from "@/components/agreements/v2/EnhancedAgreementListV2";
+import { Button } from "@/components/ui/button";
 
 const Agreements = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -107,23 +106,26 @@ const Agreements = () => {
               </div>
             </div>
 
-            {/* Enhanced Search and Action Buttons */}
-            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
-              <div className="flex-1 relative">
+            {/* Enhanced Search and Action Buttons - FIXED LAYOUT */}
+            <div className="flex justify-between items-center gap-4">
+              <div className="relative w-full max-w-md">
                 <SearchInput 
                   onSearch={handleSearchChange}
                   placeholder="Search agreements..."
                   initialValue={searchQuery}
                 />
               </div>
-              <div className="flex gap-4 flex-shrink-0">
-                <div className="flex items-center gap-4">
-                  <ViewToggle initialMode={viewMode} onViewModeChange={handleViewModeChange} />
-                  <AgreementListHeader onImportClick={handleImportClick} onDeleteClick={() => {}} isDeleting={false} />
-                </div>
-                <div className="flex-shrink-0">
-                  <PaymentImport />
-                </div>
+              <div className="flex items-center gap-4">
+                <ViewToggle 
+                  viewMode={viewMode} 
+                  onChange={handleViewModeChange}
+                />
+                <AgreementListHeader 
+                  onImportClick={handleImportClick} 
+                  onDeleteClick={() => {}} 
+                  isDeleting={false} 
+                />
+                <PaymentImport />
               </div>
             </div>
           </div>
@@ -139,7 +141,8 @@ const Agreements = () => {
           {/* Enhanced Agreements List with Loading/Error State */}
           <div className="pb-12">
             <ErrorBoundary>
-              {isError ? <div className="bg-white border rounded-lg p-8 text-center shadow-sm">
+              {isError ? (
+                <div className="bg-white border rounded-lg p-8 text-center shadow-sm">
                   <div className="flex flex-col items-center justify-center gap-4">
                     <AlertCircle className="h-12 w-12 text-red-500" />
                     <h3 className="text-xl font-semibold text-gray-800">Unable to load agreements</h3>
@@ -150,14 +153,17 @@ const Agreements = () => {
                       Try Again
                     </Button>
                   </div>
-                </div> : <EnhancedAgreementListV2 
+                </div>
+              ) : (
+                <EnhancedAgreementListV2 
                   agreements={agreements} 
                   onViewDetails={handleViewDetails} 
                   onDelete={handleDeleteClick} 
                   viewMode={viewMode} 
-                  showLoadingState={isLoading} 
+                  showLoadingState={isLoading}
                   onViewModeChange={handleViewModeChange}
-                />}
+                />
+              )}
             </ErrorBoundary>
           </div>
         </div>
@@ -165,10 +171,21 @@ const Agreements = () => {
         {/* Dialogs */}
         <CreateAgreementDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
 
-        {selectedAgreement && <>
-            <AgreementDetailsDialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog} agreementId={selectedAgreement.id} />
-            <DeleteAgreementDialog agreementId={selectedAgreement.id} open={showDeleteDialog} onOpenChange={setShowDeleteDialog} onDeleted={handleDeleteComplete} />
-          </>}
+        {selectedAgreement && (
+          <>
+            <AgreementDetailsDialog 
+              open={showDetailsDialog} 
+              onOpenChange={setShowDetailsDialog} 
+              agreementId={selectedAgreement.id} 
+            />
+            <DeleteAgreementDialog 
+              agreementId={selectedAgreement.id} 
+              open={showDeleteDialog} 
+              onOpenChange={setShowDeleteDialog} 
+              onDeleted={handleDeleteComplete} 
+            />
+          </>
+        )}
       </div>
     </DashboardLayout>;
 };
