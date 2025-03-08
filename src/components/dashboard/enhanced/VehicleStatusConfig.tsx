@@ -1,4 +1,5 @@
 
+import { StatusConfigMap } from "@/types/dashboard.types";
 import { 
   AlertTriangle, 
   Building, 
@@ -11,7 +12,6 @@ import {
   Ban,
   ParkingCircle
 } from "lucide-react";
-import { StatusConfigMap } from "@/types/dashboard.types";
 
 export const STATUS_CONFIG: StatusConfigMap = {
   available: { 
