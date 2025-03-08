@@ -2,34 +2,35 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardStats } from "@/types/dashboard.types";
-import { isDefined, handleQueryResult } from "@/lib/queryUtils";
+import { isDefined } from "@/lib/queryUtils";
 import { UseDashboardStatsResult } from "@/types/hooks.types";
+import { QueryResponse } from "@/types/supabase.types";
 
 export const useDashboardStats = (): UseDashboardStatsResult => {
   const queryResult = useQuery({
     queryKey: ["dashboardStats"],
     queryFn: async (): Promise<DashboardStats> => {
       try {
-        const { data, error } = await supabase.rpc("get_dashboard_stats");
+        const response: QueryResponse<DashboardStats> = await supabase.rpc("get_dashboard_stats");
         
-        if (error) {
-          throw new Error(`Failed to fetch dashboard stats: ${error.message}`);
+        if (response.error) {
+          throw new Error(`Failed to fetch dashboard stats: ${response.error.message}`);
         }
         
         // Validate and parse the JSONB object from the database
-        if (!data || typeof data !== 'object') {
+        if (!response.data || typeof response.data !== 'object') {
           throw new Error("Invalid data format received from dashboard stats RPC");
         }
         
         // Type-safe transformation of the data
         const stats: DashboardStats = {
-          total_vehicles: validateNumberField(data.total_vehicles, 'total_vehicles'),
-          available_vehicles: validateNumberField(data.available_vehicles, 'available_vehicles'),
-          rented_vehicles: validateNumberField(data.rented_vehicles, 'rented_vehicles'),
-          maintenance_vehicles: validateNumberField(data.maintenance_vehicles, 'maintenance_vehicles'),
-          total_customers: validateNumberField(data.total_customers, 'total_customers'),
-          active_rentals: validateNumberField(data.active_rentals, 'active_rentals'),
-          monthly_revenue: validateNumberField(data.monthly_revenue, 'monthly_revenue'),
+          total_vehicles: validateNumberField(response.data.total_vehicles, 'total_vehicles'),
+          available_vehicles: validateNumberField(response.data.available_vehicles, 'available_vehicles'),
+          rented_vehicles: validateNumberField(response.data.rented_vehicles, 'rented_vehicles'),
+          maintenance_vehicles: validateNumberField(response.data.maintenance_vehicles, 'maintenance_vehicles'),
+          total_customers: validateNumberField(response.data.total_customers, 'total_customers'),
+          active_rentals: validateNumberField(response.data.active_rentals, 'active_rentals'),
+          monthly_revenue: validateNumberField(response.data.monthly_revenue, 'monthly_revenue'),
         };
         
         return stats;

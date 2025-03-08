@@ -1,4 +1,3 @@
-
 import { PostgrestError, PostgrestSingleResponse } from '@supabase/supabase-js';
 
 /**
@@ -221,4 +220,117 @@ export function extractTypedJsonProperty<T>(
     console.error(`Error extracting property ${property}:`, error);
     return defaultValue;
   }
+}
+
+import { QueryResponse, TypedQuery, AggregationResult, RelationalQueryOptions } from '@/types/supabase.types';
+
+/**
+ * Enhanced type-safe helper for handling Supabase query results
+ * @param result Supabase query result with data and error properties
+ * @param defaultValue Optional default value to return if there's an error
+ * @returns The data from the query or the default value if there was an error
+ */
+export function handleQueryResult<T>(
+  result: QueryResponse<T>,
+  defaultValue: T | null = null
+): T | null {
+  if (result.error) {
+    console.error('Supabase query error:', result.error);
+    return defaultValue;
+  }
+  return result.data;
+}
+
+/**
+ * Enhanced function to safely parse typed responses from PostgreSQL JSON
+ * @param jsonData JSON data from database
+ * @param defaultValue Default value if parsing fails
+ * @returns Typed object
+ */
+export function parseTypedJson<T>(
+  jsonData: any,
+  defaultValue: T
+): T {
+  if (!jsonData) return defaultValue;
+  
+  try {
+    // If it's already an object, validate it
+    if (typeof jsonData === 'object' && jsonData !== null) {
+      return jsonData as T;
+    }
+    
+    // If it's a string, parse it
+    if (typeof jsonData === 'string') {
+      return JSON.parse(jsonData) as T;
+    }
+    
+    return defaultValue;
+  } catch (error) {
+    console.error('Error parsing JSON to type:', error);
+    return defaultValue;
+  }
+}
+
+/**
+ * Process a relational query with proper type handling
+ * @param query The base query
+ * @param options Relation options 
+ * @returns Typed query builder
+ */
+export function withRelations<T>(
+  query: TypedQuery<T>, 
+  options: RelationalQueryOptions
+): TypedQuery<T> {
+  let enhancedQuery = query;
+  
+  // Add basic fields
+  if (options.includes && options.includes.length > 0) {
+    enhancedQuery = query.select(options.includes.join(','));
+  }
+  
+  // Add nested relations
+  if (options.nested) {
+    Object.entries(options.nested).forEach(([relation, config]) => {
+      const nestedFields = config.fields.join(',');
+      const relationQuery = `${relation}(${nestedFields})`;
+      
+      // Extend the select query
+      if (enhancedQuery) {
+        enhancedQuery = enhancedQuery.select(relationQuery);
+      }
+    });
+  }
+  
+  return enhancedQuery;
+}
+
+/**
+ * Type-safe helper for aggregation queries
+ * @param result Query result containing aggregation data
+ * @returns Structured aggregation result
+ */
+export function handleAggregationResult(
+  result: QueryResponse<any>
+): AggregationResult | null {
+  if (result.error) {
+    console.error('Aggregation query error:', result.error);
+    return null;
+  }
+  
+  // Aggregation results come in various formats depending on the function
+  if (!result.data || !result.data[0]) {
+    return null;
+  }
+  
+  // Extract aggregation values
+  const aggregation: AggregationResult = {};
+  const data = result.data[0];
+  
+  if ('count' in data) aggregation.count = data.count;
+  if ('sum' in data) aggregation.sum = data.sum;
+  if ('avg' in data) aggregation.avg = data.avg;
+  if ('min' in data) aggregation.min = data.min;
+  if ('max' in data) aggregation.max = data.max;
+  
+  return aggregation;
 }

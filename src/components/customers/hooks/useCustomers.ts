@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Customer } from "../types/customer";
 import { handleQueryResult, extractCount } from "@/lib/queryUtils";
+import { buildQuery } from "@/lib/supabaseUtils";
+import { Profile, TypedQuery } from "@/types/supabase.types";
 
 interface UseCustomersOptions {
   searchQuery: string;
@@ -27,7 +29,7 @@ export const useCustomers = ({ searchQuery, page, pageSize }: UseCustomersOption
         // First get total count for pagination
         const countResult = await supabase
           .from('profiles')
-          .select('id', { count: 'exact' })
+          .select('id', { count: 'exact', head: true })
           .eq('role', 'customer'); // Only count customers
 
         if (searchQuery) {
@@ -36,22 +38,32 @@ export const useCustomers = ({ searchQuery, page, pageSize }: UseCustomersOption
 
         const totalCount = extractCount(countResult, 0);
 
-        // Then fetch paginated data
-        let query = supabase
+        // Then fetch paginated data using our type-safe utilities
+        const baseQuery: TypedQuery<Profile> = supabase
           .from('profiles')
-          .select('*')
-          .eq('role', 'customer') // Only fetch customers
-          .range(page * pageSize, (page + 1) * pageSize - 1)
-          .order('created_at', { ascending: false });
-
+          .select('*');
+          
+        const query = buildQuery(baseQuery, {
+          filters: { 
+            role: 'customer' 
+          },
+          page,
+          pageSize,
+          sort: { field: 'created_at', direction: 'desc' }
+        });
+          
+        // Add search filter if provided
+        let customerQuery = query;
         if (searchQuery) {
-          query = query.or(`full_name.ilike.%${searchQuery}%,phone_number.ilike.%${searchQuery}%,driver_license.ilike.%${searchQuery}%`);
+          customerQuery = customerQuery.or(
+            `full_name.ilike.%${searchQuery}%,phone_number.ilike.%${searchQuery}%,driver_license.ilike.%${searchQuery}%`
+          );
         }
 
-        const result = await query;
+        const result = await customerQuery;
         
         // Transform database records to match our Customer type
-        const customers = handleQueryResult<any[]>(result, []).map(record => ({
+        const customers = handleQueryResult<Profile[]>(result, []).map(record => ({
           id: record.id,
           full_name: record.full_name,
           phone_number: record.phone_number,
