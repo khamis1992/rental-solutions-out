@@ -1,104 +1,141 @@
-import { useRef, useEffect } from 'react';
-import { performanceMetrics } from "@/services/performanceMonitoring";
-import { toast } from "sonner";
-import type { ExtendedPerformance } from "@/services/performance/types";
 
-const MONITORING_INTERVALS = {
-  CPU: 10000,    // 10 seconds
-  MEMORY: 15000, // 15 seconds
-  DISK: 60000    // 1 minute
-} as const;
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
-const PERFORMANCE_THRESHOLDS = {
-  CPU: 80,    // 80% CPU usage
-  MEMORY: 90, // 90% memory usage
-  DISK: 90    // 90% disk usage
-} as const;
+export interface PerformanceMetrics {
+  queryCount: number;
+  avgQueryTime: number;
+  maxQueryTime: number;
+  errorCount: number;
+  lastUpdated: Date;
+  dataTransferred: number;
+  slowestEndpoint?: string;
+  statusCodes: Record<string, number>;
+}
 
-export const usePerformanceMonitoring = () => {
-  const intervals = useRef<Array<NodeJS.Timeout>>([]);
+export interface PerformanceThresholds {
+  slowQueryTime: number; // in ms
+  criticalQueryTime: number; // in ms
+  highErrorRate: number; // percentage
+  criticalErrorRate: number; // percentage
+}
 
-  const measureCPUUsage = async (): Promise<number> => {
-    const performance = window.performance as ExtendedPerformance;
-    if (!performance?.memory) return 0;
+export const usePerformanceMonitoring = (options: {
+  refreshInterval?: number;
+  thresholds?: Partial<PerformanceThresholds>;
+  enableAlerts?: boolean;
+} = {}) => {
+  const {
+    refreshInterval = 60000, // default to 1 minute
+    thresholds = {},
+    enableAlerts = false
+  } = options;
 
-    const startTime = performance.now();
-    const startUsage = performance.memory.usedJSHeapSize;
-    
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    const endTime = performance.now();
-    const endUsage = performance.memory.usedJSHeapSize;
-    
-    const duration = endTime - startTime;
-    const memoryDiff = endUsage - startUsage;
-    const cpuUsage = (memoryDiff / duration) * 100;
-    
-    return Math.min(Math.max(cpuUsage, 0), 100);
+  const defaultThresholds: PerformanceThresholds = {
+    slowQueryTime: 1000, // 1 second
+    criticalQueryTime: 3000, // 3 seconds
+    highErrorRate: 5, // 5%
+    criticalErrorRate: 15, // 15%
+    ...thresholds
   };
 
-  const monitorPerformance = async () => {
+  const [metrics, setMetrics] = useState<PerformanceMetrics>({
+    queryCount: 0,
+    avgQueryTime: 0,
+    maxQueryTime: 0,
+    errorCount: 0,
+    lastUpdated: new Date(),
+    dataTransferred: 0,
+    statusCodes: {}
+  });
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  const fetchPerformanceMetrics = async () => {
     try {
-      // Monitor CPU
-      const monitorCPU = async () => {
-        const cpuUsage = await measureCPUUsage();
-        if (cpuUsage > PERFORMANCE_THRESHOLDS.CPU) {
-          toast.warning("High CPU Usage", {
-            description: `Current CPU utilization is ${cpuUsage.toFixed(1)}%`
-          });
-        }
-        await performanceMetrics.trackCPUUtilization(cpuUsage);
-      };
+      // Fetch performance data from the system
+      const { data, error } = await supabase
+        .from('performance_metrics')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(1);
 
-      // Monitor Memory
-      const monitorMemory = async () => {
-        const performance = window.performance as ExtendedPerformance;
-        if (performance?.memory) {
-          const usedMemory = performance.memory.usedJSHeapSize;
-          const totalMemory = performance.memory.totalJSHeapSize;
-          const memoryUsage = (usedMemory / totalMemory) * 100;
+      if (error) throw error;
 
-          if (memoryUsage > PERFORMANCE_THRESHOLDS.MEMORY) {
-            toast.warning("High Memory Usage", {
-              description: `Memory utilization is at ${memoryUsage.toFixed(1)}%`
-            });
-          }
-          await performanceMetrics.trackMemoryUsage();
-        }
-      };
-
-      // Monitor Disk
-      const monitorDisk = async () => {
-        if ('storage' in navigator && 'estimate' in navigator.storage) {
-          const { quota = 0, usage = 0 } = await navigator.storage.estimate();
-          const usagePercentage = (usage / quota) * 100;
-
-          if (usagePercentage > PERFORMANCE_THRESHOLDS.DISK) {
-            toast.warning("High Disk Usage", {
-              description: `Storage utilization is at ${usagePercentage.toFixed(1)}%`
-            });
-          }
-          await performanceMetrics.trackDiskIO();
-        }
-      };
-
-      // Set up monitoring intervals
-      intervals.current.push(
-        setInterval(monitorCPU, MONITORING_INTERVALS.CPU),
-        setInterval(monitorMemory, MONITORING_INTERVALS.MEMORY),
-        setInterval(monitorDisk, MONITORING_INTERVALS.DISK)
-      );
-
-    } catch (error) {
-      console.error('Performance monitoring error:', error);
+      if (data && data.length > 0) {
+        const latestData = data[0];
+        
+        setMetrics({
+          queryCount: latestData.query_count || 0,
+          avgQueryTime: latestData.avg_query_time || 0,
+          maxQueryTime: latestData.max_query_time || 0,
+          errorCount: latestData.error_count || 0,
+          lastUpdated: new Date(latestData.timestamp),
+          dataTransferred: latestData.data_transferred || 0,
+          slowestEndpoint: latestData.slowest_endpoint,
+          statusCodes: latestData.status_codes || {}
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching performance metrics:', err);
+      setError(err instanceof Error ? err : new Error('Failed to fetch performance metrics'));
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    monitorPerformance();
+    // Initial fetch
+    fetchPerformanceMetrics();
+
+    // Set up interval for periodic updates
+    const intervalId = setInterval(fetchPerformanceMetrics, refreshInterval);
+
+    // Subscribe to performance alerts
+    const performanceChannel = supabase
+      .channel('performance-alerts')
+      .on('broadcast', { event: 'performance_alert' }, (payload) => {
+        if (enableAlerts) {
+          console.warn('Performance alert:', payload);
+          // You can implement toast or notification here
+        }
+        
+        // Fetch the latest metrics when receiving an alert
+        fetchPerformanceMetrics();
+      })
+      .subscribe();
+
+    // Cleanup
     return () => {
-      intervals.current.forEach(clearInterval);
-      intervals.current = [];
+      clearInterval(intervalId);
+      performanceChannel.unsubscribe();
     };
-  }, []);
+  }, [refreshInterval, enableAlerts]);
+
+  // Analysis of current metrics
+  const analysis = {
+    hasSlowQueries: metrics.avgQueryTime > defaultThresholds.slowQueryTime,
+    hasCriticalQueries: metrics.maxQueryTime > defaultThresholds.criticalQueryTime,
+    errorRate: metrics.queryCount > 0 ? (metrics.errorCount / metrics.queryCount) * 100 : 0,
+    hasHighErrorRate: metrics.queryCount > 0 && 
+      ((metrics.errorCount / metrics.queryCount) * 100) > defaultThresholds.highErrorRate,
+    hasCriticalErrorRate: metrics.queryCount > 0 && 
+      ((metrics.errorCount / metrics.queryCount) * 100) > defaultThresholds.criticalErrorRate,
+    successRate: metrics.queryCount > 0 ? 
+      100 - ((metrics.errorCount / metrics.queryCount) * 100) : 100
+  };
+
+  const refreshMetrics = () => {
+    setIsLoading(true);
+    fetchPerformanceMetrics();
+  };
+
+  return {
+    metrics,
+    isLoading,
+    error,
+    analysis,
+    refreshMetrics
+  };
 };

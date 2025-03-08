@@ -50,6 +50,24 @@ export interface DashboardStats {
   monthly_revenue: number;
 }
 
+// Dashboard page props
+export interface DashboardPageProps {
+  config?: Partial<DashboardConfig>;
+}
+
+// StatsCard props for dashboard metrics
+export interface StatCardData {
+  title: string;
+  value: number | string;
+  description?: string;
+  trend?: number;
+  trendLabel?: string;
+  icon?: ReactNode;
+  color?: string;
+  isLoading?: boolean;
+  formatter?: (value: number) => string;
+}
+
 // Alert types
 export interface CustomerDetails {
   id: string;
@@ -73,9 +91,9 @@ export interface AlertDetails {
   description?: string;
   priority?: 'low' | 'medium' | 'high';
   date?: string;
+  status?: 'unread' | 'read' | 'dismissed';
   customer?: CustomerDetails;
   vehicle?: VehicleDetails;
-  status?: string;
 }
 
 // Schedule types
@@ -106,3 +124,25 @@ export interface TourStep {
   content: string;
   position: 'left' | 'right' | 'top' | 'bottom';
 }
+
+// Real-time update types
+export interface RealTimeUpdate {
+  type: 'vehicle' | 'customer' | 'payment' | 'alert';
+  timestamp: Date;
+  data: any;
+}
+
+// Dashboard alert display component props
+export interface AlertDisplayProps {
+  alerts: AlertDetails[];
+  isLoading?: boolean;
+  onMarkAsRead?: (alertId: string) => void;
+  onDismiss?: (alertId: string) => void;
+  onViewDetails?: (alert: AlertDetails) => void;
+}
+
+// Payment status for filtering
+export type PaymentStatus = 'pending' | 'paid' | 'overdue' | 'failed' | 'processing';
+
+// Dashboard notification status
+export type NotificationStatus = 'unread' | 'read' | 'dismissed' | 'acted';

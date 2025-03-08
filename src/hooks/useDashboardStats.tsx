@@ -1,57 +1,109 @@
 
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { DashboardStats, DashboardConfig } from "@/types/dashboard.types";
-import { useState } from "react";
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { DashboardStats } from '@/types/dashboard.types';
+import { toast } from 'sonner';
 
-export const useDashboardStats = (initialConfig: Partial<DashboardConfig> = {}) => {
-  const [config, setConfig] = useState<DashboardConfig>({
-    refreshInterval: 30000, // 30 seconds
-    showAvailableVehicles: true,
-    showRentedVehicles: true,
-    showMaintenanceVehicles: true,
-    showTotalCustomers: true,
-    showActiveRentals: true,
-    showMonthlyRevenue: true,
-    ...initialConfig
+/**
+ * Custom hook for fetching and subscribing to dashboard statistics
+ */
+export const useDashboardStats = () => {
+  const [stats, setStats] = useState<DashboardStats>({
+    total_vehicles: 0,
+    available_vehicles: 0,
+    rented_vehicles: 0,
+    maintenance_vehicles: 0,
+    total_customers: 0,
+    active_rentals: 0,
+    monthly_revenue: 0
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["dashboard-stats"],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .rpc('get_dashboard_stats');
+  const fetchStats = async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_dashboard_stats');
+      
+      if (error) throw error;
+      
+      // Convert the JSON data to DashboardStats type
+      const statsData: DashboardStats = {
+        total_vehicles: data.total_vehicles || 0,
+        available_vehicles: data.available_vehicles || 0,
+        rented_vehicles: data.rented_vehicles || 0,
+        maintenance_vehicles: data.maintenance_vehicles || 0,
+        total_customers: data.total_customers || 0,
+        active_rentals: data.active_rentals || 0,
+        monthly_revenue: data.monthly_revenue || 0
+      };
+      
+      setStats(statsData);
+    } catch (err) {
+      console.error('Error fetching dashboard stats:', err);
+      setError(err instanceof Error ? err : new Error('Failed to fetch dashboard stats'));
+      toast.error('Failed to load dashboard statistics');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-        if (error) {
-          throw error;
-        }
+  useEffect(() => {
+    fetchStats();
 
-        // Parse the JSON response
-        return data as DashboardStats;
-      } catch (error) {
-        console.error("Error fetching dashboard stats:", error);
-        toast.error("Failed to fetch dashboard statistics");
-        return null;
-      }
-    },
-    refetchInterval: config.refreshInterval,
-  });
+    // Subscribe to real-time updates
+    const vehicleSubscription = supabase
+      .channel('vehicles-changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'vehicles' 
+        }, 
+        () => fetchStats()
+      )
+      .subscribe();
 
-  const updateConfig = (newConfig: Partial<DashboardConfig>) => {
-    setConfig(prev => ({
-      ...prev,
-      ...newConfig
-    }));
+    const leasesSubscription = supabase
+      .channel('leases-changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'leases' 
+        }, 
+        () => fetchStats()
+      )
+      .subscribe();
+
+    const paymentsSubscription = supabase
+      .channel('payments-changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'unified_payments' 
+        }, 
+        () => fetchStats()
+      )
+      .subscribe();
+
+    // Cleanup subscriptions on unmount
+    return () => {
+      vehicleSubscription.unsubscribe();
+      leasesSubscription.unsubscribe();
+      paymentsSubscription.unsubscribe();
+    };
+  }, []);
+
+  const refreshStats = () => {
+    setIsLoading(true);
+    fetchStats();
   };
 
   return {
-    stats: data,
+    stats,
     isLoading,
     error,
-    refetch,
-    config,
-    updateConfig
+    refreshStats
   };
 };

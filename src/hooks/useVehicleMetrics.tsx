@@ -1,108 +1,131 @@
 
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useMemo } from "react";
-import { toast } from "sonner";
-import { VehicleStatus } from "@/types/vehicle";
-import { ChartDataPoint } from "@/types/dashboard.types";
-import { STATUS_CONFIG } from "@/components/dashboard/enhanced/VehicleStatusConfig";
+import { useState, useEffect, useMemo } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Vehicle, VehicleStatus } from '@/types/vehicle';
+import { toast } from 'sonner';
+import { ChartDataPoint, StatusGroup } from '@/types/dashboard.types';
+import { getStatusGroup, STATUS_CONFIG } from '@/components/dashboard/enhanced/VehicleStatusConfig';
+import { CheckCircle2, AlertCircle, AlertTriangle } from 'lucide-react';
 
-export interface VehicleMetricsOptions {
-  includeRetired?: boolean;
-  timeframe?: 'week' | 'month' | 'quarter' | 'year';
-}
+export const useVehicleMetrics = () => {
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
-export interface VehicleMetricsResult {
-  chartData: ChartDataPoint[];
-  statusDistribution: Record<VehicleStatus, number>;
-  utilizationRate: number;
-  maintenanceRate: number;
-  availabilityRate: number;
-  vehiclesByStatus: Record<VehicleStatus, number>;
-  totalVehicles: number;
-  activeVehicles: number;
-  isLoading: boolean;
-  error: Error | null;
-  refetch: () => Promise<void>;
-}
+  const fetchVehicles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('vehicles')
+        .select('*');
 
-export const useVehicleMetrics = (options: VehicleMetricsOptions = {}): VehicleMetricsResult => {
-  const { includeRetired = false, timeframe = 'month' } = options;
+      if (error) throw error;
+      
+      setVehicles(data as Vehicle[]);
+      setLastUpdate(new Date());
+    } catch (err) {
+      console.error('Error fetching vehicles for metrics:', err);
+      setError(err instanceof Error ? err : new Error('Failed to fetch vehicle metrics'));
+      toast.error('Failed to load vehicle metrics');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const { data: vehicles = [], isLoading, error, refetch } = useQuery({
-    queryKey: ["vehicles-metrics", includeRetired, timeframe],
-    queryFn: async () => {
-      try {
-        let query = supabase
-          .from("vehicles")
-          .select("*");
+  useEffect(() => {
+    fetchVehicles();
 
-        if (!includeRetired) {
-          query = query.neq('status', 'retired');
-        }
+    // Subscribe to real-time updates for vehicles
+    const vehicleSubscription = supabase
+      .channel('vehicle-metrics')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'vehicles' 
+        }, 
+        () => fetchVehicles()
+      )
+      .subscribe();
 
-        const { data, error } = await query;
+    return () => {
+      vehicleSubscription.unsubscribe();
+    };
+  }, []);
 
-        if (error) {
-          throw error;
-        }
-
-        return data;
-      } catch (error) {
-        console.error("Error fetching vehicle metrics:", error);
-        toast.error("Failed to fetch vehicle metrics");
-        return [];
-      }
-    },
-  });
-
-  // Calculate metrics based on the vehicles data
-  const statusDistribution = useMemo(() => {
-    const counts: Record<VehicleStatus, number> = {} as Record<VehicleStatus, number>;
+  // Compute status counts
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
     vehicles.forEach((vehicle) => {
       counts[vehicle.status] = (counts[vehicle.status] || 0) + 1;
     });
     return counts;
   }, [vehicles]);
 
-  const chartData = useMemo<ChartDataPoint[]>(() => {
-    return Object.entries(statusDistribution).map(([status, count]) => ({
-      name: STATUS_CONFIG[status as VehicleStatus]?.label || status,
+  // Group statuses
+  const statusGroups = useMemo(() => {
+    const grouped: Record<string, { status: VehicleStatus; count: number }[]> = {
+      operational: [],
+      attention: [],
+      critical: [],
+    };
+
+    Object.entries(statusCounts).forEach(([status, count]) => {
+      const group = getStatusGroup(status);
+      grouped[group].push({
+        status: status as VehicleStatus,
+        count,
+      });
+    });
+
+    return grouped;
+  }, [statusCounts]);
+
+  // Format for chart display
+  const chartData: ChartDataPoint[] = useMemo(() => {
+    return Object.entries(statusCounts).map(([status, count]) => ({
+      name: STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.label || status,
       value: count,
-      color: STATUS_CONFIG[status as VehicleStatus]?.color || "#6B7280",
+      color: STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.color || "#6B7280",
     }));
-  }, [statusDistribution]);
+  }, [statusCounts]);
 
+  // Compute grouped statuses for UI components
+  const groupedStatuses = useMemo<StatusGroup[]>(() => {
+    return [
+      {
+        name: 'operational',
+        items: statusGroups.operational,
+        icon: <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+      },
+      {
+        name: 'attention',
+        items: statusGroups.attention,
+        icon: <AlertCircle className="h-5 w-5 text-amber-500" />
+      },
+      {
+        name: 'critical',
+        items: statusGroups.critical,
+        icon: <AlertTriangle className="h-5 w-5 text-red-500" />
+      }
+    ];
+  }, [statusGroups]);
+
+  // Calculate total vehicles and critical count
   const totalVehicles = vehicles.length;
-  const activeVehicles = vehicles.filter(v => v.status !== 'retired').length;
-  
-  const availabilityRate = useMemo(() => {
-    const availableCount = statusDistribution['available'] || 0;
-    return totalVehicles > 0 ? (availableCount / totalVehicles) * 100 : 0;
-  }, [statusDistribution, totalVehicles]);
-
-  const utilizationRate = useMemo(() => {
-    const rentedCount = statusDistribution['rented'] || 0;
-    const totalActiveVehicles = activeVehicles;
-    return totalActiveVehicles > 0 ? (rentedCount / totalActiveVehicles) * 100 : 0;
-  }, [statusDistribution, activeVehicles]);
-
-  const maintenanceRate = useMemo(() => {
-    const maintenanceCount = (statusDistribution['maintenance'] || 0) + (statusDistribution['pending_repair'] || 0);
-    return totalVehicles > 0 ? (maintenanceCount / totalVehicles) * 100 : 0;
-  }, [statusDistribution, totalVehicles]);
+  const criticalCount = statusGroups.critical.reduce((sum, item) => sum + item.count, 0);
 
   return {
+    vehicles,
+    statusCounts,
+    statusGroups,
+    groupedStatuses,
     chartData,
-    statusDistribution,
-    utilizationRate,
-    maintenanceRate,
-    availabilityRate,
-    vehiclesByStatus: statusDistribution,
-    totalVehicles,
-    activeVehicles,
     isLoading,
     error,
-    refetch: async () => { await refetch(); }
+    lastUpdate,
+    totalVehicles,
+    criticalCount,
+    refreshVehicles: fetchVehicles
   };
 };

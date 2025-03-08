@@ -1,197 +1,272 @@
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useReducer } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Vehicle, VehicleStatus } from '@/types/dashboard.types';
+import { PaymentStatus, NotificationStatus } from '@/types/dashboard.types';
 import { toast } from 'sonner';
-import { VehicleStatus, PaymentStatus, AgreementStatus } from '@/types/dashboard.types';
-import { UseDashboardSubscriptionsResult } from '@/types/hooks.types';
 
-interface DatabaseChangeEvent {
-  table: string;
-  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
-  new: Record<string, any>;
-  old?: Record<string, any>;
+// Define the state type
+interface DashboardSubscriptionState {
+  hasChanges: boolean;
+  vehicleChanges: number;
+  paymentChanges: number;
+  customerChanges: number;
+  alertChanges: number;
+  maintenanceChanges: number;
+  lastUpdate: Date | null;
 }
 
-export const useDashboardSubscriptions = (): UseDashboardSubscriptionsResult => {
-  const subscriptionRef = useRef<any>(null);
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+// Define action types
+type DashboardSubscriptionAction =
+  | { type: 'VEHICLE_CHANGE' }
+  | { type: 'PAYMENT_CHANGE' }
+  | { type: 'CUSTOMER_CHANGE' }
+  | { type: 'ALERT_CHANGE' }
+  | { type: 'MAINTENANCE_CHANGE' }
+  | { type: 'RESET_CHANGES' };
+
+// Reducer function
+function dashboardReducer(state: DashboardSubscriptionState, action: DashboardSubscriptionAction): DashboardSubscriptionState {
+  switch (action.type) {
+    case 'VEHICLE_CHANGE':
+      return {
+        ...state,
+        hasChanges: true,
+        vehicleChanges: state.vehicleChanges + 1,
+        lastUpdate: new Date()
+      };
+    case 'PAYMENT_CHANGE':
+      return {
+        ...state,
+        hasChanges: true,
+        paymentChanges: state.paymentChanges + 1,
+        lastUpdate: new Date()
+      };
+    case 'CUSTOMER_CHANGE':
+      return {
+        ...state,
+        hasChanges: true,
+        customerChanges: state.customerChanges + 1,
+        lastUpdate: new Date()
+      };
+    case 'ALERT_CHANGE':
+      return {
+        ...state,
+        hasChanges: true,
+        alertChanges: state.alertChanges + 1,
+        lastUpdate: new Date()
+      };
+    case 'MAINTENANCE_CHANGE':
+      return {
+        ...state,
+        hasChanges: true,
+        maintenanceChanges: state.maintenanceChanges + 1,
+        lastUpdate: new Date()
+      };
+    case 'RESET_CHANGES':
+      return {
+        ...state,
+        hasChanges: false,
+        vehicleChanges: 0,
+        paymentChanges: 0,
+        customerChanges: 0,
+        alertChanges: 0,
+        maintenanceChanges: 0
+      };
+    default:
+      return state;
+  }
+}
+
+interface UseDashboardSubscriptionsOptions {
+  enableToasts?: boolean;
+  subscribeToVehicles?: boolean;
+  subscribeToPayments?: boolean;
+  subscribeToCustomers?: boolean;
+  subscribeToAlerts?: boolean;
+  subscribeToMaintenance?: boolean;
+  onVehicleChange?: (payload: any) => void;
+  onPaymentChange?: (payload: any) => void;
+  onCustomerChange?: (payload: any) => void;
+  onAlertChange?: (payload: any) => void;
+  onMaintenanceChange?: (payload: any) => void;
+}
+
+export const useDashboardSubscriptions = (options: UseDashboardSubscriptionsOptions = {}) => {
+  const {
+    enableToasts = false,
+    subscribeToVehicles = true,
+    subscribeToPayments = true,
+    subscribeToCustomers = true,
+    subscribeToAlerts = true,
+    subscribeToMaintenance = true,
+    onVehicleChange,
+    onPaymentChange,
+    onCustomerChange,
+    onAlertChange,
+    onMaintenanceChange
+  } = options;
+
+  const initialState: DashboardSubscriptionState = {
+    hasChanges: false,
+    vehicleChanges: 0,
+    paymentChanges: 0,
+    customerChanges: 0,
+    alertChanges: 0,
+    maintenanceChanges: 0,
+    lastUpdate: null
+  };
+
+  const [state, dispatch] = useReducer(dashboardReducer, initialState);
 
   useEffect(() => {
-    if (subscriptionRef.current) {
-      return;
+    const subscriptions = [];
+
+    // Subscribe to vehicle changes
+    if (subscribeToVehicles) {
+      const vehicleSubscription = supabase
+        .channel('dashboard-vehicles')
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'vehicles' 
+          }, 
+          (payload) => {
+            dispatch({ type: 'VEHICLE_CHANGE' });
+            if (onVehicleChange) onVehicleChange(payload);
+            if (enableToasts) {
+              const event = payload.eventType;
+              if (event === 'INSERT') toast.info('New vehicle added');
+              if (event === 'UPDATE') toast.info('Vehicle information updated');
+              if (event === 'DELETE') toast.info('Vehicle removed from fleet');
+            }
+          }
+        )
+        .subscribe();
+      
+      subscriptions.push(vehicleSubscription);
     }
 
-    const handleDatabaseChange = (payload: DatabaseChangeEvent) => {
-      console.log('Change received!', payload);
-      setLastUpdate(new Date());
+    // Subscribe to payment changes
+    if (subscribeToPayments) {
+      const paymentSubscription = supabase
+        .channel('dashboard-payments')
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'unified_payments' 
+          }, 
+          (payload) => {
+            dispatch({ type: 'PAYMENT_CHANGE' });
+            if (onPaymentChange) onPaymentChange(payload);
+            if (enableToasts && payload.eventType === 'INSERT') {
+              toast.success('New payment recorded');
+            }
+          }
+        )
+        .subscribe();
       
-      // Extract table name and event from payload
-      const { table, eventType, new: newRecord, old: oldRecord } = payload;
+      subscriptions.push(paymentSubscription);
+    }
+
+    // Subscribe to customer changes
+    if (subscribeToCustomers) {
+      const customerSubscription = supabase
+        .channel('dashboard-customers')
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'profiles' 
+          }, 
+          (payload) => {
+            dispatch({ type: 'CUSTOMER_CHANGE' });
+            if (onCustomerChange) onCustomerChange(payload);
+            if (enableToasts && payload.eventType === 'INSERT') {
+              toast.info('New customer registered');
+            }
+          }
+        )
+        .subscribe();
       
-      // Show appropriate toast based on the table and event
-      if (table === 'leases') {
-        if (eventType === 'INSERT') {
-          const agreementNumber = newRecord.agreement_number || 'New agreement';
-          toast.success(`${agreementNumber} created`);
-        } else if (eventType === 'UPDATE') {
-          // Check if status has changed
-          if (oldRecord && newRecord.status !== oldRecord.status) {
-            const agreementNumber = newRecord.agreement_number || 'Agreement';
-            const newStatus = newRecord.status as AgreementStatus;
-            
-            switch (newStatus) {
-              case 'active':
-                toast.info(`${agreementNumber} is now active`);
-                break;
-              case 'completed':
-                toast.success(`${agreementNumber} completed`);
-                break;
-              case 'cancelled':
-                toast.warning(`${agreementNumber} cancelled`);
-                break;
-              case 'overdue':
-                toast.error(`${agreementNumber} is overdue`);
-                break;
-              default:
-                toast.info(`${agreementNumber} status updated to ${newStatus}`);
-            }
-          } else {
-            toast.info('Agreement updated');
-          }
-        }
-      } else if (table === 'vehicles') {
-        if (eventType === 'INSERT') {
-          const vehicleInfo = `${newRecord.make} ${newRecord.model} ${newRecord.year || ''}`.trim();
-          toast.success(`New vehicle added: ${vehicleInfo}`);
-        } else if (eventType === 'UPDATE') {
-          // Check if status has changed
-          if (oldRecord && newRecord.status !== oldRecord.status) {
-            const vehicleInfo = `${newRecord.license_plate || 'Vehicle'}`;
-            const newStatus = newRecord.status as VehicleStatus;
-            
-            switch (newStatus) {
-              case 'available':
-                toast.success(`${vehicleInfo} is now available`);
-                break;
-              case 'rented':
-                toast.info(`${vehicleInfo} is now rented`);
-                break;
-              case 'maintenance':
-                toast.warning(`${vehicleInfo} is in maintenance`);
-                break;
-              default:
-                toast.info(`${vehicleInfo} status updated to ${newStatus}`);
-            }
-          } else {
-            toast.info('Vehicle information updated');
-          }
-        }
-      } else if (table === 'unified_payments') {
-        if (eventType === 'INSERT') {
-          const amount = new Intl.NumberFormat('en-QA', {
-            style: 'currency',
-            currency: 'QAR'
-          }).format(newRecord.amount || 0);
-          
-          toast.success(`New payment recorded: ${amount}`);
-        } else if (eventType === 'UPDATE') {
-          // Check if status has changed
-          if (oldRecord && newRecord.status !== oldRecord.status) {
-            const newStatus = newRecord.status as PaymentStatus;
-            const amount = new Intl.NumberFormat('en-QA', {
-              style: 'currency',
-              currency: 'QAR'
-            }).format(newRecord.amount || 0);
-            
-            switch (newStatus) {
-              case 'completed':
-                toast.success(`Payment of ${amount} completed`);
-                break;
-              case 'failed':
-                toast.error(`Payment of ${amount} failed`);
-                break;
-              case 'overdue':
-                toast.warning(`Payment of ${amount} is overdue`);
-                break;
-              default:
-                toast.info(`Payment status updated to ${newStatus}`);
+      subscriptions.push(customerSubscription);
+    }
+
+    // Subscribe to alert changes
+    if (subscribeToAlerts) {
+      const alertSubscription = supabase
+        .channel('dashboard-alerts')
+        .on('postgres_changes', 
+          { 
+            event: 'INSERT', 
+            schema: 'public', 
+            table: 'dashboard_alerts' 
+          }, 
+          (payload) => {
+            dispatch({ type: 'ALERT_CHANGE' });
+            if (onAlertChange) onAlertChange(payload);
+            if (enableToasts) {
+              const priority = payload.new?.priority || 'medium';
+              const title = payload.new?.title || 'New alert';
+              
+              if (priority === 'high') {
+                toast.warning(title, { duration: 6000 });
+              } else {
+                toast.info(title);
+              }
             }
           }
-        }
-      }
-    };
+        )
+        .subscribe();
+      
+      subscriptions.push(alertSubscription);
+    }
 
-    // Subscribe to leases table changes
-    const leasesChannel = supabase
-      .channel('leases-dashboard-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'leases'
-        },
-        (payload) => handleDatabaseChange({ 
-          ...payload, 
-          table: 'leases', 
-          eventType: payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE'
-        })
-      )
-      .subscribe((status) => {
-        console.log('Leases subscription status:', status);
-      });
-    
-    // Subscribe to vehicles table changes
-    const vehiclesChannel = supabase
-      .channel('vehicles-dashboard-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'vehicles'
-        },
-        (payload) => handleDatabaseChange({ 
-          ...payload, 
-          table: 'vehicles', 
-          eventType: payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE'
-        })
-      )
-      .subscribe((status) => {
-        console.log('Vehicles subscription status:', status);
-      });
-    
-    // Subscribe to unified_payments table changes
-    const paymentsChannel = supabase
-      .channel('payments-dashboard-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'unified_payments'
-        },
-        (payload) => handleDatabaseChange({ 
-          ...payload, 
-          table: 'unified_payments', 
-          eventType: payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE'
-        })
-      )
-      .subscribe((status) => {
-        console.log('Payments subscription status:', status);
-      });
+    // Subscribe to maintenance changes
+    if (subscribeToMaintenance) {
+      const maintenanceSubscription = supabase
+        .channel('dashboard-maintenance')
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'maintenance' 
+          }, 
+          (payload) => {
+            dispatch({ type: 'MAINTENANCE_CHANGE' });
+            if (onMaintenanceChange) onMaintenanceChange(payload);
+            if (enableToasts && payload.eventType === 'INSERT') {
+              toast.info('New maintenance job created');
+            }
+          }
+        )
+        .subscribe();
+      
+      subscriptions.push(maintenanceSubscription);
+    }
 
-    subscriptionRef.current = [leasesChannel, vehiclesChannel, paymentsChannel];
-
+    // Cleanup subscriptions
     return () => {
-      if (subscriptionRef.current) {
-        subscriptionRef.current.forEach((channel: any) => {
-          supabase.removeChannel(channel);
-        });
-        subscriptionRef.current = null;
-      }
+      subscriptions.forEach(subscription => subscription.unsubscribe());
     };
-  }, []);
+  }, [
+    enableToasts,
+    subscribeToVehicles,
+    subscribeToPayments,
+    subscribeToCustomers,
+    subscribeToAlerts,
+    subscribeToMaintenance,
+    onVehicleChange,
+    onPaymentChange,
+    onCustomerChange,
+    onAlertChange,
+    onMaintenanceChange
+  ]);
 
-  return { lastUpdate };
+  return {
+    ...state,
+    resetChanges: () => dispatch({ type: 'RESET_CHANGES' })
+  };
 };
