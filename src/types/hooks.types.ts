@@ -127,3 +127,19 @@ export interface UseEditableCellResult {
   setValue: (value: string) => void;
   handleSave: () => Promise<void>;
 }
+
+// Form field hook
+export interface UseFormFieldsResult<T> {
+  register: any; // react-hook-form register function
+  errors: Record<keyof T, { message: string }>;
+  setValue: (name: keyof T, value: any) => void;
+  watch: (name?: keyof T) => any;
+  handleSubmit: (onSubmit: (data: T) => void) => (e?: React.BaseSyntheticEvent) => Promise<void>;
+}
+
+// Debounce hook
+export interface UseDebounceResult<T> {
+  value: T;
+  setValue: React.Dispatch<React.SetStateAction<T>>;
+  debouncedValue: T;
+}

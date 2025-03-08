@@ -108,3 +108,45 @@ export interface VehicleFilterRequest {
   sortBy?: string;
   sortDirection?: 'asc' | 'desc';
 }
+
+import { Vehicle, VehicleDocument } from './vehicle';
+
+// Hook types for the vehicle endpoints
+export interface UseVehicleQueryResult {
+  vehicle?: Vehicle | null;
+  isLoading: boolean;
+  error: Error | null;
+  refetch: () => Promise<void>;
+}
+
+export interface UseVehicleListQueryResult {
+  vehicles: Vehicle[];
+  isLoading: boolean;
+  error: Error | null;
+  refetch: () => Promise<void>;
+  pagination?: PaginationMeta;
+}
+
+export interface UseVehicleStatusQueryResult {
+  statusCounts: Record<string, number>;
+  isLoading: boolean;
+  error: Error | null;
+}
+
+export interface UseVehicleMutationResult {
+  mutate: (vehicle: Partial<Vehicle>) => Promise<ApiResponse<Vehicle>>;
+  isLoading: boolean;
+  error: Error | null;
+}
+
+export interface UseVehicleDeleteMutationResult {
+  mutate: (id: string) => Promise<ApiResponse<void>>;
+  isLoading: boolean;
+  error: Error | null;
+}
+
+export interface UseBatchDeleteMutationResult {
+  mutate: (ids: string[]) => Promise<BatchOperationResponse>;
+  isLoading: boolean;
+  error: Error | null;
+}

@@ -28,7 +28,7 @@ export interface Payment {
   type: string;
   created_at: string;
   updated_at: string;
-  late_fine_amount?: number; // Added to fix type error
+  late_fine_amount?: number;
 }
 
 export interface PaymentView extends Payment {

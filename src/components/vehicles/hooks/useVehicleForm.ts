@@ -1,19 +1,10 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-interface VehicleFormData {
-  make: string;
-  model: string;
-  year: string;
-  color: string;
-  license_plate: string;
-  vin: string;
-  mileage: string;
-  description: string;
-}
+import { VehicleFormData } from "@/types/vehicle";
 
 export const useVehicleForm = () => {
   const [open, setOpen] = useState(false);

@@ -127,3 +127,10 @@ export interface TabData {
   label: string;
   content: React.ReactNode;
 }
+
+// ViewToggle Types
+export interface ViewToggleProps {
+  activeView: "list" | "grid";
+  onChange: (view: "list" | "grid") => void;
+  className?: string;
+}

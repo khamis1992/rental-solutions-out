@@ -1,10 +1,9 @@
+
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
-
-interface VehicleFormFieldsProps {
-  form: UseFormReturn<any>;
-}
+import { VehicleFormData } from "@/types/vehicle";
+import { VehicleFormFieldsProps } from "@/types/ui.types";
 
 export const VehicleFormFields = ({ form }: VehicleFormFieldsProps) => {
   return (

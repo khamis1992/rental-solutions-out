@@ -171,3 +171,24 @@ export interface InsuranceFormData {
   end_date: string;
   status?: string;
 }
+
+// Vehicle form data
+export interface VehicleFormData {
+  make: string;
+  model: string;
+  year: string;
+  color: string;
+  license_plate: string;
+  vin: string;
+  mileage: string;
+  description: string;
+}
+
+// Vehicle Status Dropdown Props
+export interface VehicleStatusDropdownProps {
+  currentStatus: VehicleStatus;
+  availableStatuses: Array<{ id: string; name: VehicleStatus }>;
+  onStatusChange: (status: VehicleStatus) => void;
+  isLoading?: boolean;
+  disabled?: boolean;
+}

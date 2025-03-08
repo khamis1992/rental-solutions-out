@@ -1,65 +1,51 @@
 
-import { Button } from "@/components/ui/button";
+import React from "react";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { VehicleStatus } from "@/types/vehicle";
-import { ChevronDown, Check } from "lucide-react";
-import { VehicleStatusCell } from "./VehicleStatusCell";
-import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
+import { VehicleStatusDropdownProps } from "@/types/ui.types";
 
-interface VehicleStatusDropdownProps {
-  currentStatus: VehicleStatus;
-  availableStatuses: { id: string; name: VehicleStatus }[];
-  onStatusChange: (status: VehicleStatus) => void;
-  isLoading?: boolean;
-  disabled?: boolean;
-}
-
-export function VehicleStatusDropdown({
+export const VehicleStatusDropdown = ({
   currentStatus,
   availableStatuses,
   onStatusChange,
-  isLoading,
-  disabled,
-}: VehicleStatusDropdownProps) {
+  isLoading = false,
+  disabled = false,
+}: VehicleStatusDropdownProps) => {
+  const handleChange = (value: string) => {
+    onStatusChange(value as VehicleStatus);
+  };
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button 
-          variant="outline" 
-          className={cn(
-            "w-[200px] justify-start",
-            isLoading && "opacity-50 cursor-not-allowed"
-          )}
-          disabled={disabled || isLoading}
-        >
-          <VehicleStatusCell status={currentStatus} vehicleId="" />
-          <ChevronDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[200px]">
-        {availableStatuses.map((statusOption) => (
-          <DropdownMenuItem
-            key={statusOption.id}
-            onClick={() => onStatusChange(statusOption.name)}
-            className="flex items-center gap-2"
-          >
-            <VehicleStatusCell 
-              status={statusOption.name} 
-              vehicleId="" 
-              className="shrink-0"
-            />
-            <span className="flex-1">{statusOption.name}</span>
-            {currentStatus === statusOption.name && (
-              <Check className="h-4 w-4 text-primary" />
-            )}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="w-full max-w-[180px] relative">
+      <Select 
+        value={currentStatus} 
+        onValueChange={handleChange}
+        disabled={isLoading || disabled}
+      >
+        <SelectTrigger className="w-full h-8">
+          <SelectValue placeholder="Select status" />
+        </SelectTrigger>
+        <SelectContent>
+          {availableStatuses.map((status) => (
+            <SelectItem key={status.id} value={status.name}>
+              {status.name.replace('_', ' ')}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      
+      {isLoading && (
+        <div className="absolute right-8 top-2">
+          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        </div>
+      )}
+    </div>
   );
-}
+};

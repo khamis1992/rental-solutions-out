@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,11 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { VehicleStatus as VehicleStatusType } from "@/types/vehicle";
 import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "@/hooks/use-debounce";
-
-interface VehicleStatusProps {
-  vehicleId: string;
-  currentStatus: VehicleStatusType;
-}
+import { VehicleStatusProps } from "@/types/ui.types";
 
 export const VehicleStatus = ({ vehicleId, currentStatus }: VehicleStatusProps) => {
   const [status, setStatus] = useState<VehicleStatusType>(currentStatus);
@@ -56,6 +53,10 @@ export const VehicleStatus = ({ vehicleId, currentStatus }: VehicleStatusProps) 
         return "bg-pink-500";
       case "stolen":
         return "bg-red-700";
+      case "pending_repair":
+        return "bg-orange-500";
+      case "retired":
+        return "bg-gray-500";
       default:
         return "bg-gray-500";
     }
@@ -67,6 +68,7 @@ export const VehicleStatus = ({ vehicleId, currentStatus }: VehicleStatusProps) 
       case "available":
         return <CheckCircle2 className="h-4 w-4" />;
       case "maintenance":
+      case "pending_repair":
         return <Clock className="h-4 w-4" />;
       case "accident":
       case "stolen":
