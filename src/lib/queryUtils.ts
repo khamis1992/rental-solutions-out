@@ -119,11 +119,11 @@ export function withDefaults<T extends Record<string, any>>(
   const result = { ...defaults };
   
   // Copy properties from the source object
-  Object.keys(defaults).forEach(key => {
+  for (const key of Object.keys(defaults)) {
     if (obj[key as keyof Partial<T>] !== undefined) {
       result[key] = obj[key as keyof Partial<T>] as any;
     }
-  });
+  }
   
   return result;
 }
@@ -160,11 +160,11 @@ export function mergeSafelyWithDefaults<T extends Record<string, any>>(
   const result = { ...defaults };
   
   // Only copy properties that exist in the defaults object
-  Object.keys(defaults).forEach(key => {
+  for (const key of Object.keys(defaults)) {
     if (obj[key] !== undefined) {
       result[key] = obj[key];
     }
-  });
+  }
   
   return result;
 }

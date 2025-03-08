@@ -1,5 +1,5 @@
 
-import { PostgrestFilterBuilder } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 import { TypedQuery } from "@/types/supabase.types";
 
 /**
@@ -117,4 +117,62 @@ export function buildQuery<T>(
   }
   
   return query;
+}
+
+/**
+ * Create a typed function to check if a query contains errors
+ */
+export function isQueryError<T>(result: any): result is { error: true } {
+  return result && typeof result === 'object' && 'error' in result && result.error === true;
+}
+
+/**
+ * Helper function to run a database RPC function with proper typing
+ * @param functionName The RPC function name
+ * @param params Function parameters
+ * @returns Promise with typed result
+ */
+export async function callDatabaseFunction<T, P = Record<string, any>>(
+  functionName: string,
+  params?: P
+): Promise<T | null> {
+  try {
+    const { data, error } = await supabase.rpc(functionName, params || {});
+    
+    if (error) {
+      console.error(`Error calling ${functionName}:`, error);
+      return null;
+    }
+    
+    return data as T;
+  } catch (err) {
+    console.error(`Exception in ${functionName}:`, err);
+    return null;
+  }
+}
+
+/**
+ * Execute a database transaction with proper error handling
+ * @param operations Array of operations to perform
+ * @returns Promise with success status and errors if any
+ */
+export async function executeTransaction(
+  operations: Array<() => Promise<any>>
+): Promise<{ success: boolean; errors: Error[] }> {
+  const errors: Error[] = [];
+  let hasSucceeded = true;
+  
+  for (const operation of operations) {
+    try {
+      await operation();
+    } catch (error) {
+      hasSucceeded = false;
+      errors.push(error as Error);
+    }
+  }
+  
+  return { 
+    success: hasSucceeded && errors.length === 0,
+    errors
+  };
 }
