@@ -131,7 +131,7 @@ export const AgreementCard = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onViewDetails(agreement)}
+              onClick={() => onViewDetails && onViewDetails(agreement)}
               className="hover:bg-primary/5 hover:text-primary"
             >
               <Eye className="h-4 w-4 mr-1.5" />
@@ -140,7 +140,7 @@ export const AgreementCard = ({
             <Button
               variant="destructive"
               size="sm"
-              onClick={() => onDelete(agreement)}
+              onClick={() => onDelete && onDelete(agreement)}
               className="hover:bg-destructive/90"
             >
               <Trash2 className="h-4 w-4 mr-1.5" />
