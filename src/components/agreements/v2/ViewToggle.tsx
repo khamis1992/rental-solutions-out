@@ -34,20 +34,22 @@ export const ViewToggle = ({
   
   return (
     <TooltipProvider>
-      <div className="flex items-center gap-1 border rounded-md shadow-sm bg-background">
+      <div className="flex items-center gap-px border rounded-md shadow-sm bg-background/95 backdrop-blur-sm">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button 
               variant={internalViewMode === "grid" ? "default" : "ghost"} 
               size="sm" 
-              className="p-2" 
+              className={`p-2 ${internalViewMode === "grid" 
+                ? "bg-[#2D2942] hover:bg-[#2D2942]/90 text-white" 
+                : "text-[#2D2942]/70 hover:text-[#2D2942] hover:bg-[#2D2942]/5"}`}
               onClick={() => handleViewModeChange("grid")}
               aria-label="Grid view"
             >
               <Grid className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">
+          <TooltipContent side="bottom" className="bg-[#2D2942] text-white border-[#2D2942]/20">
             <div className="text-xs">Grid view</div>
           </TooltipContent>
         </Tooltip>
@@ -57,14 +59,16 @@ export const ViewToggle = ({
             <Button 
               variant={internalViewMode === "list" ? "default" : "ghost"} 
               size="sm" 
-              className="p-2" 
+              className={`p-2 ${internalViewMode === "list" 
+                ? "bg-[#2D2942] hover:bg-[#2D2942]/90 text-white" 
+                : "text-[#2D2942]/70 hover:text-[#2D2942] hover:bg-[#2D2942]/5"}`}
               onClick={() => handleViewModeChange("list")}
               aria-label="List view"
             >
               <List className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">
+          <TooltipContent side="bottom" className="bg-[#2D2942] text-white border-[#2D2942]/20">
             <div className="text-xs">List view</div>
           </TooltipContent>
         </Tooltip>

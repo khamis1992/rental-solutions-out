@@ -5,7 +5,7 @@ import { AgreementListHeader } from "@/components/agreements/list/AgreementListH
 import { AgreementStats } from "@/components/agreements/AgreementStats";
 import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
 import { PaymentImport } from "@/components/agreements/PaymentImport";
-import { ChevronRight, Building2, FileText } from "lucide-react";
+import { ChevronRight, Building2, FileText, AlertCircle } from "lucide-react";
 import { useAgreements } from "@/components/agreements/hooks/useAgreements";
 import { AgreementDetailsDialog } from "@/components/agreements/AgreementDetailsDialog";
 import { type Agreement } from "@/types/agreement.types";
@@ -71,14 +71,14 @@ const Agreements = () => {
 
   return <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-        {/* Enhanced Header Section */}
-        <div className="relative bg-gradient-to-r from-[#2D2942]/5 via-[#2D2942]/10 to-[#2D2942]/5 border-b">
-          <div className="absolute inset-0 bg-white/40 backdrop-blur-sm" />
+        {/* Enhanced Header Section with Improved Enterprise Styling */}
+        <div className="relative bg-gradient-to-r from-[#2D2942]/5 to-[#2D2942]/10 border-b border-[#2D2942]/10">
+          <div className="absolute inset-0 bg-white/70 backdrop-blur-sm" />
           
           {/* Content Container */}
-          <div className="relative w-full max-w-screen-xl mx-auto px-4 lg:px-8 py-8">
+          <div className="relative w-full max-w-screen-xl mx-auto px-4 lg:px-8 py-6">
             {/* Enhanced Breadcrumb Navigation */}
-            <nav className="flex items-center gap-2 text-sm text-[#2D2942]/70 mb-8">
+            <nav className="flex items-center gap-2 text-sm text-[#2D2942]/60 mb-6">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-md border border-[#2D2942]/10 hover:bg-[#2D2942]/5 transition-all duration-300 shadow-sm">
                 <Building2 className="h-4 w-4 text-[#2D2942]" />
                 <span className="font-medium">Organization</span>
@@ -89,25 +89,25 @@ const Agreements = () => {
               </div>
             </nav>
 
-            {/* Enhanced Title Section */}
-            <div className="mb-10">
-              <div className="flex items-center gap-6">
-                <div className="p-4 bg-gradient-to-br from-[#2D2942] to-[#2D2942]/80 rounded-xl shadow-lg">
-                  <FileText className="h-8 w-8 text-white" />
+            {/* Title Section with Improved Spacing */}
+            <div className="mb-8">
+              <div className="flex items-center gap-5">
+                <div className="p-3 bg-[#2D2942] rounded-xl shadow-md">
+                  <FileText className="h-7 w-7 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-[#2D2942] to-[#2D2942]/80 text-transparent bg-clip-text mb-2">
+                  <h1 className="text-3xl font-bold text-[#2D2942] mb-1">
                     Agreements Management
                   </h1>
-                  <p className="text-lg text-[#2D2942]/60">
+                  <p className="text-[#2D2942]/60">
                     Manage and track all your agreements efficiently
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Enhanced Search and Action Buttons - FIXED LAYOUT */}
-            <div className="flex justify-between items-center gap-4">
+            {/* Search and Action Buttons - IMPROVED LAYOUT */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div className="relative w-full max-w-md">
                 <SearchInput 
                   onSearch={handleSearchChange}
@@ -115,7 +115,7 @@ const Agreements = () => {
                   initialValue={searchQuery}
                 />
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
                 <ViewToggle 
                   viewMode={viewMode} 
                   onChange={handleViewModeChange}
@@ -133,12 +133,12 @@ const Agreements = () => {
 
         {/* Main Content Area with Enhanced Styling */}
         <div className="w-full max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Stats Section with New Color Scheme */}
+          {/* Stats Section with Consistent Color Scheme */}
           <div className="py-8">
             <AgreementStats />
           </div>
 
-          {/* Enhanced Agreements List with Loading/Error State */}
+          {/* Agreements List with Loading/Error State */}
           <div className="pb-12">
             <ErrorBoundary>
               {isError ? (
