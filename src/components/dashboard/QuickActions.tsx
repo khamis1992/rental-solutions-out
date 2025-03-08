@@ -1,4 +1,4 @@
-
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -184,10 +184,13 @@ export const QuickActions = () => {
         {Object.entries(groupedActions).map(([category, categoryActions]) => (
           <div key={category} className="space-y-2">
             <div className="flex items-center gap-2 mb-1">
-              {categoryIcons[category as keyof typeof categoryIcons] && 
-                React.createElement(categoryIcons[category as keyof typeof categoryIcons], { 
-                  className: "h-4 w-4 text-muted-foreground" 
-                })}
+              {categoryIcons[category as keyof typeof categoryIcons] && (
+                <div className="h-4 w-4 text-muted-foreground">
+                  {React.createElement(categoryIcons[category as keyof typeof categoryIcons], { 
+                    className: "h-4 w-4 text-muted-foreground" 
+                  })}
+                </div>
+              )}
               <h3 className="text-sm font-medium text-muted-foreground capitalize">{category}</h3>
             </div>
             <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
