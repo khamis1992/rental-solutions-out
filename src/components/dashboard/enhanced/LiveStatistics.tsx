@@ -3,9 +3,22 @@ import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Car, CarTaxiFront, Wrench, Receipt } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 export const LiveStatistics = () => {
-  const { data: dashboardStats, isLoading } = useDashboardStats();
+  const { 
+    data: dashboardStats, 
+    isLoading, 
+    error 
+  } = useDashboardStats();
+  
+  // Display error toast if there's an issue fetching stats
+  useEffect(() => {
+    if (error) {
+      toast.error("Failed to load dashboard statistics");
+    }
+  }, [error]);
   
   return (
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -89,11 +102,19 @@ export const LiveStatistics = () => {
             <Skeleton className="h-7 w-16" />
           ) : (
             <div className="text-2xl font-bold">
-              ${dashboardStats?.monthly_revenue ? dashboardStats.monthly_revenue.toLocaleString() : 0}
+              ${formatCurrency(dashboardStats?.monthly_revenue || 0)}
             </div>
           )}
         </CardContent>
       </Card>
     </div>
   );
+};
+
+// Helper function to format currency values
+const formatCurrency = (value: number): string => {
+  return value.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  });
 };

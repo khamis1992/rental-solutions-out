@@ -13,7 +13,17 @@ export interface UseFetchResult<T> {
 }
 
 // Dashboard stats hook
-export interface UseDashboardStatsResult extends UseFetchResult<DashboardStats> {
+export interface UseDashboardStatsResult {
+  data: DashboardStats | null;
+  isLoading: boolean;
+  error: Error | null;
+  refetch: () => Promise<void>;
+  isStale?: boolean;
+  lastUpdated?: Date;
+  status: 'idle' | 'loading' | 'error' | 'success';
+}
+
+export interface UseDashboardConfigResult {
   config: DashboardConfig;
   updateConfig: (config: Partial<DashboardConfig>) => void;
 }

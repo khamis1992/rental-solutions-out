@@ -12,32 +12,26 @@ export const useDashboardStats = () => {
         const { data, error } = await supabase.rpc("get_dashboard_stats");
         
         if (error) {
-          throw error;
+          throw new Error(`Failed to fetch dashboard stats: ${error.message}`);
         }
         
-        // Convert the JSONB object from the database into our expected type
-        if (typeof data === 'object' && data !== null) {
-          const stats: DashboardStats = {
-            total_vehicles: isDefined(data.total_vehicles) && typeof data.total_vehicles === 'number' 
-              ? data.total_vehicles : 0,
-            available_vehicles: isDefined(data.available_vehicles) && typeof data.available_vehicles === 'number'
-              ? data.available_vehicles : 0,
-            rented_vehicles: isDefined(data.rented_vehicles) && typeof data.rented_vehicles === 'number'
-              ? data.rented_vehicles : 0,
-            maintenance_vehicles: isDefined(data.maintenance_vehicles) && typeof data.maintenance_vehicles === 'number'
-              ? data.maintenance_vehicles : 0,
-            total_customers: isDefined(data.total_customers) && typeof data.total_customers === 'number'
-              ? data.total_customers : 0,
-            active_rentals: isDefined(data.active_rentals) && typeof data.active_rentals === 'number'
-              ? data.active_rentals : 0,
-            monthly_revenue: isDefined(data.monthly_revenue) && typeof data.monthly_revenue === 'number'
-              ? data.monthly_revenue : 0,
-          };
-          
-          return stats;
-        } else {
+        // Validate and parse the JSONB object from the database
+        if (!data || typeof data !== 'object') {
           throw new Error("Invalid data format received from dashboard stats RPC");
         }
+        
+        // Type-safe transformation of the data
+        const stats: DashboardStats = {
+          total_vehicles: validateNumberField(data.total_vehicles, 'total_vehicles'),
+          available_vehicles: validateNumberField(data.available_vehicles, 'available_vehicles'),
+          rented_vehicles: validateNumberField(data.rented_vehicles, 'rented_vehicles'),
+          maintenance_vehicles: validateNumberField(data.maintenance_vehicles, 'maintenance_vehicles'),
+          total_customers: validateNumberField(data.total_customers, 'total_customers'),
+          active_rentals: validateNumberField(data.active_rentals, 'active_rentals'),
+          monthly_revenue: validateNumberField(data.monthly_revenue, 'monthly_revenue'),
+        };
+        
+        return stats;
       } catch (error) {
         console.error("Error fetching dashboard stats:", error);
         throw error;
@@ -46,3 +40,12 @@ export const useDashboardStats = () => {
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 };
+
+// Helper function to validate numeric fields from the API response
+function validateNumberField(value: unknown, fieldName: string): number {
+  if (isDefined(value) && typeof value === 'number') {
+    return value;
+  }
+  console.warn(`Invalid ${fieldName} value:`, value);
+  return 0;
+}

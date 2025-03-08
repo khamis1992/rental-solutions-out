@@ -16,25 +16,32 @@ export const StatusGroupList = ({
             const status = statusItem.status;
             const config = statusConfigs[status];
             
+            if (!config) {
+              console.warn(`No configuration found for status: ${status}`);
+              return null;
+            }
+            
             return (
               <div 
                 key={status}
                 className="flex flex-col items-center p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
                 onClick={() => onStatusClick(status)}
+                role="button"
+                aria-label={`View ${config.label} vehicles`}
               >
                 <div 
                   className="p-2 rounded-full mb-2"
-                  style={{ backgroundColor: config?.bgColor || `${config?.color}20` }}
+                  style={{ backgroundColor: config.bgColor || `${config.color}20` }}
                 >
-                  {config?.icon}
+                  {config.icon}
                 </div>
-                <span className="text-sm font-medium">{config?.label}</span>
+                <span className="text-sm font-medium">{config.label}</span>
                 <Badge 
                   variant="outline" 
                   className="mt-1"
                   style={{ 
-                    color: config?.color,
-                    borderColor: config?.color
+                    color: config.color,
+                    borderColor: config.color
                   }}
                 >
                   {statusItem.count}
