@@ -1,27 +1,29 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQueryState } from "@/hooks/useQueryState";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardStats } from "@/types/dashboard.types";
 import { isDefined } from "@/lib/queryUtils";
 import { UseDashboardStatsResult } from "@/types/hooks.types";
-import { QueryResponse } from "@/types/supabase.types";
-import { callDatabaseFunction } from "@/lib/supabaseUtils";
 import { safeTransform } from "@/lib/transformUtils";
 
 export const useDashboardStats = (): UseDashboardStatsResult => {
-  const queryResult = useQuery({
-    queryKey: ["dashboardStats"],
-    queryFn: async (): Promise<DashboardStats> => {
+  const queryResult = useQueryState<DashboardStats, Error, DashboardStats>(
+    ["dashboardStats"],
+    async () => {
       try {
-        const dashboardStats = await callDatabaseFunction<DashboardStats>("get_dashboard_stats");
+        const { data, error } = await supabase.rpc('get_dashboard_stats');
         
-        if (!dashboardStats) {
-          throw new Error("Failed to fetch dashboard stats");
+        if (error) {
+          throw new Error(`Failed to fetch dashboard stats: ${error.message}`);
+        }
+        
+        if (!data) {
+          throw new Error("No data returned from dashboard stats");
         }
         
         // Type-safe transformation of the data using our utility function
         const stats: DashboardStats = safeTransform(
-          dashboardStats,
+          data,
           (data) => ({
             total_vehicles: validateNumberField(data.total_vehicles, 'total_vehicles'),
             available_vehicles: validateNumberField(data.available_vehicles, 'available_vehicles'),
@@ -48,8 +50,12 @@ export const useDashboardStats = (): UseDashboardStatsResult => {
         throw error;
       }
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
-  });
+    {
+      refetchInterval: 30000, // Refetch every 30 seconds
+      showErrorToast: true,
+      errorMessage: "Failed to load dashboard statistics"
+    }
+  );
 
   return {
     data: queryResult.data || null,

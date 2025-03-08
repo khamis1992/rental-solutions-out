@@ -1,12 +1,12 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQueryState } from "@/hooks/useQueryState";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Customer } from "../types/customer";
-import { handleQueryResult, extractCount } from "@/lib/queryUtils";
 import { buildQuery } from "@/lib/supabaseUtils";
-import { Profile, TypedQuery } from "@/types/supabase.types";
+import { Profile } from "@/types/supabase.types";
 import { safeTransform, safeArray } from "@/lib/transformUtils";
+import { useComponentState } from "@/hooks/useComponentState";
 
 interface UseCustomersOptions {
   searchQuery: string;
@@ -23,9 +23,26 @@ interface UseCustomersResult {
 }
 
 export const useCustomers = ({ searchQuery, page, pageSize }: UseCustomersOptions): UseCustomersResult => {
-  const query = useQuery({
-    queryKey: ['customers', searchQuery, page, pageSize],
-    queryFn: async (): Promise<UseCustomersResult> => {
+  // Use our component state for managing search state
+  const { state: searchState, updateState: updateSearchState } = useComponentState({
+    currentSearchTerm: searchQuery,
+    previousSearchTerm: '',
+    hasSearched: false
+  });
+
+  // Track if the search has changed for analytics
+  if (searchState.currentSearchTerm !== searchQuery) {
+    updateSearchState({ 
+      previousSearchTerm: searchState.currentSearchTerm,
+      currentSearchTerm: searchQuery,
+      hasSearched: true 
+    });
+  }
+
+  // Use our enhanced query state management
+  const queryResult = useQueryState<{ customers: Customer[], totalCount: number }, Error>(
+    ['customers', searchQuery, page, pageSize],
+    async () => {
       try {
         console.log("Fetching customers with search:", searchQuery);
         
@@ -40,10 +57,10 @@ export const useCustomers = ({ searchQuery, page, pageSize }: UseCustomersOption
         }
 
         const countResult = await countQuery;
-        const totalCount = extractCount(countResult, 0);
+        const totalCount = countResult.count || 0;
 
         // Then fetch paginated data using our type-safe utilities
-        const baseQuery: TypedQuery<Profile> = supabase
+        const baseQuery = supabase
           .from('profiles')
           .select('*');
           
@@ -66,8 +83,10 @@ export const useCustomers = ({ searchQuery, page, pageSize }: UseCustomersOption
 
         const result = await customerQuery;
         
+        if (result.error) throw result.error;
+        
         // Transform database records to match our Customer type using the safe transform utility
-        const profileData = handleQueryResult<Profile[]>(result, []);
+        const profileData = result.data || [];
         
         const customers = safeTransform(
           profileData,
@@ -98,31 +117,25 @@ export const useCustomers = ({ searchQuery, page, pageSize }: UseCustomersOption
         return {
           customers,
           totalCount,
-          error: null,
-          isLoading: false,
-          refetch: async () => {}
         };
       } catch (err) {
         console.error("Error in customer query:", err);
-        toast.error("Failed to fetch customers");
-        return {
-          customers: [],
-          totalCount: 0,
-          error: err as Error,
-          isLoading: false,
-          refetch: async () => {}
-        };
+        throw new Error(err instanceof Error ? err.message : "Failed to fetch customers");
       }
     },
-    retry: 1,
-    staleTime: 30000, // Consider data fresh for 30 seconds
-  });
+    {
+      retry: 1,
+      staleTime: 30000, // Consider data fresh for 30 seconds
+      showErrorToast: true,
+      errorMessage: "Failed to fetch customers"
+    }
+  );
 
   return {
-    customers: query.data?.customers || [],
-    totalCount: query.data?.totalCount || 0,
-    error: query.error ? (query.error instanceof Error ? query.error : new Error(String(query.error))) : query.data?.error || null,
-    isLoading: query.isLoading,
-    refetch: async () => { await query.refetch(); }
+    customers: queryResult.data?.customers || [],
+    totalCount: queryResult.data?.totalCount || 0,
+    error: queryResult.error,
+    isLoading: queryResult.isLoading,
+    refetch: async () => { await queryResult.refetch(); }
   };
 };
