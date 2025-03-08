@@ -49,20 +49,20 @@ export default {
           dark: '#E2E8F0',
         },
         success: {
-          DEFAULT: 'hsl(var(--success))',
-          foreground: 'hsl(var(--success-foreground))'
+          DEFAULT: '#10B981', // Green
+          foreground: '#FFFFFF'
         },
         warning: {
-          DEFAULT: 'hsl(var(--warning))',
-          foreground: 'hsl(var(--warning-foreground))'
+          DEFAULT: '#F59E0B', // Amber
+          foreground: '#FFFFFF'
         },
         destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))'
+          DEFAULT: '#EF4444', // Red
+          foreground: '#FFFFFF'
         },
         info: {
-          DEFAULT: 'hsl(var(--info))',
-          foreground: 'hsl(var(--info-foreground))'
+          DEFAULT: '#3B82F6', // Blue
+          foreground: '#FFFFFF'
         },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
