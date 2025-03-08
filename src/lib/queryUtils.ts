@@ -90,3 +90,28 @@ export function safeJsonParse<T>(jsonString: string | null | undefined, defaultV
     return defaultValue;
   }
 }
+
+/**
+ * Type guard to ensure we have all required properties in an object
+ */
+export function hasRequiredProperties<T>(
+  obj: unknown,
+  properties: (keyof T)[]
+): obj is T {
+  if (typeof obj !== 'object' || obj === null) return false;
+  
+  return properties.every(prop => 
+    Object.prototype.hasOwnProperty.call(obj, prop)
+  );
+}
+
+/**
+ * Convert nullable values to their non-null counterparts with defaults
+ */
+export function withDefaults<T>(
+  obj: Partial<T> | null | undefined, 
+  defaults: T
+): T {
+  if (!obj) return defaults;
+  return { ...defaults, ...obj };
+}
