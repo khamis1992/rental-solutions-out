@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { StatCardData } from "@/types/dashboard.types";
 
 // Extend the StatCardData interface, making description accept ReactNode
-export interface StatsCardProps extends Omit<Partial<StatCardData>, 'description'> {
+export interface StatsCardProps {
   title: string;
   value: string | number;
   description?: ReactNode;

@@ -1,47 +1,7 @@
 
-import { ReactNode } from "react";
-import { VehicleStatus } from "./vehicle";
+import { ReactNode } from 'react';
+import { VehicleStatus } from '@/types/vehicle';
 
-// Chart data point type
-export interface ChartDataPoint {
-  name: string;
-  value: number;
-  color: string;
-}
-
-// Status group for vehicle grouping
-export interface StatusGroup {
-  name: string;
-  items: { status: VehicleStatus; count: number }[];
-  icon: ReactNode;
-}
-
-// Dashboard configuration options
-export interface DashboardConfig {
-  refreshInterval: number;
-  showAvailableVehicles: boolean;
-  showRentedVehicles: boolean;
-  showMaintenanceVehicles: boolean;
-  showTotalCustomers: boolean;
-  showActiveRentals: boolean;
-  showMonthlyRevenue: boolean;
-  enableRealTimeUpdates: boolean;
-  notificationsEnabled: boolean;
-}
-
-// Status configuration for vehicle statuses
-export interface StatusConfig {
-  color: string;
-  label: string;
-  bgColor: string;
-  icon: ReactNode;
-}
-
-export interface StatusConfigMap {
-  [key: string]: StatusConfig;
-}
-
-// Dashboard statistics
 export interface DashboardStats {
   total_vehicles: number;
   available_vehicles: number;
@@ -52,137 +12,50 @@ export interface DashboardStats {
   monthly_revenue: number;
 }
 
-// Dashboard page props
-export interface DashboardPageProps {
-  config?: Partial<DashboardConfig>;
-  initialStats?: DashboardStats;
-  eventHandlers?: {
-    onStatCardClick?: (statType: string) => void;
-    onVehicleStatusClick?: (status: string) => void;
-    onNotificationClick?: (notification: AlertDetails) => void;
-  };
-}
-
-// StatsCard props for dashboard metrics
 export interface StatCardData {
   title: string;
-  value: number | string;
-  description?: string;
-  trend?: number;
-  trendLabel?: string;
+  value: string | number;
+  description: string;
   icon?: ReactNode;
-  color?: string;
-  isLoading?: boolean;
-  formatter?: (value: number) => string;
+  trend?: "up" | "down" | "neutral";
+  trendLabel?: string;
+  onClick?: () => void;
 }
 
-// Alert types
-export interface CustomerDetails {
-  id: string;
-  full_name: string;
-  phone_number: string;
-  email?: string;
+export interface StatusItem {
+  status: VehicleStatus;
+  count: number;
 }
 
-export interface VehicleDetails {
-  id: string;
-  make: string;
-  model: string;
-  year: number;
-  license_plate: string;
+export interface StatusGroup {
+  name: string;
+  icon: ReactNode;
+  items: StatusItem[];
 }
 
-export interface AlertDetails {
-  id: string;
-  type: 'vehicle' | 'customer' | 'payment' | 'maintenance' | 'contract';
-  title: string;
-  description?: string;
-  priority?: 'low' | 'medium' | 'high';
-  date?: string;
-  status?: 'unread' | 'read' | 'dismissed';
-  customer?: CustomerDetails;
-  vehicle?: VehicleDetails;
-}
-
-// Schedule types
-export interface Schedule {
-  id: string;
-  customer_id: string;
-  vehicle_id: string;
-  scheduled_time: string;
-  end_time?: string;
-  location_address: string;
-  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-  schedule_type: 'pickup' | 'dropoff' | 'service' | 'chauffeur';
-  profiles: {
-    full_name: string;
-    phone_number: string;
-  };
-  vehicles: {
+export interface RealTimeStatusChange {
+  oldStatus: VehicleStatus;
+  newStatus: VehicleStatus;
+  timestamp: Date;
+  vehicle: {
+    id: string;
+    license_plate: string;
     make: string;
     model: string;
-    license_plate: string;
   };
 }
 
-// Tour step type
-export interface TourStep {
-  target: string;
-  title: string;
-  content: string;
-  position: 'left' | 'right' | 'top' | 'bottom';
-}
-
-// Real-time update types
-export interface RealTimeUpdate {
-  type: 'vehicle' | 'customer' | 'payment' | 'alert' | 'maintenance';
-  timestamp: Date;
-  data: any;
-  entityId: string;
-}
-
-// Dashboard alert display component props
-export interface AlertDisplayProps {
-  alerts: AlertDetails[];
-  isLoading?: boolean;
-  onMarkAsRead?: (alertId: string) => void;
-  onDismiss?: (alertId: string) => void;
-  onViewDetails?: (alert: AlertDetails) => void;
-}
-
-// Payment status for filtering
-export type PaymentStatus = 'pending' | 'paid' | 'overdue' | 'failed' | 'processing';
-
-// Dashboard notification status
-export type NotificationStatus = 'unread' | 'read' | 'dismissed' | 'acted';
-
-// Dashboard subscription state
-export interface DashboardSubscriptionState {
-  hasChanges: boolean;
-  vehicleChanges: number;
-  paymentChanges: number;
-  customerChanges: number;
-  alertChanges: number;
-  maintenanceChanges: number;
-  lastUpdate: Date | null;
-}
-
-// Vehicle health metrics
-export interface VehicleHealthMetrics {
-  averageMileage: number;
-  maintenanceFrequency: number;
-  costPerVehicle: number;
-  fuelEfficiency: number;
-  utilizationRate: number;
-}
-
-// Realtime dashboard metrics
-export interface RealtimeDashboardMetrics {
-  activeVehicles: number;
-  activeRentals: number;
-  pendingMaintenance: number;
-  todayRevenue: number;
-  recentAlerts: number;
-  fleetUtilization: number;
-  recentStatusChanges: number;
+export interface VehicleMetrics {
+  availableCount: number;
+  rentedCount: number;
+  maintenanceCount: number;
+  totalVehicles: number;
+  byMake: Record<string, number>;
+  byYear: Record<string, number>;
+  utilization: number;
+  maintenanceCosts: {
+    total: number;
+    average: number;
+    byType: Record<string, number>;
+  };
 }

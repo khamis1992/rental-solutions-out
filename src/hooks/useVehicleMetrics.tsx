@@ -1,213 +1,168 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
+import { Car, Truck, Wrench } from "lucide-react";
+import { VehicleStatus } from "@/types/vehicle";
+import { useState, useEffect } from "react";
+import { StatusGroup, StatusItem, VehicleMetrics } from "@/types/dashboard.types";
 
-export interface VehicleMetrics {
-  fleetUtilization: number;
-  avgDailyRevenue: number;
-  maintenanceRate: number;
-  revenueGrowth: number;
-  estimatedMaintenanceCost: number;
-  mileageStats: {
-    avg: number;
-    max: number;
-    min: number;
-  };
-  statusDistribution: Record<string, number>;
-}
+export const useVehicleMetrics = () => {
+  const [statusGroups, setStatusGroups] = useState<StatusGroup[]>([]);
 
-export interface UseVehicleMetricsOptions {
-  refreshInterval?: number;
-  includeRealTimeUpdates?: boolean;
-}
-
-export const useVehicleMetrics = (options: UseVehicleMetricsOptions = {}) => {
-  const { refreshInterval = 60000, includeRealTimeUpdates = true } = options;
-  const [realtimeUpdates, setRealtimeUpdates] = useState<Partial<VehicleMetrics>>({});
-
-  // Fetch initial metrics
-  const { data: initialMetrics, error, isLoading, refetch } = useQuery({
-    queryKey: ["vehicle-metrics"],
+  // Get vehicle statuses
+  const { data: metrics, isLoading, error } = useQuery<VehicleMetrics>({
+    queryKey: ['vehicleMetrics'],
     queryFn: async () => {
-      // Fetch vehicle data for calculations
-      const { data: vehicles, error: vehiclesError } = await supabase
-        .from("vehicles")
-        .select("*");
-      
-      if (vehiclesError) throw vehiclesError;
-      
-      // Fetch lease data for revenue calculations
-      const { data: leases, error: leasesError } = await supabase
-        .from("leases")
-        .select("*");
-        
-      if (leasesError) throw leasesError;
-      
-      // Fetch maintenance data for cost estimates
-      const { data: maintenance, error: maintenanceError } = await supabase
-        .from("maintenance")
-        .select("*");
-        
-      if (maintenanceError) throw maintenanceError;
-      
-      // Calculate fleet utilization
-      const totalVehicles = vehicles.length;
-      const rentedVehicles = vehicles.filter(v => v.status === 'rented').length;
-      const fleetUtilization = totalVehicles > 0 
-        ? Math.round((rentedVehicles / totalVehicles) * 100) 
-        : 0;
-      
-      // Calculate average daily revenue
-      const activeLeases = leases.filter(l => l.status === 'active');
-      const totalDailyRevenue = activeLeases.reduce((sum, lease) => sum + (lease.rent_amount || 0), 0);
-      const avgDailyRevenue = activeLeases.length > 0 
-        ? totalDailyRevenue / activeLeases.length 
-        : 0;
-      
-      // Calculate maintenance rate
-      const maintenanceVehicles = vehicles.filter(v => v.status === 'maintenance').length;
-      const maintenanceRate = totalVehicles > 0 
-        ? Math.round((maintenanceVehicles / totalVehicles) * 100) 
-        : 0;
-      
-      // Calculate estimated maintenance cost
-      const estimatedMaintenanceCost = maintenance.reduce((sum, m) => sum + (m.estimated_cost || 0), 0);
-      
-      // Calculate revenue growth (mock data for now)
-      const revenueGrowth = 5.2; // 5.2% growth
-      
-      // Calculate mileage statistics
-      const mileages = vehicles.map(v => v.mileage || 0).filter(m => m > 0);
-      const avgMileage = mileages.length > 0 
-        ? Math.round(mileages.reduce((sum, m) => sum + m, 0) / mileages.length) 
-        : 0;
-      const maxMileage = mileages.length > 0 ? Math.max(...mileages) : 0;
-      const minMileage = mileages.length > 0 ? Math.min(...mileages) : 0;
-      
-      // Calculate status distribution
-      const statusDistribution: Record<string, number> = {};
-      vehicles.forEach(vehicle => {
-        statusDistribution[vehicle.status] = (statusDistribution[vehicle.status] || 0) + 1;
-      });
-      
-      return {
-        fleetUtilization,
-        avgDailyRevenue,
-        maintenanceRate,
-        revenueGrowth,
-        estimatedMaintenanceCost,
-        mileageStats: {
-          avg: avgMileage,
-          max: maxMileage,
-          min: minMileage
-        },
-        statusDistribution
-      };
+      try {
+        // Get available vehicles
+        const { data: availableVehicles, error: availableError } = await supabase
+          .from('vehicles')
+          .select('*')
+          .eq('status', 'available');
+
+        if (availableError) throw availableError;
+
+        // Get rented vehicles
+        const { data: rentedVehicles, error: rentedError } = await supabase
+          .from('vehicles')
+          .select('*')
+          .eq('status', 'rented');
+
+        if (rentedError) throw rentedError;
+
+        // Get maintenance vehicles
+        const { data: maintenanceVehicles, error: maintenanceError } = await supabase
+          .from('vehicles')
+          .select('*')
+          .eq('status', 'maintenance');
+
+        if (maintenanceError) throw maintenanceError;
+
+        // Get accident vehicles
+        const { data: accidentVehicles, error: accidentError } = await supabase
+          .from('vehicles')
+          .select('*')
+          .eq('status', 'accident');
+
+        if (accidentError) throw accidentError;
+
+        // Get retired vehicles
+        const { data: retiredVehicles, error: retiredError } = await supabase
+          .from('vehicles')
+          .select('*')
+          .eq('status', 'retired');
+
+        if (retiredError) throw retiredError;
+
+        // Get all vehicles
+        const { data: allVehicles, error: allError } = await supabase
+          .from('vehicles')
+          .select('*');
+
+        if (allError) throw allError;
+
+        // Get maintenance costs
+        const { data: maintenanceData, error: maintenanceDataError } = await supabase
+          .from('maintenance')
+          .select('*');
+
+        if (maintenanceDataError) throw maintenanceDataError;
+
+        // Group vehicles by make
+        const byMake: Record<string, number> = {};
+        allVehicles.forEach(vehicle => {
+          byMake[vehicle.make] = (byMake[vehicle.make] || 0) + 1;
+        });
+
+        // Group vehicles by year
+        const byYear: Record<string, number> = {};
+        allVehicles.forEach(vehicle => {
+          byYear[vehicle.year.toString()] = (byYear[vehicle.year.toString()] || 0) + 1;
+        });
+
+        // Calculate maintenance costs
+        const totalCost = maintenanceData.reduce((sum, item) => {
+          return sum + (item.cost || 0);
+        }, 0);
+
+        // Group by maintenance type
+        const byType: Record<string, number> = {};
+        maintenanceData.forEach(item => {
+          byType[item.service_type] = (byType[item.service_type] || 0) + (item.cost || 0);
+        });
+
+        // Calculate utilization rate
+        const utilization = allVehicles.length > 0 
+          ? rentedVehicles.length / allVehicles.length 
+          : 0;
+
+        // Return compiled metrics
+        return {
+          availableCount: availableVehicles.length,
+          rentedCount: rentedVehicles.length,
+          maintenanceCount: maintenanceVehicles.length,
+          totalVehicles: allVehicles.length,
+          byMake,
+          byYear,
+          utilization,
+          maintenanceCosts: {
+            total: totalCost,
+            average: maintenanceData.length > 0 ? totalCost / maintenanceData.length : 0,
+            byType
+          }
+        };
+      } catch (err) {
+        console.error('Error fetching vehicle metrics:', err);
+        throw err;
+      }
     },
-    refetchInterval: refreshInterval
+    refetchInterval: 60000, // Refetch every 60 seconds
   });
 
-  // Set up real-time subscriptions for metrics updates
+  // Format data for status groups
   useEffect(() => {
-    if (!includeRealTimeUpdates) return;
-
-    // Listen for vehicle status changes
-    const vehicleSubscription = supabase
-      .channel('metrics-vehicle-changes')
-      .on('postgres_changes', 
-        { 
-          event: 'UPDATE', 
-          schema: 'public', 
-          table: 'vehicles',
-          filter: 'status=eq.rented OR status=eq.available OR status=eq.maintenance'
-        }, 
-        async (payload) => {
-          // Recalculate metrics that depend on vehicle status
-          const { data: vehicles, error } = await supabase
-            .from("vehicles")
-            .select("status");
-          
-          if (error) {
-            console.error('Error fetching vehicles for metrics update:', error);
-            return;
-          }
-          
-          const totalVehicles = vehicles.length;
-          const rentedVehicles = vehicles.filter(v => v.status === 'rented').length;
-          const maintenanceVehicles = vehicles.filter(v => v.status === 'maintenance').length;
-          
-          setRealtimeUpdates(prev => ({
-            ...prev,
-            fleetUtilization: totalVehicles > 0 ? Math.round((rentedVehicles / totalVehicles) * 100) : 0,
-            maintenanceRate: totalVehicles > 0 ? Math.round((maintenanceVehicles / totalVehicles) * 100) : 0,
-            statusDistribution: {
-              rented: rentedVehicles,
-              maintenance: maintenanceVehicles,
-              available: vehicles.filter(v => v.status === 'available').length
-            }
-          }));
-        }
-      )
-      .subscribe();
-
-    // Listen for maintenance cost updates
-    const maintenanceSubscription = supabase
-      .channel('metrics-maintenance-changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'maintenance' 
-        }, 
-        async (payload) => {
-          // Recalculate maintenance costs
-          const { data, error } = await supabase
-            .from("maintenance")
-            .select("estimated_cost");
-          
-          if (error) {
-            console.error('Error fetching maintenance for metrics update:', error);
-            return;
-          }
-          
-          const totalCost = data.reduce((sum, m) => sum + (m.estimated_cost || 0), 0);
-          
-          setRealtimeUpdates(prev => ({
-            ...prev,
-            estimatedMaintenanceCost: totalCost
-          }));
-        }
-      )
-      .subscribe();
-
-    return () => {
-      vehicleSubscription.unsubscribe();
-      maintenanceSubscription.unsubscribe();
-    };
-  }, [includeRealTimeUpdates]);
-
-  // Combine the initial metrics with real-time updates
-  const combinedMetrics: VehicleMetrics | undefined = initialMetrics
-    ? {
-        ...initialMetrics,
-        ...realtimeUpdates,
-        // For nested objects, we need to merge them explicitly
-        statusDistribution: {
-          ...(initialMetrics.statusDistribution || {}),
-          ...(realtimeUpdates.statusDistribution || {})
+    if (metrics) {
+      // Format data for status groups
+      const newStatusGroups: StatusGroup[] = [
+        {
+          name: 'Primary Statuses',
+          icon: <Car />,
+          items: [
+            { status: 'available' as VehicleStatus, count: metrics.availableCount },
+            { status: 'rented' as VehicleStatus, count: metrics.rentedCount },
+            { status: 'maintenance' as VehicleStatus, count: metrics.maintenanceCount },
+          ]
         },
-        mileageStats: {
-          ...(initialMetrics.mileageStats || { avg: 0, max: 0, min: 0 }),
-          ...(realtimeUpdates.mileageStats || {})
+        {
+          name: 'By Make',
+          icon: <Truck />,
+          items: Object.entries(metrics.byMake)
+            .slice(0, 5)
+            .map(([make, count]) => ({ 
+              status: make as VehicleStatus,
+              count 
+            }))
+        },
+        {
+          name: 'Maintenance Services',
+          icon: <Wrench />,
+          items: Object.entries(metrics.maintenanceCosts.byType)
+            .slice(0, 5)
+            .map(([type, cost]) => ({ 
+              status: type as VehicleStatus, 
+              count: Math.round(cost) 
+            }))
         }
-      }
-    : undefined;
+      ];
+
+      setStatusGroups(newStatusGroups);
+    }
+  }, [metrics]);
 
   return {
-    metrics: combinedMetrics,
-    error,
+    metrics,
+    statusGroups,
     isLoading,
-    refetch
+    error
   };
 };

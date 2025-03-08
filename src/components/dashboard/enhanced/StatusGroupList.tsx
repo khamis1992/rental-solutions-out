@@ -31,7 +31,7 @@ export const StatusGroupList = ({
       {groupedStatuses.map((group) => (
         <StatusGroupV2
           key={group.name}
-          name={group.name}
+          title={group.name}
           icon={group.icon as ReactNode}
           items={group.items}
         />
