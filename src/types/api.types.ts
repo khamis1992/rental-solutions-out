@@ -82,3 +82,29 @@ export interface WebhookPayload<T> {
   data: T;
   signature: string;
 }
+
+// Vehicle API Endpoints
+export interface VehicleEndpoints {
+  getAll: () => Promise<ApiResponse<Vehicle[]>>;
+  getById: (id: string) => Promise<ApiResponse<Vehicle>>;
+  create: (vehicle: Partial<Vehicle>) => Promise<ApiResponse<Vehicle>>;
+  update: (id: string, updates: Partial<Vehicle>) => Promise<ApiResponse<Vehicle>>;
+  delete: (id: string) => Promise<ApiResponse<void>>;
+  batchDelete: (ids: string[]) => Promise<BatchOperationResponse>;
+  getDocuments: (vehicleId: string) => Promise<ApiResponse<VehicleDocument[]>>;
+  uploadDocument: (vehicleId: string, document: FormData) => Promise<ApiResponse<VehicleDocument>>;
+}
+
+// Vehicle Filter Request
+export interface VehicleFilterRequest {
+  status?: string[];
+  make?: string[];
+  model?: string[];
+  year?: number[];
+  location?: string[];
+  search?: string;
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortDirection?: 'asc' | 'desc';
+}

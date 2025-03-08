@@ -16,12 +16,13 @@ import {
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { VehicleTableContentProps } from "@/types/ui.types";
 
-interface VehicleTableContentProps {
-  vehicles: Vehicle[];
-}
-
-export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
+export const VehicleTableContent = ({ 
+  vehicles, 
+  selectedVehicles = [], 
+  onSelectionChange 
+}: VehicleTableContentProps) => {
   const [editingLocation, setEditingLocation] = useState<string | null>(null);
   const [editingInsurance, setEditingInsurance] = useState<string | null>(null);
 
@@ -38,6 +39,21 @@ export const VehicleTableContent = ({ vehicles }: VehicleTableContentProps) => {
             "before:transition-colors before:duration-300"
           )}
         >
+          <TableCell>
+            {onSelectionChange && (
+              <input
+                type="checkbox"
+                className="rounded border-gray-300"
+                checked={selectedVehicles.includes(vehicle.id)}
+                onChange={(e) => {
+                  const newSelection = e.target.checked
+                    ? [...selectedVehicles, vehicle.id]
+                    : selectedVehicles.filter(id => id !== vehicle.id);
+                  onSelectionChange(newSelection);
+                }}
+              />
+            )}
+          </TableCell>
           <TableCell>
             <Link 
               to={`/vehicles/${vehicle.id}`}

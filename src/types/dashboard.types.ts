@@ -29,7 +29,7 @@ export interface StatCardData {
 }
 
 // Enum definitions for database alignment
-export type VehicleStatus = 'available' | 'rented' | 'maintenance' | 'pending_repair' | 'retired';
+export type VehicleStatus = 'available' | 'rented' | 'maintenance' | 'pending_repair' | 'retired' | 'accident' | 'stolen' | 'reserve' | 'police_station';
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'partially_paid' | 'overdue';
 export type AgreementStatus = 'pending' | 'active' | 'completed' | 'cancelled' | 'overdue';
 export type CustomerStatus = 'active' | 'inactive' | 'pending_review' | 'blacklisted';
@@ -168,3 +168,31 @@ export interface DashboardThemeConfig {
   compactMode: boolean;
   borderRadius: 'square' | 'rounded' | 'pill';
 }
+
+// StatsCard component props
+export interface StatsCardProps {
+  title: string;
+  value: string | number;
+  icon: React.ComponentType<{ className?: string }>;
+  iconClassName?: string;
+  description?: React.ReactNode;
+  onClick?: () => void;
+  isLoading?: boolean;
+}
+
+// Vehicle Status Chart Types for Dashboard
+export interface VehicleStatusChartProps {
+  data: Array<{status: VehicleStatus, count: number}>;
+  isLoading?: boolean;
+  onStatusClick?: (status: VehicleStatus) => void;
+}
+
+// Status Configuration Type for consistent coloring
+export interface StatusConfig {
+  color: string;
+  label: string;
+  bgColor: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+export type StatusConfigMap = Record<VehicleStatus, StatusConfig>;

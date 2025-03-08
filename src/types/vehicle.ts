@@ -110,3 +110,64 @@ export interface VehicleStatsSummary {
   maintenanceCosts: number;
   averageMileage: number;
 }
+
+// Vehicle Filter Params for UI filtering
+export interface VehicleFilterParams {
+  status?: VehicleStatus;
+  make?: string;
+  model?: string;
+  year?: number;
+  location?: string;
+  minMileage?: number;
+  maxMileage?: number;
+}
+
+// Vehicle Table Props
+export interface VehicleTableProps {
+  vehicles: Vehicle[];
+  isLoading: boolean;
+  selectedVehicles?: string[];
+  onSelectionChange?: (selectedIds: string[]) => void;
+}
+
+// Vehicle Grid Props
+export interface VehicleGridProps {
+  vehicles: Vehicle[];
+  isLoading?: boolean;
+  onVehicleClick?: (vehicleId: string) => void;
+}
+
+// Delete Dialog Props
+export interface DeleteVehicleDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onDelete: () => Promise<void>;
+  count: number;
+}
+
+// Bulk Actions Props
+export interface BulkActionsMenuProps {
+  selectedCount: number;
+  onDelete: () => void;
+}
+
+// Vehicle List Props
+export interface VehicleListProps {
+  vehicles: Vehicle[];
+  isLoading: boolean;
+  viewMode?: "list" | "grid";
+}
+
+// Insurance Form Data
+export interface InsuranceFormData {
+  id?: string;
+  vehicle_id: string;
+  policy_number: string;
+  provider: string;
+  coverage_type: string;
+  coverage_amount: number;
+  premium_amount: number;
+  start_date: string;
+  end_date: string;
+  status?: string;
+}

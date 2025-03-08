@@ -100,3 +100,30 @@ export interface UsePaginatedQueryResult<T> extends UseQueryResult<T[]> {
   previousPage: () => void;
   nextPage: () => void;
 }
+
+// Vehicle form hook
+export interface UseVehicleFormResult {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  form: any; // Replace with proper react-hook-form type
+  onSubmit: () => void;
+}
+
+// Vehicle table hooks
+export interface UseVehicleTableResult {
+  selectedVehicles: string[];
+  onSelectionChange: (selectedIds: string[]) => void;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}
+
+// Vehicle status and location cell hooks
+export interface UseEditableCellResult {
+  isEditing: boolean;
+  onEditStart: () => void;
+  onEditEnd: () => void;
+  value: string;
+  setValue: (value: string) => void;
+  handleSave: () => Promise<void>;
+}

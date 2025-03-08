@@ -1,10 +1,7 @@
+
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-
-export interface BulkActionsMenuProps {
-  selectedCount: number;
-  onDelete: () => void;
-}
+import { BulkActionsMenuProps } from "@/types/vehicle";
 
 export const BulkActionsMenu = ({ selectedCount, onDelete }: BulkActionsMenuProps) => {
   return (
