@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Loader2, AlertCircle, CheckCircle, Clock } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface EmailMetrics {
   total_sent: number;
@@ -22,8 +23,18 @@ interface EmailActivityData {
   retried_count: number;
 }
 
-export const EmailMetricsDashboard = () => {
-  const { data: metrics, isLoading } = useQuery({
+interface EmailMetricsDashboardProps {
+  className?: string;
+  refreshInterval?: number;
+  onRefresh?: () => void;
+}
+
+export const EmailMetricsDashboard = ({
+  className,
+  refreshInterval = 30000,
+  onRefresh
+}: EmailMetricsDashboardProps) => {
+  const { data: metrics, isLoading, refetch } = useQuery({
     queryKey: ['email-metrics'],
     queryFn: async () => {
       const { data: activityData, error: activityError } = await supabase
@@ -68,6 +79,10 @@ export const EmailMetricsDashboard = () => {
         return acc;
       }, []);
 
+      if (onRefresh) {
+        onRefresh();
+      }
+
       return {
         dashboard: hourlyData || [],
         current: currentMetrics?.[0] as EmailMetrics || {
@@ -79,7 +94,7 @@ export const EmailMetricsDashboard = () => {
         }
       };
     },
-    refetchInterval: 30000 // Refresh every 30 seconds
+    refetchInterval
   });
 
   if (isLoading) {
@@ -91,7 +106,7 @@ export const EmailMetricsDashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className={cn("space-y-6", className)}>
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

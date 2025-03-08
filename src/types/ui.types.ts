@@ -7,12 +7,15 @@ export interface VehicleTableContentProps {
   vehicles: Vehicle[];
   selectedVehicles?: string[];
   onSelectionChange?: (selectedIds: string[]) => void;
+  isLoading?: boolean;
+  error?: Error | null;
 }
 
 export interface VehicleTablePaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  className?: string;
 }
 
 export interface VehicleListViewProps {
@@ -23,11 +26,15 @@ export interface VehicleListViewProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  error?: Error | null;
+  className?: string;
 }
 
 export interface VehicleStatusCellProps {
   status: VehicleStatus;
   vehicleId: string;
+  className?: string;
+  onStatusChange?: (status: VehicleStatus) => void;
 }
 
 export interface VehicleLocationCellProps {
@@ -36,6 +43,7 @@ export interface VehicleLocationCellProps {
   isEditing: boolean;
   onEditStart: () => void;
   onEditEnd: () => void;
+  className?: string;
 }
 
 export interface VehicleInsuranceCellProps {
@@ -44,6 +52,7 @@ export interface VehicleInsuranceCellProps {
   isEditing: boolean;
   onEditStart: () => void;
   onEditEnd: () => void;
+  className?: string;
 }
 
 export interface VehicleStatusDropdownProps {
@@ -52,6 +61,7 @@ export interface VehicleStatusDropdownProps {
   onStatusChange: (status: VehicleStatus) => void;
   isLoading?: boolean;
   disabled?: boolean;
+  className?: string;
 }
 
 // Vehicle Filter Dialog Types
@@ -59,11 +69,13 @@ export interface VehicleFilterDialogProps {
   activeFilters: any;
   onFilterChange: (filters: any) => void;
   totalFilters: number;
+  className?: string;
 }
 
 // Vehicle Form Field Types
 export interface VehicleFormFieldsProps {
   form: any; // Replace with specific form type
+  className?: string;
 }
 
 // Vehicle Details Dialog Types
@@ -71,30 +83,42 @@ export interface VehicleDetailsDialogProps {
   vehicleId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  className?: string;
 }
 
 // Vehicle Details Component Types
 export interface VehicleDetailsProps {
   vehicleId?: string;
+  className?: string;
+  isLoading?: boolean;
+  error?: Error | null;
 }
 
 // Vehicle Maintenance Types
 export interface MaintenanceTrackerProps {
   vehicleId: string;
+  className?: string;
+  isLoading?: boolean;
 }
 
 // Vehicle Profile Components
 export interface VehicleOverviewProps {
   vehicleId: string;
+  className?: string;
+  isLoading?: boolean;
 }
 
 export interface VehicleStatusProps {
   vehicleId: string;
   currentStatus: VehicleStatus;
+  className?: string;
+  onStatusChange?: (status: VehicleStatus) => void;
 }
 
 export interface VehicleDocumentsProps {
   vehicleId: string;
+  className?: string;
+  isLoading?: boolean;
 }
 
 // Dashboard Status Dialog Types
@@ -104,6 +128,7 @@ export interface VehicleStatusDetailsDialogProps {
   status: VehicleStatus;
   vehicles: Vehicle[];
   isLoading: boolean;
+  className?: string;
 }
 
 export interface VehicleStatusDialogV2Props {
@@ -112,6 +137,9 @@ export interface VehicleStatusDialogV2Props {
   status: VehicleStatus;
   vehicles: Vehicle[];
   isLoading: boolean;
+  className?: string;
+  onVehicleClick?: (vehicleId: string) => void;
+  onStatusChange?: (vehicleId: string, newStatus: VehicleStatus) => void;
 }
 
 // Toast notification types
@@ -149,10 +177,31 @@ export interface AgreementCardProps {
 export interface ProfileManagementProps {
   customerId: string;
   profile?: any; // Updated to include the profile object
+  className?: string;
+  isLoading?: boolean;
 }
 
 export interface ViewToggleV2Props {
   viewMode: "grid" | "list" | "compact";
   onChange: (mode: "grid" | "list" | "compact") => void;
+  className?: string;
+}
+
+// Stats Display Props
+export interface StatsDisplayProps {
+  paymentCount: number;
+  unassignedCount: number;
+  totalAmount: number;
+  unassignedAmount: number;
+  onReconcile: () => void;
+  isReconciling: boolean;
+  isLoading?: boolean;
+  className?: string;
+}
+
+// Traffic Fine Stats Props
+export interface TrafficFineStatsProps {
+  agreementId?: string;
+  paymentCount: number;
   className?: string;
 }

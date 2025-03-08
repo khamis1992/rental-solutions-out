@@ -9,7 +9,7 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { formatNumber } from "@/utils/formatters";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-export const DashboardStats = ({ stats, isLoading, error }: DashboardStatsProps) => {
+export const DashboardStats = ({ stats, isLoading, error, onStatClick }: DashboardStatsProps) => {
   const fleetUtilization = useMemo(() => {
     if (!stats || !stats.total_vehicles) return '0';
     return ((stats.rented_vehicles / stats.total_vehicles) * 100).toFixed(1);
@@ -78,6 +78,7 @@ export const DashboardStats = ({ stats, isLoading, error }: DashboardStatsProps)
                         </span>
                       </span>
                     }
+                    onClick={() => onStatClick?.('total_vehicles')}
                   />
                 </div>
               </TooltipTrigger>
@@ -102,6 +103,7 @@ export const DashboardStats = ({ stats, isLoading, error }: DashboardStatsProps)
                         {stats.maintenance_vehicles || 0} in maintenance
                       </span>
                     }
+                    onClick={() => onStatClick?.('active_rentals')}
                   />
                 </div>
               </TooltipTrigger>
@@ -126,6 +128,7 @@ export const DashboardStats = ({ stats, isLoading, error }: DashboardStatsProps)
                         <span>{formatNumber(stats.total_customers || 0)} total customers</span>
                       </span>
                     }
+                    onClick={() => onStatClick?.('monthly_revenue')}
                   />
                 </div>
               </TooltipTrigger>

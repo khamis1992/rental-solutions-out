@@ -26,6 +26,9 @@ export interface StatCardData {
   icon: React.ComponentType<{ className?: string }>;
   iconClassName?: string;
   description?: React.ReactNode;
+  isLoading?: boolean;
+  trend?: "up" | "down" | "neutral";
+  onClick?: () => void;
 }
 
 // Enum definitions for database alignment
@@ -170,13 +173,7 @@ export interface DashboardThemeConfig {
 }
 
 // StatsCard component props
-export interface StatsCardProps {
-  title: string;
-  value: string | number;
-  icon: React.ComponentType<{ className?: string }>;
-  iconClassName?: string;
-  description?: React.ReactNode;
-  onClick?: () => void;
+export interface StatsCardProps extends StatCardData {
   isLoading?: boolean;
 }
 

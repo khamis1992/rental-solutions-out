@@ -1,10 +1,9 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/utils";
+import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Button } from "@/components/ui/button";
-import { ManualTrafficFineDialog } from "../ManualTrafficFineDialog";
-import { RefreshCw, DollarSign, FileText, AlertTriangle, Receipt, CheckCircle } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { AlertTriangle, CircleDollarSign, FileCheck, RefreshCw } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface StatsDisplayProps {
   paymentCount: number;
@@ -13,115 +12,75 @@ interface StatsDisplayProps {
   unassignedAmount: number;
   onReconcile: () => void;
   isReconciling: boolean;
+  isLoading?: boolean;
+  className?: string;
 }
 
-export function StatsDisplay({ 
-  paymentCount, 
-  unassignedCount, 
-  totalAmount, 
+export function StatsDisplay({
+  paymentCount,
+  unassignedCount,
+  totalAmount,
   unassignedAmount,
   onReconcile,
-  isReconciling
+  isReconciling,
+  isLoading = false,
+  className
 }: StatsDisplayProps) {
   return (
-    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
-      <div className="space-y-6">
-        <TooltipProvider>
-          <Card className="bg-white/50 backdrop-blur-sm hover:bg-white/60 transition-colors group">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Fines</p>
-                  <h3 className="text-2xl font-bold mt-1 text-orange-600">
-                    {formatCurrency(totalAmount)}
-                  </h3>
-                </div>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <div className="p-3 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition-colors">
-                      <Receipt className="h-6 w-6 text-orange-600" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>Total amount of fines in the system</TooltipContent>
-                </Tooltip>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/50 backdrop-blur-sm hover:bg-white/60 transition-colors group">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Count</p>
-                  <h3 className="text-2xl font-bold mt-1 text-blue-600">{paymentCount}</h3>
-                </div>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <div className="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                      <FileText className="h-6 w-6 text-blue-600" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>Total number of traffic fines</TooltipContent>
-                </Tooltip>
-              </div>
-            </CardContent>
-          </Card>
-        </TooltipProvider>
-        <ManualTrafficFineDialog onFineAdded={() => {}} />
+    <div className={cn("space-y-4", className)}>
+      <div className="flex flex-wrap items-center justify-between">
+        <h3 className="text-lg font-medium">Traffic Fine Metrics</h3>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onReconcile}
+          disabled={isReconciling || unassignedCount === 0}
+          className="ml-auto"
+        >
+          {isReconciling ? (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+              Reconciling...
+            </>
+          ) : (
+            <>
+              <FileCheck className="mr-2 h-4 w-4" />
+              Auto-assign Fines
+            </>
+          )}
+        </Button>
       </div>
 
-      <div className="space-y-6">
-        <TooltipProvider>
-          <Card className="bg-white/50 backdrop-blur-sm hover:bg-white/60 transition-colors group">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Unassigned Fines</p>
-                  <h3 className="text-2xl font-bold mt-1 text-yellow-600">
-                    {formatCurrency(unassignedAmount)}
-                  </h3>
-                </div>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <div className="p-3 bg-yellow-100 rounded-lg group-hover:bg-yellow-200 transition-colors">
-                      <AlertTriangle className="h-6 w-6 text-yellow-600" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>Amount of unassigned fines requiring attention</TooltipContent>
-                </Tooltip>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/50 backdrop-blur-sm hover:bg-white/60 transition-colors group">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Unassigned Count</p>
-                  <h3 className="text-2xl font-bold mt-1 text-yellow-600">{unassignedCount}</h3>
-                </div>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <div className="p-3 bg-yellow-100 rounded-lg group-hover:bg-yellow-200 transition-colors">
-                      <AlertTriangle className="h-6 w-6 text-yellow-600" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>Number of unassigned fines</TooltipContent>
-                </Tooltip>
-              </div>
-            </CardContent>
-          </Card>
-        </TooltipProvider>
-        <Button
-          onClick={onReconcile}
-          disabled={isReconciling || !unassignedCount}
-          variant="default"
-          size="lg"
-          className="w-full text-sm font-medium bg-orange-500 hover:bg-orange-600 text-white group"
-        >
-          <RefreshCw className={`mr-2 h-4 w-4 ${isReconciling ? 'animate-spin' : 'group-hover:animate-spin'}`} />
-          Auto-Assign All
-        </Button>
+      <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-3">
+        <StatsCard
+          title="Total Traffic Fines"
+          value={paymentCount}
+          icon={FileCheck}
+          iconClassName="blue"
+          isLoading={isLoading}
+        />
+        
+        <StatsCard
+          title="Unassigned Fines"
+          value={unassignedCount}
+          icon={AlertTriangle}
+          iconClassName={unassignedCount > 0 ? "orange" : "green"}
+          description={
+            unassignedCount > 0 
+              ? "Pending assignment to agreements" 
+              : "All fines are assigned"
+          }
+          isLoading={isLoading}
+        />
+        
+        <StatsCard
+          title="Total Fine Amount"
+          value={formatCurrency(totalAmount)}
+          icon={CircleDollarSign}
+          iconClassName="green"
+          description={unassignedAmount > 0 ? `${formatCurrency(unassignedAmount)} unassigned` : undefined}
+          isLoading={isLoading}
+        />
       </div>
     </div>
   );

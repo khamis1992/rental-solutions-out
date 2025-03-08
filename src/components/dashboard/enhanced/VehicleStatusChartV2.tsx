@@ -97,7 +97,7 @@ export const VehicleStatusChartV2 = () => {
   const [selectedStatus, setSelectedStatus] = useState<VehicleStatus | null>(null);
   const [prevTotal, setPrevTotal] = useState<number>(0);
   
-  const { data: vehicles = [], isLoading } = useQuery({
+  const { data: vehicles = [], isLoading, error } = useQuery({
     queryKey: ["vehicles"],
     queryFn: async () => {
       try {
@@ -192,6 +192,21 @@ export const VehicleStatusChartV2 = () => {
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
             </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <h3 className="text-xl font-bold">Vehicle Status Distribution</h3>
+        </CardHeader>
+        <CardContent>
+          <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200 rounded-lg">
+            <p>Error loading vehicle status data: {(error as Error).message}</p>
           </div>
         </CardContent>
       </Card>

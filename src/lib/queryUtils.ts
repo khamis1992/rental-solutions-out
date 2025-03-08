@@ -41,3 +41,52 @@ export function mapDbEntityToModel<TDb, TModel>(
     return null;
   }
 }
+
+/**
+ * Handle collection of query results with proper type safety
+ */
+export function mapDbEntitiesToModels<TDb, TModel>(
+  entities: TDb[] | null,
+  mapper: (entity: TDb) => TModel
+): TModel[] {
+  if (!entities || entities.length === 0) return [];
+  
+  return entities
+    .map(entity => {
+      try {
+        return mapper(entity);
+      } catch (error) {
+        console.error('Error mapping entity to model:', error);
+        return null;
+      }
+    })
+    .filter(isDefined);
+}
+
+/**
+ * Extract count from a Supabase count query
+ */
+export function extractCount(
+  result: { count: number | null; error: PostgrestError | null },
+  defaultValue: number = 0
+): number {
+  if (result.error) {
+    console.error('Supabase count query error:', result.error);
+    return defaultValue;
+  }
+  return result.count ?? defaultValue;
+}
+
+/**
+ * Safe parsing for JSON stored in the database
+ */
+export function safeJsonParse<T>(jsonString: string | null | undefined, defaultValue: T): T {
+  if (!jsonString) return defaultValue;
+  
+  try {
+    return JSON.parse(jsonString) as T;
+  } catch (error) {
+    console.error('Error parsing JSON from database:', error);
+    return defaultValue;
+  }
+}

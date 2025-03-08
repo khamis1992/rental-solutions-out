@@ -14,6 +14,7 @@ interface StatsCardProps extends Partial<StatCardData> {
   iconClassName?: string;
   trend?: "up" | "down" | "neutral";
   onClick?: () => void;
+  isLoading?: boolean;
 }
 
 const iconStyles = cva(
@@ -43,8 +44,44 @@ export const StatsCard = memo(({
   className,
   iconClassName,
   trend,
-  onClick
+  onClick,
+  isLoading
 }: StatsCardProps) => {
+  if (isLoading) {
+    return (
+      <Card 
+        className={cn(
+          "overflow-hidden transition-all duration-200 group p-3",
+          "bg-gradient-to-br from-card to-muted/50",
+          "backdrop-blur-sm border-border/50",
+          "animate-pulse",
+          className
+        )}
+      >
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground/50">
+            {title}
+          </CardTitle>
+          <div className={cn(
+            iconStyles({ variant: iconClassName as any }),
+            "animate-pulse shadow-sm",
+            "ring-1 ring-border/50 opacity-50"
+          )}>
+            <Icon className="h-4 w-4" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-1">
+            <div className="h-8 w-2/3 bg-muted rounded-md animate-pulse"></div>
+            {description && (
+              <div className="h-4 w-1/2 bg-muted/50 rounded-md animate-pulse mt-2"></div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card 
       className={cn(
