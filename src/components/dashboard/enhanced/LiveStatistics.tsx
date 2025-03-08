@@ -33,6 +33,17 @@ export const LiveStatistics = () => {
     </div>;
   }
 
+  // Calculate trend indicators for stats cards
+  const getAvailableTrend = () => {
+    const newAvailable = recentStatusChanges.filter(c => c.newStatus === 'available').length;
+    return newAvailable > 0 ? "up" : "neutral";
+  };
+  
+  const getRentedTrend = () => {
+    const newRented = recentStatusChanges.filter(c => c.newStatus === 'rented').length;
+    return newRented > 0 ? "up" : "neutral";
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -50,8 +61,10 @@ export const LiveStatistics = () => {
           value={stats.available_vehicles}
           icon={Car}
           description="Ready for rent"
-          trend={recentStatusChanges.filter(c => c.newStatus === 'available').length}
-          trendLabel="new"
+          trend={getAvailableTrend()}
+          trendLabel={recentStatusChanges.filter(c => c.newStatus === 'available').length > 0 
+            ? `+${recentStatusChanges.filter(c => c.newStatus === 'available').length} new` 
+            : undefined}
         />
         
         <StatsCard
@@ -59,8 +72,10 @@ export const LiveStatistics = () => {
           value={stats.active_rentals}
           icon={Clock}
           description="Currently rented"
-          trend={recentStatusChanges.filter(c => c.newStatus === 'rented').length}
-          trendLabel="new"
+          trend={getRentedTrend()}
+          trendLabel={recentStatusChanges.filter(c => c.newStatus === 'rented').length > 0 
+            ? `+${recentStatusChanges.filter(c => c.newStatus === 'rented').length} new` 
+            : undefined}
         />
         
         <StatsCard

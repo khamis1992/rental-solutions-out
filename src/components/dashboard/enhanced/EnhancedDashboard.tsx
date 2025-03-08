@@ -39,7 +39,17 @@ export const EnhancedDashboard = () => {
                 <CardTitle className="text-sm font-medium">Vehicle Status Overview</CardTitle>
               </CardHeader>
               <CardContent>
-                <VehicleStatusDonut />
+                {!metricsLoading && metrics && (
+                  <VehicleStatusDonut
+                    data={[
+                      { name: 'Available', value: metrics.availableCount || 0 },
+                      { name: 'Rented', value: metrics.rentedCount || 0 },
+                      { name: 'Maintenance', value: metrics.maintenanceCount || 0 },
+                      { name: 'Other', value: metrics.totalVehicles - (metrics.availableCount + metrics.rentedCount + metrics.maintenanceCount) || 0 },
+                    ]}
+                    totalVehicles={metrics.totalVehicles || 0}
+                  />
+                )}
               </CardContent>
             </Card>
 
@@ -86,7 +96,10 @@ export const EnhancedDashboard = () => {
         </TabsContent>
 
         <TabsContent value="status" className="space-y-4">
-          <StatusGroupList groupedStatuses={groupedStatuses} isLoading={statusesLoading} />
+          <StatusGroupList 
+            groupedStatuses={groupedStatuses} 
+            isLoading={statusesLoading} 
+          />
         </TabsContent>
 
         <TabsContent value="metrics" className="space-y-4">

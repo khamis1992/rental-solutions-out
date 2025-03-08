@@ -1,58 +1,56 @@
 
-import { ChartDataPoint } from "@/types/dashboard.types";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import React from 'react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
-interface VehicleStatusDonutProps {
-  data: ChartDataPoint[];
+export interface VehicleStatusDonutProps {
+  data: Array<{
+    name: string;
+    value: number;
+    color?: string;
+  }>;
   totalVehicles: number;
-  config?: {
-    width?: number;
-    height?: number;
-    innerRadius?: number;
-    outerRadius?: number;
-  };
 }
 
-export const VehicleStatusDonut = ({ 
-  data, 
-  totalVehicles,
-  config = {
-    width: 300,
-    height: 300,
-    innerRadius: 60,
-    outerRadius: 100,
-  }
-}: VehicleStatusDonutProps) => {
+// Default colors if not provided
+const COLORS = ['#10b981', '#f97316', '#f59e0b', '#6b7280'];
+
+export const VehicleStatusDonut: React.FC<VehicleStatusDonutProps> = ({ data, totalVehicles }) => {
+  // Add colors to data if not provided
+  const dataWithColors = data.map((item, index) => ({
+    ...item,
+    color: item.color || COLORS[index % COLORS.length],
+  }));
+
   return (
-    <div className="relative">
-      <ResponsiveContainer width={config.width} height={config.height}>
-        <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            innerRadius={config.innerRadius}
-            outerRadius={config.outerRadius}
-            paddingAngle={1}
-            dataKey="value"
-          >
-            {data.map((entry, index) => (
-              <Cell 
-                key={`cell-${index}`} 
-                fill={entry.color} 
-                stroke="none"
-              />
-            ))}
-          </Pie>
-          <Tooltip 
-            formatter={(value: number) => [`${value} vehicles`, 'Count']}
-            labelFormatter={(index: number) => data[index].name}
-          />
-        </PieChart>
-      </ResponsiveContainer>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <p className="text-4xl font-bold">{totalVehicles}</p>
-        <p className="text-sm text-muted-foreground">Total Vehicles</p>
+    <div className="flex flex-col items-center">
+      <div className="w-full h-52">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={dataWithColors}
+              cx="50%"
+              cy="50%"
+              innerRadius={55}
+              outerRadius={70}
+              paddingAngle={2}
+              dataKey="value"
+              labelLine={false}
+              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+            >
+              {dataWithColors.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip 
+              formatter={(value: number) => [`${value} vehicles`, 'Count']}
+              contentStyle={{ borderRadius: '6px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="text-center mt-2">
+        <div className="text-sm text-muted-foreground">Total Vehicles</div>
+        <div className="text-2xl font-bold">{totalVehicles}</div>
       </div>
     </div>
   );
