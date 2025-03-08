@@ -19,3 +19,7 @@ export function formatDate(date: Date | string): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   return format(dateObj, 'PPP');
 }
+
+export function formatPercentage(value: number): string {
+  return `${value.toFixed(1)}%`;
+}

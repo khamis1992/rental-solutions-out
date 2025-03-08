@@ -2,15 +2,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { cva } from "class-variance-authority";
+import { StatCardData } from "@/types/dashboard.types";
+import { memo } from "react";
 
-interface StatsCardProps {
+interface StatsCardProps extends Partial<StatCardData> {
   title: string;
-  value: string;
+  value: string | number;
   icon: React.ComponentType<{ className?: string }>;
   description?: React.ReactNode;
   className?: string;
   iconClassName?: string;
   trend?: "up" | "down" | "neutral";
+  onClick?: () => void;
 }
 
 const iconStyles = cva(
@@ -32,25 +35,33 @@ const iconStyles = cva(
   }
 );
 
-export const StatsCard = ({
+export const StatsCard = memo(({
   title,
   value,
   icon: Icon,
   description,
   className,
   iconClassName,
-  trend
+  trend,
+  onClick
 }: StatsCardProps) => {
   return (
-    <Card className={cn(
-      "overflow-hidden transition-all duration-200 group cursor-pointer p-3",
-      "bg-gradient-to-br from-card to-muted/50",
-      "backdrop-blur-sm border-border/50",
-      "hover:border-border hover:shadow-md",
-      "hover:translate-y-[-2px]",
-      "animate-fade-in",
-      className
-    )}>
+    <Card 
+      className={cn(
+        "overflow-hidden transition-all duration-200 group cursor-pointer p-3",
+        "bg-gradient-to-br from-card to-muted/50",
+        "backdrop-blur-sm border-border/50",
+        "hover:border-border hover:shadow-md",
+        "hover:translate-y-[-2px]",
+        "animate-fade-in",
+        onClick ? "cursor-pointer" : "cursor-default",
+        className
+      )}
+      onClick={onClick}
+      tabIndex={onClick ? 0 : undefined}
+      role={onClick ? "button" : undefined}
+      aria-label={onClick ? `View details for ${title}` : undefined}
+    >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
           {title}
@@ -77,4 +88,6 @@ export const StatsCard = ({
       </CardContent>
     </Card>
   );
-};
+});
+
+StatsCard.displayName = "StatsCard";

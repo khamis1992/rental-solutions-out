@@ -1,3 +1,4 @@
+
 /* Button styles */
 .btn-primary {
   @apply bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors duration-200;
@@ -214,4 +215,60 @@ button[class*="gap-2"] svg[class*="lucide-ArrowUpDown"] {
 .interactive-card {
   @apply rounded-lg border border-border/50 bg-card shadow-sm transition-all duration-300
          hover:shadow-md hover:border-border hover:scale-[1.01];
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInFromLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInFromRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInFromLeft 0.5s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInFromRight 0.5s ease-out;
+}
+
+.animate-pulse-subtle {
+  animation: pulse 2s infinite;
+}
+
+/* Accessibility improvements */
+.screen-reader-only {
+  @apply sr-only;
+}
+
+.focus-outline {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+}
+
+/* Hover effects for interactive elements */
+.hover-lift {
+  @apply transition-transform duration-200 hover:-translate-y-1;
+}
+
+.hover-scale {
+  @apply transition-transform duration-200 hover:scale-105;
 }

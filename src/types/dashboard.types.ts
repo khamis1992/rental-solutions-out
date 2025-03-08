@@ -1,3 +1,7 @@
+
+/**
+ * Dashboard statistics type definitions
+ */
 export interface DashboardStats {
   total_vehicles: number;
   available_vehicles: number;
@@ -8,6 +12,18 @@ export interface DashboardStats {
   monthly_revenue: number;
 }
 
-export interface DashboardStatsProps {
-  stats: DashboardStats;
+export interface StatsChangeIndicator {
+  value: number;
+  trend: 'up' | 'down' | 'neutral';
+  label: string;
+}
+
+export interface StatCardData {
+  title: string;
+  value: string | number;
+  previousValue?: number;
+  changePercentage?: number;
+  icon: React.ComponentType<{ className?: string }>;
+  iconClassName?: string;
+  description?: React.ReactNode;
 }

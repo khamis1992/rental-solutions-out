@@ -12,25 +12,21 @@ import { toast } from "sonner";
 import { VehicleStatusChartV2 } from "@/components/dashboard/enhanced/VehicleStatusChartV2";
 import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-interface DashboardStats {
-  total_vehicles: number;
-  available_vehicles: number;
-  rented_vehicles: number;
-  maintenance_vehicles: number;
-  total_customers: number;
-  active_rentals: number;
-  monthly_revenue: number;
-}
+import { DashboardStats as DashboardStatsType } from "@/types/dashboard.types";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { useDashboardSubscriptions } from "@/hooks/use-dashboard-subscriptions";
 
 const Dashboard = () => {
   const [mounted, setMounted] = useState(false);
+
+  // Setup real-time subscriptions
+  useDashboardSubscriptions();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const { data: statsData, error } = useQuery({
+  const { data: statsData, error, isLoading } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_dashboard_stats');
@@ -44,7 +40,7 @@ const Dashboard = () => {
       }
 
       // Convert the data to the correct format
-      const statsData: DashboardStats = {
+      const statsData: DashboardStatsType = {
         total_vehicles: Number(data.total_vehicles || 0),
         available_vehicles: Number(data.available_vehicles || 0),
         rented_vehicles: Number(data.rented_vehicles || 0),
@@ -76,11 +72,19 @@ const Dashboard = () => {
 
       {/* Dashboard Stats with Enterprise Design */}
       <div className="grid gap-6">
-        <DashboardStats stats={statsData} />
+        <ErrorBoundary>
+          <DashboardStats 
+            stats={statsData} 
+            isLoading={isLoading} 
+            error={error as Error}
+          />
+        </ErrorBoundary>
       </div>
 
       {/* Vehicle Status Chart with Enterprise Styling */}
-      <VehicleStatusChartV2 />
+      <ErrorBoundary>
+        <VehicleStatusChartV2 />
+      </ErrorBoundary>
 
       {/* Activity & Notifications with Tabbed Interface */}
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
@@ -94,7 +98,9 @@ const Dashboard = () => {
             </h3>
           </div>
           <ScrollArea className="h-[342px]">
-            <SmartNotifications />
+            <ErrorBoundary>
+              <SmartNotifications />
+            </ErrorBoundary>
           </ScrollArea>
         </Card>
         
@@ -115,14 +121,18 @@ const Dashboard = () => {
             </Tabs>
           </div>
           <ScrollArea className="h-[342px]">
-            <RecentActivity />
+            <ErrorBoundary>
+              <RecentActivity />
+            </ErrorBoundary>
           </ScrollArea>
         </Card>
       </div>
 
       {/* Quick Actions with Enterprise Design */}
       <div className="w-full">
-        <QuickActions />
+        <ErrorBoundary>
+          <QuickActions />
+        </ErrorBoundary>
       </div>
     </div>
   );
