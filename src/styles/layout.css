@@ -10,11 +10,11 @@
 
 /* Card Styling */
 .card-minimal {
-  @apply bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow transition-shadow duration-200;
+  @apply bg-card rounded-lg border border-border/50 shadow-sm hover:shadow transition-shadow duration-200;
 }
 
 .card-header {
-  @apply px-5 py-4 border-b border-gray-100 bg-white/50;
+  @apply px-5 py-4 border-b border-border/50 bg-card/50;
 }
 
 .card-content {
@@ -23,11 +23,11 @@
 
 /* Panel Layouts */
 .panel-container {
-  @apply bg-white rounded-lg border border-gray-100 shadow-sm;
+  @apply bg-card rounded-lg border border-border/50 shadow-sm;
 }
 
 .panel-header {
-  @apply px-5 py-4 border-b border-gray-100 flex items-center justify-between;
+  @apply px-5 py-4 border-b border-border/50 flex items-center justify-between;
 }
 
 .panel-content {
@@ -53,32 +53,92 @@
 
 /* Sidebar Styling */
 .sidebar {
-  @apply bg-white border-r border-gray-200 h-screen transition-all duration-200 flex flex-col;
+  @apply bg-card border-r border-border h-screen transition-all duration-200 flex flex-col;
 }
 
 /* Header Styling */
 .header {
-  @apply bg-white border-b border-gray-200 h-16 flex items-center px-4;
+  @apply bg-card border-b border-border h-16 flex items-center px-4;
 }
 
 /* Data Display Containers */
 .data-container {
-  @apply bg-white rounded-lg border border-gray-100 shadow-sm p-4 h-full;
+  @apply bg-card rounded-lg border border-border/50 shadow-sm p-4 h-full;
 }
 
 .data-header {
-  @apply text-lg font-medium mb-4 pb-2 border-b border-gray-100;
+  @apply text-lg font-medium mb-4 pb-2 border-b border-border/50;
 }
 
 /* Section Layouts */
 .section-container {
-  @apply py-6;
+  @apply py-8;
 }
 
 .section-title {
-  @apply text-xl font-semibold mb-4;
+  @apply text-2xl font-semibold mb-4 text-foreground;
 }
 
 .section-subtitle {
-  @apply text-sm text-gray-500 mb-6;
+  @apply text-sm text-muted-foreground mb-6;
+}
+
+/* Layout Grid */
+.layout-grid {
+  @apply grid gap-6;
+}
+
+.layout-grid-2 {
+  @apply grid gap-6 md:grid-cols-2;
+}
+
+.layout-grid-3 {
+  @apply grid gap-6 md:grid-cols-3;
+}
+
+.layout-grid-4 {
+  @apply grid gap-6 md:grid-cols-2 lg:grid-cols-4;
+}
+
+/* Dividers */
+.divider-h {
+  @apply h-px w-full bg-border/50 my-6;
+}
+
+.divider-v {
+  @apply w-px h-full bg-border/50 mx-6;
+}
+
+/* Spacing Utilities */
+.space-section {
+  @apply py-8;
+}
+
+.space-component {
+  @apply py-4;
+}
+
+.gutter-standard {
+  @apply gap-6;
+}
+
+.gutter-small {
+  @apply gap-4;
+}
+
+.gutter-large {
+  @apply gap-8;
+}
+
+/* Content Container */
+.content-container {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.content-container-sm {
+  @apply max-w-3xl mx-auto px-4 sm:px-6;
+}
+
+.content-container-lg {
+  @apply max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8;
 }

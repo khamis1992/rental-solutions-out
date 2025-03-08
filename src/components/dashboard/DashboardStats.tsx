@@ -24,7 +24,7 @@ export const DashboardStats = ({ stats }: DashboardStatsProps) => {
   const isGoodUtilization = Number(fleetUtilization) > 70;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="grid gap-6 md:grid-cols-3">
         <StatsCard
           title="Fleet Utilization"
@@ -34,7 +34,7 @@ export const DashboardStats = ({ stats }: DashboardStatsProps) => {
           description={
             <span className={cn(
               "text-xs flex items-center gap-1",
-              isGoodUtilization ? "text-emerald-600" : "text-amber-600"
+              isGoodUtilization ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
             )}>
               {isGoodUtilization ? 
                 <ArrowUp className="h-3 w-3" /> : 
@@ -52,8 +52,8 @@ export const DashboardStats = ({ stats }: DashboardStatsProps) => {
           icon={Key}
           iconClassName="purple"
           description={
-            <span className="text-amber-600 text-xs flex items-center">
-              <Wrench className="mr-1 h-4 w-4" />
+            <span className="text-amber-600 dark:text-amber-400 text-xs flex items-center">
+              <Wrench className="mr-1 h-3.5 w-3.5" />
               {stats?.maintenance_vehicles || 0} in maintenance
             </span>
           }

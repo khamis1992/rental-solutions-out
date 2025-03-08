@@ -5,31 +5,48 @@
  
 @layer base {
   :root {
+    /* Core Color System */
     --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --foreground: 215 25% 27%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 215 25% 27%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 215 25% 27%;
+    
+    /* Primary - Slate Blue */
     --primary: 215 25% 27%;
     --primary-foreground: 210 40% 98%;
+    
+    /* Secondary - Refined Gray */
     --secondary: 210 20% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 20% 96%;
+    --secondary-foreground: 215 25% 27%;
+    
+    /* Accent - Deep Indigo */
+    --accent: 230 83% 65%;
+    --accent-foreground: 210 40% 98%;
+    
+    /* Utility Colors */
+    --muted: 213 25% 95%;
     --muted-foreground: 215 16% 47%;
-    --accent: 210 20% 96%;
-    --accent-foreground: 222 47% 11%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
+    --success: 142 71% 45%;
+    --success-foreground: 210 40% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 215 25% 27%;
+    --info: 214 100% 60%;
+    --info-foreground: 210 40% 98%;
+    
+    /* Border & UI Elements */
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 215 25% 27%;
     --radius: 0.5rem;
 
     /* Layout Variables */
-    --header-height: 56px;
+    --header-height: 64px;
     --content-max-width: 1400px;
-    --section-spacing: 1.5rem;
+    --section-spacing: 2rem;
     --component-spacing: 1rem;
     --text-block-width: 65ch;
     --min-column-width: 300px;
@@ -40,6 +57,15 @@
     --body-line-height: 1.6;
     --heading-letter-spacing: -0.02em;
     --body-letter-spacing: 0;
+    
+    /* Spacing System */
+    --space-micro: 0.25rem;  /* 4px */
+    --space-xs: 0.5rem;      /* 8px */
+    --space-sm: 0.75rem;     /* 12px */
+    --space-md: 1rem;        /* 16px */
+    --space-lg: 1.5rem;      /* 24px */
+    --space-xl: 2rem;        /* 32px */
+    --space-2xl: 3rem;       /* 48px */
   }
 
   .dark {
@@ -55,10 +81,16 @@
     --secondary-foreground: 210 40% 98%;
     --muted: 217 32% 17%;
     --muted-foreground: 215 20% 65%;
-    --accent: 217 32% 17%;
+    --accent: 230 83% 65%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
+    --success: 142 71% 45%;
+    --success-foreground: 210 40% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 11%;
+    --info: 214 100% 60%;
+    --info-foreground: 210 40% 98%;
     --border: 217 32% 17%;
     --input: 217 32% 17%;
     --ring: 212.7 26.8% 83.9%;
@@ -84,19 +116,31 @@
   }
 
   h1 {
-    @apply text-3xl sm:text-4xl font-bold;
+    @apply text-3xl md:text-4xl font-bold text-foreground;
   }
 
   h2 {
-    @apply text-2xl sm:text-3xl font-semibold;
+    @apply text-2xl md:text-3xl font-semibold text-foreground;
   }
 
   h3 {
-    @apply text-xl sm:text-2xl font-semibold;
+    @apply text-xl md:text-2xl font-semibold text-foreground;
+  }
+
+  h4 {
+    @apply text-lg md:text-xl font-semibold text-foreground;
+  }
+
+  h5 {
+    @apply text-base md:text-lg font-semibold text-foreground;
+  }
+
+  h6 {
+    @apply text-sm md:text-base font-semibold text-foreground;
   }
 
   p {
-    @apply text-base leading-relaxed;
+    @apply text-base leading-relaxed text-foreground;
     line-height: var(--body-line-height);
     letter-spacing: var(--body-letter-spacing);
   }
@@ -116,6 +160,8 @@
     :root {
       --content-max-width: 100%;
       --min-column-width: 100%;
+      --section-spacing: 1.5rem;
+      --component-spacing: 0.75rem;
     }
   }
 

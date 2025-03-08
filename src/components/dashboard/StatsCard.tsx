@@ -14,16 +14,16 @@ interface StatsCardProps {
 }
 
 const iconStyles = cva(
-  "rounded-full p-2.5 transition-all duration-300 group-hover:scale-110",
+  "rounded-full p-2.5 transition-all duration-200 group-hover:scale-110",
   {
     variants: {
       variant: {
-        blue: "bg-blue-100/80 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 shadow-md shadow-blue-500/10",
-        purple: "bg-purple-100/80 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 shadow-md shadow-purple-500/10",
-        green: "bg-green-100/80 text-green-700 dark:bg-green-900/30 dark:text-green-400 shadow-md shadow-green-500/10",
-        orange: "bg-orange-100/80 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 shadow-md shadow-orange-500/10",
-        red: "bg-red-100/80 text-red-700 dark:bg-red-900/30 dark:text-red-400 shadow-md shadow-red-500/10",
-        indigo: "bg-indigo-100/80 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 shadow-md shadow-indigo-500/10"
+        blue: "bg-blue-100/80 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 shadow-sm",
+        purple: "bg-purple-100/80 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 shadow-sm",
+        green: "bg-green-100/80 text-green-700 dark:bg-green-900/30 dark:text-green-400 shadow-sm",
+        orange: "bg-orange-100/80 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 shadow-sm",
+        red: "bg-red-100/80 text-red-700 dark:bg-red-900/30 dark:text-red-400 shadow-sm",
+        indigo: "bg-indigo-100/80 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 shadow-sm"
       }
     },
     defaultVariants: {
@@ -43,10 +43,10 @@ export const StatsCard = ({
 }: StatsCardProps) => {
   return (
     <Card className={cn(
-      "overflow-hidden transition-all duration-300 hover:shadow-lg group cursor-pointer p-3",
-      "bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800/50 dark:to-gray-800/30",
-      "backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50",
-      "hover:border-gray-300 dark:hover:border-gray-600",
+      "overflow-hidden transition-all duration-200 group cursor-pointer p-3",
+      "bg-gradient-to-br from-card to-muted/50",
+      "backdrop-blur-sm border-border/50",
+      "hover:border-border hover:shadow-md",
       "hover:translate-y-[-2px]",
       "animate-fade-in",
       className
@@ -58,14 +58,14 @@ export const StatsCard = ({
         <div className={cn(
           iconStyles({ variant: iconClassName as any }),
           "animate-fade-in shadow-sm group-hover:shadow-md",
-          "ring-1 ring-gray-200/50 dark:ring-gray-700/50"
+          "ring-1 ring-border/50 group-hover:ring-border/70"
         )}>
           <Icon className="h-4 w-4" />
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-1">
-          <div className="text-2xl font-bold tracking-tight break-words animate-fade-in bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300">
+          <div className="text-2xl font-bold tracking-tight break-words animate-fade-in bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/80 dark:from-foreground dark:to-foreground/70">
             {value}
           </div>
           {description && (
