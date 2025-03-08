@@ -1,11 +1,13 @@
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PaymentAIRecommendations } from "./PaymentAIRecommendations";
 import { Loader2 } from "lucide-react";
+import { useInputHandler, useFormSubmitHandler } from "@/hooks/useEventHandlers";
 
 interface SinglePaymentFormProps {
   contractId: string;
@@ -14,63 +16,56 @@ interface SinglePaymentFormProps {
 }
 
 export function SinglePaymentForm({ contractId, onSuccess, totalInstallments }: SinglePaymentFormProps) {
-  const [firstChequeNumber, setFirstChequeNumber] = useState("");
-  const [firstPaymentDate, setFirstPaymentDate] = useState("");
-  const [amount, setAmount] = useState<string>("");
-  const [draweeBankName, setDraweeBankName] = useState("");
+  // Use standardized input handlers for form fields
+  const chequeNumberInput = useInputHandler("", {
+    validator: (value) => value.trim().length > 0,
+    transform: (value) => value.trim()
+  });
+  
+  const paymentDateInput = useInputHandler("", {
+    validator: (value) => value.trim().length > 0
+  });
+  
+  const amountInput = useInputHandler("", {
+    validator: (value) => {
+      const num = Number(value);
+      return !isNaN(num) && num > 0;
+    },
+    transform: (value) => value.trim()
+  });
+  
+  const draweeBankNameInput = useInputHandler("", {
+    validator: (value) => value.trim().length > 0,
+    transform: (value) => value.trim()
+  });
+  
   const [aiSuggestions, setAiSuggestions] = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const analyzePayment = async () => {
-    if (!firstChequeNumber || !firstPaymentDate || !amount) {
-      toast.error("Please fill in all fields first");
-      return;
-    }
-
-    setIsAnalyzing(true);
-    try {
-      const { data: suggestions, error } = await supabase.functions.invoke(
-        "analyze-payment-installment",
-        {
-          body: {
-            firstChequeNumber,
-            amount: Number(amount),
-            firstPaymentDate,
-            totalInstallments: totalInstallments || 1
-          }
-        }
-      );
-
-      if (error) throw error;
-      setAiSuggestions(suggestions);
-    } catch (error) {
-      console.error('Error analyzing payment:', error);
-      toast.error("Failed to analyze payment details");
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      if (!firstChequeNumber || !firstPaymentDate || !amount || !draweeBankName) {
-        throw new Error("Please fill in all required fields");
+  // Form validation state
+  const isFormValid = 
+    chequeNumberInput.isValid && chequeNumberInput.value.length > 0 &&
+    paymentDateInput.isValid && paymentDateInput.value.length > 0 &&
+    amountInput.isValid && amountInput.value.length > 0 &&
+    draweeBankNameInput.isValid && draweeBankNameInput.value.length > 0;
+  
+  // Use standardized form submit handler
+  const submitHandler = useFormSubmitHandler(
+    async () => {
+      if (!isFormValid) {
+        throw new Error("Please fill in all required fields correctly");
       }
 
       const { error } = await supabase
         .from("car_installment_payments")
         .insert({
           contract_id: contractId,
-          cheque_number: firstChequeNumber,
-          amount: Number(amount),
-          payment_date: firstPaymentDate,
-          drawee_bank: draweeBankName,
+          cheque_number: chequeNumberInput.value,
+          amount: Number(amountInput.value),
+          payment_date: paymentDateInput.value,
+          drawee_bank: draweeBankNameInput.value,
           paid_amount: 0,
-          remaining_amount: Number(amount),
+          remaining_amount: Number(amountInput.value),
           status: "pending"
         });
 
@@ -78,22 +73,59 @@ export function SinglePaymentForm({ contractId, onSuccess, totalInstallments }: 
 
       toast.success("Payment installment added successfully");
       onSuccess();
-    } catch (error) {
+    },
+    () => {
+      // Success already handled with toast and callback
+    },
+    (error) => {
       console.error("Error adding payment:", error);
-      toast.error("Failed to add payment installment");
-    } finally {
-      setIsSubmitting(false);
+      toast.error(`Failed to add payment installment: ${error.message}`);
     }
-  };
+  );
+  
+  // Use standardized form submit handler for analysis
+  const analyzeHandler = useFormSubmitHandler(
+    async () => {
+      if (!chequeNumberInput.value || !paymentDateInput.value || !amountInput.value) {
+        throw new Error("Please fill in all fields first");
+      }
+      
+      const { data: suggestions, error } = await supabase.functions.invoke(
+        "analyze-payment-installment",
+        {
+          body: {
+            firstChequeNumber: chequeNumberInput.value,
+            amount: Number(amountInput.value),
+            firstPaymentDate: paymentDateInput.value,
+            totalInstallments: totalInstallments || 1
+          }
+        }
+      );
+
+      if (error) throw error;
+      setAiSuggestions(suggestions);
+    },
+    () => {
+      // Success handled by setting AI suggestions
+    },
+    (error) => {
+      console.error('Error analyzing payment:', error);
+      toast.error(`Failed to analyze payment details: ${error.message}`);
+    }
+  );
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      submitHandler.handleSubmit(null);
+    }} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="chequeNumber">Cheque Number</Label>
         <Input 
           id="chequeNumber" 
-          value={firstChequeNumber}
-          onChange={(e) => setFirstChequeNumber(e.target.value)}
+          value={chequeNumberInput.value}
+          onChange={chequeNumberInput.handleChange}
+          className={!chequeNumberInput.isValid && chequeNumberInput.value ? 'border-red-500' : ''}
           required 
         />
       </div>
@@ -104,8 +136,9 @@ export function SinglePaymentForm({ contractId, onSuccess, totalInstallments }: 
           id="amount" 
           type="number" 
           step="0.01"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          value={amountInput.value}
+          onChange={amountInput.handleChange}
+          className={!amountInput.isValid && amountInput.value ? 'border-red-500' : ''}
           required 
         />
       </div>
@@ -115,8 +148,9 @@ export function SinglePaymentForm({ contractId, onSuccess, totalInstallments }: 
         <Input 
           id="paymentDate" 
           type="date"
-          value={firstPaymentDate}
-          onChange={(e) => setFirstPaymentDate(e.target.value)}
+          value={paymentDateInput.value}
+          onChange={paymentDateInput.handleChange}
+          className={!paymentDateInput.isValid && paymentDateInput.value ? 'border-red-500' : ''}
           required 
         />
       </div>
@@ -125,8 +159,9 @@ export function SinglePaymentForm({ contractId, onSuccess, totalInstallments }: 
         <Label htmlFor="draweeBankName">Drawee Bank Name</Label>
         <Input 
           id="draweeBankName" 
-          value={draweeBankName}
-          onChange={(e) => setDraweeBankName(e.target.value)}
+          value={draweeBankNameInput.value}
+          onChange={draweeBankNameInput.handleChange}
+          className={!draweeBankNameInput.isValid && draweeBankNameInput.value ? 'border-red-500' : ''}
           required 
         />
       </div>
@@ -136,10 +171,10 @@ export function SinglePaymentForm({ contractId, onSuccess, totalInstallments }: 
           type="button" 
           variant="outline" 
           className="w-full"
-          onClick={analyzePayment}
-          disabled={isAnalyzing}
+          onClick={() => analyzeHandler.handleSubmit(null)}
+          disabled={analyzeHandler.isSubmitting || !chequeNumberInput.value || !paymentDateInput.value || !amountInput.value}
         >
-          {isAnalyzing ? (
+          {analyzeHandler.isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Analyzing...
@@ -158,8 +193,12 @@ export function SinglePaymentForm({ contractId, onSuccess, totalInstallments }: 
         />
       )}
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? (
+      <Button 
+        type="submit" 
+        className="w-full" 
+        disabled={submitHandler.isSubmitting || !isFormValid}
+      >
+        {submitHandler.isSubmitting ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Adding Payment...

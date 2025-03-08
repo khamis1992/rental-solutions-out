@@ -7,6 +7,8 @@ import { buildQuery } from "@/lib/supabaseUtils";
 import { Profile } from "@/types/supabase.types";
 import { safeTransform, safeArray } from "@/lib/transformUtils";
 import { useComponentState } from "@/hooks/useComponentState";
+import { useCallback } from "react";
+import { useInputHandler } from "@/hooks/useEventHandlers";
 
 interface UseCustomersOptions {
   searchQuery: string;
@@ -20,9 +22,17 @@ interface UseCustomersResult {
   error: Error | null;
   isLoading: boolean;
   refetch: () => Promise<void>;
+  handleSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  debouncedSearchQuery: string;
 }
 
 export const useCustomers = ({ searchQuery, page, pageSize }: UseCustomersOptions): UseCustomersResult => {
+  // Use our standardized input handler for search with debouncing
+  const searchHandler = useInputHandler(searchQuery, {
+    debounceMs: 300, // 300ms debounce for search
+    transform: (value) => value.trim() // Trim whitespace from search input
+  });
+
   // Use our component state for managing search state
   const { state: searchState, updateState: updateSearchState } = useComponentState({
     currentSearchTerm: searchQuery,
@@ -41,10 +51,10 @@ export const useCustomers = ({ searchQuery, page, pageSize }: UseCustomersOption
 
   // Use our enhanced query state management
   const queryResult = useQueryState<{ customers: Customer[], totalCount: number }, Error>(
-    ['customers', searchQuery, page, pageSize],
+    ['customers', searchHandler.debouncedValue, page, pageSize],
     async () => {
       try {
-        console.log("Fetching customers with search:", searchQuery);
+        console.log("Fetching customers with search:", searchHandler.debouncedValue);
         
         // First get total count for pagination
         const countQuery = supabase
@@ -52,8 +62,8 @@ export const useCustomers = ({ searchQuery, page, pageSize }: UseCustomersOption
           .select('id', { count: 'exact', head: true })
           .eq('role', 'customer'); // Only count customers
 
-        if (searchQuery) {
-          countQuery.or(`full_name.ilike.%${searchQuery}%,phone_number.ilike.%${searchQuery}%,driver_license.ilike.%${searchQuery}%`);
+        if (searchHandler.debouncedValue) {
+          countQuery.or(`full_name.ilike.%${searchHandler.debouncedValue}%,phone_number.ilike.%${searchHandler.debouncedValue}%,driver_license.ilike.%${searchHandler.debouncedValue}%`);
         }
 
         const countResult = await countQuery;
@@ -75,9 +85,9 @@ export const useCustomers = ({ searchQuery, page, pageSize }: UseCustomersOption
           
         // Add search filter if provided
         let customerQuery = query;
-        if (searchQuery) {
+        if (searchHandler.debouncedValue) {
           customerQuery = customerQuery.or(
-            `full_name.ilike.%${searchQuery}%,phone_number.ilike.%${searchQuery}%,driver_license.ilike.%${searchQuery}%`
+            `full_name.ilike.%${searchHandler.debouncedValue}%,phone_number.ilike.%${searchHandler.debouncedValue}%,driver_license.ilike.%${searchHandler.debouncedValue}%`
           );
         }
 
@@ -90,7 +100,7 @@ export const useCustomers = ({ searchQuery, page, pageSize }: UseCustomersOption
         
         const customers = safeTransform(
           profileData,
-          (profiles) => safeArray(profiles).map(record => ({
+          (profiles) => safeArray(profiles).map((record: Profile) => ({
             id: record.id,
             full_name: record.full_name || '',
             phone_number: record.phone_number || '',
@@ -136,6 +146,8 @@ export const useCustomers = ({ searchQuery, page, pageSize }: UseCustomersOption
     totalCount: queryResult.data?.totalCount || 0,
     error: queryResult.error,
     isLoading: queryResult.isLoading,
-    refetch: async () => { await queryResult.refetch(); }
+    refetch: async () => { await queryResult.refetch(); },
+    handleSearchChange: searchHandler.handleChange,
+    debouncedSearchQuery: searchHandler.debouncedValue
   };
 };

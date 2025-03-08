@@ -5,6 +5,8 @@ import { DashboardStats } from "@/types/dashboard.types";
 import { isDefined } from "@/lib/queryUtils";
 import { UseDashboardStatsResult } from "@/types/hooks.types";
 import { safeTransform } from "@/lib/transformUtils";
+import { useFormSubmitHandler } from "@/hooks/useEventHandlers";
+import { useCallback } from "react";
 
 export const useDashboardStats = (): UseDashboardStatsResult => {
   const queryResult = useQueryState<DashboardStats, Error, DashboardStats>(
@@ -57,11 +59,25 @@ export const useDashboardStats = (): UseDashboardStatsResult => {
     }
   );
 
+  // Use our standardized form submit handler for the refetch operation
+  const refreshHandler = useFormSubmitHandler(
+    async () => {
+      await queryResult.refetch();
+    },
+    () => console.log("Dashboard stats refreshed successfully"),
+    (error) => console.error("Error refreshing dashboard stats:", error)
+  );
+
+  // Create a more convenient refetch function that handles loading state
+  const refetchWithLoading = useCallback(async () => {
+    refreshHandler.handleSubmit(null);
+  }, [refreshHandler]);
+
   return {
     data: queryResult.data || null,
-    isLoading: queryResult.isLoading,
-    error: queryResult.error instanceof Error ? queryResult.error : null,
-    refetch: async () => { await queryResult.refetch(); },
+    isLoading: queryResult.isLoading || refreshHandler.isSubmitting,
+    error: queryResult.error || refreshHandler.error,
+    refetch: refetchWithLoading,
     status: queryResult.status,
     isStale: queryResult.isStale,
     lastUpdated: queryResult.dataUpdatedAt ? new Date(queryResult.dataUpdatedAt) : undefined
