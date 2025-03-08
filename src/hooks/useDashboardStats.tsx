@@ -3,9 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardStats } from "@/types/dashboard.types";
 import { isDefined, handleQueryResult } from "@/lib/queryUtils";
+import { UseDashboardStatsResult } from "@/types/hooks.types";
 
-export const useDashboardStats = () => {
-  return useQuery({
+export const useDashboardStats = (): UseDashboardStatsResult => {
+  const queryResult = useQuery({
     queryKey: ["dashboardStats"],
     queryFn: async (): Promise<DashboardStats> => {
       try {
@@ -39,6 +40,16 @@ export const useDashboardStats = () => {
     },
     refetchInterval: 30000, // Refetch every 30 seconds
   });
+
+  return {
+    data: queryResult.data || null,
+    isLoading: queryResult.isLoading,
+    error: queryResult.error instanceof Error ? queryResult.error : null,
+    refetch: queryResult.refetch,
+    status: queryResult.status,
+    isStale: queryResult.isStale,
+    lastUpdated: queryResult.dataUpdatedAt ? new Date(queryResult.dataUpdatedAt) : undefined
+  };
 };
 
 // Helper function to validate numeric fields from the API response

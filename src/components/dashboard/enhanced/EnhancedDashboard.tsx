@@ -9,11 +9,13 @@ import { useRealTimeVehicleUpdates } from "@/hooks/useRealTimeVehicleUpdates";
 import { RealTimeIndicator } from "./RealTimeIndicator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Car, BarChart3, PieChart, ActivitySquare } from "lucide-react";
-import { StatusGroup } from "@/types/dashboard.types";
+import { StatusItem, VehicleStatus } from "@/types/dashboard.types";
+import { VehicleStatusConfig } from "./VehicleStatusConfig";
 
 export const EnhancedDashboard = () => {
   const [currentView, setCurrentView] = useState<"stats" | "charts">("stats");
-  const { metrics, statusGroups, isLoading } = useVehicleMetrics();
+  const [selectedStatus, setSelectedStatus] = useState<VehicleStatus | null>(null);
+  const { metrics, isLoading } = useVehicleMetrics();
   const { 
     lastUpdate, 
     connectedStatus, 
@@ -22,6 +24,20 @@ export const EnhancedDashboard = () => {
     notifyOnStatusChange: true,
     historyLimit: 5
   });
+
+  // Prepare status items for the StatusGroupList
+  const statusItems: StatusItem[] = [
+    { status: 'available' as VehicleStatus, count: metrics?.availableCount || 0 },
+    { status: 'rented' as VehicleStatus, count: metrics?.rentedCount || 0 },
+    { status: 'maintenance' as VehicleStatus, count: metrics?.maintenanceCount || 0 },
+  ];
+
+  // Handle status click
+  const handleStatusClick = (status: VehicleStatus) => {
+    console.log(`Status clicked: ${status}`);
+    setSelectedStatus(status);
+    // Additional logic for filtering vehicles by status could be added here
+  };
 
   // Convert metrics to chart data
   const donutData = [
@@ -73,8 +89,10 @@ export const EnhancedDashboard = () => {
               
               <TabsContent value="stats" className="mt-4">
                 <StatusGroupList 
-                  groupedStatuses={statusGroups as StatusGroup[]} 
-                  isLoading={isLoading} 
+                  statuses={statusItems}
+                  statusConfigs={VehicleStatusConfig}
+                  onStatusClick={handleStatusClick}
+                  isLoading={isLoading}
                 />
               </TabsContent>
               
