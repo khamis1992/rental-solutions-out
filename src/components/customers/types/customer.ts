@@ -12,3 +12,15 @@ export interface Customer {
   created_at: string;
   role: 'customer' | 'staff' | 'admin';
 }
+
+export interface CustomerWithRelations extends Customer {
+  agreements?: Array<{
+    id: string;
+    agreement_number: string;
+    status: string;
+    start_date: string | null;
+    end_date: string | null;
+  }>;
+}
+
+export type CustomerFormData = Omit<Customer, 'id' | 'created_at' | 'role'>;

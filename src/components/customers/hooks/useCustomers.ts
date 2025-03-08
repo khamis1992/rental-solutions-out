@@ -1,7 +1,9 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Customer } from "../types/customer";
+import { handleQueryResult } from "@/lib/queryUtils";
 
 interface UseCustomersOptions {
   searchQuery: string;
@@ -51,17 +53,12 @@ export const useCustomers = ({ searchQuery, page, pageSize }: UseCustomersOption
           query = query.or(`full_name.ilike.%${searchQuery}%,phone_number.ilike.%${searchQuery}%,driver_license.ilike.%${searchQuery}%`);
         }
 
-        const { data, error } = await query;
-
-        if (error) {
-          console.error("Error fetching customers:", error);
-          toast.error("Failed to fetch customers");
-          throw error;
-        }
+        const result = await query;
+        const customers = handleQueryResult<Customer[]>(result, []) || [];
         
-        console.log("Fetched customers:", data?.length || 0, "records");
+        console.log("Fetched customers:", customers.length, "records");
         return {
-          customers: (data || []) as Customer[],
+          customers,
           totalCount: count || 0,
           error: null
         };
