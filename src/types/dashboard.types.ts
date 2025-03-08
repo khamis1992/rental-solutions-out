@@ -10,5 +10,5 @@ export interface DashboardStats {
 }
 
 export interface DashboardStatsProps {
-  stats: DashboardStats;
+  stats?: DashboardStats;
 }

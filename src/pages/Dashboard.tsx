@@ -12,16 +12,8 @@ import { toast } from "sonner";
 import { VehicleStatusChartV2 } from "@/components/dashboard/enhanced/VehicleStatusChartV2";
 import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-interface DashboardStats {
-  total_vehicles: number;
-  available_vehicles: number;
-  rented_vehicles: number;
-  maintenance_vehicles: number;
-  total_customers: number;
-  active_rentals: number;
-  monthly_revenue: number;
-}
+import { DashboardStats as DashboardStatsType } from "@/types/dashboard.types";
+import { Loader2 } from "lucide-react";
 
 const Dashboard = () => {
   const [mounted, setMounted] = useState(false);
@@ -30,38 +22,66 @@ const Dashboard = () => {
     setMounted(true);
   }, []);
 
-  const { data: statsData, error } = useQuery({
+  const { data: statsData, error, isLoading } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_dashboard_stats');
-      
-      if (error) {
-        throw error;
+      try {
+        // Try to use RPC function first
+        const { data, error } = await supabase.rpc('get_dashboard_stats');
+        
+        if (error) {
+          console.error("RPC error:", error);
+          throw error;
+        }
+
+        if (!data) {
+          console.error("No data returned from dashboard stats RPC");
+          // Fallback: Call Edge Function
+          const { data: edgeFunctionData, error: edgeFunctionError } = await supabase
+            .functions.invoke('get-dashboard-stats');
+          
+          if (edgeFunctionError) {
+            console.error("Edge function error:", edgeFunctionError);
+            throw edgeFunctionError;
+          }
+          
+          return edgeFunctionData as DashboardStatsType;
+        }
+
+        // Convert the data to the correct format
+        const statsData: DashboardStatsType = {
+          total_vehicles: Number(data.total_vehicles || 0),
+          available_vehicles: Number(data.available_vehicles || 0),
+          rented_vehicles: Number(data.rented_vehicles || 0),
+          maintenance_vehicles: Number(data.maintenance_vehicles || 0),
+          total_customers: Number(data.total_customers || 0),
+          active_rentals: Number(data.active_rentals || 0),
+          monthly_revenue: Number(data.monthly_revenue || 0)
+        };
+
+        return statsData;
+      } catch (err) {
+        console.error("Error fetching dashboard stats:", err);
+        throw err;
       }
-
-      if (!data) {
-        throw new Error("No data returned from dashboard stats");
-      }
-
-      // Convert the data to the correct format
-      const statsData: DashboardStats = {
-        total_vehicles: Number(data.total_vehicles || 0),
-        available_vehicles: Number(data.available_vehicles || 0),
-        rented_vehicles: Number(data.rented_vehicles || 0),
-        maintenance_vehicles: Number(data.maintenance_vehicles || 0),
-        total_customers: Number(data.total_customers || 0),
-        active_rentals: Number(data.active_rentals || 0),
-        monthly_revenue: Number(data.monthly_revenue || 0)
-      };
-
-      return statsData;
     },
+    retry: 2,
+    retryDelay: 1000,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
     meta: {
       onError: (err: Error) => {
         toast.error("Failed to load dashboard stats: " + err.message);
       }
     }
   });
+
+  useEffect(() => {
+    if (error) {
+      console.error("Dashboard stats error:", error);
+      toast.error("Error loading dashboard data. Please try again later.");
+    }
+  }, [error]);
 
   const fadeInClass = mounted ? "opacity-100" : "opacity-0";
 

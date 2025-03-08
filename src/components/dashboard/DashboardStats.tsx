@@ -3,12 +3,36 @@ import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 import { 
   Car, Users, Key, Wrench, Calculator, Calendar, TrendingUp,
-  ArrowUpRight, ArrowDownRight 
+  ArrowUpRight, ArrowDownRight, Loader2
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { DashboardStatsProps } from "@/types/dashboard.types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const DashboardStats = ({ stats }: DashboardStatsProps) => {
+  // If stats is undefined, show loading skeletons
+  if (!stats) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {Array(7).fill(0).map((_, index) => (
+          <Card key={index} className="overflow-hidden border border-muted">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <Skeleton className="h-10 w-10 rounded-lg" />
+                <Skeleton className="h-4 w-4 rounded-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-6 w-16" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
   const statsItems = [
     {
       title: "Total Vehicles",
