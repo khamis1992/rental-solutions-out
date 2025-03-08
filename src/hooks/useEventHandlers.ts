@@ -1,301 +1,540 @@
 
-import { useState, useCallback, ChangeEvent, MouseEvent, KeyboardEvent, FocusEvent } from 'react';
-import { useDebounce } from './use-debounce';
+import { useState, useCallback, useEffect, useMemo } from "react";
+import { debounce } from "lodash";
+import { toast } from "sonner";
 
-/**
- * Type definitions for event handlers
- */
-export type InputChangeHandler = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
-export type MouseEventHandler = (e: MouseEvent<HTMLElement>) => void;
-export type KeyboardEventHandler = (e: KeyboardEvent<HTMLElement>) => void;
-export type FocusEventHandler = (e: FocusEvent<HTMLElement>) => void;
-
-export interface UseInputHandlerOptions {
-  /** Validation function to check input value */
-  validator?: (value: string) => boolean;
-  /** Transform function to modify input value */
-  transform?: (value: string) => string;
-  /** Callback when validation fails */
-  onInvalid?: (value: string) => void;
-  /** Debounce delay in milliseconds */
+// Event handler for form input with validation
+export interface UseInputHandlerOptions<T> {
+  validator?: (value: T) => boolean;
+  transform?: (value: T) => T;
   debounceMs?: number;
+  onValueChange?: (value: T) => void;
 }
 
-/**
- * Hook for handling input changes with validation, transformation, and debouncing
- */
-export function useInputHandler(
-  initialValue: string = '', 
-  options: UseInputHandlerOptions = {}
-) {
-  const { 
-    validator, 
-    transform, 
-    onInvalid,
-    debounceMs 
-  } = options;
+export interface UseInputHandlerResult<T> {
+  value: T;
+  debouncedValue: T;
+  setValue: (newValue: T) => void;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  isValid: boolean;
+  reset: () => void;
+}
+
+export function useInputHandler<T>(
+  initialValue: T,
+  options: UseInputHandlerOptions<T> = {}
+): UseInputHandlerResult<T> {
+  const { validator, transform, debounceMs, onValueChange } = options;
   
-  const [value, setValue] = useState(initialValue);
-  const [isValid, setIsValid] = useState(true);
-  
-  const handleChange = useCallback<InputChangeHandler>((e) => {
-    const newValue = e.target.value;
-    let transformedValue = transform ? transform(newValue) : newValue;
-    
-    if (validator) {
-      const valid = validator(transformedValue);
-      setIsValid(valid);
+  const [value, setValueState] = useState<T>(initialValue);
+  const [debouncedValue, setDebouncedValue] = useState<T>(initialValue);
+  const [isValid, setIsValid] = useState<boolean>(true);
+
+  // Create a debounced setter function if needed
+  const debouncedSetValue = useMemo(
+    () =>
+      debounceMs
+        ? debounce((newValue: T) => {
+            setDebouncedValue(newValue);
+          }, debounceMs)
+        : (newValue: T) => {
+            setDebouncedValue(newValue);
+          },
+    [debounceMs]
+  );
+
+  // Handle value changes with validation and transformation
+  const setValue = useCallback(
+    (newValue: T) => {
+      // Apply transformation if provided
+      const transformedValue = transform ? transform(newValue) : newValue;
       
-      if (!valid && onInvalid) {
-        onInvalid(transformedValue);
+      // Update the immediate value
+      setValueState(transformedValue);
+      
+      // Validate the value if a validator is provided
+      if (validator) {
+        const validationResult = validator(transformedValue);
+        setIsValid(validationResult);
       }
-    }
-    
-    setValue(transformedValue);
-  }, [validator, transform, onInvalid]);
-  
-  // Create debounced value if debounceMs is provided
-  const debouncedValue = debounceMs 
-    ? useDebounce(value, debounceMs)
-    : value;
-  
+      
+      // Update the debounced value
+      debouncedSetValue(transformedValue);
+      
+      // Call the onChange callback if provided
+      if (onValueChange) {
+        onValueChange(transformedValue);
+      }
+    },
+    [transform, validator, debouncedSetValue, onValueChange]
+  );
+
+  // Handle input change events
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+      const { value: inputValue, type, checked } = e.target as HTMLInputElement;
+      
+      if (type === 'checkbox') {
+        setValue(checked as unknown as T);
+      } else if (type === 'number' || type === 'range') {
+        setValue(
+          inputValue === '' ? ('' as unknown as T) : (Number(inputValue) as unknown as T)
+        );
+      } else {
+        setValue(inputValue as unknown as T);
+      }
+    },
+    [setValue]
+  );
+
+  // Reset handler
   const reset = useCallback(() => {
     setValue(initialValue);
-    setIsValid(true);
-  }, [initialValue]);
-  
+  }, [initialValue, setValue]);
+
+  // Cleanup effect for debounce
+  useEffect(() => {
+    return () => {
+      if (debounceMs && debouncedSetValue.cancel) {
+        debouncedSetValue.cancel();
+      }
+    };
+  }, [debounceMs, debouncedSetValue]);
+
   return {
     value,
     debouncedValue,
-    isValid,
-    handleChange,
     setValue,
-    reset
+    handleChange,
+    isValid,
+    reset,
   };
 }
 
-/**
- * Hook for handling toggle state (checkbox, switch, etc.)
- */
-export function useToggleHandler(initialState: boolean = false) {
-  const [isToggled, setIsToggled] = useState(initialState);
-  
-  const toggle = useCallback(() => {
-    setIsToggled(prev => !prev);
-  }, []);
-  
-  const handleToggle = useCallback<InputChangeHandler>((e) => {
-    const target = e.target as HTMLInputElement;
-    setIsToggled(target.checked);
-  }, []);
-  
-  const setToggled = useCallback((value: boolean) => {
-    setIsToggled(value);
-  }, []);
-  
-  return {
-    isToggled,
-    toggle,
-    handleToggle,
-    setToggled
-  };
+// Form submit handler with standardized loading/error states
+export interface UseFormSubmitHandlerOptions {
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
+  showSuccessToast?: boolean;
+  successMessage?: string;
+  showErrorToast?: boolean;
+  errorMessage?: string;
+  resetFormOnSuccess?: boolean;
+  validateBeforeSubmit?: boolean;
 }
 
-/**
- * Hook for handling form submission with loading state
- */
-export function useFormSubmitHandler<T>(
-  onSubmit: (data: T) => Promise<void> | void,
-  onSuccess?: () => void,
-  onError?: (error: Error) => void
-) {
+export interface UseFormSubmitHandlerResult {
+  handleSubmit: (e: React.FormEvent | null) => Promise<void>;
+  isSubmitting: boolean;
+  error: Error | null;
+  success: boolean;
+  reset: () => void;
+}
+
+export function useFormSubmitHandler(
+  submitFn: () => Promise<void>,
+  options: UseFormSubmitHandlerOptions = {}
+): UseFormSubmitHandlerResult {
+  const {
+    onSuccess,
+    onError,
+    showSuccessToast = true,
+    successMessage = "Operation completed successfully",
+    showErrorToast = true,
+    errorMessage = "An error occurred",
+    resetFormOnSuccess = false,
+    validateBeforeSubmit = true,
+  } = options;
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  
-  const handleSubmit = useCallback(async (data: T) => {
-    setIsSubmitting(true);
+  const [success, setSuccess] = useState(false);
+
+  const reset = useCallback(() => {
     setError(null);
-    
-    try {
-      await onSubmit(data);
-      if (onSuccess) onSuccess();
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('An error occurred');
-      setError(error);
-      if (onError) onError(error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [onSubmit, onSuccess, onError]);
-  
+    setSuccess(false);
+  }, []);
+
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent | null) => {
+      if (e) {
+        e.preventDefault();
+      }
+
+      setIsSubmitting(true);
+      setError(null);
+      setSuccess(false);
+
+      try {
+        await submitFn();
+        setSuccess(true);
+        
+        if (showSuccessToast) {
+          toast.success(successMessage);
+        }
+        
+        if (onSuccess) {
+          onSuccess();
+        }
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        
+        setError(error);
+        console.error("Form submission error:", error);
+        
+        if (showErrorToast) {
+          toast.error(errorMessage);
+        }
+        
+        if (onError) {
+          onError(error);
+        }
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [
+      submitFn,
+      onSuccess,
+      onError,
+      showSuccessToast,
+      successMessage,
+      showErrorToast,
+      errorMessage,
+    ]
+  );
+
   return {
     handleSubmit,
     isSubmitting,
     error,
-    clearError: () => setError(null)
+    success,
+    reset,
   };
 }
 
-/**
- * Hook for handling keyboard shortcuts
- */
-export function useKeyboardShortcut(
-  key: string,
-  callback: () => void,
-  options: {
-    ctrl?: boolean;
-    alt?: boolean;
-    shift?: boolean;
-    meta?: boolean;
-    enabled?: boolean;
-  } = {}
-) {
-  const { ctrl = false, alt = false, shift = false, meta = false, enabled = true } = options;
-  
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent<HTMLElement> | globalThis.KeyboardEvent) => {
-      if (!enabled) return;
-      
-      const matchesKey = event.key.toLowerCase() === key.toLowerCase();
-      const matchesModifiers = (
-        (ctrl === event.ctrlKey) &&
-        (alt === event.altKey) &&
-        (shift === event.shiftKey) &&
-        (meta === event.metaKey)
-      );
-      
-      if (matchesKey && matchesModifiers) {
-        event.preventDefault();
-        callback();
+// Toggle handler with standardized loading/error states
+export interface UseToggleHandlerOptions {
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
+  showSuccessToast?: boolean;
+  successMessage?: string;
+  showErrorToast?: boolean;
+  errorMessage?: string;
+}
+
+export interface UseToggleHandlerResult {
+  handleToggle: () => Promise<void>;
+  isToggling: boolean;
+  error: Error | null;
+}
+
+export function useToggleHandler(
+  toggleFn: () => Promise<void>,
+  options: UseToggleHandlerOptions = {}
+): UseToggleHandlerResult {
+  const {
+    onSuccess,
+    onError,
+    showSuccessToast = true,
+    successMessage = "Status updated successfully",
+    showErrorToast = true,
+    errorMessage = "Failed to update status",
+  } = options;
+
+  const [isToggling, setIsToggling] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const handleToggle = useCallback(
+    async () => {
+      setIsToggling(true);
+      setError(null);
+
+      try {
+        await toggleFn();
+        
+        if (showSuccessToast) {
+          toast.success(successMessage);
+        }
+        
+        if (onSuccess) {
+          onSuccess();
+        }
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        setError(error);
+        
+        if (showErrorToast) {
+          toast.error(errorMessage);
+        }
+        
+        if (onError) {
+          onError(error);
+        }
+      } finally {
+        setIsToggling(false);
       }
     },
-    [key, ctrl, alt, shift, meta, enabled, callback]
+    [
+      toggleFn,
+      onSuccess,
+      onError,
+      showSuccessToast,
+      successMessage,
+      showErrorToast,
+      errorMessage,
+    ]
   );
-  
-  // Add global event listener on mount, remove on unmount
-  useState(() => {
-    if (enabled) {
-      window.addEventListener('keydown', handleKeyDown as any);
-      return () => {
-        window.addEventListener('keydown', handleKeyDown as any);
-      };
-    }
-    return undefined;
-  });
-  
-  return handleKeyDown as KeyboardEventHandler;
-}
 
-/**
- * Hook for handling mouse events with enhanced features
- */
-export function useMouseHandler(
-  onClick?: () => void,
-  options: {
-    doubleClick?: () => void;
-    rightClick?: () => void;
-    doubleClickDelay?: number;
-    preventContextMenu?: boolean;
-  } = {}
-) {
-  const {
-    doubleClick,
-    rightClick,
-    doubleClickDelay = 300,
-    preventContextMenu = false
-  } = options;
-  
-  const [clickCount, setClickCount] = useState(0);
-  const [clickTimer, setClickTimer] = useState<NodeJS.Timeout | null>(null);
-  
-  const handleClick = useCallback<MouseEventHandler>((e) => {
-    // Handle right click
-    if (e.button === 2) {
-      if (rightClick) rightClick();
-      return;
-    }
-    
-    // Handle left click
-    if (clickTimer) {
-      clearTimeout(clickTimer);
-      setClickTimer(null);
-      setClickCount(0);
-      if (doubleClick) doubleClick();
-    } else {
-      setClickCount(1);
-      const timer = setTimeout(() => {
-        setClickCount(0);
-        setClickTimer(null);
-        if (onClick) onClick();
-      }, doubleClickDelay);
-      setClickTimer(timer);
-    }
-  }, [onClick, doubleClick, rightClick, doubleClickDelay, clickTimer]);
-  
-  const handleContextMenu = useCallback<MouseEventHandler>((e) => {
-    if (preventContextMenu) {
-      e.preventDefault();
-    }
-  }, [preventContextMenu]);
-  
   return {
-    handleClick,
-    handleContextMenu
+    handleToggle,
+    isToggling,
+    error,
   };
 }
 
-/**
- * Hook for handling drag and drop events
- */
-export function useDragHandler<T>(
-  onDrop: (item: T) => void,
-  options: {
-    allowedTypes?: string[];
-    onDragOver?: () => void;
-    onDragLeave?: () => void;
-  } = {}
-) {
-  const { allowedTypes = [], onDragOver, onDragLeave } = options;
-  
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
-  
-  const handleDragOver = useCallback<(e: React.DragEvent<HTMLElement>) => void>((e) => {
-    e.preventDefault();
-    
-    if (!isDraggingOver) {
-      setIsDraggingOver(true);
-      if (onDragOver) onDragOver();
-    }
-  }, [isDraggingOver, onDragOver]);
-  
-  const handleDragLeave = useCallback<(e: React.DragEvent<HTMLElement>) => void>((e) => {
-    e.preventDefault();
-    
-    setIsDraggingOver(false);
-    if (onDragLeave) onDragLeave();
-  }, [onDragLeave]);
-  
-  const handleDrop = useCallback<(e: React.DragEvent<HTMLElement>) => void>((e) => {
-    e.preventDefault();
-    setIsDraggingOver(false);
-    
-    // Check if the dropped item matches allowed types
-    try {
-      const droppedData = JSON.parse(e.dataTransfer.getData('application/json')) as T;
-      const type = e.dataTransfer.types[0];
-      
-      if (allowedTypes.length === 0 || allowedTypes.includes(type)) {
-        onDrop(droppedData);
+// Keyboard event handler
+export interface UseKeyboardHandlerOptions {
+  targetKey: string;
+  ctrlKey?: boolean;
+  altKey?: boolean;
+  shiftKey?: boolean;
+  metaKey?: boolean;
+  preventDefault?: boolean;
+  stopPropagation?: boolean;
+}
+
+export function useKeyboardHandler(
+  handler: (e: KeyboardEvent) => void,
+  options: UseKeyboardHandlerOptions
+): void {
+  const {
+    targetKey,
+    ctrlKey = false,
+    altKey = false,
+    shiftKey = false,
+    metaKey = false,
+    preventDefault = true,
+    stopPropagation = true,
+  } = options;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === targetKey &&
+        e.ctrlKey === ctrlKey &&
+        e.altKey === altKey &&
+        e.shiftKey === shiftKey &&
+        e.metaKey === metaKey
+      ) {
+        if (preventDefault) {
+          e.preventDefault();
+        }
+        
+        if (stopPropagation) {
+          e.stopPropagation();
+        }
+        
+        handler(e);
       }
-    } catch (error) {
-      console.error('Error processing dropped data:', error);
-    }
-  }, [allowedTypes, onDrop]);
-  
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [
+    handler,
+    targetKey,
+    ctrlKey,
+    altKey,
+    shiftKey,
+    metaKey,
+    preventDefault,
+    stopPropagation,
+  ]);
+}
+
+// Mouse event handler
+export interface UseMouseEventOptions {
+  eventType: 'click' | 'mousedown' | 'mouseup' | 'mousemove' | 'mouseenter' | 'mouseleave';
+  targetRef?: React.RefObject<HTMLElement>;
+  preventDefault?: boolean;
+  stopPropagation?: boolean;
+}
+
+export function useMouseEvent(
+  handler: (e: MouseEvent) => void,
+  options: UseMouseEventOptions
+): void {
+  const {
+    eventType,
+    targetRef,
+    preventDefault = false,
+    stopPropagation = false,
+  } = options;
+
+  useEffect(() => {
+    const handleEvent = (e: MouseEvent) => {
+      if (preventDefault) {
+        e.preventDefault();
+      }
+      
+      if (stopPropagation) {
+        e.stopPropagation();
+      }
+      
+      handler(e);
+    };
+
+    const target = targetRef?.current || document;
+    target.addEventListener(eventType, handleEvent);
+    
+    return () => {
+      target.removeEventListener(eventType, handleEvent);
+    };
+  }, [handler, eventType, targetRef, preventDefault, stopPropagation]);
+}
+
+// Drag and drop handlers
+export interface UseDragAndDropOptions {
+  onDragOver?: (e: DragEvent) => void;
+  onDragLeave?: (e: DragEvent) => void;
+  onDrop?: (e: DragEvent, files?: FileList) => void;
+  acceptedFileTypes?: string[];
+  maxFileSize?: number;
+}
+
+export interface UseDragAndDropResult {
+  isDragging: boolean;
+  dragProps: {
+    onDragOver: (e: React.DragEvent<HTMLElement>) => void;
+    onDragLeave: (e: React.DragEvent<HTMLElement>) => void;
+    onDrop: (e: React.DragEvent<HTMLElement>) => void;
+  };
+}
+
+export function useDragAndDrop(
+  targetRef: React.RefObject<HTMLElement>,
+  options: UseDragAndDropOptions = {}
+): UseDragAndDropResult {
+  const {
+    onDragOver,
+    onDragLeave,
+    onDrop,
+    acceptedFileTypes = [],
+    maxFileSize,
+  } = options;
+
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Handle drag over
+  const handleDragOver = useCallback(
+    (e: React.DragEvent<HTMLElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      setIsDragging(true);
+      
+      if (onDragOver) {
+        onDragOver(e.nativeEvent);
+      }
+    },
+    [onDragOver]
+  );
+
+  // Handle drag leave
+  const handleDragLeave = useCallback(
+    (e: React.DragEvent<HTMLElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      setIsDragging(false);
+      
+      if (onDragLeave) {
+        onDragLeave(e.nativeEvent);
+      }
+    },
+    [onDragLeave]
+  );
+
+  // Handle drop
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      setIsDragging(false);
+      
+      const { files } = e.dataTransfer;
+      
+      // Validate file types
+      if (acceptedFileTypes.length > 0 && files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const fileType = file.type;
+          
+          if (!acceptedFileTypes.some((type) => fileType.includes(type))) {
+            toast.error(`File type not accepted: ${fileType}`);
+            return;
+          }
+          
+          // Validate file size
+          if (maxFileSize && file.size > maxFileSize) {
+            toast.error(`File too large: ${file.name}`);
+            return;
+          }
+        }
+      }
+      
+      if (onDrop) {
+        onDrop(e.nativeEvent, files);
+      }
+    },
+    [onDrop, acceptedFileTypes, maxFileSize]
+  );
+
+  useEffect(() => {
+    const target = targetRef.current;
+    
+    if (!target) return;
+    
+    const dragOverHandler = (e: DragEvent) => {
+      e.preventDefault();
+      setIsDragging(true);
+      if (onDragOver) onDragOver(e);
+    };
+    
+    const dragLeaveHandler = (e: DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+      if (onDragLeave) onDragLeave(e);
+    };
+    
+    const dropHandler = (e: DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+      if (onDrop) onDrop(e, e.dataTransfer?.files);
+    };
+    
+    target.addEventListener('dragover', dragOverHandler);
+    target.addEventListener('dragleave', dragLeaveHandler);
+    target.addEventListener('drop', dropHandler);
+    
+    return () => {
+      target.removeEventListener('dragover', dragOverHandler);
+      target.removeEventListener('dragleave', dragLeaveHandler);
+      target.removeEventListener('drop', dropHandler);
+    };
+  }, [targetRef, onDragOver, onDragLeave, onDrop]);
+
   return {
-    isDraggingOver,
-    handleDragOver,
-    handleDragLeave,
-    handleDrop
+    isDragging,
+    dragProps: {
+      onDragOver: handleDragOver,
+      onDragLeave: handleDragLeave,
+      onDrop: handleDrop,
+    },
   };
 }

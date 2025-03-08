@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Check, Pencil, X } from "lucide-react";
 import { useInputHandler, useFormSubmitHandler, useToggleHandler } from "@/hooks/useEventHandlers";
+import { z } from "zod";
+import { useFormValidation } from "@/hooks/useFormValidation";
 
 interface StatusListItemProps {
   status: {
@@ -20,26 +22,31 @@ export const StatusListItem = ({ status, onUpdate, onToggle }: StatusListItemPro
   const [editingId, setEditingId] = useState<string | null>(null);
   const isEditing = editingId === status.id;
   
-  // Use our standardized input handler for the name edit field
-  const nameInputHandler = useInputHandler(status.name, {
-    validator: (value) => value.trim().length > 0, // Simple validation
-    transform: (value) => value.trim() // Trim whitespace
+  // Define a schema for the status name field
+  const schema = z.object({
+    name: z.string().min(1, "Status name is required").max(50, "Name is too long"),
   });
+  
+  // Use our enhanced form validation
+  const form = useFormValidation(
+    { name: status.name },
+    {
+      schema,
+      validateOnChange: true,
+    }
+  );
   
   // Use our standardized form submit handler for updates
   const updateHandler = useFormSubmitHandler(
     async () => {
-      if (nameInputHandler.isValid && nameInputHandler.value) {
-        await onUpdate(status.id, nameInputHandler.value);
+      if (form.isValid && form.values.name) {
+        await onUpdate(status.id, form.values.name);
         setEditingId(null);
       }
     },
-    () => {
-      // Success callback - nothing needed as the UI will update
-    },
-    (error) => {
-      console.error("Error updating status:", error);
-      // We could show an error message here
+    {
+      successMessage: "Status updated successfully",
+      errorMessage: "Failed to update status"
     }
   );
   
@@ -47,19 +54,23 @@ export const StatusListItem = ({ status, onUpdate, onToggle }: StatusListItemPro
   const activeToggleHandler = useFormSubmitHandler(
     async () => {
       await onToggle(status.id, status.is_active);
+    },
+    {
+      successMessage: `Status ${status.is_active ? 'deactivated' : 'activated'} successfully`,
+      errorMessage: "Failed to update status"
     }
   );
   
   // Start editing handler
   const handleStartEditing = () => {
     setEditingId(status.id);
-    nameInputHandler.setValue(status.name);
+    form.setFieldValue('name', status.name);
   };
   
   // Cancel editing handler
   const handleCancelEditing = () => {
     setEditingId(null);
-    nameInputHandler.reset();
+    form.resetForm();
   };
 
   return (
@@ -68,15 +79,17 @@ export const StatusListItem = ({ status, onUpdate, onToggle }: StatusListItemPro
         {isEditing ? (
           <div className="flex gap-2">
             <Input
-              value={nameInputHandler.value}
-              onChange={nameInputHandler.handleChange}
-              className={`w-[200px] ${!nameInputHandler.isValid ? 'border-red-500' : ''}`}
+              name="name"
+              value={form.values.name}
+              onChange={form.handleChange}
+              onBlur={form.handleBlur}
+              className={`w-[200px] ${form.errors.name ? 'border-red-500' : ''}`}
             />
             <Button
               size="icon"
               variant="ghost"
               onClick={() => updateHandler.handleSubmit(null)}
-              disabled={updateHandler.isSubmitting || !nameInputHandler.isValid}
+              disabled={updateHandler.isSubmitting || !form.isValid}
             >
               <Check className="w-4 h-4" />
             </Button>
@@ -91,6 +104,9 @@ export const StatusListItem = ({ status, onUpdate, onToggle }: StatusListItemPro
           </div>
         ) : (
           status.name
+        )}
+        {form.errors.name && isEditing && (
+          <p className="text-xs text-red-500 mt-1">{form.errors.name[0]}</p>
         )}
       </TableCell>
       <TableCell>
