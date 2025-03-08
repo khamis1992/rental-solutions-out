@@ -20,11 +20,11 @@
 
   /* Glass Effect */
   .glass {
-    @apply bg-background/95 backdrop-blur-sm border border-border/50 shadow-sm;
+    @apply bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60;
   }
 
   .glass-hover {
-    @apply hover:bg-background/80 hover:backdrop-blur-sm;
+    @apply hover:bg-background/80 hover:backdrop-blur supports-[backdrop-filter]:hover:bg-background/50;
   }
 
   /* Mobile Optimizations */
@@ -48,12 +48,12 @@
 
   /* Responsive Grid */
   .responsive-grid {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6;
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6;
   }
 
   /* Responsive Flex */
   .responsive-flex {
-    @apply flex flex-col md:flex-row gap-6;
+    @apply flex flex-col md:flex-row gap-4 md:gap-6;
   }
 
   /* Responsive Text */
@@ -103,113 +103,12 @@
     -webkit-overflow-scrolling: touch;
     @apply overflow-auto overscroll-contain;
   }
-
-  /* Shadow effects */
-  .shadow-subtle {
-    @apply shadow-sm;
-  }
-  
-  .shadow-elevated {
-    @apply shadow-md;
-  }
-  
-  .shadow-prominent {
-    @apply shadow-lg;
-  }
-  
-  /* Border utilities */
-  .border-subtle {
-    @apply border border-border/30;
-  }
-  
-  .border-standard {
-    @apply border border-border/50;
-  }
-  
-  .border-prominent {
-    @apply border border-border;
-  }
-  
-  /* Animation utilities */
-  .transition-fast {
-    @apply transition-all duration-150;
-  }
-  
-  .transition-standard {
-    @apply transition-all duration-200;
-  }
-  
-  .transition-slow {
-    @apply transition-all duration-300;
-  }
-  
-  /* Focus states */
-  .focus-ring {
-    @apply focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2;
-  }
-  
-  /* Hover states */
-  .hover-lift {
-    @apply transition-transform duration-200 hover:translate-y-[-2px];
-  }
-  
-  .hover-scale {
-    @apply transition-transform duration-200 hover:scale-[1.02];
-  }
-  
-  .hover-brighten {
-    @apply transition-all duration-200 hover:brightness-[1.05];
-  }
-  
-  /* Enterprise-specific utilities */
-  .enterprise-card {
-    @apply bg-card rounded-lg border border-border/40 shadow-sm transition-all duration-200 hover:shadow-md hover:border-border/60;
-  }
-  
-  .enterprise-header {
-    @apply flex items-center justify-between py-4 border-b border-border/40;
-  }
-  
-  .enterprise-table {
-    @apply w-full border-collapse text-sm;
-  }
-  
-  .enterprise-table th {
-    @apply bg-muted/50 text-muted-foreground font-medium px-4 py-3 text-left;
-  }
-  
-  .enterprise-table td {
-    @apply px-4 py-3 border-t border-border/30;
-  }
-  
-  .enterprise-table tr:hover {
-    @apply bg-muted/30;
-  }
 }
 
 /* Print Styles */
 @media print {
   .no-print {
     display: none;
-  }
-  
-  body {
-    font-size: 12pt;
-    color: #000;
-    background-color: #fff;
-  }
-  
-  .print-break-after {
-    page-break-after: always;
-  }
-  
-  .print-break-before {
-    page-break-before: always;
-  }
-  
-  a {
-    text-decoration: none !important;
-    color: #000 !important;
   }
 }
 
@@ -250,18 +149,5 @@
   
   .no-touch-only {
     @apply block;
-  }
-  
-  /* Hover effects only apply on desktop */
-  .hover-effect {
-    @apply transition-all duration-200;
-  }
-  
-  .hover-lift {
-    @apply hover:-translate-y-1 transition-transform duration-200;
-  }
-  
-  .hover-shadow {
-    @apply hover:shadow-md transition-shadow duration-200;
   }
 }

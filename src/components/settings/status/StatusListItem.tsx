@@ -1,12 +1,8 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Check, Pencil, X } from "lucide-react";
-import { useInputHandler, useFormSubmitHandler, useToggleHandler } from "@/hooks/useEventHandlers";
-import { z } from "zod";
-import { useFormValidation } from "@/hooks/useFormValidation";
 
 interface StatusListItemProps {
   status: {
@@ -20,84 +16,32 @@ interface StatusListItemProps {
 
 export const StatusListItem = ({ status, onUpdate, onToggle }: StatusListItemProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const isEditing = editingId === status.id;
-  
-  // Define a schema for the status name field
-  const schema = z.object({
-    name: z.string().min(1, "Status name is required").max(50, "Name is too long"),
-  });
-  
-  // Use our enhanced form validation
-  const form = useFormValidation(
-    { name: status.name },
-    {
-      schema,
-      validateOnChange: true,
-    }
-  );
-  
-  // Use our standardized form submit handler for updates
-  const updateHandler = useFormSubmitHandler(
-    async () => {
-      if (form.isValid && form.values.name) {
-        await onUpdate(status.id, form.values.name);
-        setEditingId(null);
-      }
-    },
-    {
-      successMessage: "Status updated successfully",
-      errorMessage: "Failed to update status"
-    }
-  );
-  
-  // Use our standardized toggle handler for the active state
-  const activeToggleHandler = useFormSubmitHandler(
-    async () => {
-      await onToggle(status.id, status.is_active);
-    },
-    {
-      successMessage: `Status ${status.is_active ? 'deactivated' : 'activated'} successfully`,
-      errorMessage: "Failed to update status"
-    }
-  );
-  
-  // Start editing handler
-  const handleStartEditing = () => {
-    setEditingId(status.id);
-    form.setFieldValue('name', status.name);
-  };
-  
-  // Cancel editing handler
-  const handleCancelEditing = () => {
-    setEditingId(null);
-    form.resetForm();
-  };
+  const [editValue, setEditValue] = useState("");
 
   return (
     <TableRow key={status.id}>
       <TableCell>
-        {isEditing ? (
+        {editingId === status.id ? (
           <div className="flex gap-2">
             <Input
-              name="name"
-              value={form.values.name}
-              onChange={form.handleChange}
-              onBlur={form.handleBlur}
-              className={`w-[200px] ${form.errors.name ? 'border-red-500' : ''}`}
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              className="w-[200px]"
             />
             <Button
               size="icon"
               variant="ghost"
-              onClick={() => updateHandler.handleSubmit(null)}
-              disabled={updateHandler.isSubmitting || !form.isValid}
+              onClick={async () => {
+                await onUpdate(status.id, editValue);
+                setEditingId(null);
+              }}
             >
               <Check className="w-4 h-4" />
             </Button>
             <Button
               size="icon"
               variant="ghost"
-              onClick={handleCancelEditing}
-              disabled={updateHandler.isSubmitting}
+              onClick={() => setEditingId(null)}
             >
               <X className="w-4 h-4" />
             </Button>
@@ -105,15 +49,11 @@ export const StatusListItem = ({ status, onUpdate, onToggle }: StatusListItemPro
         ) : (
           status.name
         )}
-        {form.errors.name && isEditing && (
-          <p className="text-xs text-red-500 mt-1">{form.errors.name[0]}</p>
-        )}
       </TableCell>
       <TableCell>
         <Button
           variant={status.is_active ? "default" : "secondary"}
-          onClick={() => activeToggleHandler.handleSubmit(null)}
-          disabled={activeToggleHandler.isSubmitting}
+          onClick={() => onToggle(status.id, status.is_active)}
         >
           {status.is_active ? "Active" : "Inactive"}
         </Button>
@@ -122,8 +62,10 @@ export const StatusListItem = ({ status, onUpdate, onToggle }: StatusListItemPro
         <Button
           variant="ghost"
           size="icon"
-          onClick={handleStartEditing}
-          disabled={isEditing}
+          onClick={() => {
+            setEditingId(status.id);
+            setEditValue(status.name);
+          }}
         >
           <Pencil className="w-4 h-4" />
         </Button>

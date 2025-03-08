@@ -3,9 +3,13 @@ import { Badge } from "@/components/ui/badge";
 import { VehicleStatus } from "@/types/vehicle";
 import { Car, Wrench, Archive, AlertTriangle, Key, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { VehicleStatusCellProps } from "@/types/ui.types";
 
-export const VehicleStatusCell = ({ status, vehicleId }: VehicleStatusCellProps) => {
+interface VehicleStatusCellProps {
+  status: VehicleStatus;
+  vehicleId: string;
+}
+
+export const VehicleStatusCell = ({ status }: VehicleStatusCellProps) => {
   const getStatusConfig = (status: VehicleStatus) => {
     switch (status) {
       case 'available':
@@ -64,13 +68,6 @@ export const VehicleStatusCell = ({ status, vehicleId }: VehicleStatusCellProps)
           label: 'Reserved',
           variant: 'reserve'
         };
-      case 'pending_repair':
-        return {
-          color: 'bg-[#F59E0B]/15 text-[#F59E0B] hover:bg-[#F59E0B]/25',
-          icon: Wrench,
-          label: 'Pending Repair',
-          variant: 'pending_repair'
-        };
       default:
         return {
           color: 'bg-gray-500/15 text-gray-700 hover:bg-gray-500/25',
@@ -86,7 +83,7 @@ export const VehicleStatusCell = ({ status, vehicleId }: VehicleStatusCellProps)
 
   return (
     <Badge 
-      variant={config.variant as any}
+      variant={config.variant}
       className={cn(
         "gap-1.5 pl-2 pr-2.5 py-0.5 font-medium capitalize",
         "transition-all duration-300 hover:scale-105",
@@ -97,3 +94,4 @@ export const VehicleStatusCell = ({ status, vehicleId }: VehicleStatusCellProps)
     </Badge>
   );
 };
+

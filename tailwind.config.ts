@@ -29,45 +29,33 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#2D3648', // Deep blue-gray
-          light: '#4A5568',
-          dark: '#1A202C',
+          DEFAULT: '#F97316', // Vibrant orange
+          light: '#FB923C',
+          dark: '#EA580C',
           foreground: 'hsl(var(--primary-foreground))'
         },
         secondary: {
-          DEFAULT: '#F5F7FA', // Light gray
-          light: '#FFFFFF',
-          dark: '#E2E8F0',
+          DEFAULT: '#222222', // Dark gray
+          light: '#333333',
+          dark: '#111111',
           foreground: 'hsl(var(--secondary-foreground))'
         },
         background: {
           DEFAULT: '#FFFFFF',
-          alt: '#F8FAFC',
+          alt: '#F3F4F6',
         },
         neutral: {
-          DEFAULT: '#F1F5F9',
-          dark: '#E2E8F0',
-        },
-        success: {
-          DEFAULT: '#10B981', // Green
-          foreground: '#FFFFFF'
-        },
-        warning: {
-          DEFAULT: '#F59E0B', // Amber
-          foreground: '#FFFFFF'
-        },
-        destructive: {
-          DEFAULT: '#EF4444', // Red
-          foreground: '#FFFFFF'
-        },
-        info: {
-          DEFAULT: '#3B82F6', // Blue
-          foreground: '#FFFFFF'
+          DEFAULT: '#F1F1F1',
+          dark: '#E5E5E5',
         },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
         foreground: 'hsl(var(--foreground))',
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))'
+        },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))'
@@ -86,10 +74,10 @@ export default {
         },
       },
       boxShadow: {
-        'card': '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
         'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-        'button': '0 1px 2px rgba(0, 0, 0, 0.05)',
-        'button-hover': '0 4px 6px rgba(0, 0, 0, 0.1)',
+        'button': '0 2px 4px rgba(0, 0, 0, 0.1)',
+        'button-hover': '0 4px 6px rgba(0, 0, 0, 0.15)',
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -129,3 +117,4 @@ export default {
   },
   plugins: [require("tailwindcss-animate")],
 } satisfies Config;
+

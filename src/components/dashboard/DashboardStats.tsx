@@ -1,144 +1,63 @@
 
-import { Car, Key, Wrench, Users, TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
+import { Car, Key, Wrench, Users } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
-import { formatCurrency, formatPercentage, cn } from "@/lib/utils";
-import { DashboardStats as DashboardStatsType, DashboardStatsProps } from "@/types/dashboard.types";
-import { useMemo } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ErrorBoundary } from "@/components/ui/error-boundary";
-import { formatNumber } from "@/utils/formatters";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatCurrency } from "@/lib/utils";
 
-export const DashboardStats = ({ stats, isLoading, error, onStatClick }: DashboardStatsProps) => {
-  const fleetUtilization = useMemo(() => {
-    if (!stats || !stats.total_vehicles) return '0';
-    return ((stats.rented_vehicles / stats.total_vehicles) * 100).toFixed(1);
-  }, [stats]);
+interface DashboardStatsProps {
+  stats?: {
+    total_vehicles: number;
+    available_vehicles: number;
+    rented_vehicles: number;
+    maintenance_vehicles: number;
+    total_customers: number;
+    active_rentals: number;
+    monthly_revenue: number;
+  };
+}
 
-  const isGoodUtilization = useMemo(() => {
-    return Number(fleetUtilization) > 70;
-  }, [fleetUtilization]);
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-3">
-          {Array(3).fill(0).map((_, i) => (
-            <Skeleton key={i} className="h-[160px]" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-6">
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200 rounded-lg">
-          <p>Error loading dashboard stats: {error.message}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!stats) {
-    return (
-      <div className="space-y-6">
-        <div className="p-4 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 rounded-lg">
-          <p>No stats data available</p>
-        </div>
-      </div>
-    );
-  }
+export const DashboardStats = ({ stats }: DashboardStatsProps) => {
+  const fleetUtilization = stats?.total_vehicles 
+    ? ((stats.rented_vehicles / stats.total_vehicles) * 100).toFixed(1) 
+    : '0';
 
   return (
-    <ErrorBoundary>
-      <div className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-3">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="cursor-help">
-                  <StatsCard
-                    title="Fleet Utilization"
-                    value={`${fleetUtilization}%`}
-                    icon={Car}
-                    iconClassName="indigo"
-                    description={
-                      <span className={cn(
-                        "text-xs flex items-center gap-1",
-                        isGoodUtilization ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
-                      )}>
-                        {isGoodUtilization ? 
-                          <ArrowUp className="h-3 w-3" /> : 
-                          <ArrowDown className="h-3 w-3" />
-                        }
-                        <span>
-                          {isGoodUtilization ? "Good utilization" : "Room for improvement"}
-                        </span>
-                      </span>
-                    }
-                    onClick={() => onStatClick?.('total_vehicles')}
-                  />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Percentage of vehicles currently rented out</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="cursor-help">
-                  <StatsCard
-                    title="Active Rentals"
-                    value={formatNumber(stats.active_rentals || 0)}
-                    icon={Key}
-                    iconClassName="purple"
-                    description={
-                      <span className="text-amber-600 dark:text-amber-400 text-xs flex items-center">
-                        <Wrench className="mr-1 h-3.5 w-3.5" />
-                        {stats.maintenance_vehicles || 0} in maintenance
-                      </span>
-                    }
-                    onClick={() => onStatClick?.('active_rentals')}
-                  />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Number of active rental agreements</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="cursor-help">
-                  <StatsCard
-                    title="Monthly Revenue"
-                    value={formatCurrency(stats.monthly_revenue || 0)}
-                    icon={TrendingUp}
-                    iconClassName="green"
-                    description={
-                      <span className="text-muted-foreground text-xs flex items-center gap-1">
-                        <Users className="h-3 w-3" />
-                        <span>{formatNumber(stats.total_customers || 0)} total customers</span>
-                      </span>
-                    }
-                    onClick={() => onStatClick?.('monthly_revenue')}
-                  />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Revenue generated in the current month</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+    <div className="space-y-8">
+      <div className="grid gap-6 md:grid-cols-3">
+        <StatsCard
+          title="Fleet Utilization"
+          value={`${fleetUtilization}%`}
+          icon={Car}
+          iconClassName="blue"
+          description={
+            <span className="text-muted-foreground text-xs">
+              of fleet is currently rented
+            </span>
+          }
+        />
+        <StatsCard
+          title="Active Rentals"
+          value={stats?.active_rentals?.toString() || "0"}
+          icon={Key}
+          iconClassName="purple"
+          description={
+            <span className="text-amber-600 text-xs flex items-center">
+              <Wrench className="mr-1 h-4 w-4" />
+              {stats?.maintenance_vehicles || 0} in maintenance
+            </span>
+          }
+        />
+        <StatsCard
+          title="Monthly Revenue"
+          value={formatCurrency(stats?.monthly_revenue || 0)}
+          icon={Users}
+          iconClassName="green"
+          description={
+            <span className="text-muted-foreground text-xs">
+              {stats?.total_customers || 0} total customers
+            </span>
+          }
+        />
       </div>
-    </ErrorBoundary>
+    </div>
   );
 };

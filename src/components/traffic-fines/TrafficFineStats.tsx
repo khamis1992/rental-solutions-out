@@ -1,34 +1,30 @@
-
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { RefreshCw } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 import { StatsDisplay } from "./components/StatsDisplay";
 
 interface TrafficFineStatsProps {
   agreementId?: string;
   paymentCount: number;
-  className?: string;
 }
 
-export function TrafficFineStats({ agreementId, paymentCount, className }: TrafficFineStatsProps) {
+export function TrafficFineStats({ agreementId, paymentCount }: TrafficFineStatsProps) {
   const queryClient = useQueryClient();
   const [isReconciling, setIsReconciling] = useState(false);
 
   // Query to get unassigned fines count
-  const { data: unassignedCount = 0, isLoading: isLoadingUnassigned } = useQuery({
-    queryKey: ["unassigned-fines-count", agreementId],
+  const { data: unassignedCount = 0 } = useQuery({
+    queryKey: ["unassigned-fines-count"],
     queryFn: async () => {
-      const query = supabase
+      const { count, error } = await supabase
         .from('traffic_fines')
         .select('*', { count: 'exact', head: true })
         .eq('assignment_status', 'pending');
-      
-      if (agreementId) {
-        query.eq('lease_id', agreementId);
-      }
-      
-      const { count, error } = await query;
       
       if (error) throw error;
       return count || 0;
@@ -36,18 +32,12 @@ export function TrafficFineStats({ agreementId, paymentCount, className }: Traff
   });
 
   // Query to get total amount of all fines
-  const { data: totalAmount = 0, isLoading: isLoadingTotal } = useQuery({
-    queryKey: ["traffic-fines-total-amount", agreementId],
+  const { data: totalAmount = 0 } = useQuery({
+    queryKey: ["traffic-fines-total-amount"],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from('traffic_fines')
         .select('fine_amount');
-      
-      if (agreementId) {
-        query = query.eq('lease_id', agreementId);
-      }
-      
-      const { data, error } = await query;
       
       if (error) throw error;
       
@@ -56,27 +46,19 @@ export function TrafficFineStats({ agreementId, paymentCount, className }: Traff
   });
 
   // Query to get total amount of unassigned fines
-  const { data: unassignedAmount = 0, isLoading: isLoadingUnassignedAmount } = useQuery({
-    queryKey: ["unassigned-fines-amount", agreementId],
+  const { data: unassignedAmount = 0 } = useQuery({
+    queryKey: ["unassigned-fines-amount"],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from('traffic_fines')
         .select('fine_amount')
         .eq('assignment_status', 'pending');
-      
-      if (agreementId) {
-        query = query.eq('lease_id', agreementId);
-      }
-      
-      const { data, error } = await query;
       
       if (error) throw error;
       
       return data.reduce((sum, fine) => sum + (fine.fine_amount || 0), 0);
     }
   });
-
-  const isLoading = isLoadingUnassigned || isLoadingTotal || isLoadingUnassignedAmount;
 
   const handleBulkAssignment = async () => {
     setIsReconciling(true);
@@ -183,8 +165,6 @@ export function TrafficFineStats({ agreementId, paymentCount, className }: Traff
       unassignedAmount={unassignedAmount}
       onReconcile={handleBulkAssignment}
       isReconciling={isReconciling}
-      isLoading={isLoading}
-      className={className}
     />
   );
 }

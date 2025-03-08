@@ -1,144 +1,129 @@
 
-/* Layout Components */
-.page-container {
-  @apply w-full min-h-screen bg-background pb-8;
-}
+@layer components {
+  /* Grid System */
+  .auto-grid {
+    @apply grid gap-4 md:gap-6;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--min-column-width, 300px)), 1fr));
+  }
 
-.content-wrapper {
-  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6;
-}
+  .flex-grid {
+    @apply flex flex-wrap gap-4 md:gap-6;
+  }
 
-/* Card Styling */
-.card-minimal {
-  @apply bg-card rounded-lg border border-border/50 shadow-sm hover:shadow transition-shadow duration-200;
-}
+  /* Content Containers */
+  .content-container {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8 w-full;
+    max-width: min(100vw - 2rem, var(--content-max-width, 1400px));
+  }
 
-.card-header {
-  @apply px-5 py-4 border-b border-border/50 bg-card/50;
-}
+  .section-container {
+    @apply py-4 md:py-6 lg:py-8 space-y-4 md:space-y-6;
+  }
 
-.card-content {
-  @apply p-5;
-}
+  /* Card Layouts */
+  .card-grid {
+    @apply grid gap-4 md:gap-6;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  }
 
-/* Panel Layouts */
-.panel-container {
-  @apply bg-card rounded-lg border border-border/50 shadow-sm;
-}
+  .stats-grid {
+    @apply grid gap-4;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  }
 
-.panel-header {
-  @apply px-5 py-4 border-b border-border/50 flex items-center justify-between;
-}
+  /* Form Layouts */
+  .form-grid {
+    @apply grid gap-4;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  }
 
-.panel-content {
-  @apply p-5;
-}
+  .form-section {
+    @apply space-y-4 max-w-[var(--text-block-width)] mx-auto;
+  }
 
-/* Dashboard Layout */
-.dashboard-container {
-  @apply grid gap-6;
-}
+  /* Touch-friendly Elements */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
 
-@media (min-width: 768px) {
-  .dashboard-container {
-    @apply grid-cols-2;
+  /* Responsive Typography */
+  .text-responsive {
+    @apply text-sm md:text-base lg:text-lg;
+  }
+
+  .heading-responsive {
+    @apply text-lg md:text-xl lg:text-2xl font-semibold;
+  }
+
+  /* Layout Components */
+  .page-container {
+    @apply flex-1 w-full max-w-[var(--content-max-width)] mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .content-wrapper {
+    @apply space-y-4 md:space-y-6 lg:space-y-8 py-4 md:py-6 lg:py-8;
+  }
+
+  .card-container {
+    @apply bg-card rounded-lg border shadow-sm hover:shadow-md transition-all duration-300;
+  }
+
+  /* Responsive Containers */
+  .responsive-container {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8;
+    max-width: min(100vw - 2rem, var(--content-max-width, 1400px));
+  }
+
+  /* Mobile Optimizations */
+  .mobile-padding {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  .mobile-wrapper {
+    @apply -mx-4 sm:-mx-6 lg:-mx-8;
   }
 }
 
-@media (min-width: 1024px) {
-  .dashboard-container {
-    @apply grid-cols-3;
+/* Screen Size Adaptations */
+@media (max-width: 640px) {
+  :root {
+    --section-spacing: 1rem;
+    --component-spacing: 0.75rem;
+    --content-padding: 1rem;
   }
 }
 
-/* Sidebar Styling */
-.sidebar {
-  @apply bg-card border-r border-border h-screen transition-all duration-200 flex flex-col;
+@media (min-width: 641px) and (max-width: 1024px) {
+  :root {
+    --section-spacing: 1.5rem;
+    --component-spacing: 1rem;
+    --content-padding: 1.5rem;
+  }
 }
 
-/* Header Styling */
-.header {
-  @apply bg-card border-b border-border h-16 flex items-center px-4;
+@media (min-width: 1025px) {
+  :root {
+    --section-spacing: 2rem;
+    --component-spacing: 1.5rem;
+    --content-padding: 2rem;
+  }
 }
 
-/* Data Display Containers */
-.data-container {
-  @apply bg-card rounded-lg border border-border/50 shadow-sm p-4 h-full;
+/* Touch Device Optimizations */
+@media (hover: none) {
+  .hover-only {
+    @apply hidden;
+  }
+  
+  .touch-scrolling {
+    -webkit-overflow-scrolling: touch;
+    @apply overflow-auto;
+  }
 }
 
-.data-header {
-  @apply text-lg font-medium mb-4 pb-2 border-b border-border/50;
-}
-
-/* Section Layouts */
-.section-container {
-  @apply py-8;
-}
-
-.section-title {
-  @apply text-2xl font-semibold mb-4 text-foreground;
-}
-
-.section-subtitle {
-  @apply text-sm text-muted-foreground mb-6;
-}
-
-/* Layout Grid */
-.layout-grid {
-  @apply grid gap-6;
-}
-
-.layout-grid-2 {
-  @apply grid gap-6 md:grid-cols-2;
-}
-
-.layout-grid-3 {
-  @apply grid gap-6 md:grid-cols-3;
-}
-
-.layout-grid-4 {
-  @apply grid gap-6 md:grid-cols-2 lg:grid-cols-4;
-}
-
-/* Dividers */
-.divider-h {
-  @apply h-px w-full bg-border/50 my-6;
-}
-
-.divider-v {
-  @apply w-px h-full bg-border/50 mx-6;
-}
-
-/* Spacing Utilities */
-.space-section {
-  @apply py-8;
-}
-
-.space-component {
-  @apply py-4;
-}
-
-.gutter-standard {
-  @apply gap-6;
-}
-
-.gutter-small {
-  @apply gap-4;
-}
-
-.gutter-large {
-  @apply gap-8;
-}
-
-/* Content Container */
-.content-container {
-  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
-}
-
-.content-container-sm {
-  @apply max-w-3xl mx-auto px-4 sm:px-6;
-}
-
-.content-container-lg {
-  @apply max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8;
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none;
+  }
 }

@@ -1,4 +1,3 @@
-
 export interface InsuranceFormData {
   id?: string;
   vehicle_id: string;

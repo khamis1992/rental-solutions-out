@@ -1,4 +1,3 @@
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,7 +8,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DeleteVehicleDialogProps } from "@/types/vehicle";
+
+export interface DeleteVehicleDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onDelete: () => Promise<void>;
+  count: number;
+}
 
 export const DeleteVehicleDialog = ({
   isOpen,

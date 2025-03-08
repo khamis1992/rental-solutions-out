@@ -1,15 +1,11 @@
-
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-
-export type TrafficFineStatus = 'completed' | 'failed' | 'refunded' | 'pending';
 
 interface TrafficFineStatusBadgeProps {
-  status: TrafficFineStatus;
+  status: string;
 }
 
 export const TrafficFineStatusBadge = ({ status }: TrafficFineStatusBadgeProps) => {
-  const getStatusColor = (status: TrafficFineStatus): string => {
+  const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'completed':
         return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
@@ -25,8 +21,8 @@ export const TrafficFineStatusBadge = ({ status }: TrafficFineStatusBadgeProps) 
 
   return (
     <Badge 
-      variant="outline"
-      className={cn("rounded-md font-medium", getStatusColor(status))}
+      variant="secondary"
+      className={getStatusColor(status)}
     >
       {status}
     </Badge>

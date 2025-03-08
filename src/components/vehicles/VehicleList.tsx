@@ -9,13 +9,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { VehicleListProps } from "@/types/vehicle";
+
+interface VehicleListProps {
+  vehicles: Vehicle[];
+  isLoading: boolean;
+  viewMode?: "list" | "grid";
+}
 
 export const VehicleList = ({ vehicles, isLoading, viewMode = "list" }: VehicleListProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedVehicles, setSelectedVehicles] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const { isMobile } = useIsMobile();
+  const isMobile = useIsMobile();
   const itemsPerPage = isMobile ? 5 : 10;
   const queryClient = useQueryClient();
 

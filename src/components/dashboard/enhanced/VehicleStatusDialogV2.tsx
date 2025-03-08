@@ -20,7 +20,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { VehicleStatusDropdown } from "@/components/vehicles/table/VehicleStatusDropdown";
 import { VehicleLocationCell } from "@/components/vehicles/table/VehicleLocationCell";
-import { cn } from "@/lib/utils";
 
 interface VehicleStatusDialogV2Props {
   isOpen: boolean;
@@ -28,9 +27,6 @@ interface VehicleStatusDialogV2Props {
   status: VehicleStatus;
   vehicles: Vehicle[];
   isLoading: boolean;
-  className?: string;
-  onVehicleClick?: (vehicleId: string) => void;
-  onStatusChange?: (vehicleId: string, newStatus: VehicleStatus) => void;
 }
 
 export const VehicleStatusDialogV2 = ({
@@ -39,9 +35,6 @@ export const VehicleStatusDialogV2 = ({
   status,
   vehicles,
   isLoading,
-  className,
-  onVehicleClick,
-  onStatusChange
 }: VehicleStatusDialogV2Props) => {
   const [selectedNestedStatus, setSelectedNestedStatus] = useState<VehicleStatus | null>(null);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
@@ -50,7 +43,7 @@ export const VehicleStatusDialogV2 = ({
   const statusConfig = STATUS_CONFIG[status];
 
   // Fetch available statuses
-  const { data: availableStatuses, isLoading: isLoadingStatuses } = useQuery({
+  const { data: availableStatuses } = useQuery({
     queryKey: ["vehicle-statuses"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -76,7 +69,6 @@ export const VehicleStatusDialogV2 = ({
     e.preventDefault();
     e.stopPropagation();
     setSelectedVehicleId(vehicleId);
-    onVehicleClick?.(vehicleId);
   };
 
   const updateVehicleStatus = useCallback(async (vehicleId: string, newStatus: VehicleStatus) => {
@@ -91,7 +83,6 @@ export const VehicleStatusDialogV2 = ({
         throw error;
       }
 
-      onStatusChange?.(vehicleId, newStatus);
       toast.success(`Vehicle status updated to ${newStatus}`);
     } catch (error) {
       console.error("Error updating vehicle status:", error);
@@ -99,12 +90,12 @@ export const VehicleStatusDialogV2 = ({
     } finally {
       setUpdatingVehicleId(null);
     }
-  }, [onStatusChange]);
+  }, []);
 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className={cn("max-w-4xl max-h-[80vh] overflow-y-auto", className)}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               <div 
@@ -166,7 +157,7 @@ export const VehicleStatusDialogV2 = ({
                         currentStatus={vehicle.status}
                         availableStatuses={availableStatuses || []}
                         onStatusChange={(newStatus) => updateVehicleStatus(vehicle.id, newStatus)}
-                        isLoading={updatingVehicleId === vehicle.id || isLoadingStatuses}
+                        isLoading={updatingVehicleId === vehicle.id}
                         disabled={!availableStatuses}
                       />
                     </TableCell>

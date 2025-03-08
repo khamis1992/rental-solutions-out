@@ -34,13 +34,13 @@ export const AuthContainer = () => {
         variables: {
           default: {
             colors: {
-              brand: '#2D3648',
-              brandAccent: '#4A5568',
+              brand: '#F97316',
+              brandAccent: '#EA580C',
               inputBackground: 'white',
               inputText: '#374151',
               inputBorder: '#E5E7EB',
-              inputBorderHover: '#2D3648',
-              inputBorderFocus: '#2D3648',
+              inputBorderHover: '#F97316',
+              inputBorderFocus: '#F97316',
               dividerBackground: '#E5E7EB',
             },
             fonts: {
@@ -50,9 +50,9 @@ export const AuthContainer = () => {
               labelFontFamily: `'Inter', sans-serif`,
             },
             radii: {
-              borderRadiusButton: '0.5rem',
-              buttonBorderRadius: '0.5rem',
-              inputBorderRadius: '0.5rem',
+              borderRadiusButton: '0.75rem',
+              buttonBorderRadius: '0.75rem',
+              inputBorderRadius: '0.75rem',
             },
             space: {
               inputPadding: '0.75rem',
@@ -72,10 +72,10 @@ export const AuthContainer = () => {
         },
         className: {
           container: 'w-full space-y-4',
-          button: 'w-full px-4 py-3 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md hover:translate-y-[-1px] bg-gradient-to-r from-primary-dark to-primary hover:from-primary hover:to-primary-light',
-          input: 'w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-primary/20 transition-all duration-200',
+          button: 'w-full px-4 py-3 rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md hover:translate-y-[-1px] bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900',
+          input: 'w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-orange-500/20 transition-all duration-200',
           label: 'text-sm font-medium text-gray-700 mb-1.5',
-          anchor: 'text-primary hover:text-primary-light transition-colors duration-200 hover:underline',
+          anchor: 'text-orange-600 hover:text-orange-700 transition-colors duration-200 hover:underline',
           message: 'text-sm text-gray-600 rounded-lg p-2 bg-gray-50 border border-gray-100',
           divider: 'bg-gray-200 h-px',
         }

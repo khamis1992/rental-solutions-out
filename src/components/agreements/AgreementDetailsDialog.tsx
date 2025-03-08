@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PaymentForm } from "./details/PaymentForm";
@@ -43,7 +44,7 @@ import {
   Mail,
   Phone,
   Hourglass,
-  Banknote
+  Banknote // Changed from BankNote to Banknote
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

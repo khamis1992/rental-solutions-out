@@ -2,7 +2,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { AgreementCardProps } from "@/types/ui.types";
+import { AgreementCardProps } from "./types";
 import { getStatusConfig, getPaymentConfig, calculatePaymentProgress } from "./utils";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils";
@@ -32,8 +32,7 @@ const containsArabic = (text: string) => {
 export const AgreementCard = ({
   agreement,
   onViewDetails,
-  onDelete,
-  className
+  onDelete
 }: AgreementCardProps) => {
   const [showTemplatePreview, setShowTemplatePreview] = useState(false);
   const status = getStatusConfig(agreement.status);
@@ -46,10 +45,7 @@ export const AgreementCard = ({
 
   return (
     <>
-      <Card className={cn(
-        "group overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1",
-        className
-      )}>
+      <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
         <CardHeader className={cn(
           "space-y-4 bg-gradient-to-br",
           status.gradient
@@ -131,7 +127,7 @@ export const AgreementCard = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onViewDetails && onViewDetails(agreement)}
+              onClick={() => onViewDetails(agreement)}
               className="hover:bg-primary/5 hover:text-primary"
             >
               <Eye className="h-4 w-4 mr-1.5" />
@@ -140,7 +136,7 @@ export const AgreementCard = ({
             <Button
               variant="destructive"
               size="sm"
-              onClick={() => onDelete && onDelete(agreement)}
+              onClick={() => onDelete(agreement)}
               className="hover:bg-destructive/90"
             >
               <Trash2 className="h-4 w-4 mr-1.5" />

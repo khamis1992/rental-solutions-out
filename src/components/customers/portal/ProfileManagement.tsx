@@ -7,9 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { ProfileManagementProps } from "@/types/ui.types";
 
-export const ProfileManagement = ({ customerId, profile: initialProfile }: ProfileManagementProps) => {
+interface ProfileManagementProps {
+  customerId: string;
+}
+
+export const ProfileManagement = ({ customerId }: ProfileManagementProps) => {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     full_name: "",
@@ -18,7 +21,7 @@ export const ProfileManagement = ({ customerId, profile: initialProfile }: Profi
     address: ""
   });
 
-  // Fetch profile data if not provided
+  // Fetch profile data
   const { data: profile, isLoading } = useQuery({
     queryKey: ['customer-profile', customerId],
     queryFn: async () => {
@@ -39,21 +42,20 @@ export const ProfileManagement = ({ customerId, profile: initialProfile }: Profi
       console.log("Profile data fetched:", data);
       return data;
     },
-    enabled: !!customerId && !initialProfile
+    enabled: !!customerId
   });
 
-  // Set form data when profile is loaded or provided
+  // Set form data when profile is loaded
   useEffect(() => {
-    const profileData = initialProfile || profile;
-    if (profileData) {
+    if (profile) {
       setFormData({
-        full_name: profileData.full_name || "",
-        phone_number: profileData.phone_number || "",
-        email: profileData.email || "",
-        address: profileData.address || ""
+        full_name: profile.full_name || "",
+        phone_number: profile.phone_number || "",
+        email: profile.email || "",
+        address: profile.address || ""
       });
     }
-  }, [profile, initialProfile]);
+  }, [profile]);
 
   // Mutation for updating profile
   const updateProfileMutation = useMutation({
@@ -104,7 +106,7 @@ export const ProfileManagement = ({ customerId, profile: initialProfile }: Profi
     updateProfileMutation.mutate(formData);
   };
 
-  if (isLoading && !initialProfile) {
+  if (isLoading) {
     return (
       <div className="flex justify-center py-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -112,8 +114,7 @@ export const ProfileManagement = ({ customerId, profile: initialProfile }: Profi
     );
   }
 
-  const profileData = initialProfile || profile;
-  if (!profileData) {
+  if (!profile) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         Profile not found
@@ -193,20 +194,20 @@ export const ProfileManagement = ({ customerId, profile: initialProfile }: Profi
           <div className="border rounded-md p-4 bg-muted/50">
             <h4 className="font-medium mb-2">ID Document</h4>
             <p className="text-sm text-muted-foreground">
-              {profileData.id_document_url ? "Document uploaded" : "No document uploaded"}
+              {profile.id_document_url ? "Document uploaded" : "No document uploaded"}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Status: {profileData.document_verification_status || "Not verified"}
+              Status: {profile.document_verification_status || "Not verified"}
             </p>
           </div>
           
           <div className="border rounded-md p-4 bg-muted/50">
             <h4 className="font-medium mb-2">Driver's License</h4>
             <p className="text-sm text-muted-foreground">
-              {profileData.license_document_url ? "Document uploaded" : "No document uploaded"}
+              {profile.license_document_url ? "Document uploaded" : "No document uploaded"}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Status: {profileData.document_verification_status || "Not verified"}
+              Status: {profile.document_verification_status || "Not verified"}
             </p>
           </div>
         </div>

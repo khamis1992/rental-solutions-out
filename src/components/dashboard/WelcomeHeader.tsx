@@ -81,10 +81,10 @@ export const WelcomeHeader = () => {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className={`p-2.5 rounded-full bg-gradient-to-r ${timeConfig.gradient} backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 group animate-fade-in`}>
+          <div className={`p-2 rounded-full bg-gradient-to-r ${timeConfig.gradient} backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 group animate-fade-in`}>
             <TimeIcon className="h-6 w-6 text-foreground/80 group-hover:scale-110 transition-transform duration-300" />
           </div>
-          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-50 dark:to-slate-300 animate-fade-in tracking-tight">
+          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground/90 to-foreground/70 animate-fade-in">
             {timeConfig.greeting}, {profile?.full_name || 'User'}
           </h1>
         </div>
@@ -122,10 +122,10 @@ export const WelcomeHeader = () => {
         </div>
       </div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <p className="text-sm text-foreground/70 italic animate-fade-in hover:text-foreground/90 transition-colors font-serif">
+        <p className="text-sm text-foreground/70 italic animate-fade-in hover:text-foreground/90 transition-colors">
           "{quote}"
         </p>
-        <p className="text-sm text-foreground/60 whitespace-nowrap animate-fade-in font-mono tracking-tight">
+        <p className="text-sm text-foreground/60 whitespace-nowrap animate-fade-in font-mono">
           {format(currentTime, "EEEE, MMMM do, yyyy • h:mm a")}
         </p>
       </div>

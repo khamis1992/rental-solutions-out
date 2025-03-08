@@ -1,4 +1,3 @@
-
 import {
   Table,
   TableBody,
@@ -8,8 +7,20 @@ import {
 } from "@/components/ui/table";
 import { VehicleTableContent } from "./VehicleTableContent";
 import { VehicleTablePagination } from "./VehicleTablePagination";
+import { Vehicle } from "@/types/vehicle";
 import { Skeleton } from "@/components/ui/skeleton";
-import { VehicleListViewProps } from "@/types/ui.types";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+
+interface VehicleListViewProps {
+  vehicles: Vehicle[];
+  isLoading: boolean;
+  selectedVehicles: string[];
+  onSelectionChange: (selectedIds: string[]) => void;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}
 
 export const VehicleListView = ({
   vehicles,
