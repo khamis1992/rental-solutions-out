@@ -67,8 +67,8 @@ const Dashboard = () => {
 
   return (
     <div className={`space-y-6 mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-[1400px] transition-opacity duration-500 ${fadeInClass}`}>
-      {/* Enhanced Welcome Card with Gradient Background */}
-      <Card className="bg-gradient-to-r from-slate-50 via-indigo-50 to-purple-50 dark:from-slate-900/90 dark:via-indigo-900/30 dark:to-purple-900/20 border-none shadow-lg hover:shadow-xl transition-all duration-300">
+      {/* Enhanced Welcome Card with Refined Gradient Background */}
+      <Card className="bg-gradient-to-r from-slate-50 via-slate-50/80 to-indigo-50/30 dark:from-slate-900/90 dark:via-indigo-900/20 dark:to-indigo-900/10 border border-slate-200/70 dark:border-slate-700/30 shadow-md hover:shadow-lg transition-all duration-300">
         <div className="p-6">
           <WelcomeHeader />
         </div>
@@ -85,36 +85,36 @@ const Dashboard = () => {
       {/* Activity & Notifications with Tabbed Interface */}
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
         {/* SmartNotifications Card with Styled Wrapper */}
-        <Card className="bg-white/80 backdrop-blur-sm border-slate-200/70 hover:border-indigo-200/70 transition-all duration-300 shadow-md hover:shadow-lg h-[400px] overflow-hidden group">
-          <div className="h-1.5 w-full bg-gradient-to-r from-indigo-500 to-purple-500 transform origin-left group-hover:scale-x-105 transition-transform duration-300"></div>
+        <Card className="bg-white/90 backdrop-blur-sm border-slate-200/80 hover:border-indigo-200/70 transition-all duration-300 shadow-md hover:shadow-lg h-[400px] overflow-hidden group">
+          <div className="h-1 w-full bg-gradient-to-r from-indigo-500 to-indigo-600 transform origin-left group-hover:scale-x-105 transition-transform duration-300"></div>
           <div className="flex items-center justify-between p-5 border-b border-slate-100">
-            <h3 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+            <h3 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2 tracking-tight">
               <span className="flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>
               Notifications & Alerts
             </h3>
           </div>
-          <ScrollArea className="h-[336px]">
+          <ScrollArea className="h-[342px]">
             <SmartNotifications />
           </ScrollArea>
         </Card>
         
         {/* Recent Activity with Enhanced Styling */}
-        <Card className="bg-white/80 backdrop-blur-sm border-slate-200/70 hover:border-indigo-200/70 transition-all duration-300 shadow-md hover:shadow-lg h-[400px] overflow-hidden group">
-          <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 to-sky-500 transform origin-left group-hover:scale-x-105 transition-transform duration-300"></div>
+        <Card className="bg-white/90 backdrop-blur-sm border-slate-200/80 hover:border-emerald-200/70 transition-all duration-300 shadow-md hover:shadow-lg h-[400px] overflow-hidden group">
+          <div className="h-1 w-full bg-gradient-to-r from-emerald-500 to-emerald-600 transform origin-left group-hover:scale-x-105 transition-transform duration-300"></div>
           <div className="flex items-center justify-between p-5 border-b border-slate-100">
-            <h3 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+            <h3 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2 tracking-tight">
               <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
               Recent Activity
             </h3>
             <Tabs defaultValue="all" className="w-[200px]">
               <TabsList className="grid grid-cols-3 h-8">
-                <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
-                <TabsTrigger value="important" className="text-xs">Important</TabsTrigger>
-                <TabsTrigger value="new" className="text-xs">New</TabsTrigger>
+                <TabsTrigger value="all" className="text-xs font-medium">All</TabsTrigger>
+                <TabsTrigger value="important" className="text-xs font-medium">Important</TabsTrigger>
+                <TabsTrigger value="new" className="text-xs font-medium">New</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
-          <ScrollArea className="h-[336px]">
+          <ScrollArea className="h-[342px]">
             <RecentActivity />
           </ScrollArea>
         </Card>

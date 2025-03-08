@@ -1,7 +1,8 @@
 
-import { Car, Key, Wrench, Users } from "lucide-react";
+import { Car, Key, Wrench, Users, TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { formatCurrency } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface DashboardStatsProps {
   stats?: {
@@ -20,6 +21,8 @@ export const DashboardStats = ({ stats }: DashboardStatsProps) => {
     ? ((stats.rented_vehicles / stats.total_vehicles) * 100).toFixed(1) 
     : '0';
 
+  const isGoodUtilization = Number(fleetUtilization) > 70;
+
   return (
     <div className="space-y-8">
       <div className="grid gap-6 md:grid-cols-3">
@@ -27,10 +30,19 @@ export const DashboardStats = ({ stats }: DashboardStatsProps) => {
           title="Fleet Utilization"
           value={`${fleetUtilization}%`}
           icon={Car}
-          iconClassName="blue"
+          iconClassName="indigo"
           description={
-            <span className="text-muted-foreground text-xs">
-              of fleet is currently rented
+            <span className={cn(
+              "text-xs flex items-center gap-1",
+              isGoodUtilization ? "text-emerald-600" : "text-amber-600"
+            )}>
+              {isGoodUtilization ? 
+                <ArrowUp className="h-3 w-3" /> : 
+                <ArrowDown className="h-3 w-3" />
+              }
+              <span>
+                {isGoodUtilization ? "Good utilization" : "Room for improvement"}
+              </span>
             </span>
           }
         />
@@ -49,11 +61,12 @@ export const DashboardStats = ({ stats }: DashboardStatsProps) => {
         <StatsCard
           title="Monthly Revenue"
           value={formatCurrency(stats?.monthly_revenue || 0)}
-          icon={Users}
+          icon={TrendingUp}
           iconClassName="green"
           description={
-            <span className="text-muted-foreground text-xs">
-              {stats?.total_customers || 0} total customers
+            <span className="text-muted-foreground text-xs flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              <span>{stats?.total_customers || 0} total customers</span>
             </span>
           }
         />

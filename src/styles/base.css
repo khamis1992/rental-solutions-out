@@ -34,6 +34,12 @@
     --text-block-width: 65ch;
     --min-column-width: 300px;
     --content-padding: 1.5rem;
+
+    /* Enhanced Typography Variables */
+    --heading-line-height: 1.2;
+    --body-line-height: 1.6;
+    --heading-letter-spacing: -0.02em;
+    --body-letter-spacing: 0;
   }
 
   .dark {
@@ -68,6 +74,31 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Enhanced Typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-sans;
+    letter-spacing: var(--heading-letter-spacing);
+    line-height: var(--heading-line-height);
+  }
+
+  h1 {
+    @apply text-3xl sm:text-4xl font-bold;
+  }
+
+  h2 {
+    @apply text-2xl sm:text-3xl font-semibold;
+  }
+
+  h3 {
+    @apply text-xl sm:text-2xl font-semibold;
+  }
+
+  p {
+    @apply text-base leading-relaxed;
+    line-height: var(--body-line-height);
+    letter-spacing: var(--body-letter-spacing);
   }
 
   /* Layout Base Styles */
