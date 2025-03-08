@@ -1,11 +1,13 @@
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
+import { Check, Key, Wrench } from "lucide-react";
 
 interface DonutData {
   name: string;
   value: number;
   color: string;
+  icon?: React.ReactNode;
 }
 
 interface VehicleStatusDonutProps {
@@ -15,6 +17,18 @@ interface VehicleStatusDonutProps {
 
 export const VehicleStatusDonut = ({ data, totalVehicles }: VehicleStatusDonutProps) => {
   const RADIAN = Math.PI / 180;
+  
+  // Enhanced data with icons
+  const enhancedData = data.map(item => {
+    let icon = null;
+    
+    // Assign icons based on status name
+    if (item.name === "Available") icon = <Check className="h-4 w-4" />;
+    else if (item.name === "Rented") icon = <Key className="h-4 w-4" />;
+    else if (item.name === "Maintenance") icon = <Wrench className="h-4 w-4" />;
+    
+    return { ...item, icon };
+  });
   
   // Custom label that shows the count and percentage
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
@@ -40,6 +54,30 @@ export const VehicleStatusDonut = ({ data, totalVehicles }: VehicleStatusDonutPr
     );
   };
 
+  // Custom legend that includes icons
+  const renderCustomLegend = (props: any) => {
+    const { payload } = props;
+    
+    return (
+      <ul className="flex flex-wrap justify-center gap-4 pt-4">
+        {payload.map((entry: any, index: number) => {
+          const item = enhancedData.find(d => d.name === entry.value);
+          return (
+            <li key={`item-${index}`} className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-7 h-7 rounded-full" style={{ backgroundColor: entry.color }}>
+                {item?.icon}
+              </div>
+              <span className="text-sm flex items-center gap-1">
+                {entry.value}
+                <span className="font-semibold">{item?.value || 0}</span>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  };
+
   // Handle empty data
   if (data.every(item => item.value === 0)) {
     return (
@@ -51,7 +89,7 @@ export const VehicleStatusDonut = ({ data, totalVehicles }: VehicleStatusDonutPr
 
   return (
     <div className="flex flex-col items-center w-full">
-      <div className="relative h-64 w-full max-w-md mb-6">
+      <div className="relative h-64 w-full max-w-md mb-2">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -65,9 +103,11 @@ export const VehicleStatusDonut = ({ data, totalVehicles }: VehicleStatusDonutPr
               dataKey="value"
               strokeWidth={3}
               stroke="#fff"
+              animationDuration={800}
+              animationBegin={200}
             >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
+                <Cell key={`cell-${index}`} fill={entry.color} className="hover:opacity-80 transition-opacity" />
               ))}
             </Pie>
             <Tooltip 
@@ -79,16 +119,16 @@ export const VehicleStatusDonut = ({ data, totalVehicles }: VehicleStatusDonutPr
               }}
             />
             <Legend 
+              content={renderCustomLegend}
               iconType="circle" 
               layout="horizontal" 
               verticalAlign="bottom" 
               align="center"
-              wrapperStyle={{ paddingTop: "20px" }}
             />
           </PieChart>
         </ResponsiveContainer>
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="text-center">
+          <div className="text-center bg-card/90 backdrop-blur-sm p-3 rounded-full shadow-sm">
             <p className="text-3xl font-bold">{totalVehicles}</p>
             <p className="text-xs text-muted-foreground">Total Vehicles</p>
           </div>

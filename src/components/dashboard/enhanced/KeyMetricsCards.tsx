@@ -1,9 +1,23 @@
 
 import { StatsCardProps } from "@/types/dashboard.types";
 import { Card, CardContent } from "@/components/ui/card";
-import { Battery, Car, DollarSign, Gauge, Percent, TrendingUp, User, Wrench } from "lucide-react";
+import { 
+  Battery, 
+  Car, 
+  DollarSign, 
+  Gauge, 
+  Percent, 
+  TrendingUp, 
+  User, 
+  Wrench,
+  BarChart3,
+  Calendar,
+  Clock,
+  Sparkles
+} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatPercentage } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface KeyMetricsCardsProps {
   metrics?: any;
@@ -69,24 +83,45 @@ export const KeyMetricsCards = ({ metrics, isLoading = false }: KeyMetricsCardsP
     "text-amber-500 dark:text-amber-400"
   ];
 
+  const getIconBadge = (index: number) => {
+    switch (index) {
+      case 0: return <Sparkles className="h-3 w-3 absolute -bottom-1 -right-1 text-yellow-500" />;
+      case 1: return null;
+      case 2: return <BarChart3 className="h-3 w-3 absolute -bottom-1 -right-1 text-green-500" />;
+      case 3: return <Clock className="h-3 w-3 absolute -bottom-1 -right-1 text-blue-500" />;
+      default: return null;
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {cards.map((card, index) => {
         const IconComponent = card.icon || TrendingUp;
         
         return (
-          <Card key={index} className="border border-border/40 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden group hover:-translate-y-1">
+          <Card 
+            key={index} 
+            className={cn(
+              "border border-border/40 shadow-sm hover:shadow-md",
+              "transition-all duration-200 overflow-hidden group",
+              "hover:-translate-y-1"
+            )}
+          >
             <div className={`absolute inset-0 bg-gradient-to-br ${gradients[index % gradients.length]} opacity-50`} />
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-br from-primary/5 to-primary/10 transition-opacity duration-300" />
             <CardContent className="p-6 relative z-10">
               <div className="flex items-center justify-between space-y-0 pb-2">
                 <h3 className="text-sm font-medium leading-none tracking-tight">
                   {card.title}
                 </h3>
-                <div className={`h-8 w-8 rounded-full flex items-center justify-center bg-white/80 dark:bg-gray-800/80 ${iconColors[index % iconColors.length]} transition-transform group-hover:scale-110 shadow-sm`}>
-                  <IconComponent className="h-4 w-4" />
+                <div className={`h-9 w-9 rounded-full flex items-center justify-center bg-white/80 dark:bg-gray-800/80 ${iconColors[index % iconColors.length]} transition-transform group-hover:scale-110 shadow-sm relative`}>
+                  <IconComponent className="h-5 w-5" />
+                  {getIconBadge(index)}
                 </div>
               </div>
-              <div className="text-2xl font-bold">{card.value}</div>
+              <div className="text-2xl font-bold group-hover:scale-105 origin-left transition-transform duration-200">
+                {card.value}
+              </div>
               <div className="flex items-center justify-between pt-1">
                 <p className="text-xs text-muted-foreground">{card.description}</p>
                 {card.trend && (
