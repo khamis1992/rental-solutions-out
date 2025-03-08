@@ -1,87 +1,89 @@
 
-import React from "react";
-import { Loader } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import React, { ReactNode } from 'react';
+import { AlertCircle, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
-export interface DataLoaderProps {
-  isLoading: boolean;
-  isError: boolean;
+export type LoadingStatus = 'idle' | 'loading' | 'success' | 'error';
+
+interface DataLoaderProps {
+  status: LoadingStatus;
+  children: ReactNode;
+  isLoading?: boolean;
   error?: Error | null;
-  isEmpty?: boolean;
+  errorMessage?: string;
   onRetry?: () => void;
-  loadingComponent?: React.ReactNode;
-  errorComponent?: React.ReactNode;
-  emptyComponent?: React.ReactNode;
-  skeletonCount?: number;
-  skeletonHeight?: number;
-  children: React.ReactNode;
+  className?: string;
+  loadingMessage?: string;
+  showEmptyState?: boolean;
+  emptyMessage?: string;
+  isEmpty?: boolean;
+  EmptyComponent?: React.ReactNode;
 }
 
-export function DataLoader({
-  isLoading,
-  isError,
-  error,
-  isEmpty,
-  onRetry,
-  loadingComponent,
-  errorComponent,
-  emptyComponent,
-  skeletonCount = 3,
-  skeletonHeight = 50,
+/**
+ * A component that handles the loading and error states when fetching data.
+ */
+export const DataLoader = ({
+  status,
   children,
-}: DataLoaderProps) {
-  // Default loading state
-  const defaultLoading = (
-    <div className="w-full space-y-3">
-      {Array.from({ length: skeletonCount }).map((_, index) => (
-        <Skeleton 
-          key={index} 
-          className="w-full" 
-          style={{ height: `${skeletonHeight}px` }} 
-        />
-      ))}
+  isLoading,
+  error,
+  errorMessage = "An error occurred while loading data",
+  onRetry,
+  className,
+  loadingMessage = "Loading data...",
+  showEmptyState = false,
+  emptyMessage = "No data available",
+  isEmpty = false,
+  EmptyComponent
+}: DataLoaderProps) => {
+  // Determine the effective status based on the props
+  const effectiveStatus = 
+    status !== 'idle' ? status :
+    isLoading ? 'loading' :
+    error ? 'error' : 'success';
+
+  // Determine if we should show empty state
+  const shouldShowEmptyState = showEmptyState && isEmpty && effectiveStatus === 'success';
+
+  return (
+    <div className={cn("w-full", className)}>
+      {effectiveStatus === 'loading' && (
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
+          <p className="text-muted-foreground">{loadingMessage}</p>
+        </div>
+      )}
+
+      {effectiveStatus === 'error' && (
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <div className="bg-destructive/10 p-3 rounded-full mb-4">
+            <AlertCircle className="w-8 h-8 text-destructive" />
+          </div>
+          <p className="text-destructive font-medium mb-4">{errorMessage}</p>
+          {error && (
+            <p className="text-sm text-muted-foreground mb-4">
+              {error.message}
+            </p>
+          )}
+          {onRetry && (
+            <Button onClick={onRetry} variant="secondary">
+              Try Again
+            </Button>
+          )}
+        </div>
+      )}
+
+      {shouldShowEmptyState && (
+        EmptyComponent || (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <p className="text-muted-foreground">{emptyMessage}</p>
+          </div>
+        )
+      )}
+
+      {effectiveStatus === 'success' && !shouldShowEmptyState && children}
     </div>
   );
-
-  // Default error state
-  const defaultError = (
-    <Alert variant="destructive">
-      <AlertTitle>Error loading data</AlertTitle>
-      <AlertDescription className="flex flex-col gap-2">
-        <p>{error?.message || "An unexpected error occurred."}</p>
-        {onRetry && (
-          <Button 
-            variant="outline" 
-            onClick={onRetry}
-            className="mt-2 self-start"
-          >
-            Try Again
-          </Button>
-        )}
-      </AlertDescription>
-    </Alert>
-  );
-
-  // Default empty state
-  const defaultEmpty = (
-    <div className="flex flex-col items-center justify-center p-8 text-center">
-      <p className="text-muted-foreground">No data available.</p>
-    </div>
-  );
-
-  if (isLoading) {
-    return <>{loadingComponent || defaultLoading}</>;
-  }
-
-  if (isError) {
-    return <>{errorComponent || defaultError}</>;
-  }
-
-  if (isEmpty) {
-    return <>{emptyComponent || defaultEmpty}</>;
-  }
-
-  return <>{children}</>;
-}
+};

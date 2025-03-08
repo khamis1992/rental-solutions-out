@@ -1,98 +1,92 @@
 
-import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useErrorHandler } from './useErrorHandler';
 
-type SyncStatus = "idle" | "syncing" | "success" | "error";
-type SyncConfig = {
-  table: string;
-  column?: string;
-  value?: string | number;
-  realtimeEvents?: ("INSERT" | "UPDATE" | "DELETE")[];
-  onDataChange?: (payload: any) => void;
-  disableToasts?: boolean;
-};
+export type SyncStatus = 'idle' | 'syncing' | 'success' | 'error';
 
-export function useDataSync<T = any>({
-  table,
-  column,
-  value,
-  realtimeEvents = ["INSERT", "UPDATE", "DELETE"],
-  onDataChange,
-  disableToasts = false,
-}: SyncConfig) {
-  const [status, setStatus] = useState<SyncStatus>("idle");
-  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
-  const [data, setData] = useState<T[] | null>(null);
-  const [error, setError] = useState<Error | null>(null);
+/**
+ * Hook for synchronizing data with the database
+ */
+export function useDataSync<T extends { id: string }>(
+  tableName: string,
+  options?: {
+    fetchOnMount?: boolean;
+    enableRealtime?: boolean;
+    handleError?: (error: Error) => void;
+    onDataChange?: (data: T[]) => void;
+  }
+) {
+  const [data, setData] = useState<T[]>([]);
+  const [status, setStatus] = useState<SyncStatus>('idle');
+  const { error, handleError } = useErrorHandler();
+  const {
+    fetchOnMount = true,
+    enableRealtime = false,
+    onDataChange
+  } = options || {};
 
   const fetchData = useCallback(async () => {
     try {
-      setStatus("syncing");
-      let query = supabase.from(table).select("*");
+      setStatus('syncing');
+      // We need to handle this case dynamically because the tableName is passed as a string
+      const { data: fetchedData, error: fetchError } = await supabase
+        .from(tableName)
+        .select('*');
 
-      if (column && value !== undefined) {
-        query = query.eq(column, value);
-      }
+      if (fetchError) throw fetchError;
 
-      const { data: result, error: fetchError } = await query;
-
-      if (fetchError) {
-        throw fetchError;
-      }
-
-      setData(result as T[]);
-      setLastSyncTime(new Date());
-      setStatus("success");
+      setData(fetchedData as unknown as T[]);
+      setStatus('success');
       
-      if (!disableToasts) {
-        toast.success("Data synchronized successfully");
+      if (onDataChange) {
+        onDataChange(fetchedData as unknown as T[]);
       }
       
-      return result;
-    } catch (err: any) {
-      console.error("Error syncing data:", err);
-      setError(err);
-      setStatus("error");
-      
-      if (!disableToasts) {
-        toast.error(`Sync error: ${err.message}`);
-      }
-      
+      return fetchedData;
+    } catch (err) {
+      setStatus('error');
+      handleError(err);
       return null;
     }
-  }, [table, column, value, disableToasts]);
+  }, [tableName, handleError, onDataChange]);
 
+  // Set up realtime subscription if enabled
   useEffect(() => {
-    // Initial fetch
-    fetchData();
+    if (!enableRealtime) return;
 
-    // Set up real-time subscription
-    const subscription = supabase
-      .channel(`${table}-changes`)
-      .on("postgres_changes", {
-        event: realtimeEvents,
-        schema: "public",
-        table,
-      }, (payload) => {
-        if (onDataChange) {
-          onDataChange(payload);
-        }
-        fetchData();
-      })
-      .subscribe();
+    try {
+      const subscription = supabase
+        .channel(`${tableName}-changes`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: tableName
+        }, () => {
+          fetchData();
+        })
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(subscription);
-    };
-  }, [table, column, value, realtimeEvents, fetchData, onDataChange]);
+      return () => {
+        supabase.removeChannel(subscription);
+      };
+    } catch (err) {
+      handleError(err);
+    }
+  }, [tableName, enableRealtime, fetchData, handleError]);
+
+  // Fetch data on mount if enabled
+  useEffect(() => {
+    if (fetchOnMount) {
+      fetchData();
+    }
+  }, [fetchOnMount, fetchData]);
 
   return {
     data,
     status,
-    lastSyncTime,
     error,
-    refresh: fetchData,
-    isLoading: status === "syncing",
+    refetch: fetchData
   };
 }

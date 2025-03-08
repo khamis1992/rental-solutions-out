@@ -1,77 +1,81 @@
 
-import { useQuery, UseQueryOptions, UseQueryResult } from "@tanstack/react-query";
-import { useEffect } from "react";
-import { toast } from "sonner";
+import { useQuery, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
-export type QueryStatus = "idle" | "loading" | "success" | "error" | "pending";
+export type QueryStatus = 'idle' | 'loading' | 'success' | 'error' | 'pending';
 
-interface StatusOptions {
-  showSuccessToast?: boolean;
+interface UseQueryWithStatusOptions<TData, TError> extends UseQueryOptions<TData, TError> {
   showErrorToast?: boolean;
-  successMessage?: string;
-  onSuccess?: (data: any) => void;
-  onError?: (error: Error) => void;
+  errorToastMessage?: string;
+  showSuccessToast?: boolean;
+  successToastMessage?: string;
+  onSuccessCallback?: (data: TData) => void;
+  onErrorCallback?: (error: TError) => void;
 }
 
 export function useQueryWithStatus<
   TData = unknown,
   TError = Error,
-  TQueryKey extends unknown[] = unknown[]
+  TQueryKey extends any[] = any[]
 >(
-  queryKey: TQueryKey,
-  queryFn: () => Promise<TData>,
-  options?: UseQueryOptions<TData, TError, TData, TQueryKey> & StatusOptions
-): UseQueryResult<TData, TError> & { status: QueryStatus } {
+  options: UseQueryWithStatusOptions<TData, TError>
+): [UseQueryResult<TData, TError>, QueryStatus] {
   const {
-    showSuccessToast = false,
     showErrorToast = true,
-    successMessage = "Data loaded successfully",
-    onSuccess,
-    onError,
+    errorToastMessage,
+    showSuccessToast = false,
+    successToastMessage,
+    onSuccessCallback,
+    onErrorCallback,
     ...queryOptions
-  } = options || {};
+  } = options;
 
-  const query = useQuery<TData, TError, TData, TQueryKey>({
-    queryKey,
-    queryFn,
+  const [status, setStatus] = useState<QueryStatus>('idle');
+  
+  const queryResult = useQuery<TData, TError>({
     ...queryOptions,
+    onSuccess: (data) => {
+      if (showSuccessToast && successToastMessage) {
+        toast.success(successToastMessage);
+      }
+      
+      if (onSuccessCallback) {
+        onSuccessCallback(data);
+      }
+      
+      // Forward to the original onSuccess if it exists
+      if (queryOptions.onSuccess) {
+        queryOptions.onSuccess(data);
+      }
+    },
+    onError: (error) => {
+      if (showErrorToast) {
+        toast.error(errorToastMessage || 'An error occurred while fetching data');
+      }
+      
+      if (onErrorCallback) {
+        onErrorCallback(error);
+      }
+      
+      // Forward to the original onError if it exists
+      if (queryOptions.onError) {
+        queryOptions.onError(error);
+      }
+    },
   });
 
   useEffect(() => {
-    if (query.isSuccess && showSuccessToast) {
-      toast.success(successMessage);
-      if (onSuccess) {
-        onSuccess(query.data);
-      }
+    if (queryResult.isLoading) {
+      setStatus('loading');
+    } else if (queryResult.isError) {
+      setStatus('error');
+    } else if (queryResult.isSuccess) {
+      setStatus('success');
+    } else {
+      setStatus('pending');
     }
-  }, [query.isSuccess, showSuccessToast, successMessage, onSuccess, query.data]);
+  }, [queryResult.isLoading, queryResult.isError, queryResult.isSuccess]);
 
-  useEffect(() => {
-    if (query.isError && showErrorToast) {
-      const errorMessage = query.error instanceof Error ? query.error.message : "An error occurred";
-      toast.error(`Error: ${errorMessage}`);
-      if (onError && query.error instanceof Error) {
-        onError(query.error);
-      }
-
-      // Log the error details for debugging
-      console.error("[QueryError]", {
-        queryKey: queryKey,
-        error: query.error,
-        timestamp: new Date().toISOString(),
-      });
-    }
-  }, [query.isError, showErrorToast, onError, query.error, queryKey]);
-
-  // Map the React Query status to our custom status enum
-  let status: QueryStatus = "idle";
-  if (query.isLoading) status = "loading";
-  else if (query.isSuccess) status = "success";
-  else if (query.isError) status = "error";
-  else if (query.isPending) status = "pending";
-
-  return {
-    ...query,
-    status,
-  };
+  return [queryResult, status];
 }

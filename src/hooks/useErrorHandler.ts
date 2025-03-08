@@ -1,71 +1,46 @@
 
-import { useState, useCallback, useEffect } from "react";
-import { toast } from "sonner";
+import { useState, useCallback } from 'react';
+import { toast } from 'sonner';
 
-interface ErrorDetails {
-  source: string;
-  message: string;
-  timestamp: Date;
-  code?: string;
-  stack?: string;
+interface ErrorHandlerOptions {
+  showToast?: boolean;
+  toastMessage?: string;
+  logToConsole?: boolean;
 }
 
-export function useErrorHandler(componentName: string) {
-  const [errors, setErrors] = useState<ErrorDetails[]>([]);
-  const [hasError, setHasError] = useState(false);
+const defaultOptions: ErrorHandlerOptions = {
+  showToast: true,
+  toastMessage: 'An error occurred',
+  logToConsole: true
+};
 
-  // Clear errors when component unmounts or on manual reset
-  const clearErrors = useCallback(() => {
-    setErrors([]);
-    setHasError(false);
+export function useErrorHandler(customOptions?: ErrorHandlerOptions) {
+  const options = { ...defaultOptions, ...customOptions };
+  const [error, setError] = useState<Error | null>(null);
+
+  const handleError = useCallback((err: unknown, customMessage?: string) => {
+    const errorObj = err instanceof Error ? err : new Error(String(err));
+    
+    setError(errorObj);
+    
+    if (options.logToConsole) {
+      console.error('Error caught by useErrorHandler:', errorObj);
+    }
+    
+    if (options.showToast) {
+      toast.error(customMessage || options.toastMessage || errorObj.message);
+    }
+    
+    return errorObj;
+  }, [options]);
+
+  const clearError = useCallback(() => {
+    setError(null);
   }, []);
 
-  // Handle errors consistently across the application
-  const handleError = useCallback(
-    (error: Error | string, customSource?: string, shouldToast = true) => {
-      const errorDetails: ErrorDetails = {
-        source: customSource || componentName,
-        message: typeof error === "string" ? error : error.message,
-        timestamp: new Date(),
-        code: typeof error !== "string" && "code" in error ? (error as any).code : undefined,
-        stack: typeof error !== "string" ? error.stack : undefined,
-      };
-
-      console.error(`[${errorDetails.source}]`, errorDetails.message, error);
-      
-      setErrors((prev) => [...prev, errorDetails]);
-      setHasError(true);
-
-      if (shouldToast) {
-        toast.error(errorDetails.message, {
-          description: errorDetails.source,
-          duration: 5000,
-        });
-      }
-
-      return errorDetails;
-    },
-    [componentName]
-  );
-
-  // Automatically handle unhandled promise rejections
-  useEffect(() => {
-    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      handleError(event.reason, "UnhandledPromiseRejection");
-      event.preventDefault();
-    };
-
-    window.addEventListener("unhandledrejection", handleUnhandledRejection);
-    return () => {
-      window.removeEventListener("unhandledrejection", handleUnhandledRejection);
-    };
-  }, [handleError]);
-
   return {
+    error,
     handleError,
-    clearErrors,
-    errors,
-    hasError,
-    latestError: errors[errors.length - 1],
+    clearError
   };
 }
