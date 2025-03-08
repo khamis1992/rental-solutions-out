@@ -91,9 +91,15 @@ export function buildQuery<T>(
     sort?: { field: string; direction?: 'asc' | 'desc' };
     page?: number;
     pageSize?: number;
+    includes?: string[];
   }
 ): TypedQuery<T> {
   let query = baseQuery;
+  
+  // Apply select fields if provided
+  if (options.includes && options.includes.length > 0) {
+    query = query.select(options.includes.join(','));
+  }
   
   // Apply filters
   if (options.filters) {

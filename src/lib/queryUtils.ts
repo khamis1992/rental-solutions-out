@@ -1,4 +1,7 @@
+
 import { PostgrestError, PostgrestSingleResponse } from '@supabase/supabase-js';
+import { QueryResponse, TypedQuery, AggregationResult, RelationalQueryOptions } from '@/types/supabase.types';
+import { Json } from '@/types/database/json.types';
 
 /**
  * Type-safe helper for handling Supabase query results
@@ -7,7 +10,7 @@ import { PostgrestError, PostgrestSingleResponse } from '@supabase/supabase-js';
  * @returns The data from the query or the default value if there was an error
  */
 export function handleQueryResult<T>(
-  result: PostgrestSingleResponse<T>,
+  result: QueryResponse<T>,
   defaultValue: T | null = null
 ): T | null {
   if (result.error) {
@@ -167,88 +170,13 @@ export function mergeSafelyWithDefaults<T extends Record<string, any>>(
 }
 
 /**
- * Cast a Supabase JSON result to a strongly typed object
- * @param jsonData JSON data from Supabase
- * @param defaultValue Default value if parsing fails
- * @returns Typed object
- */
-export function castJsonToType<T>(
-  jsonData: any,
-  defaultValue: T
-): T {
-  if (!jsonData) return defaultValue;
-  
-  try {
-    // If it's already an object, validate it
-    if (typeof jsonData === 'object' && jsonData !== null) {
-      return jsonData as T;
-    }
-    
-    // If it's a string, parse it
-    if (typeof jsonData === 'string') {
-      return JSON.parse(jsonData) as T;
-    }
-    
-    return defaultValue;
-  } catch (error) {
-    console.error('Error casting JSON to type:', error);
-    return defaultValue;
-  }
-}
-
-/**
- * Extract a property from a JSON object with type safety
- * @param jsonData JSON data
- * @param property Property name to extract
- * @param defaultValue Default value if property doesn't exist or isn't the right type
- * @returns The typed property value
- */
-export function extractTypedJsonProperty<T>(
-  jsonData: any,
-  property: string,
-  defaultValue: T
-): T {
-  if (!jsonData || typeof jsonData !== 'object') return defaultValue;
-  
-  try {
-    const value = jsonData[property];
-    if (value === undefined) return defaultValue;
-    
-    // Type checking can be expanded based on your needs
-    return value as T;
-  } catch (error) {
-    console.error(`Error extracting property ${property}:`, error);
-    return defaultValue;
-  }
-}
-
-import { QueryResponse, TypedQuery, AggregationResult, RelationalQueryOptions } from '@/types/supabase.types';
-
-/**
- * Enhanced type-safe helper for handling Supabase query results
- * @param result Supabase query result with data and error properties
- * @param defaultValue Optional default value to return if there's an error
- * @returns The data from the query or the default value if there was an error
- */
-export function handleQueryResult<T>(
-  result: QueryResponse<T>,
-  defaultValue: T | null = null
-): T | null {
-  if (result.error) {
-    console.error('Supabase query error:', result.error);
-    return defaultValue;
-  }
-  return result.data;
-}
-
-/**
  * Enhanced function to safely parse typed responses from PostgreSQL JSON
  * @param jsonData JSON data from database
  * @param defaultValue Default value if parsing fails
  * @returns Typed object
  */
 export function parseTypedJson<T>(
-  jsonData: any,
+  jsonData: Json,
   defaultValue: T
 ): T {
   if (!jsonData) return defaultValue;
@@ -256,7 +184,7 @@ export function parseTypedJson<T>(
   try {
     // If it's already an object, validate it
     if (typeof jsonData === 'object' && jsonData !== null) {
-      return jsonData as T;
+      return jsonData as unknown as T;
     }
     
     // If it's a string, parse it
@@ -295,9 +223,7 @@ export function withRelations<T>(
       const relationQuery = `${relation}(${nestedFields})`;
       
       // Extend the select query
-      if (enhancedQuery) {
-        enhancedQuery = enhancedQuery.select(relationQuery);
-      }
+      enhancedQuery = enhancedQuery.select(relationQuery);
     });
   }
   
@@ -310,7 +236,7 @@ export function withRelations<T>(
  * @returns Structured aggregation result
  */
 export function handleAggregationResult(
-  result: QueryResponse<any>
+  result: PostgrestSingleResponse<any>
 ): AggregationResult | null {
   if (result.error) {
     console.error('Aggregation query error:', result.error);

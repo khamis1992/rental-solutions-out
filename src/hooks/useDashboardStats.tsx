@@ -11,7 +11,7 @@ export const useDashboardStats = (): UseDashboardStatsResult => {
     queryKey: ["dashboardStats"],
     queryFn: async (): Promise<DashboardStats> => {
       try {
-        const response: QueryResponse<DashboardStats> = await supabase.rpc("get_dashboard_stats");
+        const response: QueryResponse<any> = await supabase.rpc("get_dashboard_stats");
         
         if (response.error) {
           throw new Error(`Failed to fetch dashboard stats: ${response.error.message}`);
@@ -46,7 +46,7 @@ export const useDashboardStats = (): UseDashboardStatsResult => {
     data: queryResult.data || null,
     isLoading: queryResult.isLoading,
     error: queryResult.error instanceof Error ? queryResult.error : null,
-    refetch: queryResult.refetch,
+    refetch: async () => { await queryResult.refetch(); },
     status: queryResult.status,
     isStale: queryResult.isStale,
     lastUpdated: queryResult.dataUpdatedAt ? new Date(queryResult.dataUpdatedAt) : undefined

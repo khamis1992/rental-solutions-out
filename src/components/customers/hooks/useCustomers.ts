@@ -27,15 +27,16 @@ export const useCustomers = ({ searchQuery, page, pageSize }: UseCustomersOption
         console.log("Fetching customers with search:", searchQuery);
         
         // First get total count for pagination
-        const countResult = await supabase
+        const countQuery = supabase
           .from('profiles')
           .select('id', { count: 'exact', head: true })
           .eq('role', 'customer'); // Only count customers
 
         if (searchQuery) {
-          countResult.or(`full_name.ilike.%${searchQuery}%,phone_number.ilike.%${searchQuery}%,driver_license.ilike.%${searchQuery}%`);
+          countQuery.or(`full_name.ilike.%${searchQuery}%,phone_number.ilike.%${searchQuery}%,driver_license.ilike.%${searchQuery}%`);
         }
 
+        const countResult = await countQuery;
         const totalCount = extractCount(countResult, 0);
 
         // Then fetch paginated data using our type-safe utilities
@@ -63,7 +64,8 @@ export const useCustomers = ({ searchQuery, page, pageSize }: UseCustomersOption
         const result = await customerQuery;
         
         // Transform database records to match our Customer type
-        const customers = handleQueryResult<Profile[]>(result, []).map(record => ({
+        const profileData = handleQueryResult<Profile[]>(result, []);
+        const customers: Customer[] = profileData.map(record => ({
           id: record.id,
           full_name: record.full_name,
           phone_number: record.phone_number,
@@ -77,12 +79,12 @@ export const useCustomers = ({ searchQuery, page, pageSize }: UseCustomersOption
           role: record.role as 'customer' | 'staff' | 'admin',
           status: record.status as Customer['status'],
           document_verification_status: record.document_verification_status as Customer['document_verification_status'],
-          profile_completion_score: record.profile_completion_score,
+          profile_completion_score: record.profile_completion_score || 0,
           merged_into: record.merged_into,
           nationality: record.nationality,
           id_document_expiry: record.id_document_expiry,
           license_document_expiry: record.license_document_expiry
-        })) || [];
+        }));
         
         console.log("Fetched customers:", customers.length, "records");
         return {
