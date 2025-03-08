@@ -1,8 +1,13 @@
 
+// Type-safe JSON handling
 export type Json =
   | string
   | number
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[]
+  | Json[];
+
+export interface JsonObject {
+  [key: string]: Json;
+}

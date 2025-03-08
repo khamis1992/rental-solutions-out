@@ -1,140 +1,160 @@
 
 /**
- * Utility functions for data transformation and formatting
- */
-import { formatCurrency, formatDate, formatPercentage } from "@/lib/utils";
-import { isDefined } from "@/lib/queryUtils";
-
-/**
- * Type-safe function to get a nested property value with a fallback
- */
-export function getNestedValue<T, R = unknown>(
-  obj: T | null | undefined,
-  path: string,
-  fallback: R
-): R {
-  if (!obj) return fallback;
-  
-  try {
-    const keys = path.split('.');
-    let value: any = obj;
-    
-    for (const key of keys) {
-      if (value === undefined || value === null) return fallback;
-      value = value[key as keyof typeof value];
-    }
-    
-    return (value !== undefined && value !== null) ? value as R : fallback;
-  } catch (error) {
-    console.error(`Error getting nested value at path ${path}:`, error);
-    return fallback;
-  }
-}
-
-/**
- * Safely transform data using a transformer function
- * @param data Input data
+ * Safely transform data with error handling, allowing for a default value if transformation fails
+ * 
+ * @param data Input data to transform
  * @param transformer Function to transform the data
- * @param fallback Fallback value if transformation fails
+ * @param defaultValue Default value to return if transformation fails
+ * @returns Transformed data or default value
  */
-export function safeTransform<T, R>(
-  data: T | null | undefined,
-  transformer: (input: T) => R,
-  fallback: R
-): R {
-  if (!isDefined(data)) return fallback;
-  
+export function safeTransform<TInput, TOutput>(
+  data: TInput,
+  transformer: (input: TInput) => TOutput,
+  defaultValue: TOutput
+): TOutput {
   try {
     return transformer(data);
   } catch (error) {
-    console.error("Transformation error:", error);
-    return fallback;
+    console.error('Error transforming data:', error);
+    return defaultValue;
   }
 }
 
 /**
- * Format a number or string value as a percentage with proper fallback
+ * Safely transform an array of data with error handling
+ * 
+ * @param dataArray Array of input data
+ * @param transformer Function to transform each item
+ * @returns Array of transformed items, filtering out any that failed transformation
  */
-export function formatSafePercentage(
-  value: number | string | null | undefined,
-  fallback = "N/A"
-): string {
-  if (value === undefined || value === null) return fallback;
-  
-  try {
-    const numValue = typeof value === 'string' ? parseFloat(value) : value;
-    return formatPercentage(numValue);
-  } catch (error) {
-    return fallback;
+export function safeTransformArray<TInput, TOutput>(
+  dataArray: TInput[] | null | undefined,
+  transformer: (input: TInput) => TOutput
+): TOutput[] {
+  if (!dataArray || !Array.isArray(dataArray)) {
+    return [];
   }
+  
+  return dataArray
+    .map(item => {
+      try {
+        return {
+          success: true,
+          result: transformer(item)
+        };
+      } catch (error) {
+        console.error('Error transforming array item:', error);
+        return {
+          success: false,
+          result: null
+        };
+      }
+    })
+    .filter(result => result.success)
+    .map(result => result.result as TOutput);
 }
 
 /**
- * Format a number or string value as currency with proper fallback
+ * Pick specific properties from an object
+ * 
+ * @param obj The source object
+ * @param keys Array of keys to pick
+ * @returns New object with only the picked properties
  */
-export function formatSafeCurrency(
-  value: number | string | null | undefined,
-  currency = "QAR",
-  fallback = "N/A"
-): string {
-  if (value === undefined || value === null) return fallback;
+export function pick<T extends object, K extends keyof T>(
+  obj: T, 
+  keys: K[]
+): Pick<T, K> {
+  return keys.reduce((result, key) => {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      result[key] = obj[key];
+    }
+    return result;
+  }, {} as Pick<T, K>);
+}
+
+/**
+ * Omit specific properties from an object
+ * 
+ * @param obj The source object
+ * @param keys Array of keys to omit
+ * @returns New object without the omitted properties
+ */
+export function omit<T extends object, K extends keyof T>(
+  obj: T, 
+  keys: K[]
+): Omit<T, K> {
+  const result = { ...obj };
+  keys.forEach(key => {
+    delete result[key];
+  });
+  return result;
+}
+
+/**
+ * Safely access nested properties in an object
+ * 
+ * @param obj The source object
+ * @param path Path to the property, using dot notation
+ * @param defaultValue Default value if property doesn't exist
+ * @returns The property value or default value
+ */
+export function getNestedProperty<T>(
+  obj: Record<string, any> | null | undefined,
+  path: string,
+  defaultValue: T
+): T {
+  if (!obj) return defaultValue;
   
-  try {
-    const numValue = typeof value === 'string' ? parseFloat(value) : value;
-    return formatCurrency(numValue, currency);
-  } catch (error) {
-    return fallback;
+  const parts = path.split('.');
+  let current = obj;
+  
+  for (const part of parts) {
+    if (current === null || current === undefined || typeof current !== 'object') {
+      return defaultValue;
+    }
+    current = current[part];
   }
-}
-
-/**
- * Format a date value safely with proper fallback
- */
-export function formatSafeDate(
-  date: Date | string | null | undefined,
-  fallback = "N/A"
-): string {
-  if (!date) return fallback;
   
-  try {
-    return formatDate(date);
-  } catch (error) {
-    return fallback;
-  }
+  return (current as unknown as T) ?? defaultValue;
 }
 
 /**
- * Convert a potential null/undefined array to a safe array
+ * Convert object keys from camelCase to snake_case
+ * 
+ * @param obj The source object
+ * @returns New object with snake_case keys
  */
-export function safeArray<T>(arr: T[] | null | undefined): T[] {
-  return Array.isArray(arr) ? arr : [];
+export function camelToSnakeCase<T extends Record<string, any>>(obj: T): Record<string, any> {
+  return Object.entries(obj).reduce((result, [key, value]) => {
+    const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    
+    // Recursively process nested objects
+    const newValue = value && typeof value === 'object' && !Array.isArray(value)
+      ? camelToSnakeCase(value)
+      : value;
+      
+    result[snakeKey] = newValue;
+    return result;
+  }, {} as Record<string, any>);
 }
 
 /**
- * Calculate percentage change between two numbers
+ * Convert object keys from snake_case to camelCase
+ * 
+ * @param obj The source object
+ * @returns New object with camelCase keys
  */
-export function calculatePercentageChange(
-  current: number, 
-  previous: number
-): number {
-  if (previous === 0) return current > 0 ? 100 : 0;
-  return ((current - previous) / Math.abs(previous)) * 100;
-}
-
-/**
- * Format a statistic with proper growth indicator
- */
-export function formatStatWithChange(
-  current: number,
-  previous: number,
-  formatFn?: (value: number) => string
-): { value: string; change: number; increasing: boolean } {
-  const change = calculatePercentageChange(current, previous);
-  const formatter = formatFn || ((val: number) => val.toString());
-  
-  return {
-    value: formatter(current),
-    change: Math.abs(change),
-    increasing: change >= 0
-  };
+export function snakeToCamelCase<T extends Record<string, any>>(obj: T): Record<string, any> {
+  return Object.entries(obj).reduce((result, [key, value]) => {
+    const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+    
+    // Recursively process nested objects
+    const newValue = value && typeof value === 'object' && !Array.isArray(value)
+      ? snakeToCamelCase(value)
+      : value;
+      
+    result[camelKey] = newValue;
+    return result;
+  }, {} as Record<string, any>);
 }
