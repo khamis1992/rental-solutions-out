@@ -1,157 +1,276 @@
 
-import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Vehicle, VehicleStatus } from '@/types/vehicle';
-import { toast } from 'sonner';
+import { useEffect, useState, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-type VehicleUpdateType = 'status' | 'location' | 'maintenance';
-
-interface UseRealTimeVehicleUpdatesOptions {
-  updateTypes?: VehicleUpdateType[];
-  notifyOnChanges?: boolean;
-  onVehicleStatusChange?: (vehicleId: string, newStatus: VehicleStatus, previousStatus: VehicleStatus) => void;
-  onVehicleLocationChange?: (vehicleId: string, lat: number, lng: number) => void;
-  onMaintenanceUpdate?: (vehicleId: string) => void;
+export interface Vehicle {
+  id: string;
+  status: string;
+  make: string;
+  model: string;
+  license_plate: string;
+  [key: string]: any;
 }
 
-export const useRealTimeVehicleUpdates = (options: UseRealTimeVehicleUpdatesOptions = {}) => {
+export interface StatusChange {
+  vehicleId: string;
+  oldStatus: string;
+  newStatus: string;
+  timestamp: Date;
+  vehicle: Vehicle;
+}
+
+export interface RealTimeVehicleUpdates {
+  isLoading: boolean;
+  recentStatusChanges: StatusChange[];
+  lastUpdate: Date | null;
+  connectedStatus: 'connected' | 'disconnected';
+  reconnect: () => void;
+}
+
+export interface UseRealTimeVehicleUpdatesOptions {
+  notifyOnStatusChange?: boolean;
+  includeLocation?: boolean;
+  includeMaintenanceUpdates?: boolean;
+  historyLimit?: number;
+  onUpdate?: (vehicle: Vehicle) => void;
+  onDisconnect?: () => void;
+  onReconnect?: () => void;
+}
+
+export const useRealTimeVehicleUpdates = (options: UseRealTimeVehicleUpdatesOptions = {}): RealTimeVehicleUpdates => {
   const {
-    updateTypes = ['status', 'location', 'maintenance'],
-    notifyOnChanges = false,
-    onVehicleStatusChange,
-    onVehicleLocationChange,
-    onMaintenanceUpdate
+    notifyOnStatusChange = false,
+    includeLocation = false,
+    includeMaintenanceUpdates = true,
+    historyLimit = 10,
+    onUpdate,
+    onDisconnect,
+    onReconnect
   } = options;
 
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [recentStatusChanges, setRecentStatusChanges] = useState<StatusChange[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [connectedStatus, setConnectedStatus] = useState<'connected' | 'disconnected'>('connected');
+  
+  // Use refs to store subscription objects for potential reconnection
+  const vehicleSubscriptionRef = useRef<any>(null);
+  const maintenanceSubscriptionRef = useRef<any>(null);
+  const locationSubscriptionRef = useRef<any>(null);
 
-  const fetchVehicles = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('vehicles')
-        .select('*');
-
-      if (error) throw error;
-      
-      setVehicles(data as Vehicle[]);
-      setLastUpdate(new Date());
-    } catch (err) {
-      console.error('Error fetching vehicles:', err);
-      setError(err instanceof Error ? err : new Error('Failed to fetch vehicles'));
-      if (notifyOnChanges) {
-        toast.error('Failed to load vehicle data');
-      }
-    } finally {
-      setIsLoading(false);
+  // Function to handle reconnection
+  const reconnect = () => {
+    setConnectedStatus('connected');
+    
+    // Re-subscribe to all previously subscribed channels
+    setupSubscriptions();
+    
+    if (onReconnect) {
+      onReconnect();
     }
+    
+    toast.success("Reconnected to real-time vehicle updates");
   };
 
-  useEffect(() => {
-    fetchVehicles();
-
-    // Set up real-time subscriptions based on updateTypes
-    const subscriptions = [];
-
-    if (updateTypes.includes('status') || updateTypes.includes('location')) {
-      const vehicleSubscription = supabase
-        .channel('vehicles-updates')
-        .on('postgres_changes', 
-          { 
-            event: 'UPDATE', 
-            schema: 'public', 
-            table: 'vehicles' 
-          }, 
-          (payload) => {
-            const oldRecord = payload.old as Vehicle;
-            const newRecord = payload.new as Vehicle;
+  // Setup subscriptions based on options
+  const setupSubscriptions = () => {
+    // Vehicle status subscription
+    vehicleSubscriptionRef.current = supabase
+      .channel('vehicle-status-updates')
+      .on('postgres_changes', 
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'vehicles',
+          filter: 'status=is.not.null'
+        }, 
+        async (payload) => {
+          if (payload.old && payload.new && payload.old.status !== payload.new.status) {
+            const change: StatusChange = {
+              vehicleId: payload.new.id,
+              oldStatus: payload.old.status,
+              newStatus: payload.new.status,
+              timestamp: new Date(),
+              vehicle: payload.new as Vehicle
+            };
             
-            // Handle status changes
-            if (updateTypes.includes('status') && oldRecord.status !== newRecord.status) {
-              if (onVehicleStatusChange) {
-                onVehicleStatusChange(
-                  newRecord.id, 
-                  newRecord.status as VehicleStatus, 
-                  oldRecord.status as VehicleStatus
-                );
-              }
-              
-              if (notifyOnChanges) {
-                toast.info(`Vehicle ${newRecord.license_plate} status changed to ${newRecord.status}`);
-              }
-            }
-            
-            // Handle location changes
-            if (updateTypes.includes('location') && 
-                (newRecord.last_location_lat !== oldRecord.last_location_lat || 
-                 newRecord.last_location_lng !== oldRecord.last_location_lng)) {
-              if (onVehicleLocationChange && 
-                  newRecord.last_location_lat && 
-                  newRecord.last_location_lng) {
-                onVehicleLocationChange(
-                  newRecord.id,
-                  newRecord.last_location_lat,
-                  newRecord.last_location_lng
-                );
-              }
-            }
-            
-            // Update the local state
-            setVehicles(prev => 
-              prev.map(vehicle => 
-                vehicle.id === newRecord.id ? newRecord as Vehicle : vehicle
-              )
-            );
+            // Update state with the new change
+            setRecentStatusChanges(prev => [change, ...prev].slice(0, historyLimit));
             setLastUpdate(new Date());
+            
+            // Call the onUpdate callback if provided
+            if (onUpdate) {
+              onUpdate(payload.new as Vehicle);
+            }
+            
+            // Notify if enabled
+            if (notifyOnStatusChange) {
+              toast.info(`Vehicle status changed: ${payload.new.license_plate} is now ${payload.new.status}`);
+            }
           }
-        )
-        .subscribe();
-        
-      subscriptions.push(vehicleSubscription);
-    }
-
-    if (updateTypes.includes('maintenance')) {
-      const maintenanceSubscription = supabase
+        }
+      )
+      .subscribe((status) => {
+        if (status !== 'SUBSCRIBED') {
+          setConnectedStatus('disconnected');
+          if (onDisconnect) onDisconnect();
+        }
+        setIsLoading(false);
+      });
+    
+    // Maintenance updates subscription if enabled
+    if (includeMaintenanceUpdates) {
+      maintenanceSubscriptionRef.current = supabase
         .channel('maintenance-updates')
         .on('postgres_changes', 
           { 
             event: '*', 
             schema: 'public', 
-            table: 'maintenance' 
+            table: 'maintenance'
           }, 
-          (payload) => {
-            const record = payload.new as { vehicle_id: string };
-            
-            if (onMaintenanceUpdate && record.vehicle_id) {
-              onMaintenanceUpdate(record.vehicle_id);
+          async (payload) => {
+            if (payload.new) {
+              // Get vehicle details
+              const { data: vehicle, error } = await supabase
+                .from('vehicles')
+                .select('*')
+                .eq('id', payload.new.vehicle_id)
+                .single();
+              
+              if (error || !vehicle) {
+                console.error('Error fetching vehicle for maintenance update:', error);
+                return;
+              }
+              
+              // Create status change object
+              const change: StatusChange = {
+                vehicleId: vehicle.id,
+                oldStatus: payload.eventType === 'INSERT' ? 'unknown' : 'maintenance',
+                newStatus: 'maintenance',
+                timestamp: new Date(),
+                vehicle: vehicle as Vehicle
+              };
+              
+              // Update state with the new change
+              setRecentStatusChanges(prev => [change, ...prev].slice(0, historyLimit));
+              setLastUpdate(new Date());
+              
+              // Call the onUpdate callback if provided
+              if (onUpdate) {
+                onUpdate(vehicle as Vehicle);
+              }
+              
+              // Notify if enabled
+              if (notifyOnStatusChange) {
+                toast.info(`Maintenance update for ${vehicle.license_plate}: ${payload.new.service_type}`);
+              }
             }
-            
-            if (notifyOnChanges) {
-              toast.info('Vehicle maintenance records updated');
-            }
-            
-            // Fetch the updated vehicles data
-            fetchVehicles();
           }
         )
         .subscribe();
-        
-      subscriptions.push(maintenanceSubscription);
     }
+    
+    // Location updates subscription if enabled
+    if (includeLocation) {
+      locationSubscriptionRef.current = supabase
+        .channel('location-updates')
+        .on('postgres_changes', 
+          { 
+            event: 'INSERT', 
+            schema: 'public', 
+            table: 'vehicle_locations'
+          }, 
+          async (payload) => {
+            if (payload.new) {
+              // Get vehicle details
+              const { data: vehicle, error } = await supabase
+                .from('vehicles')
+                .select('*')
+                .eq('id', payload.new.vehicle_id)
+                .single();
+              
+              if (error || !vehicle) {
+                console.error('Error fetching vehicle for location update:', error);
+                return;
+              }
+              
+              // Call the onUpdate callback if provided
+              if (onUpdate) {
+                onUpdate({
+                  ...vehicle,
+                  location: {
+                    latitude: payload.new.latitude,
+                    longitude: payload.new.longitude,
+                    timestamp: payload.new.timestamp
+                  }
+                });
+              }
+            }
+          }
+        )
+        .subscribe();
+    }
+  };
 
+  // Initial setup of subscriptions
+  useEffect(() => {
+    setupSubscriptions();
+    
+    // Fetch recent status changes to populate history
+    const fetchRecentChanges = async () => {
+      try {
+        const threeDaysAgo = new Date();
+        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+        
+        const { data, error } = await supabase
+          .from('vehicle_status_history')
+          .select('*, vehicle:vehicles(*)')
+          .gt('created_at', threeDaysAgo.toISOString())
+          .order('created_at', { ascending: false })
+          .limit(historyLimit);
+        
+        if (error) throw error;
+        
+        if (data) {
+          const formattedChanges: StatusChange[] = data.map(change => ({
+            vehicleId: change.vehicle_id,
+            oldStatus: change.old_status,
+            newStatus: change.new_status,
+            timestamp: new Date(change.created_at),
+            vehicle: change.vehicle as Vehicle
+          }));
+          
+          setRecentStatusChanges(formattedChanges);
+        }
+      } catch (error) {
+        console.error('Error fetching recent vehicle status changes:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchRecentChanges();
+    
     // Cleanup subscriptions on unmount
     return () => {
-      subscriptions.forEach(subscription => subscription.unsubscribe());
+      if (vehicleSubscriptionRef.current) {
+        vehicleSubscriptionRef.current.unsubscribe();
+      }
+      if (maintenanceSubscriptionRef.current) {
+        maintenanceSubscriptionRef.current.unsubscribe();
+      }
+      if (locationSubscriptionRef.current) {
+        locationSubscriptionRef.current.unsubscribe();
+      }
     };
-  }, [updateTypes, notifyOnChanges, onVehicleStatusChange, onVehicleLocationChange, onMaintenanceUpdate]);
+  }, []); // Empty dependency array to run only on mount
 
   return {
-    vehicles,
     isLoading,
-    error,
+    recentStatusChanges,
     lastUpdate,
-    refreshVehicles: fetchVehicles
+    connectedStatus,
+    reconnect
   };
 };

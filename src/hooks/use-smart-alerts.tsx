@@ -1,160 +1,257 @@
 
-import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { AlertDetails } from '@/types/dashboard.types';
-import { toast } from 'sonner';
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { AlertDetails } from "@/types/dashboard.types";
+import { toast } from "sonner";
 
-interface UseSmartAlertsOptions {
-  enableNotifications?: boolean;
-  maxAlerts?: number;
+export interface UseSmartAlertsOptions {
+  enabled?: boolean;
+  showNotifications?: boolean;
+  limit?: number;
   alertTypes?: ('vehicle' | 'customer' | 'payment' | 'maintenance' | 'contract')[];
+  onNewAlert?: (alert: AlertDetails) => void;
+  onAlertStatusChange?: (alertId: string, newStatus: string) => void;
 }
 
 export const useSmartAlerts = (options: UseSmartAlertsOptions = {}) => {
   const {
-    enableNotifications = true,
-    maxAlerts = 10,
-    alertTypes = ['vehicle', 'customer', 'payment', 'maintenance', 'contract'],
+    enabled = true,
+    showNotifications = false,
+    limit = 10,
+    alertTypes,
+    onNewAlert,
+    onAlertStatusChange
   } = options;
 
   const [alerts, setAlerts] = useState<AlertDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
+  // Function to fetch alerts
   const fetchAlerts = async () => {
     try {
-      // Fetch alerts based on the alert types
-      const typeFilter = alertTypes.map(type => `type.eq.${type}`).join(',');
-      
-      const { data, error } = await supabase
+      let query = supabase
         .from('dashboard_alerts')
-        .select(`
-          id,
-          type,
-          title,
-          description,
-          priority,
-          date,
-          status,
-          customer:customer_id (*),
-          vehicle:vehicle_id (*)
-        `)
-        .or(typeFilter)
+        .select('*')
         .order('date', { ascending: false })
-        .limit(maxAlerts);
+        .limit(limit);
+
+      // Add filter for alert types if provided
+      if (alertTypes && alertTypes.length > 0) {
+        query = query.in('type', alertTypes);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
-      
-      setAlerts(data as unknown as AlertDetails[]);
-      setUnreadCount(data.filter(alert => alert.status === 'unread').length);
-    } catch (err) {
-      console.error('Error fetching alerts:', err);
-      setError(err instanceof Error ? err : new Error('Failed to fetch alerts'));
+
+      const alertsWithDetails: AlertDetails[] = await Promise.all(
+        (data || []).map(async (alert) => {
+          // Fetch additional details based on alert type
+          let customer;
+          let vehicle;
+
+          if (alert.type === 'customer' && alert.customer_id) {
+            const { data: customerData } = await supabase
+              .from('profiles')
+              .select('id, full_name, phone_number, email')
+              .eq('id', alert.customer_id)
+              .single();
+            
+            customer = customerData;
+          }
+
+          if ((alert.type === 'vehicle' || alert.type === 'maintenance') && alert.vehicle_id) {
+            const { data: vehicleData } = await supabase
+              .from('vehicles')
+              .select('id, make, model, year, license_plate')
+              .eq('id', alert.vehicle_id)
+              .single();
+            
+            vehicle = vehicleData;
+          }
+
+          return {
+            id: alert.id,
+            type: alert.type,
+            title: alert.title,
+            description: alert.description,
+            priority: alert.priority || 'medium',
+            date: alert.date,
+            status: alert.status || 'unread',
+            customer,
+            vehicle
+          };
+        })
+      );
+
+      setAlerts(alertsWithDetails);
+      setUnreadCount(alertsWithDetails.filter(a => a.status === 'unread').length);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Error fetching alerts:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Function to mark an alert as read
+  const markAsRead = async (alertId: string) => {
+    try {
+      const { error } = await supabase
+        .from('dashboard_alerts')
+        .update({ status: 'read' })
+        .eq('id', alertId);
+
+      if (error) throw error;
+
+      // Update local state
+      setAlerts(prev => 
+        prev.map(alert => 
+          alert.id === alertId 
+            ? { ...alert, status: 'read' } 
+            : alert
+        )
+      );
+      
+      setUnreadCount(prev => Math.max(0, prev - 1));
+      
+      // Call the callback if provided
+      if (onAlertStatusChange) {
+        onAlertStatusChange(alertId, 'read');
+      }
+    } catch (error) {
+      console.error('Error marking alert as read:', error);
+    }
+  };
+
+  // Function to dismiss an alert
+  const dismissAlert = async (alertId: string) => {
+    try {
+      const { error } = await supabase
+        .from('dashboard_alerts')
+        .update({ status: 'dismissed' })
+        .eq('id', alertId);
+
+      if (error) throw error;
+
+      // Update local state
+      setAlerts(prev => prev.filter(alert => alert.id !== alertId));
+      
+      if (alerts.find(a => a.id === alertId)?.status === 'unread') {
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+      
+      // Call the callback if provided
+      if (onAlertStatusChange) {
+        onAlertStatusChange(alertId, 'dismissed');
+      }
+    } catch (error) {
+      console.error('Error dismissing alert:', error);
+    }
+  };
+
+  // Set up subscription to real-time alerts
   useEffect(() => {
+    if (!enabled) return;
+
+    // Initial fetch
     fetchAlerts();
 
-    // Subscribe to alert changes
-    const alertsSubscription = supabase
-      .channel('dashboard-alerts')
+    // Set up real-time listener for new alerts
+    const subscription = supabase
+      .channel('dashboard-alerts-changes')
       .on('postgres_changes', 
         { 
           event: 'INSERT', 
           schema: 'public', 
           table: 'dashboard_alerts' 
         }, 
-        (payload) => {
-          const newAlert = payload.new as AlertDetails;
+        async (payload) => {
+          const newAlert = payload.new as any;
           
-          if (alertTypes.includes(newAlert.type)) {
-            setAlerts(prev => [newAlert, ...prev].slice(0, maxAlerts));
-            setUnreadCount(prev => prev + 1);
+          // Skip if alert type is not in the filter
+          if (alertTypes && !alertTypes.includes(newAlert.type)) {
+            return;
+          }
+          
+          // Fetch additional details based on alert type
+          let customer;
+          let vehicle;
+
+          if (newAlert.type === 'customer' && newAlert.customer_id) {
+            const { data: customerData } = await supabase
+              .from('profiles')
+              .select('id, full_name, phone_number, email')
+              .eq('id', newAlert.customer_id)
+              .single();
             
-            if (enableNotifications) {
-              toast.info(`New alert: ${newAlert.title}`, {
-                duration: 5000,
-              });
-            }
+            customer = customerData;
+          }
+
+          if ((newAlert.type === 'vehicle' || newAlert.type === 'maintenance') && newAlert.vehicle_id) {
+            const { data: vehicleData } = await supabase
+              .from('vehicles')
+              .select('id, make, model, year, license_plate')
+              .eq('id', newAlert.vehicle_id)
+              .single();
+            
+            vehicle = vehicleData;
+          }
+          
+          const formattedAlert: AlertDetails = {
+            id: newAlert.id,
+            type: newAlert.type,
+            title: newAlert.title,
+            description: newAlert.description,
+            priority: newAlert.priority || 'medium',
+            date: newAlert.date,
+            status: newAlert.status || 'unread',
+            customer,
+            vehicle
+          };
+          
+          // Update state with the new alert
+          setAlerts(prev => [formattedAlert, ...prev].slice(0, limit));
+          setUnreadCount(prev => prev + 1);
+          setLastUpdated(new Date());
+          
+          // Show notification if enabled
+          if (showNotifications) {
+            const toastFn = 
+              formattedAlert.priority === 'high' 
+                ? toast.warning 
+                : formattedAlert.priority === 'medium' 
+                  ? toast.info 
+                  : toast.info;
+            
+            toastFn(`${formattedAlert.title}`, {
+              description: formattedAlert.description,
+              duration: formattedAlert.priority === 'high' ? 6000 : 4000,
+            });
+          }
+          
+          // Call the callback if provided
+          if (onNewAlert) {
+            onNewAlert(formattedAlert);
           }
         }
       )
       .subscribe();
 
-    // Cleanup subscription on unmount
     return () => {
-      alertsSubscription.unsubscribe();
+      subscription.unsubscribe();
     };
-  }, [enableNotifications, maxAlerts, alertTypes]);
-
-  const markAsRead = async (alertId: string) => {
-    try {
-      await supabase
-        .from('dashboard_alerts')
-        .update({ status: 'read' })
-        .eq('id', alertId);
-      
-      setAlerts(prev => 
-        prev.map(alert => 
-          alert.id === alertId ? { ...alert, status: 'read' } : alert
-        )
-      );
-      
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (err) {
-      console.error('Error marking alert as read:', err);
-      toast.error('Failed to update alert status');
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      await supabase
-        .from('dashboard_alerts')
-        .update({ status: 'read' })
-        .in('id', alerts.map(alert => alert.id));
-      
-      setAlerts(prev => 
-        prev.map(alert => ({ ...alert, status: 'read' }))
-      );
-      
-      setUnreadCount(0);
-    } catch (err) {
-      console.error('Error marking all alerts as read:', err);
-      toast.error('Failed to update alert statuses');
-    }
-  };
-
-  const dismissAlert = async (alertId: string) => {
-    try {
-      await supabase
-        .from('dashboard_alerts')
-        .update({ status: 'dismissed' })
-        .eq('id', alertId);
-      
-      setAlerts(prev => prev.filter(alert => alert.id !== alertId));
-      
-      if (alerts.find(alert => alert.id === alertId)?.status === 'unread') {
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      }
-    } catch (err) {
-      console.error('Error dismissing alert:', err);
-      toast.error('Failed to dismiss alert');
-    }
-  };
+  }, [enabled, limit, showNotifications, JSON.stringify(alertTypes)]);
 
   return {
     alerts,
     isLoading,
-    error,
     unreadCount,
+    lastUpdated,
     markAsRead,
-    markAllAsRead,
     dismissAlert,
-    refreshAlerts: fetchAlerts
+    refresh: fetchAlerts
   };
 };

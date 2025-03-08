@@ -10,7 +10,12 @@ import {
   Key, 
   Lock, 
   Ban,
-  ParkingCircle
+  ParkingCircle,
+  ArrowRight,
+  Timer,
+  ShieldAlert,
+  Truck,
+  Hammer
 } from "lucide-react";
 
 export const STATUS_CONFIG: StatusConfigMap = {
@@ -67,6 +72,36 @@ export const STATUS_CONFIG: StatusConfigMap = {
     label: "Pending Repair", 
     bgColor: "bg-amber-500/10",
     icon: <Wrench className="text-amber-500" />,
+  },
+  in_transit: { 
+    color: "#0EA5E9", 
+    label: "In Transit", 
+    bgColor: "bg-sky-500/10",
+    icon: <ArrowRight className="text-sky-500" />,
+  },
+  scheduled: { 
+    color: "#14B8A6", 
+    label: "Scheduled", 
+    bgColor: "bg-teal-500/10",
+    icon: <Timer className="text-teal-500" />,
+  },
+  inspection: { 
+    color: "#8B5CF6", 
+    label: "Under Inspection", 
+    bgColor: "bg-violet-500/10",
+    icon: <ShieldAlert className="text-violet-500" />,
+  },
+  delivery: { 
+    color: "#22C55E", 
+    label: "Out for Delivery", 
+    bgColor: "bg-green-500/10",
+    icon: <Truck className="text-green-500" />,
+  },
+  repair: { 
+    color: "#EC4899", 
+    label: "In Repair", 
+    bgColor: "bg-pink-500/10",
+    icon: <Hammer className="text-pink-500" />,
   }
 };
 
@@ -81,11 +116,16 @@ export const getStatusGroup = (status: string): 'operational' | 'attention' | 'c
     case 'available':
     case 'rented':
     case 'reserve':
+    case 'in_transit':
+    case 'scheduled':
+    case 'delivery':
       return 'operational';
     case 'maintenance':
     case 'pending_repair':
     case 'retired':
     case 'police_station':
+    case 'inspection': 
+    case 'repair':
       return 'attention';
     case 'accident':
     case 'stolen':

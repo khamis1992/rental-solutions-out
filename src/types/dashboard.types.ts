@@ -25,6 +25,8 @@ export interface DashboardConfig {
   showTotalCustomers: boolean;
   showActiveRentals: boolean;
   showMonthlyRevenue: boolean;
+  enableRealTimeUpdates: boolean;
+  notificationsEnabled: boolean;
 }
 
 // Status configuration for vehicle statuses
@@ -53,6 +55,12 @@ export interface DashboardStats {
 // Dashboard page props
 export interface DashboardPageProps {
   config?: Partial<DashboardConfig>;
+  initialStats?: DashboardStats;
+  eventHandlers?: {
+    onStatCardClick?: (statType: string) => void;
+    onVehicleStatusClick?: (status: string) => void;
+    onNotificationClick?: (notification: AlertDetails) => void;
+  };
 }
 
 // StatsCard props for dashboard metrics
@@ -127,9 +135,10 @@ export interface TourStep {
 
 // Real-time update types
 export interface RealTimeUpdate {
-  type: 'vehicle' | 'customer' | 'payment' | 'alert';
+  type: 'vehicle' | 'customer' | 'payment' | 'alert' | 'maintenance';
   timestamp: Date;
   data: any;
+  entityId: string;
 }
 
 // Dashboard alert display component props
@@ -146,3 +155,34 @@ export type PaymentStatus = 'pending' | 'paid' | 'overdue' | 'failed' | 'process
 
 // Dashboard notification status
 export type NotificationStatus = 'unread' | 'read' | 'dismissed' | 'acted';
+
+// Dashboard subscription state
+export interface DashboardSubscriptionState {
+  hasChanges: boolean;
+  vehicleChanges: number;
+  paymentChanges: number;
+  customerChanges: number;
+  alertChanges: number;
+  maintenanceChanges: number;
+  lastUpdate: Date | null;
+}
+
+// Vehicle health metrics
+export interface VehicleHealthMetrics {
+  averageMileage: number;
+  maintenanceFrequency: number;
+  costPerVehicle: number;
+  fuelEfficiency: number;
+  utilizationRate: number;
+}
+
+// Realtime dashboard metrics
+export interface RealtimeDashboardMetrics {
+  activeVehicles: number;
+  activeRentals: number;
+  pendingMaintenance: number;
+  todayRevenue: number;
+  recentAlerts: number;
+  fleetUtilization: number;
+  recentStatusChanges: number;
+}
