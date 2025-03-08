@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 // Define app state types
 interface AppState {
@@ -42,7 +43,7 @@ const initialState: AppState = {
     notifications: true,
   },
   systemStatus: {
-    online: navigator.onLine,
+    online: typeof navigator !== 'undefined' ? navigator.onLine : true,
     lastSyncTime: null,
     pendingOperations: 0,
   },
@@ -146,21 +147,29 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         if (session?.user) {
           // Fetch user profile when authenticated
           const fetchUserProfile = async () => {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
+            try {
+              const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
 
-            if (profile) {
-              dispatch({
-                type: 'SET_USER',
-                payload: {
-                  ...session.user,
-                  ...profile,
-                },
-              });
-            } else {
+              if (error) throw error;
+
+              if (profile) {
+                dispatch({
+                  type: 'SET_USER',
+                  payload: {
+                    ...session.user,
+                    ...profile,
+                  },
+                });
+              } else {
+                dispatch({ type: 'SET_USER', payload: session.user });
+              }
+            } catch (error: any) {
+              console.error('Error fetching user profile:', error.message);
+              toast.error('Failed to load your profile');
               dispatch({ type: 'SET_USER', payload: session.user });
             }
           };
@@ -174,7 +183,18 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
     // Monitor online status
     const handleOnlineStatus = () => {
-      dispatch({ type: 'SET_ONLINE_STATUS', payload: navigator.onLine });
+      const isOnline = navigator.onLine;
+      dispatch({ type: 'SET_ONLINE_STATUS', payload: isOnline });
+      
+      if (!isOnline) {
+        toast.warning('You are offline. Some features may be limited.', {
+          duration: 4000,
+        });
+      } else {
+        toast.success('You are back online!', {
+          duration: 2000,
+        });
+      }
     };
 
     window.addEventListener('online', handleOnlineStatus);
@@ -224,4 +244,51 @@ export function useAppState() {
     throw new Error('useAppState must be used within an AppStateProvider');
   }
   return context;
+}
+
+// Utility hooks for specific state needs
+export function useAuth() {
+  const { state } = useAppState();
+  return {
+    user: state.currentUser,
+    isAuthenticated: state.isAuthenticated,
+    userRole: state.userRole,
+  };
+}
+
+export function usePreferences() {
+  const { state, dispatch } = useAppState();
+  
+  return {
+    preferences: state.preferences,
+    setTheme: (theme: 'light' | 'dark' | 'system') => {
+      dispatch({ type: 'SET_THEME', payload: theme });
+    },
+    setLanguage: (language: string) => {
+      dispatch({ type: 'SET_LANGUAGE', payload: language });
+    },
+    toggleNotifications: () => {
+      dispatch({ type: 'TOGGLE_NOTIFICATIONS' });
+    }
+  };
+}
+
+export function useSystemStatus() {
+  const { state, dispatch } = useAppState();
+  
+  return {
+    systemStatus: state.systemStatus,
+    setOnlineStatus: (online: boolean) => {
+      dispatch({ type: 'SET_ONLINE_STATUS', payload: online });
+    },
+    incrementPending: () => {
+      dispatch({ type: 'INCREMENT_PENDING' });
+    },
+    decrementPending: () => {
+      dispatch({ type: 'DECREMENT_PENDING' });
+    },
+    syncComplete: () => {
+      dispatch({ type: 'SYNC_COMPLETE' });
+    }
+  };
 }

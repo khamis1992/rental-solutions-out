@@ -1,86 +1,71 @@
 
-import { useState, useCallback } from 'react';
-import { toast } from 'sonner';
+import { useState, useCallback, useEffect } from "react";
+import { toast } from "sonner";
 
-type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
-
-interface ErrorOptions {
-  severity?: ErrorSeverity;
-  shouldToast?: boolean;
-  context?: Record<string, unknown>;
-  retry?: () => Promise<any>;
+interface ErrorDetails {
+  source: string;
+  message: string;
+  timestamp: Date;
+  code?: string;
+  stack?: string;
 }
 
-export function useErrorHandler() {
-  const [lastError, setLastError] = useState<Error | null>(null);
-  const [errorCount, setErrorCount] = useState(0);
-  
-  // Enhanced error logging with severity and context
-  const logError = useCallback((error: unknown, options?: ErrorOptions) => {
-    const { 
-      severity = 'medium', 
-      shouldToast = true, 
-      context = {},
-      retry
-    } = options || {};
-    
-    const errorObj = error instanceof Error ? error : new Error(String(error));
-    
-    // Augment error with additional metadata
-    const errorWithContext = {
-      message: errorObj.message,
-      stack: errorObj.stack,
-      severity,
-      timestamp: new Date().toISOString(),
-      context,
-      occurrences: errorCount + 1
-    };
-    
-    // Log to console with appropriate level based on severity
-    if (severity === 'critical' || severity === 'high') {
-      console.error('Error:', errorWithContext);
-    } else {
-      console.warn('Error:', errorWithContext);
-    }
-    
-    // Store for reference
-    setLastError(errorObj);
-    setErrorCount(prev => prev + 1);
-    
-    // Show toast if enabled
-    if (shouldToast) {
-      const toastMessage = errorObj.message || 'An error occurred';
-      if (retry) {
-        toast.error(toastMessage, {
-          action: {
-            label: 'Retry',
-            onClick: retry
-          }
-        });
-      } else {
-        toast.error(toastMessage);
-      }
-    }
-    
-    // For critical errors, potentially report to an error tracking service
-    if (severity === 'critical') {
-      // TODO: Add integration with error reporting service
-      // errorReportingService.report(errorWithContext);
-    }
-    
-    return errorObj;
-  }, [errorCount]);
-  
-  const clearError = useCallback(() => {
-    setLastError(null);
-    setErrorCount(0);
+export function useErrorHandler(componentName: string) {
+  const [errors, setErrors] = useState<ErrorDetails[]>([]);
+  const [hasError, setHasError] = useState(false);
+
+  // Clear errors when component unmounts or on manual reset
+  const clearErrors = useCallback(() => {
+    setErrors([]);
+    setHasError(false);
   }, []);
-  
+
+  // Handle errors consistently across the application
+  const handleError = useCallback(
+    (error: Error | string, customSource?: string, shouldToast = true) => {
+      const errorDetails: ErrorDetails = {
+        source: customSource || componentName,
+        message: typeof error === "string" ? error : error.message,
+        timestamp: new Date(),
+        code: typeof error !== "string" && "code" in error ? (error as any).code : undefined,
+        stack: typeof error !== "string" ? error.stack : undefined,
+      };
+
+      console.error(`[${errorDetails.source}]`, errorDetails.message, error);
+      
+      setErrors((prev) => [...prev, errorDetails]);
+      setHasError(true);
+
+      if (shouldToast) {
+        toast.error(errorDetails.message, {
+          description: errorDetails.source,
+          duration: 5000,
+        });
+      }
+
+      return errorDetails;
+    },
+    [componentName]
+  );
+
+  // Automatically handle unhandled promise rejections
+  useEffect(() => {
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      handleError(event.reason, "UnhandledPromiseRejection");
+      event.preventDefault();
+    };
+
+    window.addEventListener("unhandledrejection", handleUnhandledRejection);
+    return () => {
+      window.removeEventListener("unhandledrejection", handleUnhandledRejection);
+    };
+  }, [handleError]);
+
   return {
-    logError,
-    clearError,
-    lastError,
-    errorCount,
-    hasError: lastError !== null
+    handleError,
+    clearErrors,
+    errors,
+    hasError,
+    latestError: errors[errors.length - 1],
   };
 }

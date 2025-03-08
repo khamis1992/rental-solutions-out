@@ -1,80 +1,98 @@
 
-import { useState, useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
+type SyncStatus = "idle" | "syncing" | "success" | "error";
 type SyncConfig = {
-  resourceName: string;
-  tableName: string;
-  queryKey: string[];
-  enableToasts?: boolean;
-  onError?: (error: Error) => void;
+  table: string;
+  column?: string;
+  value?: string | number;
+  realtimeEvents?: ("INSERT" | "UPDATE" | "DELETE")[];
+  onDataChange?: (payload: any) => void;
+  disableToasts?: boolean;
 };
 
-/**
- * Hook to enable real-time data synchronization with Supabase
- * for a specific resource
- */
-export function useDataSync({
-  resourceName,
-  tableName,
-  queryKey,
-  enableToasts = true,
-  onError
+export function useDataSync<T = any>({
+  table,
+  column,
+  value,
+  realtimeEvents = ["INSERT", "UPDATE", "DELETE"],
+  onDataChange,
+  disableToasts = false,
 }: SyncConfig) {
-  const [syncStatus, setSyncStatus] = useState<'idle' | 'connected' | 'error'>('idle');
-  const queryClient = useQueryClient();
+  const [status, setStatus] = useState<SyncStatus>("idle");
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+  const [data, setData] = useState<T[] | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+
+  const fetchData = useCallback(async () => {
+    try {
+      setStatus("syncing");
+      let query = supabase.from(table).select("*");
+
+      if (column && value !== undefined) {
+        query = query.eq(column, value);
+      }
+
+      const { data: result, error: fetchError } = await query;
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      setData(result as T[]);
+      setLastSyncTime(new Date());
+      setStatus("success");
+      
+      if (!disableToasts) {
+        toast.success("Data synchronized successfully");
+      }
+      
+      return result;
+    } catch (err: any) {
+      console.error("Error syncing data:", err);
+      setError(err);
+      setStatus("error");
+      
+      if (!disableToasts) {
+        toast.error(`Sync error: ${err.message}`);
+      }
+      
+      return null;
+    }
+  }, [table, column, value, disableToasts]);
 
   useEffect(() => {
-    // Setup real-time subscription
-    const channel = supabase
-      .channel(`${tableName}-changes`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: tableName
-        },
-        async (payload) => {
-          console.log(`${resourceName} data changed:`, payload);
-          
-          try {
-            // Invalidate the query to refresh data
-            await queryClient.invalidateQueries({ queryKey });
-            
-            // Show toast notification if enabled
-            if (enableToasts) {
-              const eventLabels = {
-                INSERT: 'added',
-                UPDATE: 'updated',
-                DELETE: 'removed'
-              };
-              
-              const action = eventLabels[payload.eventType as keyof typeof eventLabels] || 'changed';
-              toast.info(`${resourceName} ${action} successfully`);
-            }
-          } catch (error) {
-            console.error(`Error syncing ${resourceName} data:`, error);
-            if (onError && error instanceof Error) {
-              onError(error);
-            }
-          }
-        }
-      )
-      .subscribe(status => {
-        setSyncStatus(status === 'SUBSCRIBED' ? 'connected' : 'error');
-        if (status !== 'SUBSCRIBED' && enableToasts) {
-          toast.error(`Failed to sync ${resourceName} data in real-time`);
-        }
-      });   
+    // Initial fetch
+    fetchData();
 
-    // Cleanup subscription on unmount
+    // Set up real-time subscription
+    const subscription = supabase
+      .channel(`${table}-changes`)
+      .on("postgres_changes", {
+        event: realtimeEvents,
+        schema: "public",
+        table,
+      }, (payload) => {
+        if (onDataChange) {
+          onDataChange(payload);
+        }
+        fetchData();
+      })
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(subscription);
     };
-  }, [queryKey, resourceName, tableName, queryClient, enableToasts, onError]);
+  }, [table, column, value, realtimeEvents, fetchData, onDataChange]);
 
-  return { syncStatus };
+  return {
+    data,
+    status,
+    lastSyncTime,
+    error,
+    refresh: fetchData,
+    isLoading: status === "syncing",
+  };
 }

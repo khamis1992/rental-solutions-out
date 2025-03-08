@@ -224,6 +224,26 @@ export const AgreementList = () => {
     );
   }
 
+  const mappedAgreements: Agreement[] = agreements.map((agreement) => {
+    // Create a proper customer object when the relationship lookup failed
+    const customer = agreement.customer.error 
+      ? {
+          id: 'unknown',
+          full_name: 'Unknown Customer',
+          phone_number: '',
+          email: '',
+          address: '',
+          nationality: '',
+          driver_license: ''
+        }
+      : agreement.customer;
+      
+    return {
+      ...agreement,
+      customer
+    };
+  });
+
   return (
     <div className="bg-white rounded-lg shadow-sm border">
       <div className="p-6 border-b">
@@ -237,7 +257,7 @@ export const AgreementList = () => {
       
       <div className="p-6">
         <AgreementListContent
-          agreements={agreements}
+          agreements={mappedAgreements}
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}

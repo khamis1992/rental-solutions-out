@@ -1,133 +1,87 @@
 
 import React from "react";
-import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import { Loader } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { QueryStatus } from "@/hooks/useQueryWithStatus";
+import { Skeleton } from "@/components/ui/skeleton";
 
-interface DataLoaderProps {
-  status: QueryStatus;
-  children: React.ReactNode;
+export interface DataLoaderProps {
+  isLoading: boolean;
+  isError: boolean;
   error?: Error | null;
-  onRetry?: () => void;
-  statusText?: string;
   isEmpty?: boolean;
-  emptyState?: React.ReactNode;
-  loadingHeight?: string;
-  className?: string;
+  onRetry?: () => void;
+  loadingComponent?: React.ReactNode;
+  errorComponent?: React.ReactNode;
+  emptyComponent?: React.ReactNode;
+  skeletonCount?: number;
+  skeletonHeight?: number;
+  children: React.ReactNode;
 }
 
 export function DataLoader({
-  status,
-  children,
+  isLoading,
+  isError,
   error,
+  isEmpty,
   onRetry,
-  statusText,
-  isEmpty = false,
-  emptyState,
-  loadingHeight = "16rem",
-  className,
+  loadingComponent,
+  errorComponent,
+  emptyComponent,
+  skeletonCount = 3,
+  skeletonHeight = 50,
+  children,
 }: DataLoaderProps) {
-  // Placeholder for empty state if none is provided
-  const defaultEmptyState = (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <svg
-        className="w-16 h-16 text-muted-foreground/40 mb-4"
-        fill="none"
-        height="24"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        viewBox="0 0 24 24"
-        width="24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path d="M21 15V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9" />
-        <path d="M2 15h20" />
-        <path d="M14 19v-4" />
-        <path d="M10 19v-4" />
-        <path d="M6 19v-4" />
-        <path d="M18 19v-4" />
-      </svg>
-      <h3 className="text-lg font-medium">No data found</h3>
-      <p className="text-muted-foreground max-w-sm mt-2">
-        There are no items to display at this time. Check back later or try
-        changing your filters.
-      </p>
+  // Default loading state
+  const defaultLoading = (
+    <div className="w-full space-y-3">
+      {Array.from({ length: skeletonCount }).map((_, index) => (
+        <Skeleton 
+          key={index} 
+          className="w-full" 
+          style={{ height: `${skeletonHeight}px` }} 
+        />
+      ))}
     </div>
   );
 
-  // Handle loading state
-  if (status === "loading") {
-    return (
-      <div
-        className={`flex flex-col items-center justify-center ${className}`}
-        style={{ minHeight: loadingHeight }}
-      >
-        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-        <p className="text-sm text-muted-foreground animate-pulse">
-          {statusText || "Loading data..."}
-        </p>
-      </div>
-    );
+  // Default error state
+  const defaultError = (
+    <Alert variant="destructive">
+      <AlertTitle>Error loading data</AlertTitle>
+      <AlertDescription className="flex flex-col gap-2">
+        <p>{error?.message || "An unexpected error occurred."}</p>
+        {onRetry && (
+          <Button 
+            variant="outline" 
+            onClick={onRetry}
+            className="mt-2 self-start"
+          >
+            Try Again
+          </Button>
+        )}
+      </AlertDescription>
+    </Alert>
+  );
+
+  // Default empty state
+  const defaultEmpty = (
+    <div className="flex flex-col items-center justify-center p-8 text-center">
+      <p className="text-muted-foreground">No data available.</p>
+    </div>
+  );
+
+  if (isLoading) {
+    return <>{loadingComponent || defaultLoading}</>;
   }
 
-  // Handle refreshing state (show content with loading indicator)
-  if (status === "refreshing") {
-    return (
-      <div className={`relative ${className}`}>
-        <div className="absolute top-0 right-0 p-2">
-          <RefreshCw className="h-4 w-4 animate-spin text-primary" />
-        </div>
-        {children}
-      </div>
-    );
+  if (isError) {
+    return <>{errorComponent || defaultError}</>;
   }
 
-  // Handle error state
-  if (status === "error") {
-    return (
-      <Card className={`border-destructive/20 ${className}`}>
-        <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-          <AlertCircle className="h-10 w-10 text-destructive mb-4" />
-          <h3 className="text-lg font-medium">Something went wrong</h3>
-          <p className="text-muted-foreground mt-2 mb-4 max-w-md">
-            {error?.message || "Failed to load data. Please try again."}
-          </p>
-          {onRetry && (
-            <Button onClick={onRetry} variant="outline">
-              Try Again
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Handle empty state
   if (isEmpty) {
-    return (
-      <div className={className}>
-        {emptyState || defaultEmptyState}
-      </div>
-    );
+    return <>{emptyComponent || defaultEmpty}</>;
   }
 
-  // When data is successfully loaded, show partial or stale data indicators if needed
-  if (status === "partial" || status === "stale") {
-    return (
-      <div className={`relative ${className}`}>
-        <div className="absolute top-0 right-0 p-2 z-10">
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-            {status === "partial" ? "Partial Data" : "Outdated"}
-          </span>
-        </div>
-        {children}
-      </div>
-    );
-  }
-
-  // Default case - successful data load
-  return <div className={className}>{children}</div>;
+  return <>{children}</>;
 }
