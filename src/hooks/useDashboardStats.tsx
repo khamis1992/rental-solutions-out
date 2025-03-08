@@ -1,16 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
-export interface DashboardStats {
-  total_vehicles: number;
-  available_vehicles: number;
-  rented_vehicles: number;
-  maintenance_vehicles: number;
-  total_customers: number;
-  active_rentals: number;
-  monthly_revenue: number;
-}
+import { DashboardStats } from "@/types/dashboard.types";
 
 export const useDashboardStats = () => {
   return useQuery({
