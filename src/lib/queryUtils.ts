@@ -1,5 +1,5 @@
 
-import { PostgrestError } from '@supabase/supabase-js';
+import { PostgrestError, PostgrestSingleResponse } from '@supabase/supabase-js';
 
 /**
  * Type-safe helper for handling Supabase query results
@@ -8,7 +8,7 @@ import { PostgrestError } from '@supabase/supabase-js';
  * @returns The data from the query or the default value if there was an error
  */
 export function handleQueryResult<T>(
-  result: { data: T | null; error: PostgrestError | null },
+  result: PostgrestSingleResponse<T>,
   defaultValue: T | null = null
 ): T | null {
   if (result.error) {
@@ -114,4 +114,45 @@ export function withDefaults<T>(
 ): T {
   if (!obj) return defaults;
   return { ...defaults, ...obj };
+}
+
+/**
+ * Type-safe helper to ensure proper Supabase response handling for tables with relations
+ */
+export function processRelationalResponse<T, R>(
+  response: PostgrestSingleResponse<any>,
+  transformer: (data: any) => T[]
+): T[] {
+  if (response.error) {
+    console.error('Supabase query error:', response.error);
+    return [];
+  }
+  
+  try {
+    return transformer(response.data || []);
+  } catch (error) {
+    console.error('Error transforming relational data:', error);
+    return [];
+  }
+}
+
+/**
+ * Helper function to safely merge object with a default object
+ */
+export function mergeSafelyWithDefaults<T extends Record<string, any>>(
+  obj: Partial<T> | null | undefined,
+  defaults: T
+): T {
+  if (!obj) return { ...defaults };
+  
+  const result = { ...defaults };
+  
+  // Only copy properties that exist in the defaults object
+  Object.keys(defaults).forEach(key => {
+    if (obj[key] !== undefined) {
+      result[key] = obj[key];
+    }
+  });
+  
+  return result;
 }

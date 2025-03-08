@@ -12,10 +12,12 @@ export interface Customer {
   created_at: string;
   role: 'customer' | 'staff' | 'admin';
   status?: 'active' | 'inactive' | 'pending_review' | 'blacklisted' | 'suspended';
-  document_verification_status?: 'pending' | 'verified' | 'rejected';
+  document_verification_status?: 'pending' | 'verified' | 'rejected' | 'expired';
   profile_completion_score?: number;
   merged_into?: string | null;
   nationality?: string | null;
+  id_document_expiry?: string | null;
+  license_document_expiry?: string | null;
 }
 
 export interface CustomerWithRelations extends Customer {
@@ -44,4 +46,23 @@ export interface CustomerStatsData {
   pendingCustomers: number;
   newCustomersThisMonth: number;
   customersByStatus: Record<string, number>;
+}
+
+export interface CustomerProfile {
+  id: string;
+  full_name: string | null;
+  phone_number: string | null;
+  email: string | null;
+  address: string | null;
+  nationality: string | null;
+  driver_license: string | null;
+  id_document_expiry?: string | null;
+  license_document_expiry?: string | null;
+  status?: 'active' | 'inactive' | 'pending_review' | 'blacklisted' | 'suspended';
+  document_verification_status?: 'pending' | 'verified' | 'rejected' | 'expired';
+}
+
+export interface ProfileManagementProps {
+  customerId: string;
+  className?: string;
 }
