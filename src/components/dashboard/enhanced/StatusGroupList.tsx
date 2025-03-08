@@ -1,41 +1,49 @@
 
-import { ReactNode } from "react";
-import { VehicleStatus } from "@/types/vehicle";
-import { StatusGroup } from "@/types/dashboard.types";
-import { StatusGroupV2 } from "./StatusGroupV2";
 import { Card, CardContent } from "@/components/ui/card";
+import { StatusGroupListProps, VehicleStatus } from "@/types/dashboard.types";
+import { Badge } from "@/components/ui/badge";
 
-export interface StatusGroupListProps {
-  groupedStatuses: StatusGroup[];
-  isLoading: boolean;
-}
-
-export const StatusGroupList = ({ 
-  groupedStatuses, 
-  isLoading 
+export const StatusGroupList = ({
+  statuses,
+  statusConfigs,
+  onStatusClick
 }: StatusGroupListProps) => {
-  if (isLoading) {
-    return (
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-        {[1, 2, 3].map((i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-6 h-48" />
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
   return (
-    <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-      {groupedStatuses.map((group) => (
-        <StatusGroupV2
-          key={group.name}
-          title={group.name}
-          icon={group.icon as ReactNode}
-          items={group.items}
-        />
-      ))}
-    </div>
+    <Card className="w-full">
+      <CardContent className="p-4">
+        <div className="grid grid-cols-3 gap-2">
+          {statuses.map((statusItem) => {
+            const status = statusItem.status;
+            const config = statusConfigs[status];
+            
+            return (
+              <div 
+                key={status}
+                className="flex flex-col items-center p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                onClick={() => onStatusClick(status)}
+              >
+                <div 
+                  className="p-2 rounded-full mb-2"
+                  style={{ backgroundColor: config?.bgColor || `${config?.color}20` }}
+                >
+                  {config?.icon}
+                </div>
+                <span className="text-sm font-medium">{config?.label}</span>
+                <Badge 
+                  variant="outline" 
+                  className="mt-1"
+                  style={{ 
+                    color: config?.color,
+                    borderColor: config?.color
+                  }}
+                >
+                  {statusItem.count}
+                </Badge>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
   );
 };

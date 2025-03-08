@@ -1,7 +1,7 @@
 
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Car, CarTaxiFront, Wrench, Receipt, CreditCard } from "lucide-react";
+import { Users, Car, CarTaxiFront, Wrench, Receipt } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const LiveStatistics = () => {

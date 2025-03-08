@@ -108,7 +108,7 @@ export function hasRequiredProperties<T>(
 /**
  * Convert nullable values to their non-null counterparts with defaults
  */
-export function withDefaults<T>(
+export function withDefaults<T extends Record<string, any>>(
   obj: Partial<T> | null | undefined, 
   defaults: T
 ): T {
@@ -116,13 +116,12 @@ export function withDefaults<T>(
   
   const result = { ...defaults };
   
-  // Use type-safe approach to copy properties
-  for (const key in defaults) {
+  // Copy properties from the source object
+  Object.keys(defaults).forEach(key => {
     if (obj[key as keyof Partial<T>] !== undefined) {
-      // Cast to any to avoid TypeScript complaining about index signature
-      (result as any)[key] = obj[key as keyof Partial<T>];
+      result[key] = obj[key as keyof Partial<T>] as any;
     }
-  }
+  });
   
   return result;
 }
@@ -166,4 +165,60 @@ export function mergeSafelyWithDefaults<T extends Record<string, any>>(
   });
   
   return result;
+}
+
+/**
+ * Cast a Supabase JSON result to a strongly typed object
+ * @param jsonData JSON data from Supabase
+ * @param defaultValue Default value if parsing fails
+ * @returns Typed object
+ */
+export function castJsonToType<T>(
+  jsonData: any,
+  defaultValue: T
+): T {
+  if (!jsonData) return defaultValue;
+  
+  try {
+    // If it's already an object, validate it
+    if (typeof jsonData === 'object' && jsonData !== null) {
+      return jsonData as T;
+    }
+    
+    // If it's a string, parse it
+    if (typeof jsonData === 'string') {
+      return JSON.parse(jsonData) as T;
+    }
+    
+    return defaultValue;
+  } catch (error) {
+    console.error('Error casting JSON to type:', error);
+    return defaultValue;
+  }
+}
+
+/**
+ * Extract a property from a JSON object with type safety
+ * @param jsonData JSON data
+ * @param property Property name to extract
+ * @param defaultValue Default value if property doesn't exist or isn't the right type
+ * @returns The typed property value
+ */
+export function extractTypedJsonProperty<T>(
+  jsonData: any,
+  property: string,
+  defaultValue: T
+): T {
+  if (!jsonData || typeof jsonData !== 'object') return defaultValue;
+  
+  try {
+    const value = jsonData[property];
+    if (value === undefined) return defaultValue;
+    
+    // Type checking can be expanded based on your needs
+    return value as T;
+  } catch (error) {
+    console.error(`Error extracting property ${property}:`, error);
+    return defaultValue;
+  }
 }

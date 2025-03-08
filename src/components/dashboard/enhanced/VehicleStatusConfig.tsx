@@ -1,136 +1,88 @@
 
+import { Car, Wrench, AlertTriangle, X, ShieldCheck, ThumbsUp, HelpCircle } from "lucide-react";
 import { StatusConfigMap } from "@/types/dashboard.types";
-import { 
-  AlertTriangle, 
-  Building, 
-  Car, 
-  CheckCircle2, 
-  AlertCircle,
-  Wrench, 
-  Key, 
-  Lock, 
-  Ban,
-  ParkingCircle,
-  ArrowRight,
-  Timer,
-  ShieldAlert,
-  Truck,
-  Hammer
-} from "lucide-react";
 
 export const STATUS_CONFIG: StatusConfigMap = {
-  available: { 
-    color: "#10B981", 
-    label: "Available", 
-    bgColor: "bg-emerald-500/10",
-    icon: <Car className="text-emerald-500" />,
+  available: {
+    color: "#22c55e",
+    bgColor: "#22c55e10",
+    label: "Available",
+    icon: <Car className="h-5 w-5 text-green-500" />,
+    description: "Vehicles ready to be rented",
+    gradient: "from-green-50 to-green-100",
   },
-  rented: { 
-    color: "#3B82F6", 
-    label: "Rented Out", 
-    bgColor: "bg-blue-500/10",
-    icon: <Key className="text-blue-500" />,
+  rented: {
+    color: "#3b82f6",
+    bgColor: "#3b82f610",
+    label: "Rented",
+    icon: <Car className="h-5 w-5 text-blue-500" />,
+    description: "Vehicles currently rented out",
+    gradient: "from-blue-50 to-blue-100",
   },
-  maintenance: { 
-    color: "#F59E0B", 
-    label: "In Maintenance", 
-    bgColor: "bg-amber-500/10",
-    icon: <Wrench className="text-amber-500" />,
+  maintenance: {
+    color: "#f59e0b",
+    bgColor: "#f59e0b10",
+    label: "Maintenance",
+    icon: <Wrench className="h-5 w-5 text-amber-500" />,
+    description: "Vehicles undergoing service or repair",
+    gradient: "from-amber-50 to-amber-100",
   },
-  reserve: { 
-    color: "#8B5CF6", 
-    label: "In Reserve", 
-    bgColor: "bg-violet-500/10",
-    icon: <ParkingCircle className="text-violet-500" />,
+  accident: {
+    color: "#ef4444",
+    bgColor: "#ef444410",
+    label: "Accident",
+    icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
+    description: "Vehicles involved in accidents",
+    gradient: "from-red-50 to-red-100",
   },
-  police_station: { 
-    color: "#8B5CF6", 
-    label: "At Police Station", 
-    bgColor: "bg-violet-500/10",
-    icon: <Building className="text-violet-500" />,
+  stolen: {
+    color: "#6b7280",
+    bgColor: "#6b728010",
+    label: "Stolen",
+    icon: <X className="h-5 w-5 text-gray-500" />,
+    description: "Vehicles reported as stolen",
+    gradient: "from-gray-100 to-gray-200",
   },
-  accident: { 
-    color: "#EF4444", 
-    label: "In Accident", 
-    bgColor: "bg-red-500/10",
-    icon: <AlertTriangle className="text-red-500" />,
+  retired: {
+    color: "#9ca3af",
+    bgColor: "#9ca3af10",
+    label: "Retired",
+    icon: <X className="h-5 w-5 text-gray-400" />,
+    description: "Vehicles removed from the fleet",
+    gradient: "from-gray-50 to-gray-100",
   },
-  stolen: { 
-    color: "#1F2937", 
-    label: "Reported Stolen", 
-    bgColor: "bg-gray-800/10",
-    icon: <Ban className="text-gray-800 dark:text-gray-200" />,
+  pending_repair: {
+    color: "#d97706",
+    bgColor: "#d9770610",
+    label: "Pending Repair",
+    icon: <Wrench className="h-5 w-5 text-amber-600" />,
+    description: "Vehicles awaiting repair",
+    gradient: "from-amber-50 to-amber-100",
   },
-  retired: { 
-    color: "#6B7280", 
-    label: "Retired", 
-    bgColor: "bg-gray-500/10",
-    icon: <Lock className="text-gray-500" />,
+  reserve: {
+    color: "#8b5cf6",
+    bgColor: "#8b5cf610",
+    label: "Reserve",
+    icon: <ShieldCheck className="h-5 w-5 text-violet-500" />,
+    description: "Vehicles held in reserve",
+    gradient: "from-violet-50 to-violet-100",
   },
-  pending_repair: { 
-    color: "#F59E0B", 
-    label: "Pending Repair", 
-    bgColor: "bg-amber-500/10",
-    icon: <Wrench className="text-amber-500" />,
+  police_station: {
+    color: "#1e40af",
+    bgColor: "#1e40af10",
+    label: "Police Station",
+    icon: <ShieldCheck className="h-5 w-5 text-blue-800" />,
+    description: "Vehicles at police station",
+    gradient: "from-blue-50 to-blue-200",
   },
-  in_transit: { 
-    color: "#0EA5E9", 
-    label: "In Transit", 
-    bgColor: "bg-sky-500/10",
-    icon: <ArrowRight className="text-sky-500" />,
+  unknown: {
+    color: "#6b7280",
+    bgColor: "#6b728010",
+    label: "Unknown",
+    icon: <HelpCircle className="h-5 w-5 text-gray-500" />,
+    description: "Status unknown",
+    gradient: "from-gray-50 to-gray-100",
   },
-  scheduled: { 
-    color: "#14B8A6", 
-    label: "Scheduled", 
-    bgColor: "bg-teal-500/10",
-    icon: <Timer className="text-teal-500" />,
-  },
-  inspection: { 
-    color: "#8B5CF6", 
-    label: "Under Inspection", 
-    bgColor: "bg-violet-500/10",
-    icon: <ShieldAlert className="text-violet-500" />,
-  },
-  delivery: { 
-    color: "#22C55E", 
-    label: "Out for Delivery", 
-    bgColor: "bg-green-500/10",
-    icon: <Truck className="text-green-500" />,
-  },
-  repair: { 
-    color: "#EC4899", 
-    label: "In Repair", 
-    bgColor: "bg-pink-500/10",
-    icon: <Hammer className="text-pink-500" />,
-  }
 };
 
-export const GROUP_ICONS = {
-  operational: <CheckCircle2 className="h-5 w-5 text-emerald-500" />,
-  attention: <AlertCircle className="h-5 w-5 text-amber-500" />,
-  critical: <AlertTriangle className="h-5 w-5 text-red-500" />
-};
-
-export const getStatusGroup = (status: string): 'operational' | 'attention' | 'critical' => {
-  switch (status) {
-    case 'available':
-    case 'rented':
-    case 'reserve':
-    case 'in_transit':
-    case 'scheduled':
-    case 'delivery':
-      return 'operational';
-    case 'maintenance':
-    case 'pending_repair':
-    case 'retired':
-    case 'police_station':
-    case 'inspection': 
-    case 'repair':
-      return 'attention';
-    case 'accident':
-    case 'stolen':
-      return 'critical';
-    default:
-      return 'attention';
-  }
-};
+export default STATUS_CONFIG;

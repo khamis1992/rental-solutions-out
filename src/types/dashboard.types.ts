@@ -73,6 +73,7 @@ export interface StatusConfigMap {
     icon: ReactNode;
     description: string;
     gradient: string;
+    bgColor?: string; // Optional background color
   };
 }
 
@@ -99,4 +100,37 @@ export interface CustomerDetails {
   full_name: string;
   phone_number: string;
   email?: string;
+}
+
+export interface StatusGroupListProps {
+  statuses: StatusItem[];
+  statusConfigs: StatusConfigMap;
+  onStatusClick: (status: VehicleStatus) => void;
+}
+
+export interface DashboardStatsProps {
+  stats: DashboardStats;
+  isLoading?: boolean;
+}
+
+export interface Dashboard {
+  id: string;
+  name: string;
+  layout: Record<string, any>;
+  widgets: Widget[];
+  user_id?: string;
+  is_default?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Widget {
+  id: string;
+  type: string;
+  title: string;
+  settings: Record<string, any>;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
