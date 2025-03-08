@@ -8,9 +8,15 @@ import { useVehicleMetrics } from "@/hooks/useVehicleMetrics";
 import { useRealTimeVehicleUpdates } from "@/hooks/useRealTimeVehicleUpdates";
 import { RealTimeIndicator } from "./RealTimeIndicator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Car, BarChart3, PieChart, ActivitySquare } from "lucide-react";
+import { Car, BarChart3, PieChart, ActivitySquare, Calendar, Clock, ArrowRight } from "lucide-react";
 import { StatusItem, VehicleStatus } from "@/types/dashboard.types";
 import { VehicleStatusConfig } from "./VehicleStatusConfig";
+import { DashboardHeader } from "./DashboardHeader";
+import { KeyMetricsCards } from "./KeyMetricsCards";
+import { RecentActivity } from "./RecentActivity";
+import { Button } from "@/components/ui/button";
+import { FinancialOverview } from "@/components/finance/dashboard/FinancialOverview";
+import { QuickActions } from "./QuickActions";
 
 export const EnhancedDashboard = () => {
   const [currentView, setCurrentView] = useState<"stats" | "charts">("stats");
@@ -47,47 +53,47 @@ export const EnhancedDashboard = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header with Connection Status */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <RealTimeIndicator 
-          hasChanges={recentStatusChanges.length > 0} 
-          lastUpdate={lastUpdate} 
-          status={connectedStatus} 
-        />
-      </div>
-
-      {/* Live Statistics */}
-      <LiveStatistics />
-
-      {/* Vehicle Status Overview */}
-      <div>
-        <Card>
-          <CardHeader className="pb-2">
+    <div className="space-y-6 animate-fade-in">
+      {/* Dashboard Header with Date, Time and Stats */}
+      <DashboardHeader />
+      
+      {/* Key Metrics Grid */}
+      <KeyMetricsCards metrics={metrics} isLoading={isLoading} />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Vehicle Status Overview - Takes 2/3 of width on large screens */}
+        <Card className="lg:col-span-2 overflow-hidden border border-border/40 shadow-sm hover:shadow-md transition-all duration-200">
+          <CardHeader className="pb-2 border-b border-border/20 bg-gradient-to-r from-card to-muted/30">
             <CardTitle className="text-xl flex items-center gap-2">
-              <Car className="h-5 w-5 text-muted-foreground" />
-              Vehicle Status Overview
+              <Car className="h-5 w-5 text-primary/70" />
+              Vehicle Fleet Status
+              <div className="ml-auto">
+                <RealTimeIndicator 
+                  hasChanges={recentStatusChanges.length > 0} 
+                  lastUpdate={lastUpdate} 
+                  status={connectedStatus} 
+                />
+              </div>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="stats" className="mt-2">
-              <TabsList>
-                <TabsTrigger value="stats" onClick={() => setCurrentView("stats")}>
+          <CardContent className="p-0">
+            <Tabs defaultValue="stats" className="w-full">
+              <TabsList className="w-full justify-start rounded-none border-b">
+                <TabsTrigger value="stats" onClick={() => setCurrentView("stats")} className="data-[state=active]:bg-background/80">
                   <BarChart3 className="h-4 w-4 mr-2" />
                   Status Breakdown
                 </TabsTrigger>
-                <TabsTrigger value="charts" onClick={() => setCurrentView("charts")}>
+                <TabsTrigger value="charts" onClick={() => setCurrentView("charts")} className="data-[state=active]:bg-background/80">
                   <PieChart className="h-4 w-4 mr-2" />
                   Distribution Chart
                 </TabsTrigger>
-                <TabsTrigger value="activity">
+                <TabsTrigger value="activity" className="data-[state=active]:bg-background/80">
                   <ActivitySquare className="h-4 w-4 mr-2" />
                   Recent Activity
                 </TabsTrigger>
               </TabsList>
               
-              <TabsContent value="stats" className="mt-4">
+              <TabsContent value="stats" className="pt-4 px-4 pb-4 animate-fade-in">
                 <StatusGroupList 
                   statuses={statusItems}
                   statusConfigs={VehicleStatusConfig}
@@ -96,7 +102,7 @@ export const EnhancedDashboard = () => {
                 />
               </TabsContent>
               
-              <TabsContent value="charts" className="mt-6">
+              <TabsContent value="charts" className="pt-6 pb-4 animate-fade-in">
                 <div className="flex flex-col items-center">
                   <VehicleStatusDonut 
                     data={donutData} 
@@ -105,38 +111,88 @@ export const EnhancedDashboard = () => {
                 </div>
               </TabsContent>
               
-              <TabsContent value="activity" className="mt-4">
-                <div className="space-y-4">
-                  {recentStatusChanges.length > 0 ? (
-                    recentStatusChanges.map((change, index) => (
-                      <div key={index} className="flex items-start p-3 border rounded-lg">
-                        <div className="mr-3 mt-1">
-                          <div className={`h-3 w-3 rounded-full ${
-                            change.newStatus === 'available' ? 'bg-green-500' :
-                            change.newStatus === 'rented' ? 'bg-blue-500' :
-                            change.newStatus === 'maintenance' ? 'bg-orange-500' : 'bg-gray-500'
-                          }`} />
-                        </div>
-                        <div>
-                          <p className="font-medium">{change.vehicle.make} {change.vehicle.model}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Status changed from <span className="font-medium">{change.oldStatus}</span> to{" "}
-                            <span className="font-medium">{change.newStatus}</span>
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {change.timestamp.toLocaleTimeString()}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-6 text-muted-foreground">
-                      No recent status changes
-                    </div>
-                  )}
-                </div>
+              <TabsContent value="activity" className="p-4 animate-fade-in">
+                <RecentActivity 
+                  activities={recentStatusChanges}
+                  limit={5}
+                  isLoading={isLoading}
+                />
               </TabsContent>
             </Tabs>
+          </CardContent>
+        </Card>
+
+        {/* Financial Overview - Takes 1/3 of width on large screens */}
+        <Card className="overflow-hidden border border-border/40 shadow-sm hover:shadow-md transition-all duration-200">
+          <CardHeader className="pb-2 border-b border-border/20 bg-gradient-to-r from-card to-muted/30">
+            <CardTitle className="text-xl flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary/70" />
+              Financial Snapshot
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            <FinancialOverview />
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Quick Actions and Schedule Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2 overflow-hidden border border-border/40 shadow-sm hover:shadow-md transition-all duration-200">
+          <CardHeader className="pb-2 border-b border-border/20 bg-gradient-to-r from-card to-muted/30">
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary/70" />
+              Quick Actions
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            <QuickActions />
+          </CardContent>
+        </Card>
+        
+        <Card className="overflow-hidden border border-border/40 shadow-sm hover:shadow-md transition-all duration-200">
+          <CardHeader className="pb-2 border-b border-border/20 bg-gradient-to-r from-card to-muted/30">
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Clock className="h-5 w-5 text-primary/70" />
+              Upcoming Schedule
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="space-y-4">
+              <div className="p-3 rounded-lg border border-border/50 bg-background/50 hover:bg-background/80 transition-colors">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-medium">Vehicle Inspection</h4>
+                    <p className="text-sm text-muted-foreground">Toyota Camry - ABC123</p>
+                  </div>
+                  <span className="text-sm bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-1 rounded">Today</span>
+                </div>
+              </div>
+              
+              <div className="p-3 rounded-lg border border-border/50 bg-background/50 hover:bg-background/80 transition-colors">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-medium">Lease Expiration</h4>
+                    <p className="text-sm text-muted-foreground">Honda Civic - XYZ789</p>
+                  </div>
+                  <span className="text-sm bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-1 rounded">Tomorrow</span>
+                </div>
+              </div>
+              
+              <div className="p-3 rounded-lg border border-border/50 bg-background/50 hover:bg-background/80 transition-colors">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-medium">Maintenance Due</h4>
+                    <p className="text-sm text-muted-foreground">BMW X5 - LMN456</p>
+                  </div>
+                  <span className="text-sm bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded">In 2 days</span>
+                </div>
+              </div>
+              
+              <Button variant="outline" className="w-full mt-2 text-sm">
+                View Full Schedule <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
