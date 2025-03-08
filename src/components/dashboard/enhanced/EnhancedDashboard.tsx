@@ -1,150 +1,170 @@
 
-import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
-import { useDashboardStats } from "@/hooks/useDashboardStats";
-import { useVehicleMetrics } from "@/hooks/useVehicleMetrics";
-import { useDashboardSubscriptions } from "@/hooks/use-dashboard-subscriptions";
-import { useRealTimeVehicleUpdates } from "@/hooks/useRealTimeVehicleUpdates";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { VehicleStatusChartV2 } from "@/components/dashboard/enhanced/VehicleStatusChartV2";
-import { DashboardStats } from "@/components/dashboard/DashboardStats";
-import { SmartNotifications } from "@/components/dashboard/SmartNotifications";
-import { QuickActions } from "@/components/dashboard/QuickActions";
-import { RecentActivity } from "@/components/dashboard/RecentActivity";
-import { WelcomeHeader } from "@/components/dashboard/WelcomeHeader";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { toast } from "sonner";
-import { ErrorBoundary } from "@/components/ui/error-boundary";
-import { RealTimeIndicator } from "./RealTimeIndicator";
+import { useState } from "react";
+import { useVehicleStatus } from "@/hooks/useVehicleStatus";
+import { StatusGroupList } from "./StatusGroupList";
 import { LiveStatistics } from "./LiveStatistics";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { VehicleStatusDonut } from "./VehicleStatusDonut";
+import { useVehicleMetrics } from "@/hooks/useVehicleMetrics";
+import { formatCurrency } from "@/lib/utils";
 
 export const EnhancedDashboard = () => {
-  const [mounted, setMounted] = useState(false);
-  
-  // Use our real-time stats hook
-  const { stats, isLoading, error } = useDashboardStats();
-  
-  // Use vehicle metrics for enhanced vehicle data
-  const { metrics: vehicleMetrics } = useVehicleMetrics();
-  
-  // Subscribe to real-time updates
-  const dashboardUpdates = useDashboardSubscriptions({
-    enableToasts: true,
-    onVehicleChange: (payload) => {
-      console.log("Vehicle update received:", payload);
-    },
-    onPaymentChange: (payload) => {
-      console.log("Payment update received:", payload);
-    }
+  const { groupedStatuses, isLoading: statusesLoading } = useVehicleStatus();
+  const { metrics, isLoading: metricsLoading } = useVehicleMetrics({
+    refreshInterval: 60000, // 1 minute
+    includeRealTimeUpdates: true
   });
-  
-  // Subscribe to real-time vehicle status updates
-  const vehicleUpdates = useRealTimeVehicleUpdates({
-    notifyOnStatusChange: true,
-    includeLocation: false,
-    onUpdate: (vehicle) => {
-      console.log("Vehicle status changed:", vehicle);
-    }
-  });
-
-  useEffect(() => {
-    setMounted(true);
-    
-    // Show toast if there are changes
-    if (mounted && dashboardUpdates.hasChanges) {
-      toast.info(`Dashboard updated with ${dashboardUpdates.vehicleChanges + dashboardUpdates.paymentChanges + dashboardUpdates.customerChanges} changes`);
-    }
-  }, [mounted, dashboardUpdates.hasChanges, dashboardUpdates.vehicleChanges, dashboardUpdates.paymentChanges, dashboardUpdates.customerChanges]);
-
-  const fadeInClass = mounted ? "opacity-100" : "opacity-0";
+  const [activeTab, setActiveTab] = useState<string>("overview");
 
   return (
-    <div className={`space-y-8 mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-[1400px] transition-opacity duration-500 ${fadeInClass}`}>
-      {/* Welcome Card with Enterprise Styling */}
-      <Card className="bg-gradient-to-r from-card to-muted/30 border-border/50 shadow-sm hover:shadow-md hover:border-border/70 transition-all duration-200">
-        <div className="p-6 flex justify-between items-center">
-          <WelcomeHeader />
-          <RealTimeIndicator 
-            hasChanges={dashboardUpdates.hasChanges}
-            lastUpdate={dashboardUpdates.lastUpdate}
-          />
-        </div>
-      </Card>
+    <div className="space-y-8 p-4">
+      <LiveStatistics />
 
-      {/* Live Statistics Panel */}
-      <LiveStatistics 
-        stats={stats} 
-        vehicleMetrics={vehicleMetrics}
-        updates={vehicleUpdates}
-        isLoading={isLoading}
-      />
+      <Tabs 
+        value={activeTab} 
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
+        <TabsList className="grid grid-cols-3 w-full max-w-md">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="status">Vehicle Status</TabsTrigger>
+          <TabsTrigger value="metrics">Performance</TabsTrigger>
+        </TabsList>
 
-      {/* Dashboard Stats with Enterprise Design */}
-      <div className="grid gap-6">
-        <ErrorBoundary>
-          <DashboardStats 
-            stats={stats} 
-            isLoading={isLoading} 
-            error={error as Error}
-          />
-        </ErrorBoundary>
-      </div>
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Vehicle Status Overview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <VehicleStatusDonut />
+              </CardContent>
+            </Card>
 
-      {/* Vehicle Status Chart with Enterprise Styling */}
-      <ErrorBoundary>
-        <VehicleStatusChartV2 />
-      </ErrorBoundary>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Fleet Utilization</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {metrics?.fleetUtilization ? `${Math.round(metrics.fleetUtilization)}%` : 'Loading...'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Percentage of vehicles currently rented
+                </p>
+                <div className="mt-4 h-2 w-full bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary"
+                    style={{ width: `${metrics?.fleetUtilization || 0}%` }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-      {/* Activity & Notifications with Tabbed Interface */}
-      <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
-        {/* SmartNotifications Card with Enterprise Styling */}
-        <Card className="bg-card/90 backdrop-blur-sm border-border/50 hover:border-border/70 transition-all duration-200 shadow-sm hover:shadow-md h-[400px] overflow-hidden group">
-          <div className="h-1 w-full bg-primary/80 transform origin-left group-hover:scale-x-105 transition-transform duration-300"></div>
-          <div className="flex items-center justify-between p-5 border-b border-border/50">
-            <h3 className="font-semibold text-foreground flex items-center gap-2 tracking-tight">
-              <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse"></span>
-              Notifications & Alerts
-            </h3>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Maintenance Rate</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {metrics?.maintenanceRate ? `${Math.round(metrics.maintenanceRate)}%` : 'Loading...'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Vehicles currently in maintenance
+                </p>
+                <div className="mt-4 h-2 w-full bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-amber-500"
+                    style={{ width: `${metrics?.maintenanceRate || 0}%` }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          <ScrollArea className="h-[342px]">
-            <ErrorBoundary>
-              <SmartNotifications />
-            </ErrorBoundary>
-          </ScrollArea>
-        </Card>
-        
-        {/* Recent Activity with Enterprise Styling */}
-        <Card className="bg-card/90 backdrop-blur-sm border-border/50 hover:border-border/70 transition-all duration-200 shadow-sm hover:shadow-md h-[400px] overflow-hidden group">
-          <div className="h-1 w-full bg-success/80 transform origin-left group-hover:scale-x-105 transition-transform duration-300"></div>
-          <div className="flex items-center justify-between p-5 border-b border-border/50">
-            <h3 className="font-semibold text-foreground flex items-center gap-2 tracking-tight">
-              <span className="flex h-2 w-2 rounded-full bg-success animate-pulse"></span>
-              Recent Activity
-            </h3>
-            <Tabs defaultValue="all" className="w-[200px]">
-              <TabsList className="grid grid-cols-3 h-8 bg-muted/50">
-                <TabsTrigger value="all" className="text-xs font-medium">All</TabsTrigger>
-                <TabsTrigger value="important" className="text-xs font-medium">Important</TabsTrigger>
-                <TabsTrigger value="new" className="text-xs font-medium">New</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-          <ScrollArea className="h-[342px]">
-            <ErrorBoundary>
-              <RecentActivity />
-            </ErrorBoundary>
-          </ScrollArea>
-        </Card>
-      </div>
+        </TabsContent>
 
-      {/* Quick Actions with Enterprise Design */}
-      <div className="w-full">
-        <ErrorBoundary>
-          <QuickActions />
-        </ErrorBoundary>
-      </div>
+        <TabsContent value="status" className="space-y-4">
+          <StatusGroupList groupedStatuses={groupedStatuses} isLoading={statusesLoading} />
+        </TabsContent>
+
+        <TabsContent value="metrics" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Avg Daily Revenue</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {metrics?.avgDailyRevenue ? formatCurrency(metrics.avgDailyRevenue) : 'Loading...'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Per vehicle revenue
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Revenue Growth</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {metrics?.revenueGrowth ? `${metrics.revenueGrowth}%` : 'Loading...'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Month over month
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Maintenance Cost</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {metrics?.estimatedMaintenanceCost 
+                    ? formatCurrency(metrics.estimatedMaintenanceCost) 
+                    : 'Loading...'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Estimated total cost
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Mileage Overview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm">Average:</span>
+                    <span className="font-medium">
+                      {metrics?.mileageStats?.avg ? `${metrics.mileageStats.avg.toLocaleString()} km` : 'Loading...'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Maximum:</span>
+                    <span className="font-medium">
+                      {metrics?.mileageStats?.max ? `${metrics.mileageStats.max.toLocaleString()} km` : 'Loading...'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Minimum:</span>
+                    <span className="font-medium">
+                      {metrics?.mileageStats?.min ? `${metrics.mileageStats.min.toLocaleString()} km` : 'Loading...'}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
-
-export default EnhancedDashboard;
