@@ -1,7 +1,8 @@
 
 import { useEffect, useState } from 'react';
+import { UseIsMobileResult } from '@/types/hooks.types';
 
-export const useIsMobile = () => {
+export const useIsMobile = (): UseIsMobileResult => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -21,5 +22,5 @@ export const useIsMobile = () => {
     };
   }, []);
 
-  return isMobile;
+  return { isMobile };
 };

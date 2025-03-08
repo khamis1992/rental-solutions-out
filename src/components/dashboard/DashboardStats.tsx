@@ -2,18 +2,12 @@
 import { Car, Key, Wrench, Users, TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { formatCurrency, formatPercentage, cn } from "@/lib/utils";
-import { DashboardStats as DashboardStatsType } from "@/types/dashboard.types";
+import { DashboardStats as DashboardStatsType, DashboardStatsProps } from "@/types/dashboard.types";
 import { useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { formatNumber } from "@/utils/formatters";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-
-interface DashboardStatsProps {
-  stats?: DashboardStatsType;
-  isLoading?: boolean;
-  error?: Error | null;
-}
 
 export const DashboardStats = ({ stats, isLoading, error }: DashboardStatsProps) => {
   const fleetUtilization = useMemo(() => {

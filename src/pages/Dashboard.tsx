@@ -12,11 +12,11 @@ import { toast } from "sonner";
 import { VehicleStatusChartV2 } from "@/components/dashboard/enhanced/VehicleStatusChartV2";
 import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DashboardStats as DashboardStatsType } from "@/types/dashboard.types";
+import { DashboardStats as DashboardStatsType, DashboardPageProps } from "@/types/dashboard.types";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { useDashboardSubscriptions } from "@/hooks/use-dashboard-subscriptions";
 
-const Dashboard = () => {
+const Dashboard = ({ initialStats, config, eventHandlers }: DashboardPageProps) => {
   const [mounted, setMounted] = useState(false);
 
   // Setup real-time subscriptions
@@ -77,6 +77,7 @@ const Dashboard = () => {
             stats={statsData} 
             isLoading={isLoading} 
             error={error as Error}
+            onStatClick={eventHandlers?.onStatCardClick}
           />
         </ErrorBoundary>
       </div>

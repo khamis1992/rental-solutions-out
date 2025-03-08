@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { VehicleStatus, PaymentStatus, AgreementStatus } from '@/types/dashboard.types';
+import { UseDashboardSubscriptionsResult } from '@/types/hooks.types';
 
 interface DatabaseChangeEvent {
   table: string;
@@ -11,7 +12,7 @@ interface DatabaseChangeEvent {
   old?: Record<string, any>;
 }
 
-export const useDashboardSubscriptions = () => {
+export const useDashboardSubscriptions = (): UseDashboardSubscriptionsResult => {
   const subscriptionRef = useRef<any>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 

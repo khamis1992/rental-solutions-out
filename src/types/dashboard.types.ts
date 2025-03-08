@@ -64,3 +64,107 @@ export interface DashboardConfig {
     compactView: boolean;
   };
 }
+
+// Event handler types
+export interface DashboardEventHandlers {
+  onRefresh?: () => void;
+  onStatCardClick?: (statKey: keyof DashboardStats) => void;
+  onDateRangeChange?: (range: DashboardConfig['defaultDateRange']) => void;
+  onConfigChange?: (config: Partial<DashboardConfig>) => void;
+}
+
+// State management types
+export interface DashboardState {
+  isLoading: boolean;
+  error: Error | null;
+  stats: DashboardStats | null;
+  config: DashboardConfig;
+  lastUpdated: Date | null;
+}
+
+// API Response types
+export interface DashboardApiResponse {
+  data: DashboardStats | null;
+  error: string | null;
+  timestamp: string;
+}
+
+// Fleet status summary type
+export interface FleetStatusSummary {
+  status: VehicleStatus;
+  count: number;
+  percentage: number;
+  icon?: React.ComponentType<{ className?: string }>;
+  color?: string;
+}
+
+// Vehicle sensor data types
+export interface VehicleSensorData {
+  vehicleId: string;
+  timestamp: Date;
+  mileage: number;
+  fuelLevel: number;
+  engineHealth: number;
+  tirePressure: {
+    frontLeft: number;
+    frontRight: number;
+    rearLeft: number;
+    rearRight: number;
+  };
+  batteryLevel: number;
+  locationData?: {
+    latitude: number;
+    longitude: number;
+    speed: number;
+  };
+}
+
+// Notification types for dashboard
+export interface DashboardNotification {
+  id: string;
+  type: 'info' | 'warning' | 'error' | 'success';
+  title: string;
+  message: string;
+  timestamp: Date;
+  isRead: boolean;
+  actionUrl?: string;
+  entityId?: string;
+  entityType?: 'vehicle' | 'customer' | 'agreement' | 'payment';
+}
+
+// Chart data types
+export interface ChartDataPoint {
+  name: string;
+  value: number;
+  color?: string;
+}
+
+export interface TimeSeriesDataPoint {
+  timestamp: Date;
+  value: number;
+  category?: string;
+}
+
+// Dashboard component props
+export interface DashboardPageProps {
+  initialStats?: DashboardStats;
+  config?: Partial<DashboardConfig>;
+  eventHandlers?: DashboardEventHandlers;
+}
+
+// Dashboard stats component props
+export interface DashboardStatsProps {
+  stats?: DashboardStats;
+  isLoading?: boolean;
+  error?: Error | null;
+  onStatClick?: (statKey: keyof DashboardStats) => void;
+}
+
+// Theme and styling types
+export interface DashboardThemeConfig {
+  cardVariant: 'default' | 'filled' | 'outlined' | 'elevated';
+  colorScheme: 'primary' | 'neutral' | 'vibrant';
+  animationsEnabled: boolean;
+  compactMode: boolean;
+  borderRadius: 'square' | 'rounded' | 'pill';
+}
