@@ -2,26 +2,27 @@
 import { ChartDataPoint } from "@/types/dashboard.types";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
-interface DonutChartConfig {
-  width: number;
-  height: number;
-  innerRadius: number;
-  outerRadius: number;
-}
-
-interface DonutChartProps {
+interface VehicleStatusDonutProps {
   data: ChartDataPoint[];
-  config: DonutChartConfig;
-  primaryValue?: number | string;
-  primaryLabel?: string;
+  totalVehicles: number;
+  config?: {
+    width?: number;
+    height?: number;
+    innerRadius?: number;
+    outerRadius?: number;
+  };
 }
 
-export const DonutChart = ({ 
+export const VehicleStatusDonut = ({ 
   data, 
-  config,
-  primaryValue, 
-  primaryLabel
-}: DonutChartProps) => {
+  totalVehicles,
+  config = {
+    width: 300,
+    height: 300,
+    innerRadius: 60,
+    outerRadius: 100,
+  }
+}: VehicleStatusDonutProps) => {
   return (
     <div className="relative">
       <ResponsiveContainer width={config.width} height={config.height}>
@@ -44,17 +45,15 @@ export const DonutChart = ({
             ))}
           </Pie>
           <Tooltip 
-            formatter={(value: number) => [`${value}`, 'Count']}
+            formatter={(value: number) => [`${value} vehicles`, 'Count']}
             labelFormatter={(index: number) => data[index].name}
           />
         </PieChart>
       </ResponsiveContainer>
-      {primaryValue && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <p className="text-4xl font-bold">{primaryValue}</p>
-          {primaryLabel && <p className="text-sm text-muted-foreground">{primaryLabel}</p>}
-        </div>
-      )}
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <p className="text-4xl font-bold">{totalVehicles}</p>
+        <p className="text-sm text-muted-foreground">Total Vehicles</p>
+      </div>
     </div>
   );
 };

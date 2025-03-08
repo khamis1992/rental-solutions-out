@@ -193,3 +193,41 @@ export interface StatusConfig {
 }
 
 export type StatusConfigMap = Record<VehicleStatus, StatusConfig>;
+
+// New types for vehicle status chart components
+export interface VehicleStatusDonutProps {
+  data: ChartDataPoint[];
+  totalVehicles: number;
+  config?: {
+    width?: number;
+    height?: number;
+    innerRadius?: number;
+    outerRadius?: number;
+  };
+}
+
+export interface StatusGroup {
+  name: 'operational' | 'attention' | 'critical';
+  items: Array<{ status: VehicleStatus; count: number }>;
+  icon: React.ReactNode;
+}
+
+export interface StatusGroupListProps {
+  groups: StatusGroup[];
+  onStatusClick: (status: VehicleStatus) => void;
+  statusConfigs: Record<string, any>;
+}
+
+export interface VehicleStatusMetricsProps {
+  totalVehicles: number;
+  criticalCount: number;
+  isLoading: boolean;
+}
+
+export interface VehicleStatusDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  status: VehicleStatus;
+  vehicles: any[];
+  isLoading: boolean;
+}
