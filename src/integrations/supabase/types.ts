@@ -9665,6 +9665,7 @@ export type Database = {
         | "payment"
         | "status_change"
         | "document_upload"
+      customer_role: "customer" | "staff" | "admin"
       customer_status_type:
         | "active"
         | "inactive"

@@ -1,133 +1,96 @@
 
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
 import { useEffect, useState } from "react";
-import { Sun, Moon, CloudSun, UserRound, Settings, LucideIcon } from "lucide-react";
+import { useSessionContext } from "@supabase/auth-helpers-react";
+import { 
+  Sun, Moon, Cloud, CloudRain, Wind, CloudSnow, Umbrella, Droplets,
+  Bell, Calendar, Search, Settings
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useNavigate } from "react-router-dom";
-import { UserProfileMenu } from "@/components/layout/UserProfileMenu";
-import { NotificationsButton } from "@/components/layout/NotificationsButton";
-
-const motivationalQuotes = [
-  "Success is not final, failure is not fatal: it is the courage to continue that counts.",
-  "The only way to do great work is to love what you do.",
-  "Believe you can and you're halfway there.",
-  "Quality means doing it right when no one is looking.",
-  "The best way to predict the future is to create it.",
-  "Excellence is not a skill, it's an attitude.",
-  "Make each day your masterpiece.",
-  "The road to success is always under construction.",
-];
-
-const getTimeConfig = (hour: number): { icon: LucideIcon; gradient: string; greeting: string } => {
-  if (hour < 12) {
-    return {
-      icon: Sun,
-      gradient: "from-amber-500/20 via-yellow-500/20 to-orange-500/20",
-      greeting: "Good morning"
-    };
-  }
-  if (hour < 18) {
-    return {
-      icon: CloudSun,
-      gradient: "from-blue-500/20 via-cyan-500/20 to-sky-500/20",
-      greeting: "Good afternoon"
-    };
-  }
-  return {
-    icon: Moon,
-    gradient: "from-indigo-500/20 via-purple-500/20 to-violet-500/20",
-    greeting: "Good evening"
-  };
-};
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 export const WelcomeHeader = () => {
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [quote, setQuote] = useState("");
-  const navigate = useNavigate();
-
-  const { data: profile } = useQuery({
-    queryKey: ['profile'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', user.id)
-        .single();
-
-      return profile;
-    },
-  });
+  const { session } = useSessionContext();
+  const [greeting, setGreeting] = useState("");
+  const [weatherIcon, setWeatherIcon] = useState<React.ReactNode>(null);
+  const [notifications, setNotifications] = useState(3);
+  const userName = session?.user?.user_metadata?.full_name || "User";
+  
+  // Simulate different weather conditions for demo purposes
+  const weatherConditions = [
+    { icon: Sun, condition: "Sunny" },
+    { icon: Cloud, condition: "Cloudy" },
+    { icon: CloudRain, condition: "Rainy" },
+    { icon: Wind, condition: "Windy" },
+    { icon: CloudSnow, condition: "Snowy" },
+    { icon: Umbrella, condition: "Stormy" },
+    { icon: Droplets, condition: "Humid" }
+  ];
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
+    const hour = new Date().getHours();
+    
+    // Set appropriate greeting based on time of day
+    if (hour >= 5 && hour < 12) {
+      setGreeting("Good Morning");
+      setWeatherIcon(<Sun className="h-6 w-6 text-yellow-500" />);
+    } else if (hour >= 12 && hour < 18) {
+      setGreeting("Good Afternoon");
+      setWeatherIcon(<Sun className="h-6 w-6 text-orange-500" />);
+    } else {
+      setGreeting("Good Evening");
+      setWeatherIcon(<Moon className="h-6 w-6 text-indigo-400" />);
+    }
 
-    setQuote(motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]);
+    // Randomly pick a weather condition for demonstration
+    const randomWeather = weatherConditions[Math.floor(Math.random() * weatherConditions.length)];
+    const WeatherIcon = randomWeather.icon;
+    setWeatherIcon(<WeatherIcon className="h-6 w-6 text-blue-500" />);
 
-    return () => clearInterval(timer);
   }, []);
 
-  const timeConfig = getTimeConfig(currentTime.getHours());
-  const TimeIcon = timeConfig.icon;
-
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-full bg-gradient-to-r ${timeConfig.gradient} backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 group animate-fade-in`}>
-            <TimeIcon className="h-6 w-6 text-foreground/80 group-hover:scale-110 transition-transform duration-300" />
+    <div className="mb-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center space-x-4">
+          <div className="p-3 bg-primary/10 rounded-full">
+            {weatherIcon}
           </div>
-          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground/90 to-foreground/70 animate-fade-in">
-            {timeConfig.greeting}, {profile?.full_name || 'User'}
-          </h1>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              {greeting}, {userName}!
+            </h1>
+            <p className="text-muted-foreground">
+              Here's what's happening with your rental fleet today.
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2 animate-fade-in">
-          <TooltipProvider>
-            <NotificationsButton />
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div>
-                  <UserProfileMenu />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Profile</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-foreground/80 hover:text-foreground hover:bg-background/80 transition-colors"
-                  onClick={() => navigate('/settings')}
-                >
-                  <Settings className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Settings</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        
+        <div className="flex items-center gap-2 mt-4 md:mt-0">
+          <div className="relative">
+            <Button variant="outline" size="icon" className="rounded-full">
+              <Bell className="h-4 w-4" />
+              {notifications > 0 && (
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-red-500">
+                  {notifications}
+                </Badge>
+              )}
+            </Button>
+          </div>
+          <Button variant="outline" size="icon" className="rounded-full">
+            <Calendar className="h-4 w-4" />
+          </Button>
+          <div className="relative flex items-center">
+            <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search..." 
+              className="w-48 pl-9 rounded-full" 
+            />
+          </div>
+          <Button variant="outline" size="icon" className="rounded-full">
+            <Settings className="h-4 w-4" />
+          </Button>
         </div>
-      </div>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <p className="text-sm text-foreground/70 italic animate-fade-in hover:text-foreground/90 transition-colors">
-          "{quote}"
-        </p>
-        <p className="text-sm text-foreground/60 whitespace-nowrap animate-fade-in font-mono">
-          {format(currentTime, "EEEE, MMMM do, yyyy • h:mm a")}
-        </p>
       </div>
     </div>
   );

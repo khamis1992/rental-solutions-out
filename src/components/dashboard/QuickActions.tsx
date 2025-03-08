@@ -1,102 +1,227 @@
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
-  UserPlus, FileText, 
-  CreditCard, Wrench
+  Car, Plus, FileText, DollarSign, Wrench, Users, Key, PanelLeftClose, 
+  BarChart2, ClipboardCheck, UploadCloud, Bell, HelpCircle, Calendar, 
+  Map, ReceiptText, FileSearch, MessageSquarePlus, Cog, Star, Briefcase,
+  BarChart4, TrendingUp, Languages
 } from "lucide-react";
-import { CreateJobDialog } from "@/components/maintenance/CreateJobDialog";
-import { PaymentForm } from "@/components/payments/PaymentForm";
-import { CreateCustomerDialog } from "@/components/customers/CreateCustomerDialog";
-import { CreateAgreementDialog } from "@/components/agreements/CreateAgreementDialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useNavigate } from "react-router-dom";
+
+interface ActionItem {
+  name: string;
+  icon: React.ElementType;
+  path: string;
+  category: 'vehicles' | 'agreements' | 'finance' | 'management' | 'system';
+  badge?: {
+    text: string;
+    variant: 'default' | 'secondary' | 'destructive' | 'outline';
+  };
+  description: string;
+}
 
 export const QuickActions = () => {
-  const [showMaintenanceDialog, setShowMaintenanceDialog] = useState(false);
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
-  const [showCustomerDialog, setShowCustomerDialog] = useState(false);
-  const [showContractDialog, setShowContractDialog] = useState(false);
-  const [selectedAgreementId, setSelectedAgreementId] = useState<string>(""); // Added for payment form
+  const navigate = useNavigate();
 
-  const actions = [
+  const actions: ActionItem[] = [
     {
-      title: "Add Customer",
-      icon: UserPlus,
-      onClick: () => setShowCustomerDialog(true),
-      color: "text-pink-500"
+      name: "Add Vehicle",
+      icon: Car,
+      path: "/vehicles",
+      category: 'vehicles',
+      description: "Register a new vehicle in the system"
     },
     {
-      title: "Generate Contract",
+      name: "New Agreement",
       icon: FileText,
-      onClick: () => setShowContractDialog(true),
-      color: "text-teal-500"
+      path: "/agreements/new",
+      category: 'agreements',
+      badge: {
+        text: "Quick",
+        variant: "secondary"
+      },
+      description: "Create a new rental agreement"
     },
     {
-      title: "Process Payment",
-      icon: CreditCard,
-      onClick: () => setShowPaymentDialog(true),
-      color: "text-purple-500"
+      name: "Record Payment",
+      icon: DollarSign,
+      path: "/finance",
+      category: 'finance',
+      description: "Record a new payment transaction"
     },
     {
-      title: "Schedule Maintenance",
+      name: "Schedule Maintenance",
       icon: Wrench,
-      onClick: () => setShowMaintenanceDialog(true),
-      color: "text-orange-500"
+      path: "/maintenance",
+      category: 'vehicles',
+      description: "Schedule vehicle maintenance"
+    },
+    {
+      name: "Add Customer",
+      icon: Users,
+      path: "/customers",
+      category: 'management',
+      description: "Register a new customer"
+    },
+    {
+      name: "Vehicle Handover",
+      icon: Key,
+      path: "/vehicles",
+      category: 'vehicles',
+      description: "Process vehicle handover"
+    },
+    {
+      name: "Reports",
+      icon: BarChart2,
+      path: "/reports",
+      category: 'management',
+      description: "View business reports and analytics"
+    },
+    {
+      name: "Inspections",
+      icon: ClipboardCheck,
+      path: "/vehicles",
+      category: 'vehicles',
+      description: "Record vehicle inspection results"
+    },
+    {
+      name: "Import Data",
+      icon: UploadCloud,
+      path: "/settings",
+      category: 'system',
+      description: "Import data from external sources"
+    },
+    {
+      name: "Notifications",
+      icon: Bell,
+      path: "/dashboard",
+      category: 'system',
+      badge: {
+        text: "3",
+        variant: "destructive"
+      },
+      description: "View system notifications"
+    },
+    {
+      name: "Help & Support",
+      icon: HelpCircle,
+      path: "/help",
+      category: 'system',
+      description: "Access help documentation"
+    },
+    {
+      name: "Schedule",
+      icon: Calendar,
+      path: "/chauffeur-service",
+      category: 'management',
+      description: "Manage scheduling and bookings"
+    },
+    {
+      name: "Location Tracking",
+      icon: Map,
+      path: "/location-tracking",
+      category: 'vehicles',
+      badge: {
+        text: "New",
+        variant: "default"
+      },
+      description: "Track vehicle locations"
+    },
+    {
+      name: "Invoices",
+      icon: ReceiptText,
+      path: "/finance",
+      category: 'finance',
+      description: "Manage and create invoices"
+    },
+    {
+      name: "Document Search",
+      icon: FileSearch,
+      path: "/documents",
+      category: 'management',
+      description: "Search through documents"
     }
   ];
 
+  const categoryIcons = {
+    'vehicles': Car,
+    'agreements': FileText,
+    'finance': DollarSign,
+    'management': Briefcase,
+    'system': Cog
+  };
+
+  const handleAction = (path: string) => {
+    navigate(path);
+  };
+
+  // Group actions by category
+  const groupedActions = actions.reduce((acc, action) => {
+    if (!acc[action.category]) {
+      acc[action.category] = [];
+    }
+    acc[action.category].push(action);
+    return acc;
+  }, {} as Record<string, ActionItem[]>);
+
   return (
-    <>
-      <Card className="bg-white/50 backdrop-blur-sm hover:bg-white/60 transition-colors">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {actions.map((action, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                className="h-24 flex flex-col items-center justify-center gap-2 group hover:bg-white/80"
-                onClick={action.onClick}
-              >
-                <action.icon className={`h-6 w-6 ${action.color} group-hover:scale-110 transition-transform`} />
-                <span className="text-sm text-center">{action.title}</span>
-              </Button>
-            ))}
+    <Card className="border shadow-sm">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Star className="h-5 w-5 text-primary" />
+            <span>Quick Actions</span>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Maintenance Dialog */}
-      <CreateJobDialog open={showMaintenanceDialog} onOpenChange={setShowMaintenanceDialog} />
-
-      {/* Payment Dialog */}
-      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Process Payment</DialogTitle>
-          </DialogHeader>
-          <PaymentForm agreementId={selectedAgreementId} />
-        </DialogContent>
-      </Dialog>
-
-      {/* Customer Dialog */}
-      <CreateCustomerDialog 
-        open={showCustomerDialog} 
-        onOpenChange={setShowCustomerDialog}
-      >
-        <div className="hidden">Trigger</div>
-      </CreateCustomerDialog>
-
-      {/* Contract Dialog */}
-      <CreateAgreementDialog 
-        open={showContractDialog} 
-        onOpenChange={setShowContractDialog}
-      >
-        <div className="hidden">Trigger</div>
-      </CreateAgreementDialog>
-    </>
+          <div className="text-xs text-muted-foreground font-normal">
+            Most used actions
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {Object.entries(groupedActions).map(([category, categoryActions]) => (
+          <div key={category} className="space-y-2">
+            <div className="flex items-center gap-2 mb-1">
+              {categoryIcons[category as keyof typeof categoryIcons] && 
+                React.createElement(categoryIcons[category as keyof typeof categoryIcons], { 
+                  className: "h-4 w-4 text-muted-foreground" 
+                })}
+              <h3 className="text-sm font-medium text-muted-foreground capitalize">{category}</h3>
+            </div>
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+              {categoryActions.map((action) => (
+                <TooltipProvider key={action.name}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="h-20 w-full flex flex-col items-center justify-center gap-1 relative hover:bg-primary/5 hover:border-primary/20 transition-all duration-300"
+                        onClick={() => handleAction(action.path)}
+                      >
+                        {action.badge && (
+                          <Badge 
+                            variant={action.badge.variant}
+                            className="absolute top-1 right-1 text-[10px] px-1 py-0 min-w-5 h-4 flex items-center justify-center"
+                          >
+                            {action.badge.text}
+                          </Badge>
+                        )}
+                        <action.icon className="h-6 w-6 text-primary" />
+                        <span className="text-xs text-center">{action.name}</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{action.description}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ))}
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 };
