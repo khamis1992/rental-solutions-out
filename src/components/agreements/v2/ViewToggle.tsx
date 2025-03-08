@@ -6,16 +6,14 @@ import { useTouchGestures } from "@/hooks/use-touch-gestures";
 import { useHotkeys } from "react-hotkeys-hook";
 import { toast } from "sonner";
 import { Grid, List, LayoutPanelTop } from "lucide-react";
-
-interface ViewToggleProps {
-  viewMode: "grid" | "list" | "compact";
-  onChange: (mode: "grid" | "list" | "compact") => void;
-}
+import { ViewToggleV2Props } from "@/types/ui.types";
+import { cn } from "@/lib/utils";
 
 export const ViewToggle = ({
   viewMode,
-  onChange
-}: ViewToggleProps) => {
+  onChange,
+  className
+}: ViewToggleV2Props) => {
   const [previousMode, setPreviousMode] = useState<"grid" | "list" | "compact">(viewMode);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -93,7 +91,15 @@ export const ViewToggle = ({
   
   return (
     <TooltipProvider>
-      <div ref={containerRef} className="flex items-center gap-1 border rounded-md shadow-sm bg-background" role="group" aria-label="View options">
+      <div 
+        ref={containerRef} 
+        className={cn(
+          "flex items-center gap-1 border rounded-md shadow-sm bg-background",
+          className
+        )} 
+        role="group" 
+        aria-label="View options"
+      >
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant={viewMode === "grid" ? "default" : "ghost"} size="sm" className="p-2" onClick={() => handleViewChange("grid")} aria-label="Grid view" aria-pressed={viewMode === "grid"}>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,7 +33,6 @@ export default function CustomerPortal() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check for payment callback in URL
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const isCallback = searchParams.get('payment') === 'callback';
@@ -42,11 +40,9 @@ export default function CustomerPortal() {
     const status = searchParams.get('STATUS');
     
     if (isCallback && orderId) {
-      // Handle the callback by sending the data to our edge function
       const handlePaymentCallback = async () => {
         try {
           const formData = new FormData();
-          // Add all URL parameters to the form data
           searchParams.forEach((value, key) => {
             formData.append(key, value);
           });
@@ -55,14 +51,12 @@ export default function CustomerPortal() {
             body: formData
           });
           
-          // Show appropriate toast message
           if (status === 'TXN_SUCCESS') {
             toast.success("Payment completed successfully!");
           } else if (status === 'TXN_FAILURE') {
             toast.error("Payment failed. Please try again.");
           }
           
-          // Clear URL parameters after handling
           const newUrl = window.location.pathname;
           window.history.replaceState({}, '', newUrl);
         } catch (error) {
@@ -136,7 +130,6 @@ export default function CustomerPortal() {
     return (
       <div className="min-h-screen bg-background">
         <div className="container py-8 space-y-8">
-          {/* Header with Logout Button */}
           <div className="flex justify-between items-center">
             <div className="space-y-2">
               <h1 className="text-3xl font-bold text-primary">Welcome, {profile?.full_name}</h1>
@@ -152,7 +145,6 @@ export default function CustomerPortal() {
             </Button>
           </div>
 
-          {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="pt-6">
@@ -192,7 +184,6 @@ export default function CustomerPortal() {
             </Card>
           </div>
 
-          {/* Payment Section - Add this first for visibility */}
           <div className="mb-6">
             <h2 className="text-2xl font-semibold mb-4">Make a Payment</h2>
             <SadadPaymentForm 
@@ -213,7 +204,7 @@ export default function CustomerPortal() {
             </TabsList>
 
             <TabsContent value="profile">
-              <ProfileManagement profile={profile} />
+              <ProfileManagement customerId={profile.id} profile={profile} />
             </TabsContent>
 
             <TabsContent value="loyalty">

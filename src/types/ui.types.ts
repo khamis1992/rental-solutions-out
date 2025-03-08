@@ -1,5 +1,6 @@
 
 import { Vehicle, VehicleStatus } from './vehicle';
+import { Agreement } from '@/components/agreements/hooks/useAgreements';
 
 // Vehicle Table Components Types
 export interface VehicleTableContentProps {
@@ -132,5 +133,26 @@ export interface TabData {
 export interface ViewToggleProps {
   activeView: "list" | "grid";
   onChange: (view: "list" | "grid") => void;
+  className?: string;
+}
+
+// New type definitions based on the plan
+export interface AgreementCardProps {
+  agreement: Agreement;
+  onViewDetails?: (agreement: Agreement) => void;
+  onDelete?: (agreement: Agreement) => void;
+  onSelect?: (agreement: Agreement, selected: boolean) => void;
+  isSelected?: boolean;
+  className?: string;
+}
+
+export interface ProfileManagementProps {
+  customerId: string;
+  profile?: any; // Updated to include the profile object
+}
+
+export interface ViewToggleV2Props {
+  viewMode: "grid" | "list" | "compact";
+  onChange: (mode: "grid" | "list" | "compact") => void;
   className?: string;
 }
