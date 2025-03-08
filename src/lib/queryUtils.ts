@@ -112,8 +112,19 @@ export function withDefaults<T>(
   obj: Partial<T> | null | undefined, 
   defaults: T
 ): T {
-  if (!obj) return defaults;
-  return { ...defaults, ...obj };
+  if (!obj) return { ...defaults };
+  
+  const result = { ...defaults };
+  
+  // Use type-safe approach to copy properties
+  for (const key in defaults) {
+    if (obj[key as keyof Partial<T>] !== undefined) {
+      // Cast to any to avoid TypeScript complaining about index signature
+      (result as any)[key] = obj[key as keyof Partial<T>];
+    }
+  }
+  
+  return result;
 }
 
 /**

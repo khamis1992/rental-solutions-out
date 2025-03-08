@@ -59,3 +59,44 @@ export interface VehicleMetrics {
     byType: Record<string, number>;
   };
 }
+
+export interface ChartDataPoint {
+  name: string;
+  value: number;
+  color: string;
+}
+
+export interface StatusConfigMap {
+  [key: string]: {
+    color: string;
+    label: string;
+    icon: ReactNode;
+    description: string;
+    gradient: string;
+  };
+}
+
+export interface AlertDetails {
+  id: string;
+  type: 'vehicle' | 'payment' | 'customer' | 'maintenance';
+  title: string;
+  description?: string;
+  priority?: 'high' | 'medium' | 'low';
+  date?: Date;
+  status?: 'new' | 'viewed' | 'resolved';
+  vehicle?: {
+    id: string;
+    make: string;
+    model: string;
+    year: number;
+    license_plate: string;
+  };
+  customer?: CustomerDetails;
+}
+
+export interface CustomerDetails {
+  id: string;
+  full_name: string;
+  phone_number: string;
+  email?: string;
+}
