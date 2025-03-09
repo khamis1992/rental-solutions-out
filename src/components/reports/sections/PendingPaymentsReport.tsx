@@ -17,7 +17,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { FileDown, Search, SortAsc, SortDesc } from "lucide-react";
+import { FileDown, RefreshCw, Search, SortAsc, SortDesc } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -28,17 +28,22 @@ export const PendingPaymentsReport = () => {
   const [sortField, setSortField] = useState<keyof PendingPaymentReport>("total_amount");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
-  // Fetch report data
-  const { data, isLoading, error, refetch } = useQuery({
+  // Fetch report data with retry configuration
+  const { data, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ["pendingPaymentsReport"],
     queryFn: fetchPendingPaymentsReport,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2, // Retry failed requests up to 2 times
+    retryDelay: 1000, // Wait 1 second between retries
   });
 
   // Effect to show toast on error
   useEffect(() => {
     if (error) {
-      toast.error("Failed to load pending payments report");
+      toast.error("Failed to load pending payments report", {
+        description: "Please try again or contact support if the issue persists.",
+      });
+      console.error("Report error details:", error);
     }
   }, [error]);
 
@@ -50,6 +55,15 @@ export const PendingPaymentsReport = () => {
       setSortField(field);
       setSortDirection("asc");
     }
+  };
+
+  // Handle refresh
+  const handleRefresh = () => {
+    toast.promise(refetch(), {
+      loading: "Refreshing data...",
+      success: "Data refreshed successfully",
+      error: "Failed to refresh data"
+    });
   };
 
   // Filter and sort data
@@ -132,16 +146,18 @@ export const PendingPaymentsReport = () => {
             variant="outline" 
             className="flex items-center gap-2"
             onClick={handleExport}
-            disabled={isLoading || filteredAndSortedData.length === 0}
+            disabled={isLoading || isRefetching || filteredAndSortedData.length === 0}
           >
             <FileDown className="h-4 w-4" />
             Export
           </Button>
           <Button 
             variant="outline" 
-            onClick={() => refetch()}
-            disabled={isLoading}
+            onClick={handleRefresh}
+            disabled={isLoading || isRefetching}
+            className="flex items-center gap-2"
           >
+            <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
         </div>
@@ -154,7 +170,7 @@ export const PendingPaymentsReport = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoading ? (
+              {isLoading || isRefetching ? (
                 <Skeleton className="h-6 w-24" />
               ) : (
                 `QAR ${summary.totalPendingRent.toLocaleString()}`
@@ -169,7 +185,7 @@ export const PendingPaymentsReport = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoading ? (
+              {isLoading || isRefetching ? (
                 <Skeleton className="h-6 w-24" />
               ) : (
                 `QAR ${summary.totalLateFines.toLocaleString()}`
@@ -184,7 +200,7 @@ export const PendingPaymentsReport = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoading ? (
+              {isLoading || isRefetching ? (
                 <Skeleton className="h-6 w-24" />
               ) : (
                 `QAR ${summary.totalTrafficFines.toLocaleString()}`
@@ -199,7 +215,7 @@ export const PendingPaymentsReport = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoading ? (
+              {isLoading || isRefetching ? (
                 <Skeleton className="h-6 w-24" />
               ) : (
                 `QAR ${summary.grandTotal.toLocaleString()}`
@@ -283,7 +299,7 @@ export const PendingPaymentsReport = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoading ? (
+                {isLoading || isRefetching ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
                       <TableCell colSpan={9}>
@@ -294,7 +310,7 @@ export const PendingPaymentsReport = () => {
                 ) : error ? (
                   <TableRow>
                     <TableCell colSpan={9} className="text-center py-8 text-red-500">
-                      Failed to load data. Please try again.
+                      Failed to load data. Please try refreshing the page.
                     </TableCell>
                   </TableRow>
                 ) : filteredAndSortedData.length === 0 ? (

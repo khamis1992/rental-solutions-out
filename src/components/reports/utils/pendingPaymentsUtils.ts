@@ -15,12 +15,17 @@ export interface PendingPaymentReport {
 
 export const fetchPendingPaymentsReport = async (): Promise<PendingPaymentReport[]> => {
   try {
-    // Call our custom SQL function
+    // Call our custom SQL function with more detailed error logging
     const { data, error } = await supabase.rpc('get_pending_payments_report');
 
     if (error) {
       console.error("Error fetching pending payments report:", error);
       throw error;
+    }
+
+    if (!data) {
+      console.error("No data returned from pending payments report");
+      return [];
     }
 
     return data as PendingPaymentReport[];
