@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface PendingPaymentReport {
   agreement_number: string;
@@ -28,6 +29,15 @@ export const fetchPendingPaymentsReport = async (): Promise<PendingPaymentReport
       return [];
     }
 
+    // Log summary for monitoring
+    const summary = {
+      recordCount: data.length,
+      totalLateFines: data.reduce((sum: number, item: any) => sum + (Number(item.late_fine_amount) || 0), 0),
+      totalTrafficFines: data.reduce((sum: number, item: any) => sum + (Number(item.traffic_fine_amount) || 0), 0),
+      totalPendingAmount: data.reduce((sum: number, item: any) => sum + (Number(item.total_amount) || 0), 0)
+    };
+    console.info("Pending payments report summary:", summary);
+
     // Validate and transform data to ensure type safety
     const reportData = data.map((item: any): PendingPaymentReport => ({
       agreement_number: item.agreement_number || '',
@@ -44,6 +54,9 @@ export const fetchPendingPaymentsReport = async (): Promise<PendingPaymentReport
     return reportData;
   } catch (err) {
     console.error("Failed to fetch pending payments report:", err);
+    toast.error("Failed to load pending payments report", {
+      description: err instanceof Error ? err.message : "Please try again or contact support"
+    });
     throw err;
   }
 };
@@ -92,3 +105,23 @@ export const exportPendingPaymentsToCSV = (data: PendingPaymentReport[]) => {
   link.click();
   document.body.removeChild(link);
 };
+
+/**
+ * Format a financial value with appropriate styling based on value
+ */
+export const formatFinancialValue = (amount: number, includeZero = false): { text: string, className: string } => {
+  if (amount === 0 && !includeZero) {
+    return { text: "—", className: "" };
+  }
+  
+  let className = "font-medium";
+  if (amount > 0) {
+    className += " text-red-600";
+  }
+  
+  return {
+    text: `QAR ${amount.toLocaleString()}`,
+    className
+  };
+};
+

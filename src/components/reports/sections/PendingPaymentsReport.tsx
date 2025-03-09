@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { 
   PendingPaymentReport, 
   fetchPendingPaymentsReport,
-  exportPendingPaymentsToCSV
+  exportPendingPaymentsToCSV,
+  formatFinancialValue
 } from "../utils/pendingPaymentsUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { FileDown, RefreshCw, Search, SortAsc, SortDesc } from "lucide-react";
+import { FileDown, RefreshCw, Search, SortAsc, SortDesc, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -48,6 +49,7 @@ const ErrorDisplay = ({ error }: { error: Error | null }) => {
   
   return (
     <Alert variant="destructive" className="mb-4">
+      <AlertCircle className="h-4 w-4" />
       <AlertTitle>Error loading pending payments</AlertTitle>
       <AlertDescription>
         {error.message || 'An unexpected error occurred. Please try again or contact support.'}
