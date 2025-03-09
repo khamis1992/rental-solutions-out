@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Table,
   TableBody,
@@ -13,8 +14,9 @@ import { TrafficFineStatusBadge } from "./components/TrafficFineStatusBadge";
 import { fetchTrafficFines } from "./utils/trafficFineUtils";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertTriangle, FileText, MapPin, Calendar } from "lucide-react";
 
 interface TrafficFinesProps {
   agreementId: string;
@@ -23,7 +25,7 @@ interface TrafficFinesProps {
 export const TrafficFines = ({ agreementId }: TrafficFinesProps) => {
   const queryClient = useQueryClient();
   
-  const { data: fines, isLoading } = useQuery({
+  const { data: fines, isLoading, error } = useQuery({
     queryKey: ["traffic-fines", agreementId],
     queryFn: () => fetchTrafficFines(agreementId),
   });
@@ -72,9 +74,26 @@ export const TrafficFines = ({ agreementId }: TrafficFinesProps) => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
+      <Card>
+        <CardContent className="flex justify-center items-center p-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <span className="ml-2">Loading traffic fines...</span>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    console.error("Traffic fines error:", error);
+    return (
+      <Card>
+        <CardContent>
+          <div className="p-4 text-destructive bg-destructive/10 rounded-md">
+            <p className="font-medium">Error loading traffic fines</p>
+            <p className="text-sm">{error instanceof Error ? error.message : 'Unknown error'}</p>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -83,64 +102,102 @@ export const TrafficFines = ({ agreementId }: TrafficFinesProps) => {
     .reduce((sum, fine) => sum + (fine.fine_amount || 0), 0) || 0;
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-primary">Traffic Fines</h3>
-        <div className="space-x-4">
-          <span className="text-sm font-medium">
-            Total Fines: {formatCurrency(totalFines)}
-          </span>
-          <span className="text-sm font-medium text-red-600">
-            Unpaid: {formatCurrency(unpaidFines)}
-          </span>
+    <Card>
+      <CardHeader>
+        <CardTitle>Traffic Fines</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {/* Summary Stats */}
+          <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg mb-4">
+            <div>
+              <div className="text-sm text-muted-foreground">Total Fines</div>
+              <div className="text-lg font-semibold">{formatCurrency(totalFines)}</div>
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground">Unpaid Fines</div>
+              <div className="text-lg font-semibold text-destructive">{formatCurrency(unpaidFines)}</div>
+            </div>
+          </div>
+          
+          {/* Fines Table */}
+          <div className="rounded-lg border bg-card">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Date</TableHead>
+                  <TableHead className="font-semibold">Type</TableHead>
+                  <TableHead className="font-semibold">Location</TableHead>
+                  <TableHead className="font-semibold">Violation #</TableHead>
+                  <TableHead className="font-semibold">Amount</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {fines?.map((fine) => (
+                  <TableRow key={fine.id} className="hover:bg-muted/50 transition-colors">
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        {formatDate(fine.violation_date)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4 text-orange-500" />
+                        {fine.fine_type || 'Traffic Violation'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        {fine.fine_location || 'N/A'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        {fine.violation_number || 'N/A'}
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">{formatCurrency(fine.fine_amount)}</TableCell>
+                    <TableCell>
+                      <TrafficFineStatusBadge status={fine.payment_status} />
+                    </TableCell>
+                    <TableCell>
+                      {fine.payment_status !== 'completed' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleStatusChange(fine.id)}
+                        >
+                          Mark as Paid
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {(!fines || fines.length === 0) && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="rounded-full bg-muted p-3">
+                          <AlertTriangle className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <h3 className="font-semibold">No traffic fines recorded</h3>
+                        <p className="text-sm text-muted-foreground">
+                          This agreement has no associated traffic fines
+                        </p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
-      </div>
-      
-      <div className="rounded-lg border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50">
-              <TableHead className="font-semibold">Date</TableHead>
-              <TableHead className="font-semibold">Type</TableHead>
-              <TableHead className="font-semibold">Location</TableHead>
-              <TableHead className="font-semibold">Amount</TableHead>
-              <TableHead className="font-semibold">Status</TableHead>
-              <TableHead className="font-semibold">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {fines?.map((fine) => (
-              <TableRow key={fine.id} className="hover:bg-muted/50 transition-colors">
-                <TableCell>{formatDate(fine.violation_date)}</TableCell>
-                <TableCell>{fine.fine_type}</TableCell>
-                <TableCell>{fine.fine_location}</TableCell>
-                <TableCell className="font-medium">{formatCurrency(fine.fine_amount)}</TableCell>
-                <TableCell>
-                  <TrafficFineStatusBadge status={fine.payment_status} />
-                </TableCell>
-                <TableCell>
-                  {fine.payment_status !== 'completed' && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleStatusChange(fine.id)}
-                    >
-                      Mark as Paid
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-            {!fines?.length && (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                  No traffic fines recorded
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
