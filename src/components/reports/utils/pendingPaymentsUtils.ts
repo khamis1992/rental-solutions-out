@@ -124,4 +124,3 @@ export const formatFinancialValue = (amount: number, includeZero = false): { tex
     className
   };
 };
-
