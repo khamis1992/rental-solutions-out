@@ -15,7 +15,7 @@ export interface PendingPaymentReport {
 
 export const fetchPendingPaymentsReport = async (): Promise<PendingPaymentReport[]> => {
   try {
-    // Fixed the SQL function call with proper error handling
+    // Call the updated SQL function with proper error handling
     const { data, error } = await supabase.rpc('get_pending_payments_report');
 
     if (error) {
