@@ -15,20 +15,33 @@ export interface PendingPaymentReport {
 
 export const fetchPendingPaymentsReport = async (): Promise<PendingPaymentReport[]> => {
   try {
-    // Call our custom SQL function with more detailed error logging
+    // Fixed the SQL function call with proper error handling
     const { data, error } = await supabase.rpc('get_pending_payments_report');
 
     if (error) {
-      console.error("Error fetching pending payments report:", error);
-      throw error;
+      console.error("Error fetching pending payments report:", error.message, error.details);
+      throw new Error(`Failed to fetch report: ${error.message}`);
     }
 
     if (!data) {
-      console.error("No data returned from pending payments report");
+      console.warn("No data returned from pending payments report");
       return [];
     }
 
-    return data as PendingPaymentReport[];
+    // Validate and transform data to ensure type safety
+    const reportData = data.map((item: any): PendingPaymentReport => ({
+      agreement_number: item.agreement_number || '',
+      customer_name: item.customer_name || '',
+      id_number: item.id_number || '',
+      phone_number: item.phone_number || '',
+      pending_rent_amount: Number(item.pending_rent_amount) || 0,
+      late_fine_amount: Number(item.late_fine_amount) || 0,
+      traffic_fine_amount: Number(item.traffic_fine_amount) || 0,
+      total_amount: Number(item.total_amount) || 0,
+      license_plate: item.license_plate || ''
+    }));
+
+    return reportData;
   } catch (err) {
     console.error("Failed to fetch pending payments report:", err);
     throw err;
