@@ -13,10 +13,11 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 import { VehicleInfoCard } from "@/components/agreements/details/VehicleInfoCard";
 import { CustomerInfoCard } from "@/components/agreements/details/CustomerInfoCard";
 import { PaymentHistory } from "@/components/agreements/details/PaymentHistory";
+import { TrafficFines } from "@/components/agreements/details/TrafficFines";
 
 export default function AgreementDetails() {
   const { id } = useParams();
@@ -111,6 +112,10 @@ export default function AgreementDetails() {
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="contract">Contract</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
+          <TabsTrigger value="fines" className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            Fines
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="details">
@@ -166,6 +171,10 @@ export default function AgreementDetails() {
         
         <TabsContent value="payments">
           <PaymentHistory agreementId={agreement.id} />
+        </TabsContent>
+
+        <TabsContent value="fines">
+          <TrafficFines agreementId={agreement.id} />
         </TabsContent>
       </Tabs>
 
