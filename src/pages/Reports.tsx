@@ -1,3 +1,4 @@
+
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileSpreadsheet } from "lucide-react";
@@ -10,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { toast } from "sonner";
+import { PendingPaymentsReport } from "@/components/reports/sections/PendingPaymentsReport";
 
 const Reports = () => {
   const [selectedReport, setSelectedReport] = useState("");
@@ -36,10 +38,14 @@ const Reports = () => {
           </p>
         </div>
 
-        <Tabs defaultValue="fleet" className="space-y-8">
+        <Tabs defaultValue="pending-payments" className="space-y-8">
           <Card className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <CardContent className="p-6">
               <TabsList className="inline-flex h-12 items-center justify-start space-x-4 rounded-lg bg-muted/50 p-1">
+                <TabsTrigger value="pending-payments">
+                  <FileSpreadsheet className="h-5 w-5 mr-2" />
+                  Pending Payments
+                </TabsTrigger>
                 <TabsTrigger value="fleet">
                   <FileSpreadsheet className="h-5 w-5 mr-2" />
                   Fleet Analytics
@@ -73,6 +79,10 @@ const Reports = () => {
           </Card>
 
           <div className="mt-6 space-y-6">
+            <TabsContent value="pending-payments">
+              <PendingPaymentsReport />
+            </TabsContent>
+            
             <TabsContent value="fleet">
               <FleetAnalyticsDashboard />
             </TabsContent>
