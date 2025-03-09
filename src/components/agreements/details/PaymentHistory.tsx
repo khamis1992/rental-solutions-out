@@ -1,7 +1,9 @@
+
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
-import { AlertTriangle, CheckCircle2, Trash2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDateToDisplay } from "@/lib/dateUtils";
 import {
@@ -14,10 +16,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useState } from "react";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { LateFineActions } from "./LateFineActions";
 
 interface PaymentHistoryProps {
@@ -29,31 +30,44 @@ export const PaymentHistory = ({ agreementId }: PaymentHistoryProps) => {
   const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: payments, isLoading } = useQuery({
+  const { data: payments, isLoading, error } = useQuery({
     queryKey: ['payment-history', agreementId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('payment_history_view')
-        .select(`
-          id,
-          amount,
-          amount_paid,
-          balance,
-          actual_payment_date,
-          original_due_date,
-          late_fine_amount,
-          days_overdue,
-          status,
-          payment_method,
-          description,
-          type
-        `)
-        .eq('lease_id', agreementId)
-        .order('actual_payment_date', { ascending: false });
+      try {
+        console.log("Fetching payment history for agreement:", agreementId);
+        
+        const { data, error } = await supabase
+          .from('unified_payments')
+          .select(`
+            id,
+            amount,
+            amount_paid,
+            balance,
+            payment_date,
+            original_due_date,
+            late_fine_amount,
+            days_overdue,
+            status,
+            payment_method,
+            description,
+            type
+          `)
+          .eq('lease_id', agreementId)
+          .order('payment_date', { ascending: false });
 
-      if (error) throw error;
-      return data;
+        if (error) {
+          console.error("Error fetching payment history:", error);
+          throw error;
+        }
+        
+        console.log("Fetched payment data:", data);
+        return data || [];
+      } catch (err) {
+        console.error("Error in payment history query:", err);
+        throw err;
+      }
     },
+    staleTime: 30000, // 30 seconds
   });
 
   const handleDeleteClick = (paymentId: string) => {
@@ -97,7 +111,37 @@ export const PaymentHistory = ({ agreementId }: PaymentHistoryProps) => {
   };
 
   if (isLoading) {
-    return <div>Loading payment history...</div>;
+    return (
+      <div className="flex justify-center items-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Loading payment history...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    console.error("Payment history error:", error);
+    return (
+      <div className="p-4 text-destructive bg-destructive/10 rounded-md">
+        <p className="font-medium">Error loading payment history</p>
+        <p className="text-sm">{error instanceof Error ? error.message : 'Unknown error'}</p>
+      </div>
+    );
+  }
+
+  if (!payments || payments.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Payment History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">
+            No payment history found
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -130,80 +174,74 @@ export const PaymentHistory = ({ agreementId }: PaymentHistoryProps) => {
           </div>
 
           {/* Payment List */}
-          {payments && payments.length > 0 ? (
-            payments.map((payment) => {
-              const remainingBalance = payment.balance || 0;
-              const paymentStatus = remainingBalance === 0 ? 'completed' : 'pending';
-              
-              return (
-                <div
-                  key={payment.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div>
-                    <div className="font-medium">
-                      {payment.actual_payment_date ? formatDateToDisplay(new Date(payment.actual_payment_date)) : 'No date'}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {payment.payment_method} - {payment.description || 'Payment'}
-                    </div>
+          {payments.map((payment) => {
+            const remainingBalance = payment.balance || 0;
+            const paymentStatus = remainingBalance === 0 ? 'completed' : 'pending';
+            
+            return (
+              <div
+                key={payment.id}
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+              >
+                <div>
+                  <div className="font-medium">
+                    {payment.payment_date ? formatDateToDisplay(new Date(payment.payment_date)) : 'No date'}
                   </div>
-                  <div className="text-right space-y-1">
-                    <div>Due Amount: {formatCurrency(payment.amount)}</div>
-                    <div>Amount Paid: {formatCurrency(payment.amount_paid)}</div>
-                    {payment.late_fine_amount > 0 && (
-                      <div className="text-destructive flex items-center justify-end gap-1">
-                        <AlertTriangle className="h-4 w-4" />
-                        <span>Late Fine: {formatCurrency(payment.late_fine_amount)}</span>
-                        {payment.days_overdue > 0 && (
-                          <span className="text-sm ml-1">
-                            ({payment.days_overdue} days @ 120 QAR/day)
-                          </span>
-                        )}
-                        <LateFineActions
-                          paymentId={payment.id}
-                          currentLateFine={payment.late_fine_amount}
-                          currentBalance={payment.balance || 0}
-                          onUpdate={handleLateFineUpdate}
-                        />
-                      </div>
-                    )}
-                    <div className={remainingBalance === 0 ? "text-green-600" : "text-destructive"}>
-                      Balance: {formatCurrency(remainingBalance)}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge 
-                        variant="outline" 
-                        className={paymentStatus === 'completed' ? 
-                          'bg-green-50 text-green-600 border-green-200' : 
-                          'bg-yellow-50 text-yellow-600 border-yellow-200'
-                        }
-                      >
-                        {paymentStatus === 'completed' ? (
-                          <CheckCircle2 className="h-3 w-3 mr-1" />
-                        ) : (
-                          <AlertTriangle className="h-3 w-3 mr-1" />
-                        )}
-                        {paymentStatus === 'completed' ? 'Completed' : 'Pending'}
-                      </Badge>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteClick(payment.id)}
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                  <div className="text-sm text-muted-foreground">
+                    {payment.payment_method} - {payment.description || 'Payment'}
                   </div>
                 </div>
-              );
-            })
-          ) : (
-            <div className="text-center text-muted-foreground py-8">
-              No payment history found
-            </div>
-          )}
+                <div className="text-right space-y-1">
+                  <div>Due Amount: {formatCurrency(payment.amount)}</div>
+                  <div>Amount Paid: {formatCurrency(payment.amount_paid)}</div>
+                  {payment.late_fine_amount > 0 && (
+                    <div className="text-destructive flex items-center justify-end gap-1">
+                      <AlertTriangle className="h-4 w-4" />
+                      <span>Late Fine: {formatCurrency(payment.late_fine_amount)}</span>
+                      {payment.days_overdue > 0 && (
+                        <span className="text-sm ml-1">
+                          ({payment.days_overdue} days @ 120 QAR/day)
+                        </span>
+                      )}
+                      <LateFineActions
+                        paymentId={payment.id}
+                        currentLateFine={payment.late_fine_amount}
+                        currentBalance={payment.balance || 0}
+                        onUpdate={handleLateFineUpdate}
+                      />
+                    </div>
+                  )}
+                  <div className={remainingBalance === 0 ? "text-green-600" : "text-destructive"}>
+                    Balance: {formatCurrency(remainingBalance)}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge 
+                      variant="outline" 
+                      className={paymentStatus === 'completed' ? 
+                        'bg-green-50 text-green-600 border-green-200' : 
+                        'bg-yellow-50 text-yellow-600 border-yellow-200'
+                      }
+                    >
+                      {paymentStatus === 'completed' ? (
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                      ) : (
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                      )}
+                      {paymentStatus === 'completed' ? 'Completed' : 'Pending'}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteClick(payment.id)}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </CardContent>
 

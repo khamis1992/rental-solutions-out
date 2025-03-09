@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { VehicleInfoCard } from "@/components/agreements/details/VehicleInfoCard";
 import { CustomerInfoCard } from "@/components/agreements/details/CustomerInfoCard";
+import { PaymentHistory } from "@/components/agreements/details/PaymentHistory";
 
 export default function AgreementDetails() {
   const { id } = useParams();
@@ -164,43 +165,7 @@ export default function AgreementDetails() {
         </TabsContent>
         
         <TabsContent value="payments">
-          <Card className="p-6">
-            <h3 className="font-semibold mb-4">Payment History</h3>
-            {agreement.unified_payments && agreement.unified_payments.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {agreement.unified_payments.map((payment) => (
-                      <tr key={payment.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(payment.payment_date).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {payment.amount} QAR
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {payment.payment_method}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
-                          {payment.status}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-gray-500">No payment history available</p>
-            )}
-          </Card>
+          <PaymentHistory agreementId={agreement.id} />
         </TabsContent>
       </Tabs>
 
