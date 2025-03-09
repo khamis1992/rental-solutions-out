@@ -2,322 +2,355 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { 
-  Table, TableBody, TableCell, TableHead, 
-  TableHeader, TableRow 
-} from "@/components/ui/table";
-import { 
-  Card, CardContent, CardHeader, CardTitle 
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+  PendingPaymentReport, 
+  fetchPendingPaymentsReport,
+  exportPendingPaymentsToCSV
+} from "../utils/pendingPaymentsUtils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { 
-  Select, SelectContent, SelectItem, 
-  SelectTrigger, SelectValue 
-} from "@/components/ui/select";
-import { formatCurrency } from "@/lib/utils";
-import { Loader2, Download, FileText } from "lucide-react";
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { FileDown, Search, SortAsc, SortDesc } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { fetchPendingPaymentsReport, PendingPaymentReport } from "../utils/pendingPaymentsUtils";
 
 export const PendingPaymentsReport = () => {
+  // State for search and sorting
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<keyof PendingPaymentReport>("total_amount");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
-  const { data: pendingPayments, isLoading, error } = useQuery({
-    queryKey: ["pending-payments-report"],
+  // Fetch report data
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["pendingPaymentsReport"],
     queryFn: fetchPendingPaymentsReport,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Filter and sort the data
-  const filteredData = pendingPayments?.filter(payment => {
-    if (!searchQuery) return true;
-    
-    const query = searchQuery.toLowerCase();
-    return (
-      payment.agreement_number.toLowerCase().includes(query) ||
-      payment.customer_name.toLowerCase().includes(query) ||
-      payment.license_plate.toLowerCase().includes(query) ||
-      payment.id_number.toLowerCase().includes(query) ||
-      payment.phone_number.toLowerCase().includes(query)
-    );
-  }).sort((a, b) => {
-    const aValue = a[sortField];
-    const bValue = b[sortField];
-    
-    if (typeof aValue === 'number' && typeof bValue === 'number') {
-      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+  // Effect to show toast on error
+  useEffect(() => {
+    if (error) {
+      toast.error("Failed to load pending payments report");
     }
-    
-    const aString = String(aValue).toLowerCase();
-    const bString = String(bValue).toLowerCase();
-    
-    return sortDirection === 'asc' 
-      ? aString.localeCompare(bString) 
-      : bString.localeCompare(aString);
-  }) || [];
+  }, [error]);
 
+  // Handle sorting
   const handleSort = (field: keyof PendingPaymentReport) => {
-    if (field === sortField) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortDirection('asc');
+      setSortDirection("asc");
     }
   };
 
-  const exportToCsv = () => {
-    if (!filteredData.length) {
+  // Filter and sort data
+  const filteredAndSortedData = data
+    ? data
+        .filter(
+          (item) =>
+            item.agreement_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.id_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.phone_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.license_plate.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .sort((a, b) => {
+          const valueA = a[sortField];
+          const valueB = b[sortField];
+
+          if (typeof valueA === "number" && typeof valueB === "number") {
+            return sortDirection === "asc" ? valueA - valueB : valueB - valueA;
+          }
+
+          if (typeof valueA === "string" && typeof valueB === "string") {
+            return sortDirection === "asc"
+              ? valueA.localeCompare(valueB)
+              : valueB.localeCompare(valueA);
+          }
+
+          return 0;
+        })
+    : [];
+
+  // Calculate summary statistics
+  const summary = filteredAndSortedData.reduce(
+    (acc, item) => {
+      acc.totalPendingRent += item.pending_rent_amount;
+      acc.totalLateFines += item.late_fine_amount;
+      acc.totalTrafficFines += item.traffic_fine_amount;
+      acc.grandTotal += item.total_amount;
+      return acc;
+    },
+    {
+      totalPendingRent: 0,
+      totalLateFines: 0,
+      totalTrafficFines: 0,
+      grandTotal: 0,
+    }
+  );
+
+  // Handle export
+  const handleExport = () => {
+    if (filteredAndSortedData.length === 0) {
       toast.error("No data to export");
       return;
     }
-
-    // Create CSV header
-    const headers = [
-      "Agreement Number", 
-      "Customer Name", 
-      "ID Number", 
-      "Phone Number", 
-      "Pending Rent Amount", 
-      "Late Fine Amount", 
-      "Traffic Fine Amount", 
-      "Total Amount", 
-      "License Plate"
-    ];
-
-    // Create CSV content
-    const csvContent = [
-      headers.join(','),
-      ...filteredData.map(row => [
-        row.agreement_number,
-        `"${row.customer_name}"`, // Quote names to handle commas
-        row.id_number,
-        row.phone_number,
-        row.pending_rent_amount,
-        row.late_fine_amount,
-        row.traffic_fine_amount,
-        row.total_amount,
-        row.license_plate
-      ].join(','))
-    ].join('\n');
-
-    // Create and download CSV file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `pending_payments_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    toast.success("Report exported successfully");
+    
+    exportPendingPaymentsToCSV(filteredAndSortedData);
+    toast.success("Report exported to CSV");
   };
 
-  // Calculate totals for the summary section
-  const totalPendingRent = filteredData.reduce((sum, item) => sum + item.pending_rent_amount, 0);
-  const totalLateFines = filteredData.reduce((sum, item) => sum + item.late_fine_amount, 0);
-  const totalTrafficFines = filteredData.reduce((sum, item) => sum + item.traffic_fine_amount, 0);
-  const grandTotal = totalPendingRent + totalLateFines + totalTrafficFines;
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="p-8 flex justify-center items-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
-          <p>Loading pending payments report...</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card>
-        <CardContent className="p-8">
-          <div className="p-4 bg-destructive/10 text-destructive rounded-md">
-            <h3 className="font-semibold mb-2">Error loading report</h3>
-            <p>{error instanceof Error ? error.message : "Unknown error occurred"}</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const getSortIcon = (field: keyof PendingPaymentReport) => {
+    if (sortField !== field) return null;
+    return sortDirection === "asc" ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />;
+  };
 
   return (
-    <Card>
-      <CardHeader className="pb-0">
-        <CardTitle className="flex items-center gap-2 text-xl">
-          <FileText className="h-6 w-6" />
-          Pending Payments Report
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6 pt-6">
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-muted/50">
-            <CardContent className="p-4">
-              <div className="text-sm text-muted-foreground">Total Pending Rent</div>
-              <div className="text-2xl font-bold">{formatCurrency(totalPendingRent)}</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-muted/50">
-            <CardContent className="p-4">
-              <div className="text-sm text-muted-foreground">Total Late Fines</div>
-              <div className="text-2xl font-bold text-destructive">{formatCurrency(totalLateFines)}</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-muted/50">
-            <CardContent className="p-4">
-              <div className="text-sm text-muted-foreground">Total Traffic Fines</div>
-              <div className="text-2xl font-bold text-amber-600">{formatCurrency(totalTrafficFines)}</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-muted/50">
-            <CardContent className="p-4">
-              <div className="text-sm text-muted-foreground">Grand Total</div>
-              <div className="text-2xl font-bold text-primary">{formatCurrency(grandTotal)}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filters and Export */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="flex-1 w-full sm:max-w-md">
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row gap-4 md:justify-between">
+        <h2 className="text-2xl font-bold">Pending Payments Report</h2>
+        <div className="flex gap-4 items-center">
+          <div className="relative w-full md:w-64">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by agreement, customer, ID, license plate..."
+              placeholder="Search..."
+              className="pl-8"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full"
             />
           </div>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <Select
-              value={sortField}
-              onValueChange={(value) => setSortField(value as keyof PendingPaymentReport)}
-            >
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="total_amount">Total Amount</SelectItem>
-                <SelectItem value="pending_rent_amount">Pending Rent</SelectItem>
-                <SelectItem value="late_fine_amount">Late Fines</SelectItem>
-                <SelectItem value="traffic_fine_amount">Traffic Fines</SelectItem>
-                <SelectItem value="customer_name">Customer Name</SelectItem>
-                <SelectItem value="agreement_number">Agreement Number</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select 
-              value={sortDirection} 
-              onValueChange={(value) => setSortDirection(value as "asc" | "desc")}
-            >
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Order" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="asc">Ascending</SelectItem>
-                <SelectItem value="desc">Descending</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={exportToCsv}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-          </div>
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={handleExport}
+            disabled={isLoading || filteredAndSortedData.length === 0}
+          >
+            <FileDown className="h-4 w-4" />
+            Export
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => refetch()}
+            disabled={isLoading}
+          >
+            Refresh
+          </Button>
         </div>
+      </div>
 
-        {/* Table */}
-        <div className="border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead 
-                  className="font-semibold cursor-pointer hover:text-primary"
-                  onClick={() => handleSort("agreement_number")}
-                >
-                  Agreement #
-                </TableHead>
-                <TableHead 
-                  className="font-semibold cursor-pointer hover:text-primary"
-                  onClick={() => handleSort("customer_name")}
-                >
-                  Customer Name
-                </TableHead>
-                <TableHead 
-                  className="font-semibold cursor-pointer hover:text-primary"
-                  onClick={() => handleSort("id_number")}
-                >
-                  ID Number
-                </TableHead>
-                <TableHead className="font-semibold">Phone Number</TableHead>
-                <TableHead 
-                  className="font-semibold cursor-pointer hover:text-primary text-right"
-                  onClick={() => handleSort("pending_rent_amount")}
-                >
-                  Pending Rent
-                </TableHead>
-                <TableHead 
-                  className="font-semibold cursor-pointer hover:text-primary text-right"
-                  onClick={() => handleSort("late_fine_amount")}
-                >
-                  Late Fines
-                </TableHead>
-                <TableHead 
-                  className="font-semibold cursor-pointer hover:text-primary text-right"
-                  onClick={() => handleSort("traffic_fine_amount")}
-                >
-                  Traffic Fines
-                </TableHead>
-                <TableHead 
-                  className="font-semibold cursor-pointer hover:text-primary text-right"
-                  onClick={() => handleSort("total_amount")}
-                >
-                  Total
-                </TableHead>
-                <TableHead 
-                  className="font-semibold cursor-pointer hover:text-primary"
-                  onClick={() => handleSort("license_plate")}
-                >
-                  License Plate
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredData.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="h-24 text-center">
-                    No pending payments found
-                  </TableCell>
-                </TableRow>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="py-3">
+            <CardTitle className="text-sm font-medium">Pending Rent</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isLoading ? (
+                <Skeleton className="h-6 w-24" />
               ) : (
-                filteredData.map((payment, index) => (
-                  <TableRow key={index} className="hover:bg-muted/50">
-                    <TableCell className="font-medium">{payment.agreement_number}</TableCell>
-                    <TableCell>{payment.customer_name}</TableCell>
-                    <TableCell>{payment.id_number}</TableCell>
-                    <TableCell>{payment.phone_number}</TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(payment.pending_rent_amount)}
-                    </TableCell>
-                    <TableCell className="text-right text-destructive">
-                      {formatCurrency(payment.late_fine_amount)}
-                    </TableCell>
-                    <TableCell className="text-right text-amber-600">
-                      {formatCurrency(payment.traffic_fine_amount)}
-                    </TableCell>
-                    <TableCell className="text-right font-bold">
-                      {formatCurrency(payment.total_amount)}
-                    </TableCell>
-                    <TableCell>{payment.license_plate}</TableCell>
-                  </TableRow>
-                ))
+                `QAR ${summary.totalPendingRent.toLocaleString()}`
               )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="py-3">
+            <CardTitle className="text-sm font-medium">Late Fines</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isLoading ? (
+                <Skeleton className="h-6 w-24" />
+              ) : (
+                `QAR ${summary.totalLateFines.toLocaleString()}`
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="py-3">
+            <CardTitle className="text-sm font-medium">Traffic Fines</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isLoading ? (
+                <Skeleton className="h-6 w-24" />
+              ) : (
+                `QAR ${summary.totalTrafficFines.toLocaleString()}`
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="py-3">
+            <CardTitle className="text-sm font-medium">Total Due</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isLoading ? (
+                <Skeleton className="h-6 w-24" />
+              ) : (
+                `QAR ${summary.grandTotal.toLocaleString()}`
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead 
+                    className="cursor-pointer" 
+                    onClick={() => handleSort("agreement_number")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Agreement No.
+                      {getSortIcon("agreement_number")}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer" 
+                    onClick={() => handleSort("customer_name")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Customer Name
+                      {getSortIcon("customer_name")}
+                    </div>
+                  </TableHead>
+                  <TableHead>ID Number</TableHead>
+                  <TableHead>Phone Number</TableHead>
+                  <TableHead 
+                    className="cursor-pointer" 
+                    onClick={() => handleSort("pending_rent_amount")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Pending Rent
+                      {getSortIcon("pending_rent_amount")}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer" 
+                    onClick={() => handleSort("late_fine_amount")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Late Fines
+                      {getSortIcon("late_fine_amount")}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer" 
+                    onClick={() => handleSort("traffic_fine_amount")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Traffic Fines
+                      {getSortIcon("traffic_fine_amount")}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer" 
+                    onClick={() => handleSort("total_amount")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Total Amount
+                      {getSortIcon("total_amount")}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer" 
+                    onClick={() => handleSort("license_plate")}
+                  >
+                    <div className="flex items-center gap-1">
+                      License Plate
+                      {getSortIcon("license_plate")}
+                    </div>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell colSpan={9}>
+                        <Skeleton className="h-5 w-full" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : error ? (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center py-8 text-red-500">
+                      Failed to load data. Please try again.
+                    </TableCell>
+                  </TableRow>
+                ) : filteredAndSortedData.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center py-8">
+                      {searchQuery ? "No matching records found" : "No pending payments found"}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredAndSortedData.map((item) => (
+                    <TableRow key={item.agreement_number}>
+                      <TableCell>{item.agreement_number}</TableCell>
+                      <TableCell>{item.customer_name}</TableCell>
+                      <TableCell>{item.id_number}</TableCell>
+                      <TableCell>{item.phone_number}</TableCell>
+                      <TableCell>
+                        {item.pending_rent_amount > 0 ? (
+                          <span className="font-medium">
+                            QAR {item.pending_rent_amount.toLocaleString()}
+                          </span>
+                        ) : (
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                            Paid
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {item.late_fine_amount > 0 ? (
+                          <span className="font-medium text-amber-600">
+                            QAR {item.late_fine_amount.toLocaleString()}
+                          </span>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {item.traffic_fine_amount > 0 ? (
+                          <span className="font-medium text-red-600">
+                            QAR {item.traffic_fine_amount.toLocaleString()}
+                          </span>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                      <TableCell className="font-bold">
+                        QAR {item.total_amount.toLocaleString()}
+                      </TableCell>
+                      <TableCell>{item.license_plate}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };

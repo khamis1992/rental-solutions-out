@@ -9520,6 +9520,20 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_pending_payments_report: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          agreement_number: string
+          customer_name: string
+          id_number: string
+          phone_number: string
+          pending_rent_amount: number
+          late_fine_amount: number
+          traffic_fine_amount: number
+          total_amount: number
+          license_plate: string
+        }[]
+      }
       handle_portal_login: {
         Args: {
           p_agreement_number: string
