@@ -1,0 +1,8 @@
+
+project_id = "vqdlsidkucrownbfuouq"
+
+[functions.process-overdue-payments]
+verify_jwt = false
+
+[functions.process-rent-schedules]
+verify_jwt = false
