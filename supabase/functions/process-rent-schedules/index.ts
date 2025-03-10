@@ -1,6 +1,6 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { startOfMonth, addMonths } from 'https://esm.sh/date-fns'
+import { startOfMonth, addMonths, parseISO, isAfter } from 'https://esm.sh/date-fns'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,28 +22,45 @@ Deno.serve(async (req) => {
     // Get all active agreements
     const { data: activeAgreements, error: agreementsError } = await supabase
       .from('leases')
-      .select('id, rent_amount, rent_due_day')
+      .select('id, rent_amount, rent_due_day, start_date')
       .eq('status', 'active')
 
     if (agreementsError) throw agreementsError
 
     console.log(`Found ${activeAgreements?.length || 0} active agreements`)
 
-    const nextMonth = startOfMonth(addMonths(new Date(), 1))
+    const currentDate = new Date()
+    const nextMonth = startOfMonth(addMonths(currentDate, 1))
+    
+    // Process agreements with future start dates
+    const futureAgreements = activeAgreements?.filter(agreement => 
+      agreement.start_date && isAfter(parseISO(agreement.start_date), currentDate)
+    ) || []
+    
+    if (futureAgreements.length > 0) {
+      console.log(`Processing ${futureAgreements.length} future agreements`)
+    }
 
     for (const agreement of activeAgreements || []) {
-      // Check if schedule already exists for next month
+      const isFutureAgreement = agreement.start_date && isAfter(parseISO(agreement.start_date), currentDate)
+      
+      // For future agreements, create schedule starting from their start month
+      const scheduleStartMonth = isFutureAgreement 
+        ? startOfMonth(parseISO(agreement.start_date)) 
+        : nextMonth
+      
+      // Check if schedule already exists for the calculated start month
       const { data: existingSchedule } = await supabase
         .from('payment_schedules')
         .select('id')
         .eq('lease_id', agreement.id)
-        .gte('due_date', nextMonth.toISOString())
-        .lt('due_date', addMonths(nextMonth, 1).toISOString())
+        .gte('due_date', scheduleStartMonth.toISOString())
+        .lt('due_date', addMonths(scheduleStartMonth, 1).toISOString())
         .single()
 
       if (!existingSchedule) {
-        // Create new schedule for next month
-        const dueDate = new Date(nextMonth)
+        // Create new schedule for next month or start month
+        const dueDate = new Date(scheduleStartMonth)
         dueDate.setDate(agreement.rent_due_day || 1)
 
         const { error: insertError } = await supabase
@@ -67,7 +84,9 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: 'Rent schedules processed successfully' 
+        message: 'Rent schedules processed successfully',
+        agreements_processed: activeAgreements?.length || 0,
+        future_agreements_processed: futureAgreements.length
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
