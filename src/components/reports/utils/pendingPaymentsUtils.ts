@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface PendingPaymentReport {
@@ -117,4 +118,35 @@ export const calculateDaysOverdue = (paymentDate: Date): number => {
   
   // Otherwise calculate days overdue (payment date - first of month)
   return Math.floor((paymentDate.getTime() - firstOfMonth.getTime()) / (1000 * 60 * 60 * 24));
+};
+
+// Function to check and fix missing payment records
+export const checkMissingPaymentRecords = async (): Promise<{ fixed: number, errors: string[] }> => {
+  try {
+    // Call the SQL function
+    const { error } = await supabase.rpc('generate_missing_payment_records');
+    
+    if (error) {
+      console.error("Error generating missing payment records:", error);
+      return { fixed: 0, errors: [error.message] };
+    }
+    
+    // Query the view to see how many leases still have issues
+    const { data, error: viewError } = await supabase
+      .from('leases_missing_payments')
+      .select('*');
+      
+    if (viewError) {
+      console.error("Error checking leases with missing payments:", viewError);
+      return { fixed: 0, errors: [viewError.message] };
+    }
+    
+    return { 
+      fixed: data?.length || 0, 
+      errors: data?.map(d => `${d.agreement_number}: ${d.status_description}`) || [] 
+    };
+  } catch (e: any) {
+    console.error("Error in checkMissingPaymentRecords:", e);
+    return { fixed: 0, errors: [e.toString()] };
+  }
 };

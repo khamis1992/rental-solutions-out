@@ -34,6 +34,7 @@ Deno.serve(async (req) => {
     
     // Process each agreement
     let processedCount = 0
+    let historicalProcessedCount = 0
     const processedAgreements = []
     
     for (const agreement of activeAgreements || []) {
@@ -106,6 +107,7 @@ Deno.serve(async (req) => {
           }
 
           processedCount++
+          historicalProcessedCount++
           processedAgreements.push({
             id: agreement.id,
             agreement_number: agreement.agreement_number,
@@ -114,6 +116,55 @@ Deno.serve(async (req) => {
           })
 
           console.log(`Created schedule for agreement ${agreement.agreement_number} due on ${dueDate.toISOString()}`)
+          
+          // For historical months (before current month), also create a late payment record if needed
+          if (isBefore(scheduleMonth, startOfMonth(currentDate))) {
+            // Check if a payment or late fee record already exists for this month
+            const { data: existingPayment } = await supabase
+              .from('unified_payments')
+              .select('id')
+              .eq('lease_id', agreement.id)
+              .eq('type', 'Income')
+              .gte('payment_date', scheduleMonth.toISOString())
+              .lt('payment_date', addMonths(scheduleMonth, 1).toISOString())
+              .maybeSingle()
+              
+            const { data: existingLateFee } = await supabase
+              .from('unified_payments')
+              .select('id')
+              .eq('lease_id', agreement.id)
+              .eq('type', 'LATE_PAYMENT_FEE')
+              .eq('original_due_date', dueDate.toISOString())
+              .maybeSingle()
+              
+            if (!existingPayment && !existingLateFee) {
+              // Calculate standard late fee (30 days for historical)
+              const lateFee = 30 * (agreement.daily_late_fee || 120)
+              
+              // Create late fee record for historical month
+              const { error: lateFeeError } = await supabase
+                .from('unified_payments')
+                .insert({
+                  lease_id: agreement.id,
+                  amount: agreement.rent_amount,
+                  amount_paid: 0,
+                  balance: agreement.rent_amount,
+                  payment_date: null,
+                  status: 'pending',
+                  description: `Auto-generated late payment record for ${format(dueDate, 'MMMM yyyy')}`,
+                  type: 'LATE_PAYMENT_FEE',
+                  late_fine_amount: lateFee,
+                  days_overdue: 30, // Standard for historical
+                  original_due_date: dueDate.toISOString()
+                })
+                
+              if (lateFeeError) {
+                console.error(`Error creating late fee for agreement ${agreement.id}:`, lateFeeError)
+              } else {
+                console.log(`Created historical late fee for ${agreement.agreement_number} - ${format(dueDate, 'MMMM yyyy')}`)
+              }
+            }
+          }
         }
       } else {
         // For future agreements, create next month's schedule if needed
@@ -302,12 +353,21 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Call the SQL function to ensure all missing payment records are generated
+    const { error: fnError } = await supabase.rpc('generate_missing_payment_records')
+    if (fnError) {
+      console.error('Error calling generate_missing_payment_records:', fnError)
+    } else {
+      console.log('Successfully ran generate_missing_payment_records SQL function')
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true,
         message: 'Rent schedules processed successfully',
         agreements_processed: activeAgreements?.length || 0,
         schedules_created: processedCount,
+        historical_schedules_created: historicalProcessedCount,
         late_fees_processed: lateFeesProcessed
       }),
       { 

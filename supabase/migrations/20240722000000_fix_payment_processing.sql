@@ -38,7 +38,8 @@ BEGIN
       payment_date,
       status,
       type,
-      payment_reference
+      payment_reference,
+      original_due_date
     ) VALUES (
       p_lease_id,
       p_amount,
@@ -49,7 +50,8 @@ BEGIN
       p_payment_date,
       CASE WHEN p_balance <= 0 THEN 'completed' ELSE 'pending' END,
       'Income',
-      v_payment_schedule_id
+      v_payment_schedule_id,
+      p_original_due_date
     )
     RETURNING id INTO v_payment_id;
     
@@ -100,6 +102,23 @@ BEGIN
         status = CASE WHEN p_balance <= 0 THEN 'completed' ELSE 'partial' END,
         actual_payment_date = p_payment_date
       WHERE id = v_payment_schedule_id;
+    ELSE
+      -- Create a payment schedule if it doesn't exist (for historical records)
+      INSERT INTO payment_schedules (
+        lease_id,
+        amount,
+        due_date,
+        status,
+        description,
+        actual_payment_date
+      ) VALUES (
+        p_lease_id,
+        p_amount,
+        p_original_due_date,
+        CASE WHEN p_balance <= 0 THEN 'completed' ELSE 'partial' END,
+        'Auto-created payment schedule for ' || TO_CHAR(p_original_due_date, 'Month YYYY'),
+        p_payment_date
+      );
     END IF;
     
     -- Return success
@@ -117,7 +136,7 @@ BEGIN
 END;
 $$;
 
--- Create or replace function to get properly calculated pending payments
+-- Update the get_pending_payments_report function to better handle past due amounts
 CREATE OR REPLACE FUNCTION public.get_pending_payments_report()
  RETURNS TABLE(agreement_number text, customer_name text, id_number text, phone_number text, pending_rent_amount numeric, late_fine_amount numeric, traffic_fine_amount numeric, total_amount numeric, license_plate text)
  LANGUAGE plpgsql
