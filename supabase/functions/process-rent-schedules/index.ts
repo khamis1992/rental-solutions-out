@@ -1,6 +1,6 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { startOfMonth, addMonths, parseISO, isAfter, format } from 'https://esm.sh/date-fns'
+import { startOfMonth, addMonths, parseISO, isAfter, format, isBefore } from 'https://esm.sh/date-fns'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     // Get all active agreements
     const { data: activeAgreements, error: agreementsError } = await supabase
       .from('leases')
-      .select('id, rent_amount, rent_due_day, start_date, daily_late_fee')
+      .select('id, rent_amount, rent_due_day, start_date, daily_late_fee, agreement_number')
       .eq('status', 'active')
 
     if (agreementsError) throw agreementsError
@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
         ? startOfMonth(agreementStartDate) 
         : nextMonth
       
-      // Force rent due day to be 1st of the month (standardized)
+      // Always set rent due day to 1st of the month (standardized)
       const dueDay = 1
       
       // Check if schedule already exists for the month (avoid duplicates)
@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
           ? `Initial rent payment for ${format(dueDate, 'MMMM yyyy')}`
           : `Monthly rent payment for ${format(dueDate, 'MMMM yyyy')}`
 
-        const { error: insertError } = await supabase
+        const { error: insertError, data: newSchedule } = await supabase
           .from('payment_schedules')
           .insert({
             lease_id: agreement.id,
@@ -92,6 +92,8 @@ Deno.serve(async (req) => {
             status: 'pending',
             description: scheduleDescription
           })
+          .select()
+          .single()
 
         if (insertError) {
           console.error(`Error creating schedule for agreement ${agreement.id}:`, insertError)
@@ -101,11 +103,12 @@ Deno.serve(async (req) => {
         processedCount++
         processedAgreements.push({
           id: agreement.id,
+          agreement_number: agreement.agreement_number,
           due_date: dueDate.toISOString(),
           amount: agreement.rent_amount
         })
 
-        console.log(`Created schedule for agreement ${agreement.id} due on ${dueDate.toISOString()}`)
+        console.log(`Created schedule for agreement ${agreement.agreement_number} due on ${dueDate.toISOString()}`)
       }
     }
 
@@ -128,6 +131,35 @@ Deno.serve(async (req) => {
           continue
         }
         
+        // Get the payment schedule for this month
+        const { data: currentMonthSchedule } = await supabase
+          .from('payment_schedules')
+          .select('id')
+          .eq('lease_id', agreement.id)
+          .gte('due_date', firstOfMonth.toISOString())
+          .lt('due_date', addMonths(firstOfMonth, 1).toISOString())
+          .single()
+          
+        if (!currentMonthSchedule) {
+          console.log(`No payment schedule found for agreement ${agreement.agreement_number} this month. Creating one.`)
+          
+          // Create a payment schedule for the current month if it doesn't exist
+          const { error: insertScheduleError } = await supabase
+            .from('payment_schedules')
+            .insert({
+              lease_id: agreement.id,
+              amount: agreement.rent_amount,
+              due_date: firstOfMonth.toISOString(),
+              status: 'pending',
+              description: `Monthly rent payment for ${format(firstOfMonth, 'MMMM yyyy')}`
+            })
+            
+          if (insertScheduleError) {
+            console.error(`Error creating schedule for agreement ${agreement.id}:`, insertScheduleError)
+            continue
+          }
+        }
+        
         // Check if a payment already exists for this month
         const { data: existingPayments } = await supabase
           .from('unified_payments')
@@ -135,46 +167,64 @@ Deno.serve(async (req) => {
           .eq('lease_id', agreement.id)
           .gte('payment_date', firstOfMonth.toISOString())
           .lt('payment_date', addMonths(firstOfMonth, 1).toISOString())
+          .eq('type', 'Income')
         
         // Check if a late fee record already exists for this month
         const { data: existingLateFees } = await supabase
           .from('unified_payments')
-          .select('id')
+          .select('id, late_fine_amount, days_overdue')
           .eq('lease_id', agreement.id)
           .eq('type', 'LATE_PAYMENT_FEE')
           .eq('original_due_date', firstOfMonth.toISOString())
+          .single()
+        
+        // Calculate late fee (days elapsed * daily rate)
+        const dailyLateFee = agreement.daily_late_fee || 120 // Default to 120 QAR
+        const lateFeeAmount = daysElapsed * dailyLateFee
         
         // If no payment exists for this month and no late fee record exists
-        if ((!existingPayments || existingPayments.length === 0) && 
-            (!existingLateFees || existingLateFees.length === 0)) {
-          
-          // Calculate late fee (days elapsed * daily rate)
-          const dailyLateFee = agreement.daily_late_fee || 120 // Default to 120 QAR
-          const lateFeeAmount = daysElapsed * dailyLateFee
-          
-          // Insert a late fee record
-          const { error: insertError } = await supabase
-            .from('unified_payments')
-            .insert({
-              lease_id: agreement.id,
-              amount: agreement.rent_amount,
-              amount_paid: 0, // No payment made
-              balance: agreement.rent_amount, // Full balance due
-              payment_date: null, // No payment date yet
-              status: 'pending',
-              description: `Auto-generated late payment record for ${format(firstOfMonth, 'MMMM yyyy')}`,
-              type: 'LATE_PAYMENT_FEE',
-              late_fine_amount: lateFeeAmount,
-              days_overdue: daysElapsed,
-              original_due_date: firstOfMonth.toISOString()
-            })
-          
-          if (insertError) {
-            console.error(`Error inserting late fee for agreement ${agreement.id}:`, insertError)
-            continue
+        if ((!existingPayments || existingPayments.length === 0)) {
+          if (!existingLateFees) {
+            // Insert a late fee record
+            const { error: insertError } = await supabase
+              .from('unified_payments')
+              .insert({
+                lease_id: agreement.id,
+                amount: agreement.rent_amount,
+                amount_paid: 0, // No payment made
+                balance: agreement.rent_amount, // Full balance due
+                payment_date: null, // No payment date yet
+                status: 'pending',
+                description: `Auto-generated late payment record for ${format(firstOfMonth, 'MMMM yyyy')}`,
+                type: 'LATE_PAYMENT_FEE',
+                late_fine_amount: lateFeeAmount,
+                days_overdue: daysElapsed,
+                original_due_date: firstOfMonth.toISOString()
+              })
+            
+            if (insertError) {
+              console.error(`Error inserting late fee for agreement ${agreement.id}:`, insertError)
+              continue
+            }
+            
+            lateFeesProcessed++
+          } else if (existingLateFees.days_overdue < daysElapsed) {
+            // Update the late fee record if days overdue has increased
+            const { error: updateError } = await supabase
+              .from('unified_payments')
+              .update({
+                late_fine_amount: lateFeeAmount,
+                days_overdue: daysElapsed
+              })
+              .eq('id', existingLateFees.id)
+            
+            if (updateError) {
+              console.error(`Error updating late fee for agreement ${agreement.id}:`, updateError)
+              continue
+            }
+            
+            lateFeesProcessed++
           }
-          
-          lateFeesProcessed++
         }
       }
     }

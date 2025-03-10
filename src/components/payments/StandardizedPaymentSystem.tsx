@@ -44,6 +44,7 @@ export function StandardizedPaymentSystem({ agreementId }: StandardizedPaymentSy
           start_date,
           end_date,
           rent_due_day,
+          daily_late_fee,
           customer:profiles!customer_id (
             full_name
           )
@@ -53,6 +54,22 @@ export function StandardizedPaymentSystem({ agreementId }: StandardizedPaymentSy
       
       if (error) throw error;
       return data;
+    },
+    enabled: !!agreementId
+  });
+
+  // Fetch payment schedules
+  const { data: schedules, isLoading: loadingSchedules } = useQuery({
+    queryKey: ['payment-schedules', agreementId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('payment_schedules')
+        .select('*')
+        .eq('lease_id', agreementId)
+        .order('due_date', { ascending: true });
+      
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!agreementId
   });
@@ -73,62 +90,72 @@ export function StandardizedPaymentSystem({ agreementId }: StandardizedPaymentSy
     enabled: !!agreementId
   });
 
-  const isLoading = loadingAgreement || loadingPayments;
+  const isLoading = loadingAgreement || loadingPayments || loadingSchedules;
 
-  // Generate payment schedule based on agreement details
+  // Filter payments by type
+  const regularPayments = payments?.filter(p => p.type === 'Income') || [];
+  const lateFeePayments = payments?.filter(p => p.type === 'LATE_PAYMENT_FEE') || [];
+  
+  // Get latest late fee record
+  const latestLateFee = lateFeePayments.length > 0 
+    ? lateFeePayments.reduce((latest, current) => {
+        if (!latest.created_at) return current;
+        return new Date(current.created_at) > new Date(latest.created_at) ? current : latest;
+      }, lateFeePayments[0])
+    : null;
+
+  // Generate payment schedule based on agreement details and payment schedules
   const generatePaymentSchedule = () => {
-    if (!agreement) return [];
+    if (!agreement || !schedules) return [];
     
-    const startDate = new Date(agreement.start_date);
-    const endDate = new Date(agreement.end_date);
-    const dueDay = agreement.rent_due_day || 1; // Default to 1st if not specified
+    const today = new Date();
+    const allSchedules = [...schedules];
     
-    const schedule = [];
-    let currentDate = new Date(startDate);
-    
-    // Set to the first day of month after start date
-    currentDate.setDate(1);
-    if (currentDate.getMonth() === startDate.getMonth() && 
-        startDate.getDate() > 1) {
-      // If we started after the 1st, move to next month
-      currentDate.setMonth(currentDate.getMonth() + 1);
-    }
-    
-    // Generate schedule until end date
-    while (currentDate <= endDate) {
-      // Create payment for current month
-      schedule.push({
-        id: `${agreementId}-${format(currentDate, 'yyyy-MM')}`,
-        dueDate: new Date(currentDate),
-        amount: agreement.rent_amount,
-        status: determinePaymentStatus(currentDate, payments),
-        description: `Rent for ${format(currentDate, 'MMMM yyyy')}`
+    // Map payment schedules to display format
+    return allSchedules.map(schedule => {
+      const dueDate = new Date(schedule.due_date);
+      
+      // Find matching payment
+      const matchingPayment = regularPayments?.find(payment => {
+        if (!payment.payment_date) return false;
+        const paymentDate = new Date(payment.payment_date);
+        const paymentMonth = paymentDate.getMonth();
+        const paymentYear = paymentDate.getFullYear();
+        const dueMonth = dueDate.getMonth();
+        const dueYear = dueDate.getFullYear();
+        
+        return paymentMonth === dueMonth && paymentYear === dueYear;
       });
       
-      // Move to next month
-      currentDate.setMonth(currentDate.getMonth() + 1);
-    }
-    
-    return schedule;
-  };
-  
-  // Determine if a payment was made for a specific month
-  const determinePaymentStatus = (dueDate: Date, paymentsList: any[] | undefined) => {
-    if (!paymentsList || paymentsList.length === 0) return 'pending';
-    
-    // Check if any payment matches this month
-    const dueMonth = dueDate.getMonth();
-    const dueYear = dueDate.getFullYear();
-    
-    const matchingPayment = paymentsList.find(payment => {
-      const paymentDate = new Date(payment.payment_date);
-      return (
-        paymentDate.getMonth() === dueMonth && 
-        paymentDate.getFullYear() === dueYear
-      );
+      // Find matching late fee
+      const matchingLateFee = lateFeePayments?.find(payment => {
+        if (!payment.original_due_date) return false;
+        const originalDueDate = new Date(payment.original_due_date);
+        const dueMonth = dueDate.getMonth();
+        const dueYear = dueDate.getFullYear();
+        const origMonth = originalDueDate.getMonth();
+        const origYear = originalDueDate.getFullYear();
+        
+        return origMonth === dueMonth && origYear === dueYear;
+      });
+      
+      // Determine payment status
+      let status = 'pending';
+      if (matchingPayment?.status === 'completed') {
+        status = 'completed';
+      }
+      
+      return {
+        id: schedule.id,
+        dueDate,
+        amount: schedule.amount,
+        status,
+        description: schedule.description,
+        paymentId: matchingPayment?.id,
+        lateFee: matchingLateFee?.late_fine_amount || 0,
+        daysOverdue: matchingLateFee?.days_overdue || 0
+      };
     });
-    
-    return matchingPayment ? 'completed' : 'pending';
   };
   
   // Format payment schedule for display
@@ -147,7 +174,7 @@ export function StandardizedPaymentSystem({ agreementId }: StandardizedPaymentSy
   );
   
   // Get payment status badge
-  const getStatusBadge = (status: string, dueDate: Date) => {
+  const getStatusBadge = (status: string, dueDate: Date, lateFee: number) => {
     if (status === 'completed') {
       return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Paid</Badge>;
     }
@@ -157,7 +184,9 @@ export function StandardizedPaymentSystem({ agreementId }: StandardizedPaymentSy
     }
     
     if (format(dueDate, 'yyyy-MM') === format(today, 'yyyy-MM')) {
-      return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Due Now</Badge>;
+      return lateFee > 0 
+        ? <Badge variant="destructive">Late Fee Applied</Badge>
+        : <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Due Now</Badge>;
     }
     
     return <Badge variant="outline">Upcoming</Badge>;
@@ -190,6 +219,9 @@ export function StandardizedPaymentSystem({ agreementId }: StandardizedPaymentSy
             <AlertTitle>Standardized Payment Schedule</AlertTitle>
             <AlertDescription>
               All payments are due on the 1st of each month. The monthly payment amount is {formatCurrency(agreement?.rent_amount || 0)}.
+              {agreement?.daily_late_fee && (
+                <span className="block mt-1">Late fee: {formatCurrency(agreement.daily_late_fee)} per day after the 1st.</span>
+              )}
             </AlertDescription>
           </Alert>
 
@@ -200,6 +232,7 @@ export function StandardizedPaymentSystem({ agreementId }: StandardizedPaymentSy
                   <TableHead className="w-[120px]">Due Date</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Late Fee</TableHead>
                   <TableHead>Description</TableHead>
                 </TableRow>
               </TableHeader>
@@ -214,7 +247,19 @@ export function StandardizedPaymentSystem({ agreementId }: StandardizedPaymentSy
                     </TableCell>
                     <TableCell>{formatCurrency(payment.amount)}</TableCell>
                     <TableCell>
-                      {getStatusBadge(payment.status, payment.dueDate)}
+                      {getStatusBadge(payment.status, payment.dueDate, payment.lateFee)}
+                    </TableCell>
+                    <TableCell>
+                      {payment.lateFee > 0 ? (
+                        <div className="text-destructive">
+                          {formatCurrency(payment.lateFee)}
+                          <span className="text-xs ml-1">
+                            ({payment.daysOverdue} days)
+                          </span>
+                        </div>
+                      ) : (
+                        "—"
+                      )}
                     </TableCell>
                     <TableCell>
                       <span className="text-sm">{payment.description}</span>
@@ -224,7 +269,7 @@ export function StandardizedPaymentSystem({ agreementId }: StandardizedPaymentSy
                 
                 {pastPayments.length > 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center p-2">
+                    <TableCell colSpan={5} className="text-center p-2">
                       <Button 
                         variant="ghost" 
                         size="sm" 
@@ -256,6 +301,18 @@ export function StandardizedPaymentSystem({ agreementId }: StandardizedPaymentSy
                         <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Paid</Badge>
                       ) : (
                         <Badge variant="destructive">Missed</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {payment.lateFee > 0 ? (
+                        <div className="text-destructive">
+                          {formatCurrency(payment.lateFee)}
+                          <span className="text-xs ml-1">
+                            ({payment.daysOverdue} days)
+                          </span>
+                        </div>
+                      ) : (
+                        "—"
                       )}
                     </TableCell>
                     <TableCell>

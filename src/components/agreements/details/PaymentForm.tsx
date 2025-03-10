@@ -26,7 +26,9 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lateFee, setLateFee] = useState(0);
   const [rentAmount, setRentAmount] = useState(0);
+  const [dailyLateFeeRate, setDailyLateFeeRate] = useState(120);
   const [dueAmount, setDueAmount] = useState(0);
+  const [existingLateFee, setExistingLateFee] = useState<any>(null);
   const queryClient = useQueryClient();
   const { register, handleSubmit, reset, setValue, watch } = useForm();
 
@@ -41,7 +43,7 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
       try {
         const { data: lease, error } = await supabase
           .from('leases')
-          .select('rent_amount, rent_due_day')
+          .select('rent_amount, rent_due_day, daily_late_fee')
           .eq('id', agreementId)
           .maybeSingle();
         
@@ -49,6 +51,9 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
         
         if (lease?.rent_amount) {
           setRentAmount(Number(lease.rent_amount));
+          if (lease.daily_late_fee) {
+            setDailyLateFeeRate(Number(lease.daily_late_fee));
+          }
         } else {
           console.warn("No rent amount found for agreement:", agreementId);
         }
@@ -58,13 +63,42 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
       }
     };
 
+    const fetchExistingLateFee = async () => {
+      if (!agreementId) return;
+      
+      try {
+        const today = new Date();
+        const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        
+        const { data, error } = await supabase
+          .from('unified_payments')
+          .select('*')
+          .eq('lease_id', agreementId)
+          .eq('type', 'LATE_PAYMENT_FEE')
+          .eq('original_due_date', firstOfMonth.toISOString())
+          .maybeSingle();
+        
+        if (error) throw error;
+        
+        if (data) {
+          setExistingLateFee(data);
+          setLateFee(data.late_fine_amount || 0);
+        } else {
+          calculateLateFee();
+        }
+      } catch (error) {
+        console.error("Error fetching existing late fee:", error);
+        calculateLateFee();
+      }
+    };
+
     const calculateLateFee = () => {
       const today = new Date();
       const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       
       if (today > firstOfMonth) {
         const daysLate = Math.floor((today.getTime() - firstOfMonth.getTime()) / (1000 * 60 * 60 * 24));
-        setLateFee(daysLate * 120); // 120 QAR per day
+        setLateFee(daysLate * dailyLateFeeRate);
       } else {
         setLateFee(0);
       }
@@ -72,9 +106,9 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
 
     if (agreementId) {
       fetchRentAmount();
-      calculateLateFee();
+      fetchExistingLateFee();
     }
-  }, [agreementId]);
+  }, [agreementId, dailyLateFeeRate]);
 
   // Update due amount when rent amount or late fee changes
   useEffect(() => {
@@ -96,21 +130,21 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
       const paymentDate = new Date();
       const daysOverdue = calculateDaysOverdue(paymentDate);
       const originalDueDate = getFirstDayOfMonth(paymentDate);
-      const lateFineAmount = daysOverdue > 0 ? daysOverdue * 120 : 0;
-
-      const { error } = await supabase.from("unified_payments").insert({
-        lease_id: agreementId,
-        amount: dueAmount,
-        amount_paid: paymentAmount,
-        balance: balance,
-        payment_method: data.paymentMethod,
-        description: data.description,
-        payment_date: paymentDate.toISOString(),
-        status: 'completed',
-        type: 'Income',
-        late_fine_amount: lateFineAmount,
-        days_overdue: daysOverdue,
-        original_due_date: originalDueDate.toISOString()
+      const lateFineAmount = existingLateFee?.late_fine_amount || (daysOverdue > 0 ? daysOverdue * dailyLateFeeRate : 0);
+      
+      // Batch operations using transactions
+      const { error } = await supabase.rpc('record_payment_with_late_fee', {
+        p_lease_id: agreementId,
+        p_amount: dueAmount,
+        p_amount_paid: paymentAmount,
+        p_balance: balance,
+        p_payment_method: data.paymentMethod,
+        p_description: data.description,
+        p_payment_date: paymentDate.toISOString(),
+        p_late_fine_amount: lateFineAmount,
+        p_days_overdue: daysOverdue,
+        p_original_due_date: originalDueDate.toISOString(),
+        p_existing_late_fee_id: existingLateFee?.id || null
       });
 
       if (error) throw error;
@@ -118,8 +152,10 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
       toast.success("Payment added successfully");
       reset();
       
+      // Invalidate all related queries
       await queryClient.invalidateQueries({ queryKey: ['unified-payments'] });
       await queryClient.invalidateQueries({ queryKey: ['payment-history'] });
+      await queryClient.invalidateQueries({ queryKey: ['payment-schedules'] });
       
     } catch (error) {
       console.error("Error adding payment:", error);
