@@ -120,38 +120,67 @@ export const calculateDaysOverdue = (paymentDate: Date): number => {
   return Math.floor((paymentDate.getTime() - firstOfMonth.getTime()) / (1000 * 60 * 60 * 24));
 };
 
+// Define type for missing payment records response
+export interface MissingPaymentResult {
+  agreement_number: string;
+  status_description: string;
+  fixed: number;
+  errors: string[];
+  missingAgreements: string[];
+}
+
 // Function to check and fix missing payment records
-export const checkMissingPaymentRecords = async (): Promise<{ fixed: number, errors: string[], missingAgreements: string[] }> => {
+export const checkMissingPaymentRecords = async (): Promise<MissingPaymentResult> => {
   try {
     // Call the SQL function to generate missing payment records
-    const { error } = await supabase.rpc('generate_missing_payment_records');
+    const { data, error } = await supabase.rpc('generate_missing_payment_records');
     
     if (error) {
       console.error("Error generating missing payment records:", error);
-      return { fixed: 0, errors: [error.message], missingAgreements: [] };
+      return { 
+        fixed: 0, 
+        errors: [error.message], 
+        missingAgreements: [],
+        agreement_number: '',
+        status_description: 'Error generating records'
+      };
     }
     
     // Query the view to see which leases still have issues
-    const { data, error: viewError } = await supabase
+    const { data: missingData, error: viewError } = await supabase
       .from('leases_missing_payments')
       .select('*');
       
     if (viewError) {
       console.error("Error checking leases with missing payments:", viewError);
-      return { fixed: 0, errors: [viewError.message], missingAgreements: [] };
+      return { 
+        fixed: 0, 
+        errors: [viewError.message], 
+        missingAgreements: [],
+        agreement_number: '',
+        status_description: 'Error checking missing payments'
+      };
     }
     
     // Get list of agreement numbers with missing payments
-    const missingAgreements = data?.map(d => d.agreement_number) || [];
+    const missingAgreements = missingData?.map(d => d.agreement_number) || [];
     
     return { 
-      fixed: data?.length || 0, 
-      errors: data?.map(d => `${d.agreement_number}: ${d.status_description}`) || [],
-      missingAgreements
+      fixed: missingData?.length || 0, 
+      errors: missingData?.map(d => `${d.agreement_number}: ${d.status_description}`) || [],
+      missingAgreements,
+      agreement_number: missingAgreements[0] || '',
+      status_description: missingData?.[0]?.status_description || ''
     };
   } catch (e: any) {
     console.error("Error in checkMissingPaymentRecords:", e);
-    return { fixed: 0, errors: [e.toString()], missingAgreements: [] };
+    return { 
+      fixed: 0, 
+      errors: [e.toString()], 
+      missingAgreements: [],
+      agreement_number: '',
+      status_description: 'Error processing records'
+    };
   }
 };
 
