@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface PendingPaymentReport {
@@ -91,4 +90,31 @@ export const exportPendingPaymentsToCSV = (data: PendingPaymentReport[]) => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+};
+
+// Calculate late fine based on payment date and due date
+export const calculateLateFine = (paymentDate: Date, dueDate: Date, dailyRate: number = 120): number => {
+  if (paymentDate <= dueDate) return 0;
+  
+  // Calculate days overdue (excluding the due date itself)
+  const daysOverdue = Math.floor((paymentDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+  
+  // Return the calculated late fine
+  return daysOverdue * dailyRate;
+};
+
+// Get the first day of a month from any date
+export const getFirstDayOfMonth = (date: Date): Date => {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+};
+
+// Calculate days overdue from the first of the month
+export const calculateDaysOverdue = (paymentDate: Date): number => {
+  const firstOfMonth = getFirstDayOfMonth(paymentDate);
+  
+  // If payment was made on the 1st, no late fee
+  if (paymentDate.getDate() === 1) return 0;
+  
+  // Otherwise calculate days overdue (payment date - first of month)
+  return Math.floor((paymentDate.getTime() - firstOfMonth.getTime()) / (1000 * 60 * 60 * 24));
 };

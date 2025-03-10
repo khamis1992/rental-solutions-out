@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatCurrency } from "@/lib/utils";
+import { getFirstDayOfMonth, calculateDaysOverdue } from "@/components/reports/utils/pendingPaymentsUtils";
 
 interface PaymentFormProps {
   agreementId: string;
@@ -40,7 +41,7 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
       try {
         const { data: lease, error } = await supabase
           .from('leases')
-          .select('rent_amount')
+          .select('rent_amount, rent_due_day')
           .eq('id', agreementId)
           .maybeSingle();
         
@@ -90,6 +91,12 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
     try {
       const paymentAmount = Number(data.amount);
       const balance = dueAmount - paymentAmount;
+      
+      // Calculate days overdue and late fee based on standardized due date (1st of month)
+      const paymentDate = new Date();
+      const daysOverdue = calculateDaysOverdue(paymentDate);
+      const originalDueDate = getFirstDayOfMonth(paymentDate);
+      const lateFineAmount = daysOverdue > 0 ? daysOverdue * 120 : 0;
 
       const { error } = await supabase.from("unified_payments").insert({
         lease_id: agreementId,
@@ -98,11 +105,12 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
         balance: balance,
         payment_method: data.paymentMethod,
         description: data.description,
-        payment_date: new Date().toISOString(),
+        payment_date: paymentDate.toISOString(),
         status: 'completed',
         type: 'Income',
-        late_fine_amount: lateFee,
-        days_overdue: Math.floor(lateFee / 120)
+        late_fine_amount: lateFineAmount,
+        days_overdue: daysOverdue,
+        original_due_date: originalDueDate.toISOString()
       });
 
       if (error) throw error;

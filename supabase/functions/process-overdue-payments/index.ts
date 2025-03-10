@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -12,82 +13,133 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Starting overdue payments processing...')
+    
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get all active leases with their payment schedules
-    const { data: leases, error: leaseError } = await supabase
+    // Get the first day of current month
+    const today = new Date()
+    const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+    const daysElapsed = today.getDate() - 1 // Days since the 1st (excluding today)
+    
+    console.log(`Processing for ${today.toISOString()}, days elapsed: ${daysElapsed}`)
+    
+    if (daysElapsed <= 0) {
+      return new Response(
+        JSON.stringify({ success: true, message: 'No late fees to process yet this month' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Get all active leases that haven't made a payment this month
+    const { data: activeLeases, error: leaseError } = await supabase
       .from('leases')
       .select(`
         id,
+        agreement_number,
         customer_id,
-        total_amount,
-        payments (
-          amount,
-          payment_date,
-          status
-        )
+        rent_amount,
+        daily_late_fee
       `)
       .eq('status', 'active')
 
     if (leaseError) throw leaseError
 
-    // Process each lease
-    for (const lease of leases || []) {
-      const totalPaid = lease.payments
-        ?.filter(p => p.status === 'completed')
-        .reduce((sum, p) => sum + (p.amount || 0), 0) || 0
+    console.log(`Found ${activeLeases?.length || 0} active leases`)
 
-      const balance = lease.total_amount - totalPaid
-      
-      // Get the last payment date
-      const lastPayment = lease.payments
-        ?.filter(p => p.status === 'completed')
-        .sort((a, b) => new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime())[0]
+    // For each lease, check if a payment exists for this month
+    let processedCount = 0
+    const processResults = []
 
-      const lastPaymentDate = lastPayment?.payment_date
+    for (const lease of activeLeases || []) {
+      // Check if a payment already exists for this month
+      const { data: existingPayments, error: paymentError } = await supabase
+        .from('unified_payments')
+        .select('id')
+        .eq('lease_id', lease.id)
+        .gte('payment_date', firstOfMonth.toISOString())
+        .lt('payment_date', new Date(today.getFullYear(), today.getMonth() + 1, 1).toISOString())
 
-      // Calculate days overdue
-      const daysOverdue = lastPaymentDate 
-        ? Math.max(0, Math.floor((new Date().getTime() - new Date(lastPaymentDate).getTime()) / (1000 * 60 * 60 * 24)))
-        : 0
+      if (paymentError) {
+        console.error(`Error checking payments for lease ${lease.id}:`, paymentError)
+        continue
+      }
 
-      if (balance > 0) {
-        // Update or insert overdue payment record
-        const { error: upsertError } = await supabase
-          .from('overdue_payments')
-          .upsert({
-            agreement_id: lease.id,
-            customer_id: lease.customer_id,
-            total_amount: lease.total_amount,
-            amount_paid: totalPaid,
-            balance: balance,
-            last_payment_date: lastPaymentDate,
-            days_overdue: daysOverdue,
-            status: balance === lease.total_amount ? 'pending' : 'partially_paid'
-          }, {
-            onConflict: 'agreement_id'
+      // Check if a late fee record already exists for this month
+      const { data: existingLateFees, error: lateFeeError } = await supabase
+        .from('unified_payments')
+        .select('id')
+        .eq('lease_id', lease.id)
+        .eq('type', 'LATE_PAYMENT_FEE')
+        .eq('original_due_date', firstOfMonth.toISOString())
+
+      if (lateFeeError) {
+        console.error(`Error checking late fees for lease ${lease.id}:`, lateFeeError)
+        continue
+      }
+
+      // If no payment exists for this month and no late fee record exists yet
+      if (existingPayments?.length === 0 && existingLateFees?.length === 0) {
+        // Calculate late fee (days elapsed * daily rate)
+        const dailyLateFee = lease.daily_late_fee || 120 // Default to 120 QAR if not specified
+        const lateFeeAmount = daysElapsed * dailyLateFee
+
+        // Insert a new record for the late fee
+        const { data: newLateFee, error: insertError } = await supabase
+          .from('unified_payments')
+          .insert({
+            lease_id: lease.id,
+            amount: lease.rent_amount,
+            amount_paid: 0, // No payment made
+            balance: lease.rent_amount, // Full balance due
+            payment_date: null, // No payment date
+            original_due_date: firstOfMonth.toISOString(),
+            status: 'pending',
+            description: `Auto-generated late payment record for ${today.toLocaleString('default', { month: 'long' })}`,
+            type: 'LATE_PAYMENT_FEE',
+            late_fine_amount: lateFeeAmount,
+            days_overdue: daysElapsed
           })
+          .select('id')
+          .single()
 
-        if (upsertError) throw upsertError
+        if (insertError) {
+          console.error(`Error inserting late fee for lease ${lease.id}:`, insertError)
+          processResults.push({
+            agreement_number: lease.agreement_number,
+            success: false,
+            error: insertError.message
+          })
+        } else {
+          processedCount++
+          processResults.push({
+            agreement_number: lease.agreement_number,
+            success: true,
+            late_fee_amount: lateFeeAmount,
+            days_overdue: daysElapsed
+          })
+        }
       }
     }
 
+    console.log(`Processed ${processedCount} late fee records`)
+
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ 
+        success: true, 
+        processed_count: processedCount,
+        details: processResults
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
-
   } catch (error) {
     console.error('Error processing overdue payments:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500
-      }
+      JSON.stringify({ success: false, error: error.message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }
 })
