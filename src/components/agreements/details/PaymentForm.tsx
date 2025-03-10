@@ -17,6 +17,15 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatCurrency } from "@/lib/utils";
 import { getFirstDayOfMonth, calculateDaysOverdue } from "@/components/reports/utils/pendingPaymentsUtils";
+import { format, parseISO, differenceInMonths } from "date-fns";
+import { AlertCircle, CalendarIcon } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 
 interface PaymentFormProps {
   agreementId: string;
@@ -29,12 +38,18 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
   const [dailyLateFeeRate, setDailyLateFeeRate] = useState(120);
   const [dueAmount, setDueAmount] = useState(0);
   const [existingLateFee, setExistingLateFee] = useState<any>(null);
+  const [isHistoricalPayment, setIsHistoricalPayment] = useState(false);
+  const [paymentDate, setPaymentDate] = useState<Date>(new Date());
+  const [contractStartDate, setContractStartDate] = useState<Date | null>(null);
+  const [missingMonths, setMissingMonths] = useState<{month: string, year: number, dueDate: Date}[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+  
   const queryClient = useQueryClient();
   const { register, handleSubmit, reset, setValue, watch } = useForm();
 
-  // Fetch rent amount and calculate late fee
+  // Fetch rent amount, contract details, and calculate late fee
   useEffect(() => {
-    const fetchRentAmount = async () => {
+    const fetchContractDetails = async () => {
       if (!agreementId) {
         console.error("No agreement ID provided");
         return;
@@ -43,16 +58,25 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
       try {
         const { data: lease, error } = await supabase
           .from('leases')
-          .select('rent_amount, rent_due_day, daily_late_fee')
+          .select('rent_amount, rent_due_day, daily_late_fee, start_date, agreement_number')
           .eq('id', agreementId)
           .maybeSingle();
         
         if (error) throw error;
         
-        if (lease?.rent_amount) {
+        if (lease) {
           setRentAmount(Number(lease.rent_amount));
           if (lease.daily_late_fee) {
             setDailyLateFeeRate(Number(lease.daily_late_fee));
+          }
+          
+          // Set contract start date
+          if (lease.start_date) {
+            const startDate = parseISO(lease.start_date);
+            setContractStartDate(startDate);
+            
+            // Check for historical payment needs
+            await checkMissingPayments(lease.agreement_number, startDate);
           }
         } else {
           console.warn("No rent amount found for agreement:", agreementId);
@@ -103,9 +127,71 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
         setLateFee(0);
       }
     };
+    
+    const checkMissingPayments = async (agreementNumber: string, startDate: Date) => {
+      try {
+        // Get all existing payments
+        const { data: existingPayments, error } = await supabase
+          .from('unified_payments')
+          .select('payment_date, original_due_date')
+          .eq('lease_id', agreementId)
+          .eq('type', 'Income');
+          
+        if (error) throw error;
+        
+        // Calculate months between contract start and now
+        const today = new Date();
+        const months = differenceInMonths(today, startDate) + 1; // +1 to include current month
+        
+        if (months <= 0) return; // Future contract
+        
+        // Track existing payment months
+        const paidMonths = new Set<string>();
+        existingPayments?.forEach(payment => {
+          if (payment.payment_date) {
+            const date = new Date(payment.payment_date);
+            paidMonths.add(`${date.getFullYear()}-${date.getMonth()}`);
+          }
+          if (payment.original_due_date) {
+            const date = new Date(payment.original_due_date);
+            paidMonths.add(`${date.getFullYear()}-${date.getMonth()}`);
+          }
+        });
+        
+        // Find missing months
+        const missing: {month: string, year: number, dueDate: Date}[] = [];
+        
+        for (let i = 0; i < months; i++) {
+          const monthDate = new Date(startDate);
+          monthDate.setMonth(startDate.getMonth() + i);
+          
+          const monthKey = `${monthDate.getFullYear()}-${monthDate.getMonth()}`;
+          
+          if (!paidMonths.has(monthKey)) {
+            const dueDate = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+            missing.push({
+              month: format(monthDate, 'MMMM'),
+              year: monthDate.getFullYear(),
+              dueDate
+            });
+          }
+        }
+        
+        setMissingMonths(missing);
+        
+        if (missing.length > 0) {
+          setSelectedMonth(`${missing[0].month} ${missing[0].year}`);
+          setIsHistoricalPayment(true);
+          // Set the payment date to the missing month's due date
+          setPaymentDate(missing[0].dueDate);
+        }
+      } catch (error) {
+        console.error("Error checking for missing payments:", error);
+      }
+    };
 
     if (agreementId) {
-      fetchRentAmount();
+      fetchContractDetails();
       fetchExistingLateFee();
     }
   }, [agreementId, dailyLateFeeRate]);
@@ -126,11 +212,16 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
       const paymentAmount = Number(data.amount);
       const balance = dueAmount - paymentAmount;
       
-      // Calculate days overdue and late fee based on standardized due date (1st of month)
-      const paymentDate = new Date();
-      const daysOverdue = calculateDaysOverdue(paymentDate);
-      const originalDueDate = getFirstDayOfMonth(paymentDate);
-      const lateFineAmount = existingLateFee?.late_fine_amount || (daysOverdue > 0 ? daysOverdue * dailyLateFeeRate : 0);
+      // Use selected payment date or current date
+      const selectedPaymentDate = isHistoricalPayment ? paymentDate : new Date();
+      const daysOverdue = isHistoricalPayment ? 0 : calculateDaysOverdue(selectedPaymentDate);
+      const originalDueDate = isHistoricalPayment ? paymentDate : getFirstDayOfMonth(selectedPaymentDate);
+      const lateFineAmount = isHistoricalPayment ? 0 : (existingLateFee?.late_fine_amount || (daysOverdue > 0 ? daysOverdue * dailyLateFeeRate : 0));
+      
+      // Add description for historical payment if needed
+      const paymentDescription = isHistoricalPayment 
+        ? `Historical payment for ${selectedMonth}` 
+        : data.description;
       
       // Batch operations using transactions
       const { error } = await supabase.rpc('record_payment_with_late_fee', {
@@ -139,8 +230,8 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
         p_amount_paid: paymentAmount,
         p_balance: balance,
         p_payment_method: data.paymentMethod,
-        p_description: data.description,
-        p_payment_date: paymentDate.toISOString(),
+        p_description: paymentDescription,
+        p_payment_date: selectedPaymentDate.toISOString(),
         p_late_fine_amount: lateFineAmount,
         p_days_overdue: daysOverdue,
         p_original_due_date: originalDueDate.toISOString(),
@@ -151,6 +242,8 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
 
       toast.success("Payment added successfully");
       reset();
+      setIsHistoricalPayment(false);
+      setSelectedMonth("");
       
       // Invalidate all related queries
       await queryClient.invalidateQueries({ queryKey: ['unified-payments'] });
@@ -169,6 +262,22 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
     return <div>No agreement selected</div>;
   }
 
+  const handleMonthSelect = (month: string, year: number, dueDate: Date) => {
+    setSelectedMonth(`${month} ${year}`);
+    setPaymentDate(dueDate);
+  };
+
+  const toggleHistoricalPayment = () => {
+    setIsHistoricalPayment(!isHistoricalPayment);
+    if (!isHistoricalPayment && missingMonths.length > 0) {
+      setSelectedMonth(`${missingMonths[0].month} ${missingMonths[0].year}`);
+      setPaymentDate(missingMonths[0].dueDate);
+    } else {
+      setSelectedMonth("");
+      setPaymentDate(new Date());
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="bg-muted p-4 rounded-lg mb-4">
@@ -184,6 +293,85 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
           </div>
         </div>
       </div>
+      
+      {missingMonths.length > 0 && (
+        <Alert variant="warning" className="mb-4 bg-amber-50 border-amber-200">
+          <AlertCircle className="h-4 w-4 text-amber-500" />
+          <AlertTitle className="text-amber-700">Missing Payments Detected</AlertTitle>
+          <AlertDescription className="text-amber-600">
+            This agreement has {missingMonths.length} missing monthly payments since its start.
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-2 border-amber-300 text-amber-700 hover:bg-amber-100"
+              type="button"
+              onClick={toggleHistoricalPayment}
+            >
+              {isHistoricalPayment ? "Cancel Historical Payment" : "Record Historical Payment"}
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isHistoricalPayment && (
+        <div className="bg-background border rounded-md p-4 mb-4">
+          <h3 className="font-semibold mb-2">Record Historical Payment</h3>
+          <div className="grid gap-4 mb-4">
+            <div>
+              <Label htmlFor="month">Select Month</Label>
+              <Select 
+                onValueChange={(value) => {
+                  const [month, year, day, month_num] = value.split('|');
+                  const dueDate = new Date(parseInt(year), parseInt(month_num), parseInt(day));
+                  handleMonthSelect(month, parseInt(year), dueDate);
+                }}
+                value={missingMonths.find(m => `${m.month} ${m.year}` === selectedMonth)
+                  ? `${missingMonths.find(m => `${m.month} ${m.year}` === selectedMonth)?.month}|${
+                      missingMonths.find(m => `${m.month} ${m.year}` === selectedMonth)?.year
+                    }|1|${missingMonths.findIndex(m => `${m.month} ${m.year}` === selectedMonth)}`
+                  : ""}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select month for payment" />
+                </SelectTrigger>
+                <SelectContent>
+                  {missingMonths.map((month, index) => (
+                    <SelectItem
+                      key={index}
+                      value={`${month.month}|${month.year}|1|${index}`}
+                    >
+                      {month.month} {month.year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="paymentDate">Payment Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {paymentDate ? format(paymentDate, 'PPP') : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={paymentDate}
+                    onSelect={(date) => date && setPaymentDate(date)}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div>
         <Label htmlFor="amount">Amount Paid (QAR)</Label>
@@ -213,21 +401,23 @@ export const PaymentForm = ({ agreementId }: PaymentFormProps) => {
         </Select>
       </div>
 
-      <div>
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          placeholder="Add payment notes or description..."
-          {...register("description")}
-        />
-      </div>
+      {!isHistoricalPayment && (
+        <div>
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            placeholder="Add payment notes or description..."
+            {...register("description")}
+          />
+        </div>
+      )}
 
       <Button 
         type="submit" 
         disabled={isSubmitting}
         className="w-full"
       >
-        {isSubmitting ? "Adding Payment..." : "Add Payment"}
+        {isSubmitting ? "Adding Payment..." : `Add ${isHistoricalPayment ? 'Historical' : ''} Payment`}
       </Button>
     </form>
   );

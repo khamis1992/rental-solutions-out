@@ -1,6 +1,6 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { startOfMonth, addMonths, parseISO, isAfter, format, isBefore } from 'https://esm.sh/date-fns'
+import { startOfMonth, addMonths, parseISO, isAfter, format, isBefore, differenceInMonths } from 'https://esm.sh/date-fns'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -42,73 +42,146 @@ Deno.serve(async (req) => {
         continue
       }
 
+      // Parse start date safely (handle null or invalid cases)
       const agreementStartDate = agreement.start_date ? parseISO(agreement.start_date) : null
       
-      // Skip agreements with future start dates beyond next month
-      if (agreementStartDate && isAfter(agreementStartDate, addMonths(nextMonth, 1))) {
-        console.log(`Agreement ${agreement.id} starts in the future beyond next month. Skipping.`)
+      if (!agreementStartDate) {
+        console.error(`Agreement ${agreement.id} has no valid start date. Skipping.`)
         continue
       }
-
-      // For current agreements, create next month's schedule
-      // For future agreements starting next month, create schedule for their start month
-      const isFutureAgreement = agreementStartDate && isAfter(agreementStartDate, currentDate)
       
-      // Determine schedule start month:
-      // - For future agreements: use the start date's month
-      // - For current agreements: use next month
-      const scheduleStartMonth = isFutureAgreement 
-        ? startOfMonth(agreementStartDate) 
-        : nextMonth
-      
-      // Always set rent due day to 1st of the month (standardized)
-      const dueDay = 1
-      
-      // Check if schedule already exists for the month (avoid duplicates)
-      const { data: existingSchedule } = await supabase
-        .from('payment_schedules')
-        .select('id')
-        .eq('lease_id', agreement.id)
-        .gte('due_date', scheduleStartMonth.toISOString())
-        .lt('due_date', addMonths(scheduleStartMonth, 1).toISOString())
-        .single()
-
-      if (!existingSchedule) {
-        // Create new schedule for the month
-        const dueDate = new Date(scheduleStartMonth)
-        dueDate.setDate(dueDay)
-
-        // Set proper schedule description
-        const scheduleDescription = isFutureAgreement
-          ? `Initial rent payment for ${format(dueDate, 'MMMM yyyy')}`
-          : `Monthly rent payment for ${format(dueDate, 'MMMM yyyy')}`
-
-        const { error: insertError, data: newSchedule } = await supabase
+      // Handle historical agreements (past start dates)
+      // Calculate how many months we need to generate schedules for
+      if (isBefore(agreementStartDate, currentDate)) {
+        // Get existing schedules to avoid duplicates
+        const { data: existingSchedules } = await supabase
           .from('payment_schedules')
-          .insert({
-            lease_id: agreement.id,
-            amount: agreement.rent_amount,
-            due_date: dueDate.toISOString(),
-            status: 'pending',
-            description: scheduleDescription
-          })
-          .select()
-          .single()
+          .select('due_date')
+          .eq('lease_id', agreement.id)
+        
+        const existingDueDates = new Set(existingSchedules?.map(s => 
+          startOfMonth(new Date(s.due_date)).toISOString()
+        ) || [])
+        
+        // Calculate the number of months from start date to next month
+        const monthsToGenerate = differenceInMonths(nextMonth, startOfMonth(agreementStartDate)) + 1
+        
+        console.log(`Agreement ${agreement.agreement_number} started ${format(agreementStartDate, 'yyyy-MM-dd')}, generating ${monthsToGenerate} months of schedules`)
+        
+        // Generate schedules for each month from start date until next month
+        for (let i = 0; i < monthsToGenerate; i++) {
+          const scheduleMonth = startOfMonth(addMonths(agreementStartDate, i))
+          const scheduleMonthStr = scheduleMonth.toISOString()
+          
+          // Skip if we already have a schedule for this month
+          if (existingDueDates.has(scheduleMonthStr)) {
+            console.log(`Schedule for ${format(scheduleMonth, 'MMMM yyyy')} already exists, skipping`)
+            continue
+          }
+          
+          // Create new schedule for the month
+          const dueDate = new Date(scheduleMonth)
+          dueDate.setDate(1) // Standardized to 1st of month
+          
+          // Set proper schedule description
+          const scheduleDescription = i === 0
+            ? `Initial rent payment for ${format(dueDate, 'MMMM yyyy')}`
+            : `Monthly rent payment for ${format(dueDate, 'MMMM yyyy')}`
 
-        if (insertError) {
-          console.error(`Error creating schedule for agreement ${agreement.id}:`, insertError)
+          const { error: insertError, data: newSchedule } = await supabase
+            .from('payment_schedules')
+            .insert({
+              lease_id: agreement.id,
+              amount: agreement.rent_amount,
+              due_date: dueDate.toISOString(),
+              status: 'pending',
+              description: scheduleDescription
+            })
+            .select()
+            .single()
+
+          if (insertError) {
+            console.error(`Error creating schedule for agreement ${agreement.id}:`, insertError)
+            continue
+          }
+
+          processedCount++
+          processedAgreements.push({
+            id: agreement.id,
+            agreement_number: agreement.agreement_number,
+            due_date: dueDate.toISOString(),
+            amount: agreement.rent_amount
+          })
+
+          console.log(`Created schedule for agreement ${agreement.agreement_number} due on ${dueDate.toISOString()}`)
+        }
+      } else {
+        // For future agreements, create next month's schedule if needed
+        // Skip agreements with future start dates beyond next month
+        if (isAfter(agreementStartDate, addMonths(nextMonth, 1))) {
+          console.log(`Agreement ${agreement.id} starts in the future beyond next month. Skipping.`)
           continue
         }
+        
+        // For future agreements starting next month, create schedule for their start month
+        const isFutureAgreement = isAfter(agreementStartDate, currentDate)
+        
+        // Determine schedule start month:
+        // - For future agreements: use the start date's month
+        // - For current agreements: use next month
+        const scheduleStartMonth = isFutureAgreement 
+          ? startOfMonth(agreementStartDate) 
+          : nextMonth
+        
+        // Always set rent due day to 1st of the month (standardized)
+        const dueDay = 1
+        
+        // Check if schedule already exists for the month (avoid duplicates)
+        const { data: existingSchedule } = await supabase
+          .from('payment_schedules')
+          .select('id')
+          .eq('lease_id', agreement.id)
+          .gte('due_date', scheduleStartMonth.toISOString())
+          .lt('due_date', addMonths(scheduleStartMonth, 1).toISOString())
+          .single()
 
-        processedCount++
-        processedAgreements.push({
-          id: agreement.id,
-          agreement_number: agreement.agreement_number,
-          due_date: dueDate.toISOString(),
-          amount: agreement.rent_amount
-        })
+        if (!existingSchedule) {
+          // Create new schedule for the month
+          const dueDate = new Date(scheduleStartMonth)
+          dueDate.setDate(dueDay)
 
-        console.log(`Created schedule for agreement ${agreement.agreement_number} due on ${dueDate.toISOString()}`)
+          // Set proper schedule description
+          const scheduleDescription = isFutureAgreement
+            ? `Initial rent payment for ${format(dueDate, 'MMMM yyyy')}`
+            : `Monthly rent payment for ${format(dueDate, 'MMMM yyyy')}`
+
+          const { error: insertError, data: newSchedule } = await supabase
+            .from('payment_schedules')
+            .insert({
+              lease_id: agreement.id,
+              amount: agreement.rent_amount,
+              due_date: dueDate.toISOString(),
+              status: 'pending',
+              description: scheduleDescription
+            })
+            .select()
+            .single()
+
+          if (insertError) {
+            console.error(`Error creating schedule for agreement ${agreement.id}:`, insertError)
+            continue
+          }
+
+          processedCount++
+          processedAgreements.push({
+            id: agreement.id,
+            agreement_number: agreement.agreement_number,
+            due_date: dueDate.toISOString(),
+            amount: agreement.rent_amount
+          })
+
+          console.log(`Created schedule for agreement ${agreement.agreement_number} due on ${dueDate.toISOString()}`)
+        }
       }
     }
 
@@ -126,7 +199,7 @@ Deno.serve(async (req) => {
       for (const agreement of activeAgreements || []) {
         if (!agreement.id) continue
         
-        // Skip future agreements
+        // Skip agreements that started after today
         if (agreement.start_date && isAfter(parseISO(agreement.start_date), today)) {
           continue
         }

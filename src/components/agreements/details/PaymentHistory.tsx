@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
-import { AlertTriangle, CheckCircle2, Trash2, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Trash2, Loader2, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDateToDisplay } from "@/lib/dateUtils";
 import {
@@ -20,6 +20,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { LateFineActions } from "./LateFineActions";
+import { cn } from "@/lib/utils";
 
 interface PaymentHistoryProps {
   agreementId: string;
@@ -69,6 +70,27 @@ export const PaymentHistory = ({ agreementId }: PaymentHistoryProps) => {
     },
     staleTime: 30000, // 30 seconds
   });
+
+  // Group payments by month
+  const paymentsByMonth = payments?.reduce((acc, payment) => {
+    // Use payment_date for regular payments and original_due_date for late fees
+    const date = payment.payment_date ? new Date(payment.payment_date) : 
+                 payment.original_due_date ? new Date(payment.original_due_date) : 
+                 new Date();
+    
+    const monthYear = `${date.getFullYear()}-${date.getMonth()}`;
+    
+    if (!acc[monthYear]) {
+      acc[monthYear] = {
+        month: date.toLocaleString('default', { month: 'long' }),
+        year: date.getFullYear(),
+        payments: []
+      };
+    }
+    
+    acc[monthYear].payments.push(payment);
+    return acc;
+  }, {} as Record<string, {month: string, year: number, payments: any[]}>);
 
   const handleDeleteClick = (paymentId: string) => {
     setSelectedPaymentId(paymentId);
@@ -144,6 +166,10 @@ export const PaymentHistory = ({ agreementId }: PaymentHistoryProps) => {
     );
   }
 
+  // Calculate totals
+  const totalPaid = payments.reduce((sum, p) => sum + (p.amount_paid || 0), 0);
+  const totalLateFees = payments.reduce((sum, p) => sum + (p.late_fine_amount || 0), 0);
+
   return (
     <Card>
       <CardHeader>
@@ -156,92 +182,123 @@ export const PaymentHistory = ({ agreementId }: PaymentHistoryProps) => {
           {/* Payment Summary */}
           <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg mb-4">
             <div>
-              <div className="text-sm text-muted-foreground">Amount Paid</div>
+              <div className="text-sm text-muted-foreground">Total Paid</div>
               <div className="text-lg font-semibold">
-                {formatCurrency(
-                  payments?.reduce((sum, p) => sum + (p.amount_paid || 0), 0) || 0
-                )}
+                {formatCurrency(totalPaid)}
               </div>
             </div>
             <div>
               <div className="text-sm text-muted-foreground">Late Fines</div>
               <div className="text-lg font-semibold text-destructive">
-                {formatCurrency(
-                  payments?.reduce((sum, p) => sum + (p.late_fine_amount || 0), 0) || 0
-                )}
+                {formatCurrency(totalLateFees)}
               </div>
             </div>
           </div>
 
-          {/* Payment List */}
-          {payments.map((payment) => {
-            const remainingBalance = payment.balance || 0;
-            const paymentStatus = remainingBalance === 0 ? 'completed' : 'pending';
-            
-            return (
-              <div
-                key={payment.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                <div>
-                  <div className="font-medium">
-                    {payment.payment_date ? formatDateToDisplay(new Date(payment.payment_date)) : 'No date'}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {payment.payment_method} - {payment.description || 'Payment'}
-                  </div>
-                </div>
-                <div className="text-right space-y-1">
-                  <div>Due Amount: {formatCurrency(payment.amount)}</div>
-                  <div>Amount Paid: {formatCurrency(payment.amount_paid)}</div>
-                  {payment.late_fine_amount > 0 && (
-                    <div className="text-destructive flex items-center justify-end gap-1">
-                      <AlertTriangle className="h-4 w-4" />
-                      <span>Late Fine: {formatCurrency(payment.late_fine_amount)}</span>
-                      {payment.days_overdue > 0 && (
-                        <span className="text-sm ml-1">
-                          ({payment.days_overdue} days @ 120 QAR/day)
-                        </span>
-                      )}
-                      <LateFineActions
-                        paymentId={payment.id}
-                        currentLateFine={payment.late_fine_amount}
-                        currentBalance={payment.balance || 0}
-                        onUpdate={handleLateFineUpdate}
-                      />
-                    </div>
-                  )}
-                  <div className={remainingBalance === 0 ? "text-green-600" : "text-destructive"}>
-                    Balance: {formatCurrency(remainingBalance)}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge 
-                      variant="outline" 
-                      className={paymentStatus === 'completed' ? 
-                        'bg-green-50 text-green-600 border-green-200' : 
-                        'bg-yellow-50 text-yellow-600 border-yellow-200'
-                      }
-                    >
-                      {paymentStatus === 'completed' ? (
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                      ) : (
-                        <AlertTriangle className="h-3 w-3 mr-1" />
-                      )}
-                      {paymentStatus === 'completed' ? 'Completed' : 'Pending'}
-                    </Badge>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteClick(payment.id)}
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+          {/* Payment List By Month */}
+          {paymentsByMonth && Object.values(paymentsByMonth)
+            .sort((a, b) => {
+              // Sort by year descending, then by month descending
+              if (a.year !== b.year) return b.year - a.year;
+              return new Date(0, b.month).getMonth() - new Date(0, a.month).getMonth();
+            })
+            .map((monthGroup) => (
+              <div key={`${monthGroup.month}-${monthGroup.year}`} className="mb-6">
+                <h3 className="text-sm font-semibold bg-muted px-4 py-2 rounded-md mb-3">
+                  {monthGroup.month} {monthGroup.year}
+                </h3>
+                
+                <div className="space-y-3">
+                  {monthGroup.payments.map((payment) => {
+                    const remainingBalance = payment.balance || 0;
+                    const paymentStatus = payment.status || (remainingBalance === 0 ? 'completed' : 'pending');
+                    
+                    // Check if this is a historical payment (by analyzing the description)
+                    const isHistoricalPayment = payment.description?.toLowerCase().includes('historical payment');
+                    
+                    return (
+                      <div
+                        key={payment.id}
+                        className={cn(
+                          "flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors",
+                          isHistoricalPayment && "border-blue-200 bg-blue-50 hover:bg-blue-100/50"
+                        )}
+                      >
+                        <div>
+                          <div className="font-medium flex items-center">
+                            {isHistoricalPayment && (
+                              <CalendarClock className="h-4 w-4 mr-2 text-blue-500" />
+                            )}
+                            {payment.payment_date ? formatDateToDisplay(new Date(payment.payment_date)) : 'No date'}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {payment.payment_method} - {payment.description || 'Payment'}
+                          </div>
+                          {payment.type === 'LATE_PAYMENT_FEE' && (
+                            <Badge variant="outline" className="mt-1 bg-yellow-50 text-yellow-700 border-yellow-200">
+                              Late Fee Record
+                            </Badge>
+                          )}
+                          {isHistoricalPayment && (
+                            <Badge variant="outline" className="mt-1 ml-1 bg-blue-50 text-blue-700 border-blue-200">
+                              Historical Payment
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="text-right space-y-1">
+                          <div>Due Amount: {formatCurrency(payment.amount)}</div>
+                          <div>Amount Paid: {formatCurrency(payment.amount_paid)}</div>
+                          {payment.late_fine_amount > 0 && (
+                            <div className="text-destructive flex items-center justify-end gap-1">
+                              <AlertTriangle className="h-4 w-4" />
+                              <span>Late Fine: {formatCurrency(payment.late_fine_amount)}</span>
+                              {payment.days_overdue > 0 && (
+                                <span className="text-sm ml-1">
+                                  ({payment.days_overdue} days @ 120 QAR/day)
+                                </span>
+                              )}
+                              <LateFineActions
+                                paymentId={payment.id}
+                                currentLateFine={payment.late_fine_amount}
+                                currentBalance={payment.balance || 0}
+                                onUpdate={handleLateFineUpdate}
+                              />
+                            </div>
+                          )}
+                          <div className={remainingBalance === 0 ? "text-green-600" : "text-destructive"}>
+                            Balance: {formatCurrency(remainingBalance)}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge 
+                              variant="outline" 
+                              className={paymentStatus === 'completed' ? 
+                                'bg-green-50 text-green-600 border-green-200' : 
+                                'bg-yellow-50 text-yellow-600 border-yellow-200'
+                              }
+                            >
+                              {paymentStatus === 'completed' ? (
+                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                              ) : (
+                                <AlertTriangle className="h-3 w-3 mr-1" />
+                              )}
+                              {paymentStatus === 'completed' ? 'Completed' : 'Pending'}
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteClick(payment.id)}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            );
-          })}
+            ))}
         </div>
       </CardContent>
 
