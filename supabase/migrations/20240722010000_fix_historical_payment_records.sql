@@ -1,7 +1,7 @@
 
 -- Function to create missing payment records for historical agreements
 CREATE OR REPLACE FUNCTION public.generate_missing_payment_records()
- RETURNS void
+ RETURNS SETOF leases_missing_payments
  LANGUAGE plpgsql
 AS $function$
 DECLARE
@@ -12,6 +12,9 @@ DECLARE
     month_diff INTEGER;
     dueDay INTEGER;
     i INTEGER;
+    created_records INTEGER := 0;
+    processed_leases INTEGER := 0;
+    v_result leases_missing_payments;
 BEGIN
     -- Process each active agreement
     FOR agreement_record IN 
@@ -27,6 +30,8 @@ BEGIN
         AND l.start_date IS NOT NULL
         AND l.start_date <= CURRENT_DATE
     LOOP
+        processed_leases := processed_leases + 1;
+        
         -- Calculate start and end dates
         schedule_start := DATE_TRUNC('month', agreement_record.start_date::date);
         schedule_end := DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month';
@@ -61,6 +66,8 @@ BEGIN
                     'pending',
                     'Auto-generated payment schedule for ' || TO_CHAR(current_month, 'Month YYYY')
                 );
+                
+                created_records := created_records + 1;
             END IF;
             
             -- For past months, check if payment exists
@@ -70,50 +77,90 @@ BEGIN
                     SELECT 1
                     FROM unified_payments up
                     WHERE up.lease_id = agreement_record.id
-                    AND DATE_TRUNC('month', COALESCE(up.payment_date, up.original_due_date)) = current_month
-                    AND up.type = 'Income'
-                ) AND NOT EXISTS (
-                    SELECT 1
-                    FROM unified_payments up
-                    WHERE up.lease_id = agreement_record.id
-                    AND DATE_TRUNC('month', up.original_due_date) = current_month
-                    AND up.type = 'LATE_PAYMENT_FEE'
+                    AND (
+                        (up.type = 'Income' AND DATE_TRUNC('month', COALESCE(up.payment_date, up.original_due_date)) = current_month)
+                        OR 
+                        (up.type = 'LATE_PAYMENT_FEE' AND DATE_TRUNC('month', up.original_due_date) = current_month)
+                    )
                 ) THEN
-                    -- No payment exists, create late fee record
-                    INSERT INTO unified_payments (
-                        lease_id,
-                        amount,
-                        amount_paid,
-                        balance,
-                        payment_date,
-                        status,
-                        description,
-                        type,
-                        late_fine_amount,
-                        days_overdue,
-                        original_due_date
-                    ) VALUES (
-                        agreement_record.id,
-                        agreement_record.rent_amount,
-                        0, -- No payment made
-                        agreement_record.rent_amount, -- Full balance due
-                        NULL, -- No payment date
-                        'pending',
-                        'Auto-generated late payment record for ' || TO_CHAR(current_month, 'Month YYYY'),
-                        'LATE_PAYMENT_FEE',
-                        30 * COALESCE(agreement_record.daily_late_fee, 120), -- 30 days of late fees for past months
-                        30, -- Assume 30 days overdue for historical records
-                        (current_month + ((dueDay-1) || ' days')::interval)::date
-                    );
+                    -- Calculate appropriate days overdue based on month
+                    DECLARE
+                        v_days_overdue INTEGER;
+                        v_late_fee_amount NUMERIC;
+                        v_months_ago INTEGER;
+                    BEGIN
+                        -- Calculate how many months ago this was
+                        v_months_ago := EXTRACT(YEAR FROM CURRENT_DATE) * 12 + EXTRACT(MONTH FROM CURRENT_DATE) - 
+                                      (EXTRACT(YEAR FROM current_month) * 12 + EXTRACT(MONTH FROM current_month));
+                        
+                        -- For recent months (1-3 months ago), use actual days in month
+                        IF v_months_ago <= 3 THEN
+                            v_days_overdue := EXTRACT(DAY FROM 
+                                (DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 day') -- Last day of previous month
+                                - current_month);
+                        ELSE
+                            -- For older months, use a standard 30 days
+                            v_days_overdue := 30;
+                        END IF;
+                        
+                        -- Calculate late fee based on days overdue
+                        v_late_fee_amount := v_days_overdue * COALESCE(agreement_record.daily_late_fee, 120);
+
+                        -- No payment exists, create late fee record
+                        INSERT INTO unified_payments (
+                            lease_id,
+                            amount,
+                            amount_paid,
+                            balance,
+                            payment_date,
+                            status,
+                            description,
+                            type,
+                            late_fine_amount,
+                            days_overdue,
+                            original_due_date
+                        ) VALUES (
+                            agreement_record.id,
+                            agreement_record.rent_amount,
+                            0, -- No payment made
+                            agreement_record.rent_amount, -- Full balance due
+                            NULL, -- No payment date
+                            'pending',
+                            'Auto-generated late payment record for ' || TO_CHAR(current_month, 'Month YYYY'),
+                            'LATE_PAYMENT_FEE',
+                            v_late_fee_amount,
+                            v_days_overdue,
+                            (current_month + ((dueDay-1) || ' days')::interval)::date
+                        );
+                        
+                        created_records := created_records + 1;
+                    END;
                 END IF;
             END IF;
         END LOOP;
     END LOOP;
+    
+    -- Return records from the view to show status
+    FOR v_result IN 
+        SELECT * FROM leases_missing_payments
+    LOOP
+        RETURN NEXT v_result;
+    END LOOP;
+    
+    -- If no records to return, at least return processing counts
+    IF NOT FOUND THEN
+        v_result.agreement_number := 'PROCESSING_SUMMARY';
+        v_result.status_description := 'Processed ' || processed_leases || ' leases, created ' || created_records || ' records';
+        RETURN NEXT v_result;
+    END IF;
+    
+    RETURN;
 END;
 $function$;
 
 -- Create a more comprehensive view for tracking leases with missing payment records
-CREATE OR REPLACE VIEW leases_missing_payments AS
+DROP VIEW IF EXISTS public.leases_missing_payments;
+CREATE VIEW public.leases_missing_payments AS
 SELECT 
     l.id,
     l.agreement_number,
@@ -189,143 +236,6 @@ AND (
         END
     )
 );
-
--- Create or replace function to handle payment recording with late fees
-CREATE OR REPLACE FUNCTION public.record_payment_with_late_fee(
-  p_lease_id uuid,
-  p_amount numeric,
-  p_amount_paid numeric,
-  p_balance numeric,
-  p_payment_method text,
-  p_description text,
-  p_payment_date timestamptz,
-  p_late_fine_amount numeric,
-  p_days_overdue integer,
-  p_original_due_date timestamptz,
-  p_existing_late_fee_id uuid
-) RETURNS json
-LANGUAGE plpgsql
-AS $$
-DECLARE
-  v_payment_id uuid;
-  v_payment_schedule_id uuid;
-BEGIN
-  -- Begin transaction
-  BEGIN
-    -- Get the current month's payment schedule if it exists
-    SELECT id INTO v_payment_schedule_id
-    FROM payment_schedules
-    WHERE lease_id = p_lease_id
-    AND date_trunc('month', due_date) = date_trunc('month', p_original_due_date);
-    
-    -- Create a regular payment record
-    INSERT INTO unified_payments (
-      lease_id,
-      amount,
-      amount_paid,
-      balance,
-      payment_method,
-      description,
-      payment_date,
-      status,
-      type,
-      payment_reference,
-      original_due_date
-    ) VALUES (
-      p_lease_id,
-      p_amount,
-      p_amount_paid,
-      p_balance,
-      p_payment_method,
-      p_description,
-      p_payment_date,
-      CASE WHEN p_balance <= 0 THEN 'completed' ELSE 'pending' END,
-      'Income',
-      v_payment_schedule_id,
-      p_original_due_date
-    )
-    RETURNING id INTO v_payment_id;
-    
-    -- Handle late fee
-    IF p_days_overdue > 0 THEN
-      IF p_existing_late_fee_id IS NOT NULL THEN
-        -- Update existing late fee record
-        UPDATE unified_payments
-        SET 
-          late_fine_amount = p_late_fine_amount,
-          days_overdue = p_days_overdue,
-          status = 'completed'
-        WHERE id = p_existing_late_fee_id;
-      ELSE
-        -- Create new late fee record
-        INSERT INTO unified_payments (
-          lease_id,
-          amount,
-          amount_paid,
-          balance,
-          payment_date,
-          status,
-          description,
-          type,
-          late_fine_amount,
-          days_overdue,
-          original_due_date
-        ) VALUES (
-          p_lease_id,
-          p_late_fine_amount,
-          p_late_fine_amount,
-          0,
-          p_payment_date,
-          'completed',
-          'Late payment fee automatically applied',
-          'LATE_PAYMENT_FEE',
-          p_late_fine_amount,
-          p_days_overdue,
-          p_original_due_date
-        );
-      END IF;
-    END IF;
-    
-    -- Update payment schedule if it exists
-    IF v_payment_schedule_id IS NOT NULL THEN
-      UPDATE payment_schedules
-      SET 
-        status = CASE WHEN p_balance <= 0 THEN 'completed' ELSE 'partial' END,
-        actual_payment_date = p_payment_date
-      WHERE id = v_payment_schedule_id;
-    ELSE
-      -- Create a payment schedule if it doesn't exist (for historical records)
-      INSERT INTO payment_schedules (
-        lease_id,
-        amount,
-        due_date,
-        status,
-        description,
-        actual_payment_date
-      ) VALUES (
-        p_lease_id,
-        p_amount,
-        p_original_due_date,
-        CASE WHEN p_balance <= 0 THEN 'completed' ELSE 'partial' END,
-        'Auto-created payment schedule for ' || TO_CHAR(p_original_due_date, 'Month YYYY'),
-        p_payment_date
-      );
-    END IF;
-    
-    -- Return success
-    RETURN json_build_object(
-      'success', true,
-      'payment_id', v_payment_id
-    );
-  EXCEPTION WHEN OTHERS THEN
-    -- Return error
-    RETURN json_build_object(
-      'success', false,
-      'error', SQLERRM
-    );
-  END;
-END;
-$$;
 
 -- Manually run the function once to create all missing records
 SELECT generate_missing_payment_records();

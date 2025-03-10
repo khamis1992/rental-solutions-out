@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface PendingPaymentReport {
@@ -146,31 +145,27 @@ export const checkMissingPaymentRecords = async (): Promise<MissingPaymentResult
       };
     }
     
-    // Query the view to see which leases still have issues
-    const { data: missingData, error: viewError } = await supabase
-      .from('leases_missing_payments')
-      .select('*');
-      
-    if (viewError) {
-      console.error("Error checking leases with missing payments:", viewError);
-      return { 
-        fixed: 0, 
-        errors: [viewError.message], 
+    if (!data || data.length === 0) {
+      console.warn("No data returned from generate_missing_payment_records");
+      return {
+        fixed: 0,
+        errors: ['No data returned from function'],
         missingAgreements: [],
         agreement_number: '',
-        status_description: 'Error checking missing payments'
+        status_description: 'No missing payment records to fix'
       };
     }
     
-    // Get list of agreement numbers with missing payments
-    const missingAgreements = missingData?.map(d => d.agreement_number) || [];
+    // Process data returned from the function (which is from the leases_missing_payments view)
+    const missingAgreements = data.map(d => d.agreement_number).filter(Boolean);
     
-    return { 
-      fixed: missingData?.length || 0, 
-      errors: missingData?.map(d => `${d.agreement_number}: ${d.status_description}`) || [],
+    // Create meaningful result
+    return {
+      fixed: data.length,
+      errors: data.map(d => `${d.agreement_number || 'Unknown'}: ${d.status_description || 'Unknown status'}`),
       missingAgreements,
       agreement_number: missingAgreements[0] || '',
-      status_description: missingData?.[0]?.status_description || ''
+      status_description: data[0]?.status_description || 'Processing completed'
     };
   } catch (e: any) {
     console.error("Error in checkMissingPaymentRecords:", e);
@@ -187,6 +182,7 @@ export const checkMissingPaymentRecords = async (): Promise<MissingPaymentResult
 // Function to process historical payments for a specific agreement
 export const processHistoricalPayments = async (agreementId: string): Promise<{ success: boolean, message: string }> => {
   try {
+    console.log("Processing historical payments for agreement:", agreementId);
     const { data, error } = await supabase.functions.invoke('process-rent-schedules', {
       body: { agreementId, processHistorical: true }
     });
@@ -199,6 +195,7 @@ export const processHistoricalPayments = async (agreementId: string): Promise<{ 
       };
     }
     
+    console.log("Historical payment processing result:", data);
     return { 
       success: true, 
       message: data?.message || 'Historical payments processed successfully' 

@@ -160,8 +160,22 @@ Deno.serve(async (req) => {
               .maybeSingle()
               
             if (!existingPayment && !existingLateFee) {
-              // Calculate standard late fee (30 days for historical)
-              const lateFee = 30 * (agreement.daily_late_fee || 120)
+              // Calculate appropriate days overdue based on month age
+              const monthsAgo = differenceInMonths(currentDate, scheduleMonth)
+              let daysOverdue = 30 // Default
+              
+              // For recent months, calculate more precisely
+              if (monthsAgo <= 3) {
+                const lastDayOfMonth = new Date(
+                  scheduleMonth.getFullYear(),
+                  scheduleMonth.getMonth() + 1,
+                  0
+                )
+                daysOverdue = lastDayOfMonth.getDate()
+              }
+              
+              // Calculate late fee
+              const lateFee = daysOverdue * (agreement.daily_late_fee || 120)
               
               // Create late fee record for historical month
               const { error: lateFeeError } = await supabase
@@ -176,7 +190,7 @@ Deno.serve(async (req) => {
                   description: `Auto-generated late payment record for ${format(dueDate, 'MMMM yyyy')}`,
                   type: 'LATE_PAYMENT_FEE',
                   late_fine_amount: lateFee,
-                  days_overdue: 30, // Standard for historical
+                  days_overdue: daysOverdue,
                   original_due_date: dueDate.toISOString()
                 })
                 
