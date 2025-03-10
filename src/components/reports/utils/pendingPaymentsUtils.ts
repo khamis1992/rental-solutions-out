@@ -121,32 +121,64 @@ export const calculateDaysOverdue = (paymentDate: Date): number => {
 };
 
 // Function to check and fix missing payment records
-export const checkMissingPaymentRecords = async (): Promise<{ fixed: number, errors: string[] }> => {
+export const checkMissingPaymentRecords = async (): Promise<{ fixed: number, errors: string[], missingAgreements: string[] }> => {
   try {
-    // Call the SQL function
+    // Call the SQL function to generate missing payment records
     const { error } = await supabase.rpc('generate_missing_payment_records');
     
     if (error) {
       console.error("Error generating missing payment records:", error);
-      return { fixed: 0, errors: [error.message] };
+      return { fixed: 0, errors: [error.message], missingAgreements: [] };
     }
     
-    // Query the view to see how many leases still have issues
+    // Query the view to see which leases still have issues
     const { data, error: viewError } = await supabase
       .from('leases_missing_payments')
       .select('*');
       
     if (viewError) {
       console.error("Error checking leases with missing payments:", viewError);
-      return { fixed: 0, errors: [viewError.message] };
+      return { fixed: 0, errors: [viewError.message], missingAgreements: [] };
     }
+    
+    // Get list of agreement numbers with missing payments
+    const missingAgreements = data?.map(d => d.agreement_number) || [];
     
     return { 
       fixed: data?.length || 0, 
-      errors: data?.map(d => `${d.agreement_number}: ${d.status_description}`) || [] 
+      errors: data?.map(d => `${d.agreement_number}: ${d.status_description}`) || [],
+      missingAgreements
     };
   } catch (e: any) {
     console.error("Error in checkMissingPaymentRecords:", e);
-    return { fixed: 0, errors: [e.toString()] };
+    return { fixed: 0, errors: [e.toString()], missingAgreements: [] };
+  }
+};
+
+// Function to process historical payments for a specific agreement
+export const processHistoricalPayments = async (agreementId: string): Promise<{ success: boolean, message: string }> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('process-rent-schedules', {
+      body: { agreementId, processHistorical: true }
+    });
+    
+    if (error) {
+      console.error("Error processing historical payments:", error);
+      return { 
+        success: false, 
+        message: `Failed to process historical payments: ${error.message}` 
+      };
+    }
+    
+    return { 
+      success: true, 
+      message: data?.message || 'Historical payments processed successfully' 
+    };
+  } catch (e: any) {
+    console.error("Error in processHistoricalPayments:", e);
+    return { 
+      success: false, 
+      message: `Error processing historical payments: ${e.toString()}` 
+    };
   }
 };

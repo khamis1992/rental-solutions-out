@@ -1,4 +1,3 @@
-
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startOfMonth, addMonths, parseISO, isAfter, format, isBefore, differenceInMonths } from 'https://esm.sh/date-fns'
 
@@ -17,17 +16,39 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    console.log('Starting rent schedule processing...')
+    // Parse request body for specific agreement processing if provided
+    let requestData = {}
+    let specificAgreementId = null
+    let processHistorical = false
+    
+    try {
+      requestData = await req.json()
+      specificAgreementId = requestData.agreementId || null
+      processHistorical = requestData.processHistorical || false
+    } catch (e) {
+      // No request body or invalid JSON, continue with all agreements
+      console.log('No specific agreement requested, processing all')
+    }
 
-    // Get all active agreements
-    const { data: activeAgreements, error: agreementsError } = await supabase
+    console.log('Starting rent schedule processing...' + 
+      (specificAgreementId ? ` for agreement: ${specificAgreementId}` : '') +
+      (processHistorical ? ' with historical processing' : ''))
+
+    // Get active agreements, optionally filtering by specific ID
+    let agreementsQuery = supabase
       .from('leases')
       .select('id, rent_amount, rent_due_day, start_date, daily_late_fee, agreement_number')
       .eq('status', 'active')
+    
+    if (specificAgreementId) {
+      agreementsQuery = agreementsQuery.eq('id', specificAgreementId)
+    }
+
+    const { data: activeAgreements, error: agreementsError } = await agreementsQuery
 
     if (agreementsError) throw agreementsError
 
-    console.log(`Found ${activeAgreements?.length || 0} active agreements`)
+    console.log(`Found ${activeAgreements?.length || 0} active agreements to process`)
 
     const currentDate = new Date()
     const nextMonth = startOfMonth(addMonths(currentDate, 1))
@@ -52,7 +73,6 @@ Deno.serve(async (req) => {
       }
       
       // Handle historical agreements (past start dates)
-      // Calculate how many months we need to generate schedules for
       if (isBefore(agreementStartDate, currentDate)) {
         // Get existing schedules to avoid duplicates
         const { data: existingSchedules } = await supabase
@@ -118,7 +138,9 @@ Deno.serve(async (req) => {
           console.log(`Created schedule for agreement ${agreement.agreement_number} due on ${dueDate.toISOString()}`)
           
           // For historical months (before current month), also create a late payment record if needed
-          if (isBefore(scheduleMonth, startOfMonth(currentDate))) {
+          // Only do this for specifically requested agreement or when historical processing is requested
+          if (isBefore(scheduleMonth, startOfMonth(currentDate)) && 
+             (specificAgreementId === agreement.id || processHistorical)) {
             // Check if a payment or late fee record already exists for this month
             const { data: existingPayment } = await supabase
               .from('unified_payments')
