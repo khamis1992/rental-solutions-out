@@ -149,8 +149,10 @@ export const checkMissingPaymentRecords = async (): Promise<MissingPaymentResult
   try {
     console.log("Checking for missing payment records...");
     
-    // Call the SQL function to generate missing payment records
-    const { data, error } = await supabase.rpc('generate_missing_payment_records');
+    // Call the Edge Function to process bulk records
+    const { data, error } = await supabase.functions.invoke('process-rent-schedules', {
+      body: { bulkProcess: true, processHistorical: false }
+    });
     
     if (error) {
       console.error("Error generating missing payment records:", error);
@@ -163,7 +165,7 @@ export const checkMissingPaymentRecords = async (): Promise<MissingPaymentResult
       };
     }
     
-    if (!data || data.length === 0) {
+    if (!data || !data.data || data.data.length === 0) {
       console.warn("No data returned from generate_missing_payment_records");
       return {
         fixed: 0,
@@ -174,14 +176,14 @@ export const checkMissingPaymentRecords = async (): Promise<MissingPaymentResult
       };
     }
     
-    console.log("Response from generate_missing_payment_records:", data);
+    console.log("Response from process-rent-schedules:", data);
     
     // Process data returned from the function
-    const processSummary = data.find((d: LeasesMissingPaymentsResult) => 
+    const processSummary = data.data.find((d: LeasesMissingPaymentsResult) => 
       d.agreement_number === 'PROCESSING_SUMMARY'
     );
     
-    const missingAgreements = data
+    const missingAgreements = data.data
       .filter((d: LeasesMissingPaymentsResult) => 
         d.agreement_number !== 'PROCESSING_SUMMARY' && 
         d.status_description !== 'OK'
@@ -194,12 +196,12 @@ export const checkMissingPaymentRecords = async (): Promise<MissingPaymentResult
     // Create meaningful result
     return {
       fixed: recordCount,
-      errors: data.map((d: LeasesMissingPaymentsResult) => 
+      errors: data.data.map((d: LeasesMissingPaymentsResult) => 
         `${d.agreement_number || 'Unknown'}: ${d.status_description || 'Unknown status'}`
       ),
       missingAgreements,
       agreement_number: missingAgreements[0] || '',
-      status_description: processSummary?.status_description || 'Processing completed'
+      status_description: processSummary?.status_description || data.message || 'Processing completed'
     };
   } catch (e: any) {
     console.error("Error in checkMissingPaymentRecords:", e);

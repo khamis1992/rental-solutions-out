@@ -4,8 +4,9 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 interface RequestBody {
-  agreementId: string;
+  agreementId?: string;
   processHistorical: boolean;
+  bulkProcess?: boolean;
 }
 
 interface ProcessingResult {
@@ -23,7 +24,22 @@ interface ProcessingResult {
   total_months_due: number;
 }
 
+// CORS headers for browser requests
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
 serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { 
+      headers: corsHeaders,
+      status: 204
+    });
+  }
+  
   try {
     // Create a Supabase client with the service role key
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
@@ -31,18 +47,84 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     // Parse the request body
-    const { agreementId, processHistorical } = await req.json() as RequestBody;
+    const { agreementId, processHistorical, bulkProcess } = await req.json() as RequestBody;
     
-    if (!agreementId) {
+    // Validate request parameters
+    if (!processHistorical && !agreementId && !bulkProcess) {
       return new Response(
-        JSON.stringify({ success: false, message: 'Agreement ID is required' }),
-        { headers: { 'Content-Type': 'application/json' }, status: 400 }
+        JSON.stringify({ 
+          success: false, 
+          message: 'Either agreementId or bulkProcess flag is required for non-historical processing' 
+        }),
+        { 
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders 
+          }, 
+          status: 400 
+        }
       );
     }
     
-    console.log(`Processing agreement ${agreementId}, processHistorical: ${processHistorical}`);
+    console.log(`Processing request: agreementId=${agreementId}, processHistorical=${processHistorical}, bulkProcess=${bulkProcess}`);
     
-    if (processHistorical) {
+    if (bulkProcess) {
+      try {
+        // Process all agreements using the database function
+        const { data, error } = await supabase.rpc('generate_missing_payment_records');
+        
+        if (error) {
+          console.error("Error generating payment records:", error);
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              message: `Error generating payment records: ${error.message}` 
+            }),
+            { 
+              headers: { 
+                'Content-Type': 'application/json',
+                ...corsHeaders 
+              }, 
+              status: 500 
+            }
+          );
+        }
+        
+        // Find the processing summary
+        const processSummary = data?.find((record: ProcessingResult) => 
+          record.agreement_number === 'PROCESSING_SUMMARY'
+        );
+        
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            message: processSummary?.status_description || 'Bulk processing completed',
+            data: data || []
+          }),
+          { 
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders 
+            }
+          }
+        );
+      } catch (processingError: any) {
+        console.error("Bulk processing error:", processingError);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            message: `Error processing bulk request: ${processingError.message}` 
+          }),
+          { 
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders 
+            }, 
+            status: 500 
+          }
+        );
+      }
+    } else if (processHistorical) {
       try {
         // Get agreement details first to check validity
         const { data: agreement, error: agreementError } = await supabase
@@ -54,15 +136,32 @@ serve(async (req) => {
         if (agreementError) {
           console.error("Error fetching agreement:", agreementError);
           return new Response(
-            JSON.stringify({ success: false, message: `Error fetching agreement: ${agreementError.message}` }),
-            { headers: { 'Content-Type': 'application/json' }, status: 500 }
+            JSON.stringify({ 
+              success: false, 
+              message: `Error fetching agreement: ${agreementError.message}` 
+            }),
+            { 
+              headers: { 
+                'Content-Type': 'application/json',
+                ...corsHeaders 
+              }, 
+              status: 500 
+            }
           );
         }
         
         if (!agreement) {
           return new Response(
-            JSON.stringify({ success: false, message: 'Agreement not found' }),
-            { headers: { 'Content-Type': 'application/json' } }
+            JSON.stringify({ 
+              success: false, 
+              message: 'Agreement not found' 
+            }),
+            { 
+              headers: { 
+                'Content-Type': 'application/json',
+                ...corsHeaders 
+              } 
+            }
           );
         }
         
@@ -72,8 +171,17 @@ serve(async (req) => {
         if (error) {
           console.error("Error generating payment records:", error);
           return new Response(
-            JSON.stringify({ success: false, message: `Error generating payment records: ${error.message}` }),
-            { headers: { 'Content-Type': 'application/json' }, status: 500 }
+            JSON.stringify({ 
+              success: false, 
+              message: `Error generating payment records: ${error.message}` 
+            }),
+            { 
+              headers: { 
+                'Content-Type': 'application/json',
+                ...corsHeaders 
+              }, 
+              status: 500 
+            }
           );
         }
         
@@ -94,7 +202,12 @@ serve(async (req) => {
               message: 'No missing payment records found for this agreement', 
               data: []
             }),
-            { headers: { 'Content-Type': 'application/json' } }
+            { 
+              headers: { 
+                'Content-Type': 'application/json',
+                ...corsHeaders 
+              } 
+            }
           );
         }
         
@@ -108,7 +221,12 @@ serve(async (req) => {
             message: responseMessage,
             data: agreementResults.length > 0 ? agreementResults : [processSummary]
           }),
-          { headers: { 'Content-Type': 'application/json' } }
+          { 
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders 
+            } 
+          }
         );
       } catch (processingError: any) {
         console.error("Processing error:", processingError);
@@ -117,7 +235,13 @@ serve(async (req) => {
             success: false, 
             message: `Error processing historical payments: ${processingError.message}` 
           }),
-          { headers: { 'Content-Type': 'application/json' }, status: 500 }
+          { 
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders 
+            }, 
+            status: 500 
+          }
         );
       }
     } else {
@@ -160,7 +284,12 @@ serve(async (req) => {
               message: `Generated and found ${newSchedules?.length || 0} payment schedules for agreement ${agreementId}`,
               data: newSchedules || [] 
             }),
-            { headers: { 'Content-Type': 'application/json' } }
+            { 
+              headers: { 
+                'Content-Type': 'application/json',
+                ...corsHeaders 
+              } 
+            }
           );
         }
         
@@ -170,7 +299,12 @@ serve(async (req) => {
             message: `Found ${data?.length || 0} payment schedules for agreement ${agreementId}`,
             data 
           }),
-          { headers: { 'Content-Type': 'application/json' } }
+          { 
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders 
+            } 
+          }
         );
       } catch (scheduleError: any) {
         console.error("Error processing payment schedules:", scheduleError);
@@ -179,7 +313,13 @@ serve(async (req) => {
             success: false, 
             message: `Error processing payment schedules: ${scheduleError.message}` 
           }),
-          { headers: { 'Content-Type': 'application/json' }, status: 500 }
+          { 
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders 
+            }, 
+            status: 500 
+          }
         );
       }
     }
@@ -188,7 +328,13 @@ serve(async (req) => {
     
     return new Response(
       JSON.stringify({ success: false, message: err.message }),
-      { headers: { 'Content-Type': 'application/json' }, status: 500 }
+      { 
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders 
+        }, 
+        status: 500 
+      }
     );
   }
 });
