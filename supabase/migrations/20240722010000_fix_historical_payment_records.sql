@@ -140,6 +140,92 @@ BEGIN
         END LOOP;
     END LOOP;
     
+    -- First create the view if it doesn't exist
+    -- This ensures the function can return results even on first run
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM pg_catalog.pg_views 
+        WHERE viewname = 'leases_missing_payments'
+    ) THEN
+        EXECUTE '
+        CREATE VIEW public.leases_missing_payments AS
+        SELECT 
+            l.id,
+            l.agreement_number,
+            l.status,
+            l.rent_amount,
+            l.start_date,
+            DATE_TRUNC(''month'', CURRENT_DATE) AS current_month,
+            (
+                SELECT COUNT(*)
+                FROM payment_schedules ps
+                WHERE ps.lease_id = l.id
+            ) AS schedule_count,
+            (
+                SELECT COUNT(*)
+                FROM unified_payments up
+                WHERE up.lease_id = l.id
+                AND up.type = ''Income''
+            ) AS payment_count,
+            (
+                SELECT COUNT(DISTINCT DATE_TRUNC(''month'', ps.due_date))
+                FROM payment_schedules ps
+                WHERE ps.lease_id = l.id
+            ) AS distinct_months_scheduled,
+            (
+                SELECT COUNT(DISTINCT DATE_TRUNC(''month'', COALESCE(up.payment_date, up.original_due_date)))
+                FROM unified_payments up
+                WHERE up.lease_id = l.id
+                AND up.type IN (''Income'', ''LATE_PAYMENT_FEE'')
+            ) AS distinct_months_paid,
+            (
+                CASE 
+                    WHEN l.start_date IS NULL THEN 0
+                    ELSE EXTRACT(YEAR FROM age(CURRENT_DATE, l.start_date)) * 12 + 
+                        EXTRACT(MONTH FROM age(CURRENT_DATE, l.start_date)) + 1
+                END
+            ) AS total_months_due,
+            CASE 
+                WHEN l.start_date IS NULL THEN ''Missing start date''
+                WHEN (
+                    SELECT COUNT(*)
+                    FROM payment_schedules ps
+                    WHERE ps.lease_id = l.id
+                ) = 0 THEN ''Missing payment schedules''
+                WHEN (
+                    SELECT COUNT(DISTINCT DATE_TRUNC(''month'', COALESCE(up.payment_date, up.original_due_date)))
+                    FROM unified_payments up
+                    WHERE up.lease_id = l.id
+                    AND up.type IN (''Income'', ''LATE_PAYMENT_FEE'')
+                ) < (
+                    CASE 
+                        WHEN l.start_date IS NULL THEN 0
+                        ELSE EXTRACT(YEAR FROM age(CURRENT_DATE, l.start_date)) * 12 + 
+                            EXTRACT(MONTH FROM age(CURRENT_DATE, l.start_date)) + 1
+                    END
+                ) THEN ''Missing payments''
+                ELSE ''OK''
+            END AS status_description
+        FROM leases l
+        WHERE l.status = ''active''
+        AND (
+            l.start_date IS NULL
+            OR
+            (
+                SELECT COUNT(DISTINCT DATE_TRUNC(''month'', COALESCE(up.payment_date, up.original_due_date)))
+                FROM unified_payments up
+                WHERE up.lease_id = l.id
+                AND up.type IN (''Income'', ''LATE_PAYMENT_FEE'')
+            ) < (
+                CASE 
+                    WHEN l.start_date IS NULL THEN 0
+                    ELSE EXTRACT(YEAR FROM age(CURRENT_DATE, l.start_date)) * 12 + 
+                        EXTRACT(MONTH FROM age(CURRENT_DATE, l.start_date)) + 1
+                END
+            )
+        );';
+    END IF;
+    
     -- Return records from the view to show status
     FOR v_result IN 
         SELECT * FROM leases_missing_payments
@@ -237,5 +323,120 @@ AND (
     )
 );
 
--- Manually run the function once to create all missing records
-SELECT generate_missing_payment_records();
+-- Create the record_payment_with_late_fee function to handle payment recording
+CREATE OR REPLACE FUNCTION public.record_payment_with_late_fee(
+  p_lease_id uuid,
+  p_amount numeric,
+  p_amount_paid numeric,
+  p_balance numeric,
+  p_payment_method text,
+  p_description text,
+  p_payment_date timestamptz,
+  p_late_fine_amount numeric,
+  p_days_overdue integer,
+  p_original_due_date timestamptz,
+  p_existing_late_fee_id uuid
+)
+RETURNS json
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_payment_id uuid;
+  v_payment_record jsonb;
+BEGIN
+  -- First handle existing late fee if provided
+  IF p_existing_late_fee_id IS NOT NULL THEN
+    -- Update the existing late fee record to be completed
+    UPDATE unified_payments
+    SET 
+      status = 'completed',
+      amount_paid = amount,
+      balance = 0,
+      payment_date = p_payment_date,
+      payment_method = p_payment_method,
+      description = CASE 
+        WHEN p_description IS NOT NULL AND p_description != '' 
+        THEN p_description 
+        ELSE description 
+      END
+    WHERE id = p_existing_late_fee_id;
+  END IF;
+
+  -- Create a new payment record for the rent payment
+  INSERT INTO unified_payments (
+    lease_id,
+    amount,
+    amount_paid,
+    balance,
+    payment_date,
+    payment_method,
+    status,
+    description,
+    type,
+    late_fine_amount,
+    days_overdue,
+    original_due_date
+  ) VALUES (
+    p_lease_id,
+    p_amount,
+    p_amount_paid,
+    p_balance,
+    p_payment_date,
+    p_payment_method,
+    CASE WHEN p_balance = 0 THEN 'completed' ELSE 'pending' END,
+    p_description,
+    'Income',
+    p_late_fine_amount,
+    p_days_overdue,
+    p_original_due_date
+  )
+  RETURNING id INTO v_payment_id;
+  
+  -- Also create a late fee record if applicable and not using existing
+  IF p_late_fine_amount > 0 AND p_existing_late_fee_id IS NULL THEN
+    INSERT INTO unified_payments (
+      lease_id,
+      amount,
+      amount_paid,
+      balance,
+      payment_date,
+      payment_method,
+      status,
+      description,
+      type,
+      late_fine_amount,
+      days_overdue,
+      original_due_date
+    ) VALUES (
+      p_lease_id,
+      p_late_fine_amount,
+      p_late_fine_amount, -- Paid in full
+      0, -- No balance
+      p_payment_date,
+      p_payment_method,
+      'completed',
+      'Late fee payment for ' || to_char(p_original_due_date, 'Month YYYY'),
+      'LATE_PAYMENT_FEE',
+      p_late_fine_amount,
+      p_days_overdue,
+      p_original_due_date
+    );
+  END IF;
+  
+  -- Update lease's last_payment_date
+  UPDATE leases
+  SET last_payment_date = p_payment_date
+  WHERE id = p_lease_id;
+  
+  -- Return payment information
+  SELECT jsonb_build_object(
+    'payment_id', v_payment_id,
+    'lease_id', p_lease_id,
+    'amount_paid', p_amount_paid,
+    'payment_date', p_payment_date,
+    'status', 'success'
+  ) INTO v_payment_record;
+  
+  RETURN v_payment_record;
+END;
+$$;

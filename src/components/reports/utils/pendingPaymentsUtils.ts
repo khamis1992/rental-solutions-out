@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface PendingPaymentReport {
@@ -10,6 +11,21 @@ export interface PendingPaymentReport {
   traffic_fine_amount: number;
   total_amount: number;
   license_plate: string;
+}
+
+export interface LeasesMissingPaymentsResult {
+  id: string;
+  agreement_number: string;
+  status: string;
+  status_description: string;
+  rent_amount: number;
+  start_date: string;
+  current_month: string;
+  schedule_count: number;
+  payment_count: number;
+  distinct_months_scheduled: number;
+  distinct_months_paid: number;
+  total_months_due: number;
 }
 
 export const fetchPendingPaymentsReport = async (): Promise<PendingPaymentReport[]> => {
@@ -157,12 +173,17 @@ export const checkMissingPaymentRecords = async (): Promise<MissingPaymentResult
     }
     
     // Process data returned from the function (which is from the leases_missing_payments view)
-    const missingAgreements = data.map(d => d.agreement_number).filter(Boolean);
+    const missingAgreements = data.map((d: LeasesMissingPaymentsResult) => d.agreement_number).filter(Boolean);
+    const recordCount = data.filter((d: LeasesMissingPaymentsResult) => 
+      d.status_description !== 'OK' && d.agreement_number !== 'PROCESSING_SUMMARY'
+    ).length;
     
     // Create meaningful result
     return {
-      fixed: data.length,
-      errors: data.map(d => `${d.agreement_number || 'Unknown'}: ${d.status_description || 'Unknown status'}`),
+      fixed: recordCount,
+      errors: data.map((d: LeasesMissingPaymentsResult) => 
+        `${d.agreement_number || 'Unknown'}: ${d.status_description || 'Unknown status'}`
+      ),
       missingAgreements,
       agreement_number: missingAgreements[0] || '',
       status_description: data[0]?.status_description || 'Processing completed'
@@ -205,6 +226,34 @@ export const processHistoricalPayments = async (agreementId: string): Promise<{ 
     return { 
       success: false, 
       message: `Error processing historical payments: ${e.toString()}` 
+    };
+  }
+};
+
+// Function to generate missing payment records for all agreements
+export const generateMissingPaymentRecords = async (): Promise<MissingPaymentResult> => {
+  try {
+    const result = await checkMissingPaymentRecords();
+    
+    if (result.fixed > 0) {
+      return {
+        ...result,
+        status_description: `Generated ${result.fixed} missing payment records`,
+      };
+    } else {
+      return {
+        ...result,
+        status_description: 'No missing payment records found',
+      };
+    }
+  } catch (e: any) {
+    console.error("Error in generateMissingPaymentRecords:", e);
+    return { 
+      fixed: 0, 
+      errors: [e.toString()], 
+      missingAgreements: [],
+      agreement_number: '',
+      status_description: 'Error generating payment records'
     };
   }
 };
