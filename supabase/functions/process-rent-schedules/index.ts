@@ -8,6 +8,21 @@ interface RequestBody {
   processHistorical: boolean;
 }
 
+interface ProcessingResult {
+  id: string;
+  agreement_number: string;
+  status: string;
+  status_description: string;
+  rent_amount: number;
+  start_date: string;
+  current_month: string;
+  schedule_count: number;
+  payment_count: number;
+  distinct_months_scheduled: number;
+  distinct_months_paid: number;
+  total_months_due: number;
+}
+
 serve(async (req) => {
   try {
     // Create a Supabase client with the service role key
@@ -28,62 +43,147 @@ serve(async (req) => {
     console.log(`Processing agreement ${agreementId}, processHistorical: ${processHistorical}`);
     
     if (processHistorical) {
-      // Process historical payments for this specific agreement
-      const { data, error } = await supabase.rpc('generate_missing_payment_records');
-      
-      if (error) {
-        console.error("Error generating payment records:", error);
-        return new Response(
-          JSON.stringify({ success: false, message: `Error generating payment records: ${error.message}` }),
-          { headers: { 'Content-Type': 'application/json' }, status: 500 }
+      try {
+        // Get agreement details first to check validity
+        const { data: agreement, error: agreementError } = await supabase
+          .from('leases')
+          .select('id, agreement_number, rent_amount, status, start_date')
+          .eq('id', agreementId)
+          .single();
+          
+        if (agreementError) {
+          console.error("Error fetching agreement:", agreementError);
+          return new Response(
+            JSON.stringify({ success: false, message: `Error fetching agreement: ${agreementError.message}` }),
+            { headers: { 'Content-Type': 'application/json' }, status: 500 }
+          );
+        }
+        
+        if (!agreement) {
+          return new Response(
+            JSON.stringify({ success: false, message: 'Agreement not found' }),
+            { headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        // Process historical payments using the updated database function
+        const { data, error } = await supabase.rpc('generate_missing_payment_records');
+        
+        if (error) {
+          console.error("Error generating payment records:", error);
+          return new Response(
+            JSON.stringify({ success: false, message: `Error generating payment records: ${error.message}` }),
+            { headers: { 'Content-Type': 'application/json' }, status: 500 }
+          );
+        }
+        
+        // Check for results specific to this agreement
+        const agreementResults = data?.filter((record: ProcessingResult) => 
+          record.agreement_number && record.id === agreementId
+        ) || [];
+        
+        // Also check for the processing summary
+        const processSummary = data?.find((record: ProcessingResult) => 
+          record.agreement_number === 'PROCESSING_SUMMARY'
         );
-      }
-      
-      // Filter the results to find only records for this specific agreement
-      const agreementRecords = data.filter((record: any) => 
-        record.agreement_number && record.id === agreementId
-      );
-      
-      if (agreementRecords.length === 0) {
+        
+        if (agreementResults.length === 0 && !processSummary) {
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              message: 'No missing payment records found for this agreement', 
+              data: []
+            }),
+            { headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        const responseMessage = agreementResults.length > 0 
+          ? `Successfully processed historical payments for agreement ${agreementId}` 
+          : processSummary?.status_description || 'Processing completed';
+          
         return new Response(
           JSON.stringify({ 
             success: true, 
-            message: 'No missing payment records found for this agreement' 
+            message: responseMessage,
+            data: agreementResults.length > 0 ? agreementResults : [processSummary]
           }),
           { headers: { 'Content-Type': 'application/json' } }
         );
+      } catch (processingError: any) {
+        console.error("Processing error:", processingError);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            message: `Error processing historical payments: ${processingError.message}` 
+          }),
+          { headers: { 'Content-Type': 'application/json' }, status: 500 }
+        );
       }
-      
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: `Successfully processed historical payments for agreement ${agreementId}`,
-          data: agreementRecords
-        }),
-        { headers: { 'Content-Type': 'application/json' } }
-      );
     } else {
-      // Regular rent schedule processing (existing functionality)
-      const { data, error } = await supabase
-        .from('payment_schedules')
-        .select('*')
-        .eq('lease_id', agreementId)
-        .order('due_date', { ascending: true });
+      // Regular rent schedule processing
+      try {
+        // Get payment schedules for the agreement
+        const { data, error } = await supabase
+          .from('payment_schedules')
+          .select('*')
+          .eq('lease_id', agreementId)
+          .order('due_date', { ascending: true });
+          
+        if (error) {
+          console.error("Error fetching payment schedules:", error);
+          throw error;
+        }
         
-      if (error) {
-        throw error;
+        // Check if schedules exist
+        if (!data || data.length === 0) {
+          // If no schedules exist, try to generate them
+          const { data: generatedData, error: generationError } = await supabase.rpc('generate_missing_payment_records');
+          
+          if (generationError) {
+            console.error("Error generating payment schedules:", generationError);
+            throw generationError;
+          }
+          
+          // Try fetching schedules again after generation
+          const { data: newSchedules, error: newError } = await supabase
+            .from('payment_schedules')
+            .select('*')
+            .eq('lease_id', agreementId)
+            .order('due_date', { ascending: true });
+          
+          if (newError) throw newError;
+          
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              message: `Generated and found ${newSchedules?.length || 0} payment schedules for agreement ${agreementId}`,
+              data: newSchedules || [] 
+            }),
+            { headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            message: `Found ${data?.length || 0} payment schedules for agreement ${agreementId}`,
+            data 
+          }),
+          { headers: { 'Content-Type': 'application/json' } }
+        );
+      } catch (scheduleError: any) {
+        console.error("Error processing payment schedules:", scheduleError);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            message: `Error processing payment schedules: ${scheduleError.message}` 
+          }),
+          { headers: { 'Content-Type': 'application/json' }, status: 500 }
+        );
       }
-      
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: `Found ${data?.length || 0} payment schedules for agreement ${agreementId}`,
-          data 
-        }),
-        { headers: { 'Content-Type': 'application/json' } }
-      );
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error('Error processing request:', err);
     
     return new Response(
