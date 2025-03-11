@@ -100,8 +100,9 @@ serve(async (req) => {
       try {
         console.log("Starting bulk processing of rent schedules");
         
-        // Process all agreements using the database function
-        const { data, error } = await supabase.rpc('generate_missing_payment_records');
+        // Execute a custom SQL function to fix the ambiguous column issue
+        // This SQL is a wrapper that properly qualifies all vehicle_id references
+        const { data, error } = await supabase.rpc('generate_missing_payment_records_with_qualified_columns');
         
         if (error) {
           console.error("Error in bulk processing:", error);
@@ -200,8 +201,8 @@ serve(async (req) => {
           );
         }
         
-        // Process historical payments using the database function
-        const { data, error } = await supabase.rpc('generate_missing_payment_records');
+        // Process with the fixed function that properly qualifies column references
+        const { data, error } = await supabase.rpc('generate_missing_payment_records_with_qualified_columns');
         
         if (error) {
           console.error("Error generating payment records:", error);
@@ -296,8 +297,8 @@ serve(async (req) => {
         
         // Check if schedules exist
         if (!data || data.length === 0) {
-          // If no schedules exist, try to generate them
-          const { data: generatedData, error: generationError } = await supabase.rpc('generate_missing_payment_records');
+          // If no schedules exist, try to generate them using the fixed function
+          const { data: generatedData, error: generationError } = await supabase.rpc('generate_missing_payment_records_with_qualified_columns');
           
           if (generationError) {
             console.error("Error generating payment schedules:", generationError);

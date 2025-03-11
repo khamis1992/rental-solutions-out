@@ -227,6 +227,12 @@ async function processAutomationRules() {
       // Send emails to recipients
       for (const recipient of recipients || []) {
         try {
+          // Check if recipient has a valid email address
+          if (!recipient.email) {
+            console.log(`Skipping recipient ${recipient.id} - no email address found`);
+            continue;
+          }
+
           // Check if we've already sent this notification recently
           const { data: recentLog } = await supabase
             .from('email_notification_logs')
@@ -257,7 +263,7 @@ async function processAutomationRules() {
           });
 
           // Log the notification
-          const { data: logEntry } = await supabase
+          const { data: logEntry, error: logError } = await supabase
             .from('email_notification_logs')
             .insert({
               rule_id: rule.id,
@@ -275,6 +281,10 @@ async function processAutomationRules() {
             .select()
             .single();
 
+          if (logError) {
+            console.error('Error logging notification:', logError);
+          }
+
           // Update status flags based on email type
           if (rule.trigger_type === 'welcome') {
             await supabase
@@ -291,19 +301,33 @@ async function processAutomationRules() {
 
           console.log(`Sent email to ${recipient.email} for rule ${rule.name}`);
         } catch (error) {
-          console.error(`Error sending email to ${recipient.email}:`, error);
+          console.error(`Error sending email to ${recipient.email || 'unknown email'}:`, error);
           
-          // Log the error
-          await supabase
-            .from('email_notification_logs')
-            .insert({
-              rule_id: rule.id,
-              template_id: rule.template_id,
-              recipient_email: recipient.email,
-              recipient_id: recipient.id,
-              status: 'failed',
-              error_message: error.message
-            });
+          // Only log with recipient_email if it exists
+          if (recipient.email) {
+            // Log the error
+            await supabase
+              .from('email_notification_logs')
+              .insert({
+                rule_id: rule.id,
+                template_id: rule.template_id,
+                recipient_email: recipient.email,
+                recipient_id: recipient.id,
+                status: 'failed',
+                error_message: error.message
+              });
+          } else {
+            // Log error without email
+            await supabase
+              .from('email_notification_logs')
+              .insert({
+                rule_id: rule.id,
+                template_id: rule.template_id,
+                recipient_id: recipient.id,
+                status: 'failed',
+                error_message: `No email address: ${error.message}`
+              });
+          }
         }
       }
     }
