@@ -2578,7 +2578,7 @@ export type Database = {
           error_message: string | null
           id: string
           metadata: Json | null
-          recipient_email: string
+          recipient_email: string | null
           recipient_id: string | null
           rule_id: string | null
           sent_at: string | null
@@ -2591,7 +2591,7 @@ export type Database = {
           error_message?: string | null
           id?: string
           metadata?: Json | null
-          recipient_email: string
+          recipient_email?: string | null
           recipient_id?: string | null
           rule_id?: string | null
           sent_at?: string | null
@@ -2604,7 +2604,7 @@ export type Database = {
           error_message?: string | null
           id?: string
           metadata?: Json | null
-          recipient_email?: string
+          recipient_email?: string | null
           recipient_id?: string | null
           rule_id?: string | null
           sent_at?: string | null
@@ -9741,6 +9741,23 @@ export type Database = {
         Returns: undefined
       }
       generate_missing_payment_records: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          agreement_number: string | null
+          current_month: string | null
+          distinct_months_paid: number | null
+          distinct_months_scheduled: number | null
+          id: string | null
+          payment_count: number | null
+          rent_amount: number | null
+          schedule_count: number | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["lease_status"] | null
+          status_description: string | null
+          total_months_due: number | null
+        }[]
+      }
+      generate_missing_payment_records_with_qualified_columns: {
         Args: Record<PropertyKey, never>
         Returns: {
           agreement_number: string | null
