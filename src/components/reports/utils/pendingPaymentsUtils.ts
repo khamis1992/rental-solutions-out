@@ -149,59 +149,87 @@ export const checkMissingPaymentRecords = async (): Promise<MissingPaymentResult
   try {
     console.log("Checking for missing payment records...");
     
-    // Call the Edge Function to process bulk records
-    const { data, error } = await supabase.functions.invoke('process-rent-schedules', {
-      body: { bulkProcess: true, processHistorical: false }
-    });
+    // Call the Edge Function to process bulk records with retry mechanism
+    let retryCount = 0;
+    const maxRetries = 3;
+    let lastError: any = null;
     
-    if (error) {
-      console.error("Error generating missing payment records:", error);
-      return { 
-        fixed: 0, 
-        errors: [error.message], 
-        missingAgreements: [],
-        agreement_number: '',
-        status_description: 'Error generating records'
-      };
+    while (retryCount < maxRetries) {
+      try {
+        console.log(`Attempt ${retryCount + 1} to invoke process-rent-schedules function`);
+        
+        const { data, error } = await supabase.functions.invoke('process-rent-schedules', {
+          body: { 
+            bulkProcess: true, 
+            processHistorical: false 
+          }
+        });
+        
+        if (error) {
+          console.error(`Attempt ${retryCount + 1} failed:`, error);
+          lastError = error;
+          retryCount++;
+          // Wait before retrying (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+          continue;
+        }
+        
+        console.log("Response from process-rent-schedules:", data);
+        
+        if (!data || !data.data) {
+          return {
+            fixed: 0,
+            errors: ['No data returned from function'],
+            missingAgreements: [],
+            agreement_number: '',
+            status_description: 'No missing payment records to fix'
+          };
+        }
+        
+        // Process data returned from the function
+        const processSummary = data.data.find((d: LeasesMissingPaymentsResult) => 
+          d.agreement_number === 'PROCESSING_SUMMARY'
+        );
+        
+        const missingAgreements = data.data
+          .filter((d: LeasesMissingPaymentsResult) => 
+            d.agreement_number !== 'PROCESSING_SUMMARY' && 
+            d.status_description !== 'OK'
+          )
+          .map((d: LeasesMissingPaymentsResult) => d.agreement_number)
+          .filter(Boolean);
+        
+        const recordCount = missingAgreements.length;
+        
+        // Create meaningful result
+        return {
+          fixed: recordCount,
+          errors: data.data
+            .filter((d: LeasesMissingPaymentsResult) => d.status_description !== 'OK')
+            .map((d: LeasesMissingPaymentsResult) => 
+              `${d.agreement_number || 'Unknown'}: ${d.status_description || 'Unknown status'}`
+            ),
+          missingAgreements,
+          agreement_number: missingAgreements[0] || '',
+          status_description: processSummary?.status_description || data.message || 'Processing completed'
+        };
+      } catch (attemptError) {
+        console.error(`Attempt ${retryCount + 1} failed with exception:`, attemptError);
+        lastError = attemptError;
+        retryCount++;
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+      }
     }
     
-    if (!data || !data.data || data.data.length === 0) {
-      console.warn("No data returned from generate_missing_payment_records");
-      return {
-        fixed: 0,
-        errors: ['No data returned from function'],
-        missingAgreements: [],
-        agreement_number: '',
-        status_description: 'No missing payment records to fix'
-      };
-    }
-    
-    console.log("Response from process-rent-schedules:", data);
-    
-    // Process data returned from the function
-    const processSummary = data.data.find((d: LeasesMissingPaymentsResult) => 
-      d.agreement_number === 'PROCESSING_SUMMARY'
-    );
-    
-    const missingAgreements = data.data
-      .filter((d: LeasesMissingPaymentsResult) => 
-        d.agreement_number !== 'PROCESSING_SUMMARY' && 
-        d.status_description !== 'OK'
-      )
-      .map((d: LeasesMissingPaymentsResult) => d.agreement_number)
-      .filter(Boolean);
-    
-    const recordCount = missingAgreements.length;
-    
-    // Create meaningful result
-    return {
-      fixed: recordCount,
-      errors: data.data.map((d: LeasesMissingPaymentsResult) => 
-        `${d.agreement_number || 'Unknown'}: ${d.status_description || 'Unknown status'}`
-      ),
-      missingAgreements,
-      agreement_number: missingAgreements[0] || '',
-      status_description: processSummary?.status_description || data.message || 'Processing completed'
+    // If we get here, all retries failed
+    console.error("All attempts to call process-rent-schedules failed");
+    return { 
+      fixed: 0, 
+      errors: [lastError?.toString() || 'Failed after multiple attempts'], 
+      missingAgreements: [],
+      agreement_number: '',
+      status_description: 'Error processing records after multiple attempts'
     };
   } catch (e: any) {
     console.error("Error in checkMissingPaymentRecords:", e);
@@ -219,6 +247,13 @@ export const checkMissingPaymentRecords = async (): Promise<MissingPaymentResult
 export const processHistoricalPayments = async (agreementId: string): Promise<{ success: boolean, message: string, data?: any }> => {
   try {
     console.log("Processing historical payments for agreement:", agreementId);
+    
+    if (!agreementId) {
+      return {
+        success: false,
+        message: 'No agreement ID provided'
+      };
+    }
     
     // First, validate the agreement
     const { data: agreement, error: agreementError } = await supabase
@@ -242,25 +277,60 @@ export const processHistoricalPayments = async (agreementId: string): Promise<{ 
       };
     }
     
-    // Invoke the Edge Function to process historical payments
-    const { data, error } = await supabase.functions.invoke('process-rent-schedules', {
-      body: { agreementId, processHistorical: true }
-    });
+    // Retry mechanism for the edge function call
+    let retryCount = 0;
+    const maxRetries = 3;
+    let lastError: any = null;
     
-    if (error) {
-      console.error("Error processing historical payments:", error);
-      return { 
-        success: false, 
-        message: `Failed to process historical payments: ${error.message}` 
-      };
+    while (retryCount < maxRetries) {
+      try {
+        console.log(`Attempt ${retryCount + 1} to invoke process-rent-schedules for historical payments`);
+        
+        // Invoke the Edge Function to process historical payments
+        const { data, error } = await supabase.functions.invoke('process-rent-schedules', {
+          body: { 
+            agreementId: agreementId, 
+            processHistorical: true 
+          }
+        });
+        
+        if (error) {
+          console.error(`Attempt ${retryCount + 1} failed:`, error);
+          lastError = error;
+          retryCount++;
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+          continue;
+        }
+        
+        console.log("Historical payment processing result:", data);
+        
+        if (!data || !data.success) {
+          return { 
+            success: false, 
+            message: data?.message || 'Failed to process historical payments' 
+          };
+        }
+        
+        return { 
+          success: true, 
+          message: data.message || 'Historical payments processed successfully',
+          data: data.data || []
+        };
+      } catch (attemptError) {
+        console.error(`Attempt ${retryCount + 1} failed with exception:`, attemptError);
+        lastError = attemptError;
+        retryCount++;
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+      }
     }
     
-    console.log("Historical payment processing result:", data);
-    
+    // If we get here, all retries failed
+    console.error("All attempts to call process-rent-schedules for historical payments failed");
     return { 
-      success: data?.success || false, 
-      message: data?.message || 'Historical payments processed successfully',
-      data: data?.data || []
+      success: false, 
+      message: `Error processing historical payments after multiple attempts: ${lastError?.toString()}` 
     };
   } catch (e: any) {
     console.error("Error in processHistoricalPayments:", e);

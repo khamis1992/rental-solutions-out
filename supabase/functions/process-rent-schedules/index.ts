@@ -46,8 +46,38 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Parse the request body
-    const { agreementId, processHistorical, bulkProcess } = await req.json() as RequestBody;
+    // Parse the request body with robust error handling
+    let requestData;
+    try {
+      const rawBody = await req.text();
+      console.log("Raw request body:", rawBody);
+      
+      if (!rawBody || rawBody.trim() === '') {
+        throw new Error('Empty request body');
+      }
+      
+      requestData = JSON.parse(rawBody);
+      console.log("Parsed request data:", requestData);
+    } catch (parseError) {
+      console.error("Failed to parse request body:", parseError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: `Invalid JSON format: ${parseError.message}` 
+        }),
+        { 
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }, 
+          status: 400 
+        }
+      );
+    }
+    
+    const { agreementId, processHistorical, bulkProcess } = requestData as RequestBody;
+    
+    console.log(`Processing request: agreementId=${agreementId}, processHistorical=${processHistorical}, bulkProcess=${bulkProcess}`);
     
     // Validate request parameters
     if (!processHistorical && !agreementId && !bulkProcess) {
@@ -66,19 +96,20 @@ serve(async (req) => {
       );
     }
     
-    console.log(`Processing request: agreementId=${agreementId}, processHistorical=${processHistorical}, bulkProcess=${bulkProcess}`);
-    
     if (bulkProcess) {
       try {
+        console.log("Starting bulk processing of rent schedules");
+        
         // Process all agreements using the database function
         const { data, error } = await supabase.rpc('generate_missing_payment_records');
         
         if (error) {
-          console.error("Error generating payment records:", error);
+          console.error("Error in bulk processing:", error);
           return new Response(
             JSON.stringify({ 
               success: false, 
-              message: `Error generating payment records: ${error.message}` 
+              message: `Error in bulk processing: ${error.message}`,
+              details: error
             }),
             { 
               headers: { 
@@ -94,6 +125,9 @@ serve(async (req) => {
         const processSummary = data?.find((record: ProcessingResult) => 
           record.agreement_number === 'PROCESSING_SUMMARY'
         );
+        
+        console.log("Bulk processing completed successfully:", processSummary);
+        console.log("Result data:", data);
         
         return new Response(
           JSON.stringify({ 
@@ -113,7 +147,8 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ 
             success: false, 
-            message: `Error processing bulk request: ${processingError.message}` 
+            message: `Error processing bulk request: ${processingError.message}`,
+            error: processingError
           }),
           { 
             headers: { 
@@ -124,7 +159,7 @@ serve(async (req) => {
           }
         );
       }
-    } else if (processHistorical) {
+    } else if (processHistorical && agreementId) {
       try {
         // Get agreement details first to check validity
         const { data: agreement, error: agreementError } = await supabase
@@ -165,7 +200,7 @@ serve(async (req) => {
           );
         }
         
-        // Process historical payments using the updated database function
+        // Process historical payments using the database function
         const { data, error } = await supabase.rpc('generate_missing_payment_records');
         
         if (error) {
@@ -187,7 +222,7 @@ serve(async (req) => {
         
         // Check for results specific to this agreement
         const agreementResults = data?.filter((record: ProcessingResult) => 
-          record.agreement_number && record.id === agreementId
+          record.id === agreementId
         ) || [];
         
         // Also check for the processing summary
@@ -327,7 +362,11 @@ serve(async (req) => {
     console.error('Error processing request:', err);
     
     return new Response(
-      JSON.stringify({ success: false, message: err.message }),
+      JSON.stringify({ 
+        success: false, 
+        message: err.message || 'An unexpected error occurred',
+        error: err.toString()
+      }),
       { 
         headers: { 
           'Content-Type': 'application/json',
