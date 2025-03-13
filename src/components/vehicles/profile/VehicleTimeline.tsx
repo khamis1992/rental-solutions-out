@@ -50,7 +50,7 @@ export const VehicleTimeline = ({
           error: maintenanceError
         } = await supabase
           .from("maintenance")
-          .select("id, vehicle_id, service_type, scheduled_date, status, description")
+          .select("id, service_type, scheduled_date, status, description")
           .eq("vehicle_id", vehicleId)
           .order("scheduled_date", { ascending: false });
           
@@ -67,7 +67,6 @@ export const VehicleTimeline = ({
           .from("leases")
           .select(`
             id, 
-            vehicle_id, 
             customer_id, 
             agreement_number, 
             start_date, 
@@ -91,7 +90,7 @@ export const VehicleTimeline = ({
           error: damagesError
         } = await supabase
           .from("damages")
-          .select("id, vehicle_id, description, reported_date, source")
+          .select("id, description, reported_date, source")
           .eq("vehicle_id", vehicleId)
           .order("reported_date", { ascending: false });
           
