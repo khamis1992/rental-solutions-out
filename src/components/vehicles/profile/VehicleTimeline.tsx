@@ -44,7 +44,7 @@ export const VehicleTimeline = ({
     queryKey: ["vehicle-timeline", vehicleId],
     queryFn: async () => {
       try {
-        // Fetch maintenance records with fully qualified column references
+        // Fetch maintenance records with proper qualification for vehicle_id
         const {
           data: maintenance,
           error: maintenanceError
@@ -59,7 +59,7 @@ export const VehicleTimeline = ({
           throw maintenanceError;
         }
 
-        // Fetch rental records (leases) with fully qualified column references
+        // Fetch rental records (leases) with proper qualification for vehicle_id
         const {
           data: rentals,
           error: rentalsError
@@ -84,7 +84,7 @@ export const VehicleTimeline = ({
           throw rentalsError;
         }
 
-        // Fetch damage records with fully qualified column references
+        // Fetch damage records with proper qualification for vehicle_id
         const {
           data: damages,
           error: damagesError
@@ -102,19 +102,28 @@ export const VehicleTimeline = ({
         // Combine and format all events
         const allEvents: TimelineEvent[] = [
           ...(maintenance?.map(m => ({
-            ...m,
+            id: m.id,
             type: 'maintenance' as const,
-            date: m.scheduled_date
+            date: m.scheduled_date,
+            status: m.status,
+            service_type: m.service_type,
+            description: m.description
           })) || []),
           ...(rentals?.map(r => ({
-            ...r,
+            id: r.id,
             type: 'rental' as const,
-            date: r.start_date
+            date: r.start_date,
+            status: r.status,
+            customer_id: r.customer_id,
+            profiles: r.profiles,
+            agreement_number: r.agreement_number
           })) || []),
           ...(damages?.map(d => ({
-            ...d,
+            id: d.id,
             type: 'damage' as const,
-            date: d.reported_date
+            date: d.reported_date,
+            description: d.description,
+            source: d.source
           })) || [])
         ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         
