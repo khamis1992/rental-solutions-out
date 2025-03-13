@@ -23,10 +23,7 @@ type TimelineEvent = {
   service_type?: string;
   description?: string;
   customer_id?: string;
-  profiles?: {
-    id: string;
-    full_name: string;
-  };
+  customer_name?: string;
   agreement_number?: string;
   source?: string;
 };
@@ -46,106 +43,132 @@ export const VehicleTimeline = ({
     queryFn: async () => {
       try {
         console.log("Fetching timeline data for vehicle ID:", vehicleId);
+        let allEvents: TimelineEvent[] = [];
         
         // Fetch maintenance records
-        const {
-          data: maintenance,
-          error: maintenanceError
-        } = await supabase
-          .from("maintenance")
-          .select(`
-            id,
-            service_type,
-            scheduled_date,
-            status,
-            description
-          `)
-          .eq("vehicle_id", vehicleId)
-          .order("scheduled_date", { ascending: false });
-          
-        if (maintenanceError) {
-          console.error("Error fetching maintenance records:", maintenanceError);
-          throw maintenanceError;
-        }
-
-        console.log("Maintenance records fetched:", maintenance?.length || 0);
-
-        // Fetch rental records (leases)
-        const {
-          data: rentals,
-          error: rentalsError
-        } = await supabase
-          .from("leases")
-          .select(`
-            id, 
-            customer_id, 
-            agreement_number, 
-            start_date, 
-            status,
-            profiles:customer_id (
+        try {
+          const { data: maintenance, error: maintenanceError } = await supabase
+            .from("maintenance")
+            .select(`
               id,
-              full_name
-            )
-          `)
-          .eq("vehicle_id", vehicleId)
-          .order("start_date", { ascending: false });
-          
-        if (rentalsError) {
-          console.error("Error fetching rental records:", rentalsError);
-          throw rentalsError;
+              service_type,
+              scheduled_date,
+              status,
+              description
+            `)
+            .eq("vehicle_id", vehicleId)
+            .order("scheduled_date", { ascending: false });
+            
+          if (maintenanceError) {
+            console.error("Error fetching maintenance records:", maintenanceError);
+            throw maintenanceError;
+          }
+
+          console.log("Maintenance records fetched:", maintenance?.length || 0);
+
+          // Add maintenance events to the timeline
+          if (maintenance && maintenance.length > 0) {
+            const maintenanceEvents = maintenance.map(m => ({
+              id: m.id,
+              type: 'maintenance' as const,
+              date: m.scheduled_date,
+              status: m.status,
+              service_type: m.service_type,
+              description: m.description
+            }));
+            allEvents = [...allEvents, ...maintenanceEvents];
+          }
+        } catch (maintenanceErr) {
+          console.error("Maintenance query failed:", maintenanceErr);
+          // Continue with other queries even if maintenance fails
         }
 
-        console.log("Rental records fetched:", rentals?.length || 0);
+        // Fetch rental records (leases) with explicit join to profiles
+        try {
+          const { data: rentals, error: rentalsError } = await supabase
+            .from("leases")
+            .select(`
+              id, 
+              customer_id, 
+              agreement_number, 
+              start_date, 
+              status,
+              profiles:customer_id (
+                id,
+                full_name
+              )
+            `)
+            .eq("vehicle_id", vehicleId)
+            .order("start_date", { ascending: false });
+            
+          if (rentalsError) {
+            console.error("Error fetching rental records:", rentalsError);
+            throw rentalsError;
+          }
+
+          console.log("Rental records fetched:", rentals?.length || 0);
+
+          // Add rental events to the timeline
+          if (rentals && rentals.length > 0) {
+            const rentalEvents = rentals.map(r => ({
+              id: r.id,
+              type: 'rental' as const,
+              date: r.start_date,
+              status: r.status,
+              customer_id: r.customer_id,
+              customer_name: r.profiles?.full_name,
+              agreement_number: r.agreement_number
+            }));
+            allEvents = [...allEvents, ...rentalEvents];
+          }
+        } catch (rentalsErr) {
+          console.error("Rentals query failed:", rentalsErr);
+          // Continue with other queries even if rentals fails
+        }
 
         // Fetch damage records
-        const {
-          data: damages,
-          error: damagesError
-        } = await supabase
-          .from("damages")
-          .select(`
-            id,
-            description,
-            reported_date,
-            source
-          `)
-          .eq("vehicle_id", vehicleId)
-          .order("reported_date", { ascending: false });
-          
-        if (damagesError) {
-          console.error("Error fetching damage records:", damagesError);
-          throw damagesError;
+        try {
+          const { data: damages, error: damagesError } = await supabase
+            .from("damages")
+            .select(`
+              id,
+              description,
+              reported_date,
+              source
+            `)
+            .eq("vehicle_id", vehicleId)
+            .order("reported_date", { ascending: false });
+            
+          if (damagesError) {
+            console.error("Error fetching damage records:", damagesError);
+            throw damagesError;
+          }
+
+          console.log("Damage records fetched:", damages?.length || 0);
+
+          // Add damage events to the timeline
+          if (damages && damages.length > 0) {
+            const damageEvents = damages.map(d => ({
+              id: d.id,
+              type: 'damage' as const,
+              date: d.reported_date,
+              description: d.description,
+              source: d.source
+            }));
+            allEvents = [...allEvents, ...damageEvents];
+          }
+        } catch (damagesErr) {
+          console.error("Damages query failed:", damagesErr);
+          // Continue with other queries even if damages fails
         }
 
-        console.log("Damage records fetched:", damages?.length || 0);
-
-        // Combine and format all events
-        const allEvents: TimelineEvent[] = [
-          ...(maintenance?.map(m => ({
-            id: m.id,
-            type: 'maintenance' as const,
-            date: m.scheduled_date,
-            status: m.status,
-            service_type: m.service_type,
-            description: m.description
-          })) || []),
-          ...(rentals?.map(r => ({
-            id: r.id,
-            type: 'rental' as const,
-            date: r.start_date,
-            status: r.status,
-            customer_id: r.customer_id,
-            profiles: r.profiles,
-            agreement_number: r.agreement_number
-          })) || []),
-          ...(damages?.map(d => ({
-            id: d.id,
-            type: 'damage' as const,
-            date: d.reported_date,
-            description: d.description,
-            source: d.source
-          })) || [])
-        ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        // Sort all events by date
+        allEvents.sort((a, b) => {
+          // Handle potential null/undefined dates
+          if (!a.date) return 1;
+          if (!b.date) return -1;
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        });
         
         console.log("Combined timeline events:", allEvents.length);
         return allEvents;
@@ -233,12 +256,12 @@ export const VehicleTimeline = ({
         return (
           <div className="flex items-center gap-2 flex-wrap">
             <span>Rented to </span>
-            {event.profiles?.full_name ? (
+            {event.customer_name ? (
               <button 
                 onClick={() => setSelectedCustomerId(event.customer_id || null)} 
                 className="text-primary hover:underline font-medium"
               >
-                {event.profiles.full_name}
+                {event.customer_name}
               </button>
             ) : (
               <span className="italic text-muted-foreground">Unknown Customer</span>
