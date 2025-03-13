@@ -28,6 +28,7 @@ type TimelineEvent = {
     full_name: string;
   };
   agreement_number?: string;
+  source?: string;
 };
 
 export const VehicleTimeline = ({
@@ -44,13 +45,21 @@ export const VehicleTimeline = ({
     queryKey: ["vehicle-timeline", vehicleId],
     queryFn: async () => {
       try {
-        // Fetch maintenance records with proper qualification for vehicle_id
+        console.log("Fetching timeline data for vehicle ID:", vehicleId);
+        
+        // Fetch maintenance records
         const {
           data: maintenance,
           error: maintenanceError
         } = await supabase
           .from("maintenance")
-          .select("id, service_type, scheduled_date, status, description")
+          .select(`
+            id,
+            service_type,
+            scheduled_date,
+            status,
+            description
+          `)
           .eq("vehicle_id", vehicleId)
           .order("scheduled_date", { ascending: false });
           
@@ -59,7 +68,9 @@ export const VehicleTimeline = ({
           throw maintenanceError;
         }
 
-        // Fetch rental records (leases) with proper qualification for vehicle_id
+        console.log("Maintenance records fetched:", maintenance?.length || 0);
+
+        // Fetch rental records (leases)
         const {
           data: rentals,
           error: rentalsError
@@ -84,13 +95,20 @@ export const VehicleTimeline = ({
           throw rentalsError;
         }
 
-        // Fetch damage records with proper qualification for vehicle_id
+        console.log("Rental records fetched:", rentals?.length || 0);
+
+        // Fetch damage records
         const {
           data: damages,
           error: damagesError
         } = await supabase
           .from("damages")
-          .select("id, description, reported_date, source")
+          .select(`
+            id,
+            description,
+            reported_date,
+            source
+          `)
           .eq("vehicle_id", vehicleId)
           .order("reported_date", { ascending: false });
           
@@ -98,6 +116,8 @@ export const VehicleTimeline = ({
           console.error("Error fetching damage records:", damagesError);
           throw damagesError;
         }
+
+        console.log("Damage records fetched:", damages?.length || 0);
 
         // Combine and format all events
         const allEvents: TimelineEvent[] = [
@@ -127,6 +147,7 @@ export const VehicleTimeline = ({
           })) || [])
         ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         
+        console.log("Combined timeline events:", allEvents.length);
         return allEvents;
       } catch (error) {
         console.error("Timeline query error:", error);
