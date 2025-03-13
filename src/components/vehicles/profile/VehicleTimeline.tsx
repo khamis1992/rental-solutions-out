@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,73 +8,174 @@ import { formatDateToDisplay } from "@/lib/dateUtils";
 import { useState } from "react";
 import { CustomerDetailsDialog } from "@/components/customers/CustomerDetailsDialog";
 import { AgreementDetailsDialog } from "@/components/agreements/AgreementDetailsDialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+
 interface VehicleTimelineProps {
   vehicleId: string;
 }
+
+type TimelineEvent = {
+  id: string;
+  type: 'maintenance' | 'rental' | 'damage';
+  date: string;
+  status?: string;
+  service_type?: string;
+  description?: string;
+  customer_id?: string;
+  profiles?: {
+    id: string;
+    full_name: string;
+  };
+  agreement_number?: string;
+};
+
 export const VehicleTimeline = ({
   vehicleId
 }: VehicleTimelineProps) => {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
+  
   const {
     data: events = [],
-    isLoading
+    isLoading,
+    error
   } = useQuery({
     queryKey: ["vehicle-timeline", vehicleId],
     queryFn: async () => {
-      // Fetch maintenance records
-      const {
-        data: maintenance,
-        error: maintenanceError
-      } = await supabase.from("maintenance").select("*").eq("vehicle_id", vehicleId).order("scheduled_date", {
-        ascending: false
-      });
-      if (maintenanceError) throw maintenanceError;
+      try {
+        // Fetch maintenance records with fully qualified column references
+        const {
+          data: maintenance,
+          error: maintenanceError
+        } = await supabase
+          .from("maintenance")
+          .select("id, vehicle_id, service_type, scheduled_date, status, description")
+          .eq("vehicle_id", vehicleId)
+          .order("scheduled_date", { ascending: false });
+          
+        if (maintenanceError) {
+          console.error("Error fetching maintenance records:", maintenanceError);
+          throw maintenanceError;
+        }
 
-      // Fetch rental records (leases)
-      const {
-        data: rentals,
-        error: rentalsError
-      } = await supabase.from("leases").select(`
-          *,
-          profiles:customer_id (
-            id,
-            full_name
-          )
-        `).eq("vehicle_id", vehicleId).order("start_date", {
-        ascending: false
-      });
-      if (rentalsError) throw rentalsError;
+        // Fetch rental records (leases) with fully qualified column references
+        const {
+          data: rentals,
+          error: rentalsError
+        } = await supabase
+          .from("leases")
+          .select(`
+            id, 
+            vehicle_id, 
+            customer_id, 
+            agreement_number, 
+            start_date, 
+            status,
+            profiles:customer_id (
+              id,
+              full_name
+            )
+          `)
+          .eq("vehicle_id", vehicleId)
+          .order("start_date", { ascending: false });
+          
+        if (rentalsError) {
+          console.error("Error fetching rental records:", rentalsError);
+          throw rentalsError;
+        }
 
-      // Fetch damage records
-      const {
-        data: damages,
-        error: damagesError
-      } = await supabase.from("damages").select("*").eq("vehicle_id", vehicleId).order("reported_date", {
-        ascending: false
-      });
-      if (damagesError) throw damagesError;
+        // Fetch damage records with fully qualified column references
+        const {
+          data: damages,
+          error: damagesError
+        } = await supabase
+          .from("damages")
+          .select("id, vehicle_id, description, reported_date, source")
+          .eq("vehicle_id", vehicleId)
+          .order("reported_date", { ascending: false });
+          
+        if (damagesError) {
+          console.error("Error fetching damage records:", damagesError);
+          throw damagesError;
+        }
 
-      // Combine and sort all events
-      const allEvents = [...(maintenance?.map(m => ({
-        ...m,
-        type: 'maintenance',
-        date: m.scheduled_date
-      })) || []), ...(rentals?.map(r => ({
-        ...r,
-        type: 'rental',
-        date: r.start_date
-      })) || []), ...(damages?.map(d => ({
-        ...d,
-        type: 'damage',
-        date: d.reported_date
-      })) || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      return allEvents;
+        // Combine and format all events
+        const allEvents: TimelineEvent[] = [
+          ...(maintenance?.map(m => ({
+            ...m,
+            type: 'maintenance' as const,
+            date: m.scheduled_date
+          })) || []),
+          ...(rentals?.map(r => ({
+            ...r,
+            type: 'rental' as const,
+            date: r.start_date
+          })) || []),
+          ...(damages?.map(d => ({
+            ...d,
+            type: 'damage' as const,
+            date: d.reported_date
+          })) || [])
+        ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        
+        return allEvents;
+      } catch (error) {
+        console.error("Timeline query error:", error);
+        throw error;
+      }
     }
   });
-  if (isLoading) {
-    return <div>Loading timeline...</div>;
+
+  // Handle errors in the query
+  if (error) {
+    console.error("Timeline error:", error);
+    toast.error("Failed to load vehicle timeline");
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <History className="h-5 w-5" />
+            Vehicle Timeline
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="p-4 text-center text-red-500">
+            Error loading timeline data. Please try again later.
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
+  
+  // Loading state
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <History className="h-5 w-5" />
+            Vehicle Timeline
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="flex items-start gap-4 border-l-2 pl-4 border-neutral-200">
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-6 w-32" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const getEventBadge = (type: string) => {
     switch (type) {
       case 'maintenance':
@@ -86,38 +188,77 @@ export const VehicleTimeline = ({
         return null;
     }
   };
-  const getEventDescription = (event: any) => {
+  
+  const getEventDescription = (event: TimelineEvent) => {
     switch (event.type) {
       case 'maintenance':
-        return <div className="flex items-center gap-2">
+        return (
+          <div className="flex items-center gap-2">
             <span>{event.service_type}</span>
             <Badge variant="outline" className="bg-green-400 hover:bg-green-300">
               {event.status}
             </Badge>
-          </div>;
+          </div>
+        );
       case 'rental':
-        return <div className="flex items-center gap-2 flex-wrap">
+        return (
+          <div className="flex items-center gap-2 flex-wrap">
             <span>Rented to </span>
-            <button onClick={() => setSelectedCustomerId(event.customer_id)} className="text-primary hover:underline font-medium">
-              {event.profiles?.full_name}
-            </button>
+            {event.profiles?.full_name ? (
+              <button 
+                onClick={() => setSelectedCustomerId(event.customer_id || null)} 
+                className="text-primary hover:underline font-medium"
+              >
+                {event.profiles.full_name}
+              </button>
+            ) : (
+              <span className="italic text-muted-foreground">Unknown Customer</span>
+            )}
             <span className="text-muted-foreground mx-1">•</span>
-            <button onClick={() => setSelectedAgreementId(event.id)} className="flex items-center gap-1 text-primary hover:underline">
+            <button 
+              onClick={() => setSelectedAgreementId(event.id)} 
+              className="flex items-center gap-1 text-primary hover:underline"
+            >
               <Link className="h-4 w-4" />
               <span>Agreement #{event.agreement_number}</span>
             </button>
             <span className="text-muted-foreground mx-1">•</span>
-            <Badge variant={event.status === 'active' ? 'default' : 'outline'} className="bg-rose-600 hover:bg-rose-500">
+            <Badge 
+              variant={event.status === 'active' ? 'default' : 'outline'} 
+              className="bg-rose-600 hover:bg-rose-500"
+            >
               {event.status}
             </Badge>
-          </div>;
+          </div>
+        );
       case 'damage':
         return event.description;
       default:
         return '';
     }
   };
-  return <Card>
+
+  // No events found
+  if (events.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <History className="h-5 w-5" />
+            Vehicle Timeline
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">
+            No timeline events found for this vehicle
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <History className="h-5 w-5" />
@@ -126,7 +267,17 @@ export const VehicleTimeline = ({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {events.map(event => <div key={`${event.type}-${event.id}`} className={`flex items-start gap-4 border-l-2 pl-4 ${event.type === 'rental' && event.status === 'closed' ? 'border-neutral-200' : event.type === 'rental' ? 'border-primary' : 'border-muted'}`}>
+          {events.map(event => (
+            <div 
+              key={`${event.type}-${event.id}`} 
+              className={`flex items-start gap-4 border-l-2 pl-4 ${
+                event.type === 'rental' && event.status === 'closed' 
+                  ? 'border-neutral-200' 
+                  : event.type === 'rental' 
+                    ? 'border-primary' 
+                    : 'border-muted'
+              }`}
+            >
               <div className="flex-1 space-y-1">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -138,12 +289,27 @@ export const VehicleTimeline = ({
                   </time>
                 </div>
               </div>
-            </div>)}
+            </div>
+          ))}
         </div>
 
-        <CustomerDetailsDialog customerId={selectedCustomerId || ""} open={!!selectedCustomerId} onOpenChange={open => !open && setSelectedCustomerId(null)} />
+        {/* Customer and Agreement Detail Dialogs */}
+        {selectedCustomerId && (
+          <CustomerDetailsDialog 
+            customerId={selectedCustomerId} 
+            open={!!selectedCustomerId} 
+            onOpenChange={open => !open && setSelectedCustomerId(null)} 
+          />
+        )}
 
-        <AgreementDetailsDialog agreementId={selectedAgreementId || ""} open={!!selectedAgreementId} onOpenChange={open => !open && setSelectedAgreementId(null)} />
+        {selectedAgreementId && (
+          <AgreementDetailsDialog 
+            agreementId={selectedAgreementId} 
+            open={!!selectedAgreementId} 
+            onOpenChange={open => !open && setSelectedAgreementId(null)} 
+          />
+        )}
       </CardContent>
-    </Card>;
+    </Card>
+  );
 };

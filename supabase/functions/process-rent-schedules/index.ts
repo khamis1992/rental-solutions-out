@@ -100,8 +100,7 @@ serve(async (req) => {
       try {
         console.log("Starting bulk processing of rent schedules");
         
-        // Execute a custom SQL function to fix the ambiguous column issue
-        // This SQL is a wrapper that properly qualifies all vehicle_id references
+        // Execute the fixed function with properly qualified column references
         const { data, error } = await supabase.rpc('generate_missing_payment_records_with_qualified_columns');
         
         if (error) {
