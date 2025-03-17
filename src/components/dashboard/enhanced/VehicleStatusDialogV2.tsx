@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Car } from "lucide-react";
 import { STATUS_CONFIG } from "./VehicleStatusChartV2";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { VehicleStatusDetailsDialog } from "./VehicleStatusDetailsDialog";
 import { VehicleDetailsDialog } from "@/components/vehicles/VehicleDetailsDialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -57,6 +57,18 @@ export const VehicleStatusDialogV2 = ({
       return data || [];
     },
   });
+  
+  // Custom hook to refresh vehicle data every 5 seconds while dialog is open
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const interval = setInterval(() => {
+      // Silently refresh vehicle data
+      queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [isOpen, queryClient]);
 
   const filteredVehicles = selectedNestedStatus 
     ? vehicles.filter(v => v.status === selectedNestedStatus)
@@ -171,7 +183,11 @@ export const VehicleStatusDialogV2 = ({
                         location={vehicle.location || ''}
                         isEditing={editingLocation === vehicle.id}
                         onEditStart={() => setEditingLocation(vehicle.id)}
-                        onEditEnd={() => setEditingLocation(null)}
+                        onEditEnd={() => {
+                          setEditingLocation(null);
+                          // Force refresh the data
+                          queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+                        }}
                       />
                     </TableCell>
                   </TableRow>

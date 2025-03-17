@@ -1,13 +1,13 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Check, X, MapPin, Edit2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { updateVehicleLocation } from "@/services/vehicle-service";
 
 export interface VehicleLocationCellProps {
   vehicleId: string;
@@ -26,12 +26,20 @@ export const VehicleLocationCell = ({
 }: VehicleLocationCellProps) => {
   const [value, setValue] = useState(location);
   const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   
-  // Setup query client for refetching vehicle data
+  // Setup query for refetching vehicle data
   const { refetch } = useQuery({
     queryKey: ["vehicles"],
     enabled: false, // Don't run on mount
   });
+
+  // Reset the value when location prop changes
+  useEffect(() => {
+    setValue(location);
+    setErrorMessage(null);
+  }, [location]);
 
   const handleSave = async () => {
     if (value === location) {
@@ -39,39 +47,68 @@ export const VehicleLocationCell = ({
       onEditEnd();
       return;
     }
+
+    if (!value.trim()) {
+      setErrorMessage("Location cannot be empty");
+      return;
+    }
     
     try {
       setIsSaving(true);
-      console.log("Updating location for vehicle:", vehicleId, "to:", value);
+      setErrorMessage(null);
       
-      const { error, data } = await supabase
-        .from("vehicles")
-        .update({ location: value })
-        .eq("id", vehicleId)
-        .select();
-
-      if (error) {
-        console.error("Error updating location:", error);
-        throw error;
+      console.log("Updating location for vehicle:", vehicleId);
+      console.log("Current location:", location);
+      console.log("New location:", value);
+      
+      // Use the dedicated service function
+      const updatedVehicle = await updateVehicleLocation(vehicleId, value);
+      
+      if (!updatedVehicle) {
+        throw new Error("Failed to update location");
       }
       
-      console.log("Location update response:", data);
-      
-      // Refetch vehicles data to update the UI
+      // Invalidate and refetch queries to ensure UI is up to date
+      queryClient.invalidateQueries({ queryKey: ["vehicles"] });
       await refetch();
       
       toast.success("Location updated successfully");
       onEditEnd();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating location:", error);
-      toast.error("Failed to update location");
+      setErrorMessage(error.message || "Failed to update location");
+      toast.error(`Failed to update location: ${error.message || "Unknown error"}`);
     } finally {
       setIsSaving(false);
     }
   };
 
+  // Try updating location with retry mechanism
+  const handleSaveWithRetry = async () => {
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (attempts < maxAttempts) {
+      try {
+        await handleSave();
+        return; // Success, exit the retry loop
+      } catch (error) {
+        attempts++;
+        if (attempts >= maxAttempts) {
+          console.error(`Failed after ${maxAttempts} attempts:`, error);
+          setErrorMessage(`Failed after ${maxAttempts} attempts. Please try again.`);
+          break;
+        }
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+        console.log(`Retrying... Attempt ${attempts + 1} of ${maxAttempts}`);
+      }
+    }
+  };
+
   const handleCancel = () => {
     setValue(location); // Reset to original value
+    setErrorMessage(null);
     onEditEnd();
   };
 
@@ -109,62 +146,70 @@ export const VehicleLocationCell = ({
   }
 
   return (
-    <div className="flex items-center gap-2 animate-fade-in">
-      <div className="flex items-center gap-2 flex-1">
-        <div className="p-1.5 bg-muted rounded-md">
-          <MapPin className="h-4 w-4 text-muted-foreground" />
+    <div className="flex flex-col gap-2 animate-fade-in">
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-1">
+          <div className="p-1.5 bg-muted rounded-md">
+            <MapPin className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <Input
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            className={cn("h-8", errorMessage && "border-red-500")}
+            placeholder="Enter location"
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleSaveWithRetry();
+              } else if (e.key === 'Escape') {
+                handleCancel();
+              }
+            }}
+            disabled={isSaving}
+          />
         </div>
-        <Input
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          className="h-8"
-          placeholder="Enter location"
-          autoFocus
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleSave();
-            } else if (e.key === 'Escape') {
-              handleCancel();
-            }
-          }}
-          disabled={isSaving}
-        />
-      </div>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleSave}
-              className="hover:text-emerald-500 transition-colors"
-              disabled={isSaving}
-            >
-              <Check className={cn("h-4 w-4", isSaving && "animate-spin")} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Save changes</p>
-          </TooltipContent>
-        </Tooltip>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleSaveWithRetry}
+                className="hover:text-emerald-500 transition-colors"
+                disabled={isSaving}
+              >
+                <Check className={cn("h-4 w-4", isSaving && "animate-spin")} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Save changes</p>
+            </TooltipContent>
+          </Tooltip>
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleCancel}
-              className="hover:text-rose-500 transition-colors"
-              disabled={isSaving}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Cancel</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleCancel}
+                className="hover:text-rose-500 transition-colors"
+                disabled={isSaving}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Cancel</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+      
+      {errorMessage && (
+        <div className="text-xs text-red-500 mt-1 ml-1">
+          {errorMessage}
+        </div>
+      )}
     </div>
   );
 };
