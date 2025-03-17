@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { updateVehicleLocation } from "@/services/vehicle-service";
 
 interface VehicleGridProps {
   vehicles: Vehicle[];
@@ -18,6 +19,7 @@ interface VehicleGridProps {
 export const VehicleGrid = ({ vehicles, onVehicleClick }: VehicleGridProps) => {
   const [editingLocation, setEditingLocation] = useState<string | null>(null);
   const [locationValue, setLocationValue] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,21 +62,29 @@ export const VehicleGrid = ({ vehicles, onVehicleClick }: VehicleGridProps) => {
   };
 
   const handleLocationUpdate = async (vehicleId: string) => {
-    if (!locationValue.trim()) return;
+    if (!locationValue.trim()) {
+      toast.error("Location cannot be empty");
+      return;
+    }
 
+    setIsUpdating(true);
     try {
-      const { error } = await supabase
-        .from('vehicles')
-        .update({ location: locationValue })
-        .eq('id', vehicleId);
-
-      if (error) throw error;
-
-      toast.success("Location updated successfully");
+      console.log(`Updating location for vehicle ${vehicleId} to "${locationValue}"`);
+      
+      const result = await updateVehicleLocation(vehicleId, locationValue);
+      
+      if (result) {
+        toast.success("Location updated successfully");
+      } else {
+        // The error will be handled and displayed by the service
+        console.warn("Location update failed");
+      }
       setEditingLocation(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating location:', error);
-      toast.error("Failed to update location");
+      toast.error(`Failed to update location: ${error.message || "Unknown error"}`);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -207,6 +217,7 @@ export const VehicleGrid = ({ vehicles, onVehicleClick }: VehicleGridProps) => {
                     autoFocus
                     className="w-full text-xs"
                     onClick={(e) => e.stopPropagation()}
+                    disabled={isUpdating}
                   />
                 ) : (
                   <>

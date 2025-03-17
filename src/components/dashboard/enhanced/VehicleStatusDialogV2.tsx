@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { VehicleStatusDropdown } from "@/components/vehicles/table/VehicleStatusDropdown";
 import { VehicleLocationCell } from "@/components/vehicles/table/VehicleLocationCell";
+import { useSmartAlerts } from "@/hooks/use-smart-alerts";
 
 interface VehicleStatusDialogV2Props {
   isOpen: boolean;
@@ -42,6 +43,9 @@ export const VehicleStatusDialogV2 = ({
   const [editingLocation, setEditingLocation] = useState<string | null>(null);
   const statusConfig = STATUS_CONFIG[status];
   const queryClient = useQueryClient();
+  
+  // Initialize smart alerts system for real-time updates
+  useSmartAlerts();
 
   // Fetch available statuses
   const { data: availableStatuses } = useQuery({

@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { updateVehicleLocation } from "@/services/vehicle-service";
+import { retryOperation } from "@/components/agreements/utils/retryUtils";
 
 export interface VehicleLocationCellProps {
   vehicleId: string;
@@ -85,24 +86,11 @@ export const VehicleLocationCell = ({
 
   // Try updating location with retry mechanism
   const handleSaveWithRetry = async () => {
-    let attempts = 0;
-    const maxAttempts = 3;
-    
-    while (attempts < maxAttempts) {
-      try {
-        await handleSave();
-        return; // Success, exit the retry loop
-      } catch (error) {
-        attempts++;
-        if (attempts >= maxAttempts) {
-          console.error(`Failed after ${maxAttempts} attempts:`, error);
-          setErrorMessage(`Failed after ${maxAttempts} attempts. Please try again.`);
-          break;
-        }
-        // Wait before retrying (exponential backoff)
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
-        console.log(`Retrying... Attempt ${attempts + 1} of ${maxAttempts}`);
-      }
+    try {
+      await retryOperation(handleSave, 3, 1000);
+    } catch (error: any) {
+      console.error("All retry attempts failed:", error);
+      setErrorMessage(`All update attempts failed. Please try again later.`);
     }
   };
 

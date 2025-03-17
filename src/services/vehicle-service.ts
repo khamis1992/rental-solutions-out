@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Vehicle, VehicleStatus } from "@/types/vehicle";
 import { toast } from "sonner";
+import { retryOperation } from "@/components/agreements/utils/retryUtils";
 
 /**
  * Updates the location of a vehicle
