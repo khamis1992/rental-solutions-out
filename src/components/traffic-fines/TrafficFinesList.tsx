@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -5,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { ArrowUpDown, Calendar, MapPin, Car, AlertTriangle, Activity, ExternalLink, Copy, CheckCircle } from "lucide-react";
+import { ArrowUpDown, Calendar, MapPin, Car, AlertTriangle, Activity, ExternalLink, Copy, CheckCircle, Hash } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -139,6 +140,17 @@ export function TrafficFinesList({ searchQuery, statusFilter, sortField, sortDir
                 <TableHead>
                   <Tooltip>
                     <TooltipTrigger asChild>
+                      <SortableHeader field="violation_number">
+                        <Hash className="h-4 w-4 text-orange-500" />
+                        Violation #
+                      </SortableHeader>
+                    </TooltipTrigger>
+                    <TooltipContent>Sort by violation number</TooltipContent>
+                  </Tooltip>
+                </TableHead>
+                <TableHead>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
                       <SortableHeader field="violation_date">
                         <Calendar className="h-4 w-4 text-orange-500" />
                         Date
@@ -219,6 +231,20 @@ export function TrafficFinesList({ searchQuery, statusFilter, sortField, sortDir
                       </Button>
                     </div>
                   </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="p-0 h-auto hover:bg-transparent"
+                      onClick={() => copyToClipboard(fine.violation_number || 'N/A', "Violation number")}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Hash className="h-4 w-4 text-orange-500" />
+                        <span>{fine.violation_number || 'N/A'}</span>
+                        <Copy className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </Button>
+                  </TableCell>
                   <TableCell>{format(new Date(fine.violation_date), "PP")}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
@@ -251,7 +277,7 @@ export function TrafficFinesList({ searchQuery, statusFilter, sortField, sortDir
               ))}
               {(!fines || fines.length === 0) && (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-[400px] text-center">
+                  <TableCell colSpan={7} className="h-[400px] text-center">
                     <div className="flex flex-col items-center gap-2">
                       <div className="rounded-full bg-orange-100 p-3">
                         <AlertTriangle className="h-6 w-6 text-orange-500" />
