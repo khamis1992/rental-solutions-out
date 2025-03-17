@@ -15,7 +15,7 @@ import { STATUS_CONFIG } from "./VehicleStatusChartV2";
 import { useState, useCallback } from "react";
 import { VehicleStatusDetailsDialog } from "./VehicleStatusDetailsDialog";
 import { VehicleDetailsDialog } from "@/components/vehicles/VehicleDetailsDialog";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { VehicleStatusDropdown } from "@/components/vehicles/table/VehicleStatusDropdown";
@@ -41,6 +41,7 @@ export const VehicleStatusDialogV2 = ({
   const [updatingVehicleId, setUpdatingVehicleId] = useState<string | null>(null);
   const [editingLocation, setEditingLocation] = useState<string | null>(null);
   const statusConfig = STATUS_CONFIG[status];
+  const queryClient = useQueryClient();
 
   // Fetch available statuses
   const { data: availableStatuses } = useQuery({
@@ -83,6 +84,9 @@ export const VehicleStatusDialogV2 = ({
         throw error;
       }
 
+      // Invalidate queries to refetch the updated data
+      queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+      
       toast.success(`Vehicle status updated to ${newStatus}`);
     } catch (error) {
       console.error("Error updating vehicle status:", error);
@@ -90,7 +94,7 @@ export const VehicleStatusDialogV2 = ({
     } finally {
       setUpdatingVehicleId(null);
     }
-  }, []);
+  }, [queryClient]);
 
   return (
     <>

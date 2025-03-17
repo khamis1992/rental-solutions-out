@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 
 export interface VehicleLocationCellProps {
   vehicleId: string;
@@ -24,21 +25,54 @@ export const VehicleLocationCell = ({
   onEditEnd
 }: VehicleLocationCellProps) => {
   const [value, setValue] = useState(location);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Setup query client for refetching vehicle data
+  const { refetch } = useQuery({
+    queryKey: ["vehicles"],
+    enabled: false, // Don't run on mount
+  });
 
   const handleSave = async () => {
+    if (value === location) {
+      // No changes made, just close the editor
+      onEditEnd();
+      return;
+    }
+    
     try {
-      const { error } = await supabase
+      setIsSaving(true);
+      console.log("Updating location for vehicle:", vehicleId, "to:", value);
+      
+      const { error, data } = await supabase
         .from("vehicles")
         .update({ location: value })
-        .eq("id", vehicleId);
+        .eq("id", vehicleId)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating location:", error);
+        throw error;
+      }
+      
+      console.log("Location update response:", data);
+      
+      // Refetch vehicles data to update the UI
+      await refetch();
+      
       toast.success("Location updated successfully");
       onEditEnd();
     } catch (error) {
       console.error("Error updating location:", error);
       toast.error("Failed to update location");
+    } finally {
+      setIsSaving(false);
     }
+  };
+
+  const handleCancel = () => {
+    setValue(location); // Reset to original value
+    onEditEnd();
   };
 
   if (!isEditing) {
@@ -86,6 +120,14 @@ export const VehicleLocationCell = ({
           className="h-8"
           placeholder="Enter location"
           autoFocus
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleSave();
+            } else if (e.key === 'Escape') {
+              handleCancel();
+            }
+          }}
+          disabled={isSaving}
         />
       </div>
       <TooltipProvider>
@@ -96,8 +138,9 @@ export const VehicleLocationCell = ({
               size="sm" 
               onClick={handleSave}
               className="hover:text-emerald-500 transition-colors"
+              disabled={isSaving}
             >
-              <Check className="h-4 w-4" />
+              <Check className={cn("h-4 w-4", isSaving && "animate-spin")} />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -110,8 +153,9 @@ export const VehicleLocationCell = ({
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={onEditEnd}
+              onClick={handleCancel}
               className="hover:text-rose-500 transition-colors"
+              disabled={isSaving}
             >
               <X className="h-4 w-4" />
             </Button>
