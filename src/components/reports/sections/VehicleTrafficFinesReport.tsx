@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Calendar, Car, ChevronDown, ChevronRight, FileDown, FilePdf, MapPin, RefreshCw, Search, SortAsc, SortDesc, Unlink } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertTriangle, Calendar, Car, ChevronDown, ChevronRight, FileDown, FilePdf, Info, MapPin, RefreshCw, Search, SortAsc, SortDesc, Unlink } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -16,6 +15,8 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { toast } from "sonner";
 
 export const VehicleTrafficFinesReport = () => {
   // State for search and sorting
@@ -26,13 +27,17 @@ export const VehicleTrafficFinesReport = () => {
   const [expandedUnassigned, setExpandedUnassigned] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<string>("assigned");
 
-  // Fetch report data
+  // Fetch report data with improved error handling
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ["vehicleTrafficFinesReport"],
     queryFn: fetchVehicleTrafficFinesReport,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    onError: (err) => {
+      console.error("Error fetching traffic fines report:", err);
+      toast.error("Failed to load traffic fines report. Please try again.");
+    }
   });
 
   // Toggle expand/collapse for a vehicle
@@ -201,6 +206,16 @@ export const VehicleTrafficFinesReport = () => {
             </Button>
           </div>
         </div>
+
+        {/* Info alert about traffic fines */}
+        <Alert variant="info" className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900">
+          <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <AlertTitle>About Traffic Fines Report</AlertTitle>
+          <AlertDescription>
+            This report groups traffic fines by vehicle and separates unassigned fines (without a lease agreement).
+            The total count may differ from the Traffic Fines Management page, which shows all fines including unassigned ones.
+          </AlertDescription>
+        </Alert>
 
         {/* Summary statistics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -396,8 +411,19 @@ export const VehicleTrafficFinesReport = () => {
                         ))
                       ) : error ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8 text-red-500">
-                            Failed to load data. Please try refreshing the page.
+                          <TableCell colSpan={7} className="text-center py-8">
+                            <div className="flex flex-col items-center gap-2">
+                              <AlertTriangle className="h-8 w-8 text-red-500" />
+                              <p className="text-red-500 font-medium">Failed to load data. Please try refreshing the page.</p>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleRefresh}
+                                className="mt-2"
+                              >
+                                Try Again
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ) : filteredAndSortedData.length === 0 ? (
@@ -534,8 +560,19 @@ export const VehicleTrafficFinesReport = () => {
                         ))
                       ) : error ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8 text-red-500">
-                            Failed to load data. Please try refreshing the page.
+                          <TableCell colSpan={7} className="text-center py-8">
+                            <div className="flex flex-col items-center gap-2">
+                              <AlertTriangle className="h-8 w-8 text-red-500" />
+                              <p className="text-red-500 font-medium">Failed to load data. Please try refreshing the page.</p>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleRefresh}
+                                className="mt-2"
+                              >
+                                Try Again
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ) : filteredUnassignedFines.length === 0 ? (

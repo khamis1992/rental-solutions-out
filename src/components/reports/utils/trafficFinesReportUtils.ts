@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { TrafficFine } from "@/types/traffic-fines";
 import jsPDF from "jspdf";
@@ -46,13 +45,12 @@ export const fetchVehicleTrafficFinesReport = async (): Promise<{
   summary: VehicleTrafficFineSummary;
 }> => {
   try {
-    // Fetch all traffic fines with related information
-    // Make sure we're using the correct relationships based on the database schema
+    // Fetch all traffic fines with explicit column references to avoid ambiguity
     const { data: fines, error } = await supabase
       .from('traffic_fines')
       .select(`
         *,
-        lease:leases(
+        lease:lease_id(
           id,
           agreement_number,
           customer_id,
