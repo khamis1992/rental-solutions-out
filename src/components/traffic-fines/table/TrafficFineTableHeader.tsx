@@ -17,6 +17,7 @@ export const TrafficFineTableHeader = () => {
         <TableHead>Points</TableHead>
         <TableHead>Status</TableHead>
         <TableHead>Customer</TableHead>
+        <TableHead>Agreement#</TableHead>
         <TableHead>Actions</TableHead>
       </TableRow>
     </TableHeader>

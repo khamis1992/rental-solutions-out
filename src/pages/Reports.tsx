@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { toast } from "sonner";
 import { PendingPaymentsReport } from "@/components/reports/sections/PendingPaymentsReport";
+import { VehicleTrafficFinesReport } from "@/components/reports/sections/VehicleTrafficFinesReport";
 
 const Reports = () => {
   const [selectedReport, setSelectedReport] = useState("");
@@ -45,6 +46,10 @@ const Reports = () => {
                 <TabsTrigger value="pending-payments">
                   <FileSpreadsheet className="h-5 w-5 mr-2" />
                   Pending Payments
+                </TabsTrigger>
+                <TabsTrigger value="vehicle-traffic-fines">
+                  <FileSpreadsheet className="h-5 w-5 mr-2" />
+                  Vehicle Traffic Fines
                 </TabsTrigger>
                 <TabsTrigger value="fleet">
                   <FileSpreadsheet className="h-5 w-5 mr-2" />
@@ -81,6 +86,10 @@ const Reports = () => {
           <div className="mt-6 space-y-6">
             <TabsContent value="pending-payments">
               <PendingPaymentsReport />
+            </TabsContent>
+            
+            <TabsContent value="vehicle-traffic-fines">
+              <VehicleTrafficFinesReport />
             </TabsContent>
             
             <TabsContent value="fleet">
