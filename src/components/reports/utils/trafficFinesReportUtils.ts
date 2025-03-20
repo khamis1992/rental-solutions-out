@@ -47,15 +47,18 @@ export const fetchVehicleTrafficFinesReport = async (): Promise<{
 }> => {
   try {
     // Fetch all traffic fines with related information
+    // Fixed the query to properly join customer data
     const { data: fines, error } = await supabase
       .from('traffic_fines')
       .select(`
         *,
         lease:leases(
+          id,
           agreement_number,
           customer_id,
           vehicle_id,
-          customer:profiles(
+          customer:customer_id(
+            id,
             full_name
           ),
           vehicle:vehicles(
