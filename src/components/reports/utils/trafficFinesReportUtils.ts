@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { TrafficFine } from "@/types/traffic-fines";
 import jsPDF from "jspdf";
@@ -332,8 +333,11 @@ export const exportTrafficFinesToPDF = (
       formatCurrency(report.totalFines)
     ]);
     
+    // Get the Y position after the previous table
+    const finalY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY : 45;
+    
     autoTable(doc, {
-      startY: doc.lastAutoTable.finalY + 10,
+      startY: finalY + 10,
       head: [['Vehicle', 'License Plate', 'Customer', 'Agreement #', 'Fine Count', 'Total Fine Amount']],
       body: vehicleData,
       theme: 'grid',
