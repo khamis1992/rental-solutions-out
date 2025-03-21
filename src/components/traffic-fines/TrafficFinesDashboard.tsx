@@ -53,21 +53,38 @@ export function TrafficFinesDashboard() {
   const handleDeleteAllFines = async () => {
     try {
       setIsDeleting(true);
+      
+      // First check if there are any fines to delete
+      const { count } = await supabase
+        .from('traffic_fines')
+        .select('*', { count: 'exact', head: true });
+      
+      if (!count) {
+        toast.info("No traffic fines to delete");
+        setIsDeleteDialogOpen(false);
+        setIsDeleting(false);
+        return;
+      }
+      
+      // Perform the delete operation with improved error handling
       const { error } = await supabase
         .from('traffic_fines')
         .delete()
-        .neq('id', ''); // Delete all rows
-
-      if (error) throw error;
+        .is('id', 'not', null); // This is a safer way to delete all records
+      
+      if (error) {
+        console.error("Error deleting traffic fines:", error);
+        throw new Error(error.message || "Failed to delete traffic fines");
+      }
       
       // Refetch data after deletion
       await refetch();
       toast.success("All traffic fines have been deleted successfully");
-      setIsDeleteDialogOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting traffic fines:", error);
-      toast.error("Failed to delete traffic fines. Please try again.");
+      toast.error(error.message || "Failed to delete traffic fines. Please try again.");
     } finally {
+      setIsDeleteDialogOpen(false);
       setIsDeleting(false);
     }
   };
