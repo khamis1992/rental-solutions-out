@@ -7,13 +7,27 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrafficCone, Car } from "lucide-react";
+import { TrafficCone, Car, AlertTriangle, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 export function TrafficFinesDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortField, setSortField] = useState<string>("violation_date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: finesCount = 0, refetch } = useQuery({
     queryKey: ["traffic-fines-count"],
@@ -36,28 +50,61 @@ export function TrafficFinesDashboard() {
     }
   };
 
+  const handleDeleteAllFines = async () => {
+    try {
+      setIsDeleting(true);
+      const { error } = await supabase
+        .from('traffic_fines')
+        .delete()
+        .neq('id', ''); // Delete all rows
+
+      if (error) throw error;
+      
+      // Refetch data after deletion
+      await refetch();
+      toast.success("All traffic fines have been deleted successfully");
+      setIsDeleteDialogOpen(false);
+    } catch (error) {
+      console.error("Error deleting traffic fines:", error);
+      toast.error("Failed to delete traffic fines. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
       <div className="flex flex-col space-y-6">
         <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-orange-500/10 via-orange-500/5 to-orange-500/0 p-6 border backdrop-blur-sm">
           <div className="absolute inset-0 bg-grid-white/10" />
-          <div className="relative flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-orange-500/10 rounded-lg animate-pulse">
-                <TrafficCone className="h-8 w-8 text-orange-500" />
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-orange-500/10 rounded-lg animate-pulse">
+                  <TrafficCone className="h-8 w-8 text-orange-500" />
+                </div>
+                <div className="p-2 bg-orange-500/10 rounded-lg">
+                  <Car className="h-8 w-8 text-orange-500" />
+                </div>
               </div>
-              <div className="p-2 bg-orange-500/10 rounded-lg">
-                <Car className="h-8 w-8 text-orange-500" />
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
+                  Traffic Fines Management
+                </h1>
+                <p className="text-muted-foreground mt-1">
+                  Monitor and manage traffic violations, fines, and payments efficiently
+                </p>
               </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
-                Traffic Fines Management
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                Monitor and manage traffic violations, fines, and payments efficiently
-              </p>
-            </div>
+            <Button 
+              variant="destructive" 
+              onClick={() => setIsDeleteDialogOpen(true)} 
+              disabled={finesCount === 0 || isDeleting}
+              className="flex items-center gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete All Fines
+            </Button>
           </div>
         </div>
         
@@ -91,6 +138,33 @@ export function TrafficFinesDashboard() {
           </ErrorBoundary>
         </CardContent>
       </Card>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Delete All Traffic Fines
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete all traffic fines
+              from the system. These records may be needed for accounting, legal, or historical
+              reference purposes.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAllFines}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete All"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
