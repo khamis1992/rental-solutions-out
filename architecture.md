@@ -3,7 +3,7 @@
 
 ## 1. System Overview
 
-This document provides a comprehensive guide to the system architecture, focusing on the Traffic Fines Management module. The system is built using React with TypeScript, leveraging the following key technologies:
+This document provides a comprehensive guide to the system architecture, detailing all major modules and features. The system is built using React with TypeScript, leveraging the following key technologies:
 
 - **Frontend**: React, TypeScript, Tailwind CSS, shadcn/ui components
 - **State Management**: TanStack Query (React Query)
@@ -14,13 +14,263 @@ This document provides a comprehensive guide to the system architecture, focusin
 - **Date Handling**: date-fns
 - **Icons**: Lucide React
 
-The architecture follows a component-based approach with clear separation of concerns between UI components, business logic, and data access layers.
+The architecture follows a component-based approach with clear separation of concerns between UI components, business logic, and data access layers. The system is organized into several modules:
+
+1. **Authentication & User Management**
+2. **Customer Management**
+3. **Vehicle Management**
+4. **Agreement Management**
+5. **Finance Management**
+6. **Traffic Fines Management**
+7. **Reporting System**
+8. **Legal Module**
+9. **Settings & Configuration**
 
 ## 2. Feature Documentation
 
-### 2.1 Traffic Fines Management Module
+### 2.1 Authentication & User Management
 
-#### 2.1.1 Traffic Fines Dashboard
+#### 2.1.1 Authentication
+
+**Components**: `SignIn.tsx`, `SignUp.tsx`, `AuthGuard.tsx`, `AdminGuard.tsx`
+
+**Purpose**: Manages user authentication, authorization, and session management.
+
+**Technical Specifications**:
+- Uses Supabase Auth for authentication
+- Implements role-based access control with three roles: admin, staff, and customer
+- Provides route guards to protect access to sensitive areas
+
+**Input/Output Behavior**:
+- Input: User credentials (email/password)
+- Output: Authentication tokens, user session data
+
+**Key Functions**:
+- `signIn(email, password)`: Authenticates a user and creates a session
+- `signUp(email, password, userData)`: Registers a new user
+- `signOut()`: Terminates the current user session
+- `requireAuth()`: Guards routes requiring authentication
+- `requireAdmin()`: Guards routes requiring admin privileges
+
+**Edge Cases Handled**:
+- Invalid credentials handling
+- Session expiration
+- Password reset flow
+- Account verification process
+
+#### 2.1.2 User Profile Management
+
+**Component**: `Profile.tsx`, `ProfileView.tsx`
+
+**Purpose**: Allows users to view and update their profile information.
+
+**Technical Specifications**:
+- Implements form validation for profile updates
+- Handles file uploads for profile pictures
+- Manages user preferences and settings
+
+**Database Tables**: `profiles`, `user_preferences`
+
+### 2.2 Customer Management
+
+#### 2.2.1 Customer Dashboard
+
+**Component**: `Customers.tsx`, `CustomersList.tsx`
+
+**Purpose**: Provides an overview of all customers and access to customer management functions.
+
+**Technical Specifications**:
+- Uses React Query for data fetching with automatic cache invalidation
+- Implements search, filter, and pagination for customer lists
+- Provides quick access to customer details and actions
+
+**Database Tables**: `profiles` (with role='customer'), `customer_notes`, `customer_segments`
+
+#### 2.2.2 Customer Details
+
+**Component**: `CustomerDetails.tsx`, `CustomerProfileView.tsx`
+
+**Purpose**: Displays comprehensive information about a customer, including agreements, payments, and documents.
+
+**Technical Specifications**:
+- Uses tabbed interface for organizing customer data
+- Implements dynamic data loading based on selected tabs
+- Provides edit functionality for customer information
+
+**Key Functions**:
+- `handleUpdateCustomer(data)`: Updates customer information
+- `handleDocumentUpload(file)`: Uploads and processes customer documents
+- `calculateCredibilityScore()`: Computes a customer's credibility score based on payment history
+
+**Database Tables**: `profiles`, `customer_notes`, `loyalty_points`, `credit_assessments`
+
+#### 2.2.3 Customer Onboarding
+
+**Component**: `CustomerOnboarding.tsx`
+
+**Purpose**: Guides staff through the process of onboarding new customers.
+
+**Technical Specifications**:
+- Implements a step-by-step wizard interface
+- Validates data at each step before proceeding
+- Handles document uploads and verification
+
+**Database Tables**: `profiles`, `customer_onboarding`, `document_analysis_results`
+
+### 2.3 Vehicle Management
+
+#### 2.3.1 Vehicle Inventory
+
+**Component**: `Vehicles.tsx`, `VehicleList.tsx`
+
+**Purpose**: Manages the vehicle fleet inventory with filtering, searching, and status tracking.
+
+**Technical Specifications**:
+- Implements status-based filtering of vehicles
+- Provides search by make, model, and license plate
+- Uses card-based interface for vehicle display
+
+**Database Tables**: `vehicles`, `vehicle_statuses`, `maintenance`
+
+#### 2.3.2 Vehicle Details
+
+**Component**: `VehicleDetails.tsx`
+
+**Purpose**: Displays and manages detailed information about a specific vehicle.
+
+**Technical Specifications**:
+- Tracks vehicle maintenance history
+- Manages vehicle documents and their expiry dates
+- Monitors vehicle assignments and availability
+
+**Key Functions**:
+- `handleUpdateVehicle(data)`: Updates vehicle information
+- `scheduleMaintenanceTask(task)`: Creates a new maintenance task
+- `uploadVehicleDocument(file, type)`: Processes vehicle documentation
+
+**Database Tables**: `vehicles`, `vehicle_documents`, `maintenance`, `vehicle_insurance`
+
+#### 2.3.3 Maintenance Management
+
+**Component**: `MaintenanceScheduler.tsx`, `MaintenanceTasks.tsx`
+
+**Purpose**: Schedules and tracks vehicle maintenance activities.
+
+**Technical Specifications**:
+- Implements calendar-based scheduling
+- Provides task assignment to staff
+- Tracks maintenance costs and history
+
+**Database Tables**: `maintenance`, `maintenance_tasks`, `vehicle_parts`
+
+### 2.4 Agreement Management
+
+#### 2.4.1 Agreement Dashboard
+
+**Component**: `Agreements.tsx`, `AgreementList.tsx`
+
+**Purpose**: Provides an overview of all agreements and access to agreement management functions.
+
+**Technical Specifications**:
+- Uses React Query for data fetching
+- Implements status-based filtering and search
+- Displays key agreement metrics and status indicators
+
+**Database Tables**: `leases`, `profiles`, `vehicles`
+
+#### 2.4.2 Agreement Details
+
+**Component**: `AgreementDetails.tsx`, `AgreementDetailsDialog.tsx`
+
+**Purpose**: Displays comprehensive information about a specific agreement.
+
+**Technical Specifications**:
+- Tracks agreement status and payment history
+- Manages agreement documents
+- Provides actions for agreement lifecycle management
+
+**Key Functions**:
+- `handleUpdateAgreement(data)`: Updates agreement information
+- `generateInvoice()`: Creates a new invoice for the agreement
+- `renewAgreement(duration)`: Extends an existing agreement
+
+**Database Tables**: `leases`, `unified_payments`, `agreement_documents`
+
+#### 2.4.3 Agreement Creation
+
+**Component**: `CreateAgreementDialog.tsx`
+
+**Purpose**: Guides staff through the process of creating new agreements.
+
+**Technical Specifications**:
+- Implements customer and vehicle selection
+- Calculates pricing based on vehicle type and duration
+- Generates agreement documents
+
+**Database Tables**: `leases`, `agreement_templates`, `vehicles`, `profiles`
+
+### 2.5 Finance Management
+
+#### 2.5.1 Finance Dashboard
+
+**Component**: `FinanceDashboard.tsx`, `FinancialNavigation.tsx`
+
+**Purpose**: Provides an overview of financial metrics and access to financial management functions.
+
+**Technical Specifications**:
+- Displays key financial indicators and charts
+- Provides access to detailed financial reports
+- Implements date range filtering for financial data
+
+**Database Tables**: `unified_payments`, `transaction_amounts`
+
+#### 2.5.2 Transaction Management
+
+**Component**: `FinanceTransactions.tsx`, `TransactionImportTool.tsx`
+
+**Purpose**: Manages financial transactions with import capabilities and reconciliation.
+
+**Technical Specifications**:
+- Implements CSV import for bulk transaction processing
+- Provides manual transaction entry
+- Supports transaction categorization and reporting
+
+**Key Functions**:
+- `handleFileUpload(file)`: Processes uploaded transaction CSV files
+- `implementChanges()`: Applies validated transactions to the database
+- `reconcileTransactions()`: Matches imported transactions with expected payments
+
+**Database Tables**: `unified_payments`, `financial_imports`, `transaction_imports`
+
+#### 2.5.3 Virtual CFO
+
+**Component**: `VirtualCFO.tsx`
+
+**Purpose**: Provides AI-powered financial insights and recommendations.
+
+**Technical Specifications**:
+- Implements financial forecasting algorithms
+- Generates cost-saving recommendations
+- Provides scenario analysis for financial decisions
+
+**Database Tables**: `business_insights`, `expense_analysis`, `financial_goals`
+
+#### 2.5.4 Car Installment Management
+
+**Component**: `CarInstallments.tsx`, `CarInstallmentDetails.tsx`
+
+**Purpose**: Manages vehicle installment payments and tracking.
+
+**Technical Specifications**:
+- Tracks installment schedules and payments
+- Provides overdue payment monitoring
+- Generates payment reminders
+
+**Database Tables**: `car_installment_contracts`, `car_installment_payments`
+
+### 2.6 Traffic Fines Management
+
+#### 2.6.1 Traffic Fines Dashboard
 
 **Component**: `TrafficFinesDashboard.tsx`
 
@@ -46,7 +296,9 @@ The architecture follows a component-based approach with clear separation of con
 - Confirmation for destructive actions
 - Loading states during data fetching
 
-#### 2.1.2 Traffic Fines List
+**Database Tables**: `traffic_fines`, `leases`, `vehicles`
+
+#### 2.6.2 Traffic Fines List
 
 **Component**: `TrafficFinesList.tsx`
 
@@ -58,174 +310,186 @@ The architecture follows a component-based approach with clear separation of con
 - Provides tooltips for additional information
 - Features copy-to-clipboard functionality
 
-**Input/Output Behavior**:
-- Input: 
-  - `searchQuery`: String for filtering fines
-  - `statusFilter`: Status filter (all, pending, completed, failed, refunded)
-  - `sortField`: Field to sort by
-  - `sortDirection`: Sort direction (asc/desc)
-  - `onSort`: Callback function for sorting
-- Output: Tabular display of traffic fines with interactive elements
+**Database Tables**: `traffic_fines`, `leases`, `vehicles`, `profiles`
 
-**Key Functions**:
-- `SortableHeader`: Sub-component for managing sortable table headers
-- `getStatusBadgeStyle(status: string)`: Returns appropriate styling for status badges
-- `copyToClipboard(text: string, type: string)`: Copies text to clipboard with notification
-
-**Edge Cases Handled**:
-- Empty state with guidance for the user
-- Loading skeleton during data fetching
-- Long text handling with truncation
-- Responsive design for different screen sizes
-
-#### 2.1.3 Traffic Fine Stats
-
-**Component**: `TrafficFineStats.tsx`
-
-**Purpose**: Displays statistical information about traffic fines, including counts and amounts.
-
-**Technical Specifications**:
-- Uses multiple React Query instances for different statistics
-- Implements a bulk assignment function for unassigned fines
-- Displays monetary values with proper formatting
-
-**Input/Output Behavior**:
-- Input: 
-  - `agreementId`: Optional ID for filtering stats by agreement
-  - `paymentCount`: Count of payments/fines
-- Output: Statistical cards with fine counts and amounts
-
-**Key Functions**:
-- `handleBulkAssignment()`: Automatically assigns unassigned fines to appropriate leases based on vehicle and date matching
-
-**Edge Cases Handled**:
-- Zero count states
-- Error handling for database operations
-- Loading states during data fetching
-- Error reporting for failed assignments
-
-#### 2.1.4 Traffic Fine Import
+#### 2.6.3 Traffic Fine Import
 
 **Component**: `TrafficFineImport.tsx`
 
-**Purpose**: Provides functionality to import traffic fines from CSV files with AI-assisted validation and correction.
+**Purpose**: Provides functionality to import traffic fines from CSV files with validation and correction.
 
 **Technical Specifications**:
 - Uses custom hooks for import process management
 - Implements CSV template download
-- Features AI analysis of CSV data quality
+- Features analysis of CSV data quality
 - Provides filtering and sorting of imported data
 
-**Input/Output Behavior**:
-- Input: CSV file through file upload
-- Output: 
-  - Analysis results of the CSV
-  - Imported fines in the list view
-  - Error reporting for invalid data
+**Database Tables**: `traffic_fines`, `import_logs`
 
-**Key Functions**:
-- `handleFileUpload(event)`: Processes the uploaded file
-- `handleDownloadTemplate()`: Generates and downloads a CSV template
-- `startImport()`: Initiates the import process
-- `implementChanges()`: Applies the validated data to the database
+### 2.7 Reporting System
 
-**Edge Cases Handled**:
-- Invalid CSV format detection
-- Malformed data repair suggestions
-- Loading states during processing
-- Error reporting for failed imports
+#### 2.7.1 Reports Dashboard
 
-#### 2.1.5 CSV Analysis and Repair
+**Component**: `ReportsDashboard.tsx`
 
-**Utility Files**: 
-- `csvAnalyzer.ts`
-- `csvParser.ts`
-- `dataRepair.ts`
-- `repairUtils.ts`
-
-**Purpose**: Analyzes CSV files for data quality issues and provides automatic repair functionality.
+**Purpose**: Provides access to various system reports and analytics.
 
 **Technical Specifications**:
-- Implements sophisticated CSV parsing with quoted value handling
-- Features date format detection and normalization
-- Provides detailed error reporting
-- Supports automatic data repair
+- Implements report generation with multiple formats (PDF, CSV)
+- Provides scheduling for automated reports
+- Features customizable report templates
 
-**Input/Output Behavior**:
-- Input: Raw CSV content
-- Output: `CsvAnalysisResult` containing validation results and repair suggestions
+**Database Tables**: `report_schedules`
 
-**Key Functions**:
-- `analyzeCsvContent(content, requiredHeaders)`: Main analysis function
-- `parseCSVLine(line)`: Parses a single CSV line with proper handling of quotes and delimiters
-- `repairDate(value)`: Attempts to normalize date formats
-- `repairQuotes(line)`: Fixes issues with quotation marks in CSV
-- `reconstructMalformedRow(currentRow, nextRow, expectedColumns)`: Attempts to fix rows with incorrect column counts
+#### 2.7.2 Pending Payments Report
 
-**Edge Cases Handled**:
-- Unescaped quotes in CSV
-- Inconsistent date formats
-- Malformed rows (too few/many columns)
-- Split rows due to newlines within quoted fields
+**Component**: `PendingPaymentsReport.tsx`
 
-#### 2.1.6 Manual Traffic Fine Entry
-
-**Component**: `ManualTrafficFineDialog.tsx`
-
-**Purpose**: Allows manual entry of traffic fines with agreement lookup.
+**Purpose**: Generates reports on pending payments across the system.
 
 **Technical Specifications**:
-- Uses a modal dialog for data entry
-- Implements real-time agreement lookup
-- Features form validation
+- Filters payments by status, date range, and customer
+- Calculates overdue amounts and days overdue
+- Provides export functionality for follow-up
 
-**Input/Output Behavior**:
-- Input: Manual entry of fine details with agreement number
-- Output: New traffic fine record in the database
+**Database Tables**: `unified_payments`, `leases`, `profiles`
 
-**Key Functions**:
-- `handleSubmit(e)`: Validates and submits the form data
-- Agreement lookup query for vehicle and customer information
+#### 2.7.3 Traffic Fines Report
 
-**Edge Cases Handled**:
-- Invalid agreement numbers
-- Form validation for required fields
-- Loading states during submission
-- Error reporting for failed submissions
+**Component**: `TrafficFinesReport.tsx`
 
-### 2.2 Reporting Module
-
-#### 2.2.1 Traffic Fines Report Utilities
-
-**Utility File**: `trafficFinesReportUtils.ts`
-
-**Purpose**: Provides utilities for generating and exporting traffic fines reports in various formats.
+**Purpose**: Generates detailed reports on traffic fines.
 
 **Technical Specifications**:
-- Implements CSV and PDF export functionality
-- Features data aggregation by vehicle and customer
-- Uses jsPDF for PDF generation with styling
-- Generates summary statistics
+- Groups fines by vehicle, customer, or time period
+- Calculates fine statistics and trends
+- Provides export functionality with detailed breakdowns
 
-**Input/Output Behavior**:
-- Input: Database query results
-- Output: Formatted reports in CSV or PDF format
+**Database Tables**: `traffic_fines`, `leases`, `vehicles`, `profiles`
 
-**Key Functions**:
-- `fetchVehicleTrafficFinesReport()`: Fetches and aggregates report data
-- `exportVehicleTrafficFinesToCSV(vehicleReports, unassignedFines)`: Exports summary report to CSV
-- `exportDetailedTrafficFinesToCSV(vehicleReports, unassignedFines)`: Exports detailed report to CSV
-- `exportTrafficFinesToPDF(vehicleReports, unassignedFines, summary)`: Exports comprehensive report to PDF
+### 2.8 Legal Module
 
-**Edge Cases Handled**:
-- Empty report handling
-- Data formatting for different report types
-- Multi-page PDF generation
-- Section-based report organization
+#### 2.8.1 Legal Case Management
+
+**Component**: `Legal.tsx`, `LegalCasesList.tsx`
+
+**Purpose**: Manages legal cases related to agreements, collections, and disputes.
+
+**Technical Specifications**:
+- Implements case status tracking and updates
+- Provides document generation for legal communications
+- Features reminder system for case follow-ups
+
+**Database Tables**: `legal_cases`, `legal_communications`, `legal_documents`
+
+#### 2.8.2 Legal Workflow Automation
+
+**Component**: `WorkflowBuilder.tsx`, `AutomationSettings.tsx`
+
+**Purpose**: Builds and manages automated workflows for legal processes.
+
+**Technical Specifications**:
+- Implements drag-and-drop workflow builder
+- Provides template-based automation
+- Features condition-based workflow branching
+
+**Database Tables**: `workflow_templates`, `workflow_instances`, `workflow_automation_logs`
+
+### 2.9 Settings & Configuration
+
+#### 2.9.1 System Settings
+
+**Component**: `Settings.tsx`
+
+**Purpose**: Manages system-wide settings and configurations.
+
+**Technical Specifications**:
+- Implements settings categories and organization
+- Provides user permissions management
+- Features API integration configuration
+
+**Database Tables**: `system_settings`, `permissions`
+
+#### 2.9.2 Templates Management
+
+**Component**: `AgreementTemplateManagement.tsx`, `WordTemplateManagement.tsx`
+
+**Purpose**: Manages document templates for agreements and communications.
+
+**Technical Specifications**:
+- Implements template editing and versioning
+- Provides variable mapping for dynamic content
+- Features preview functionality for templates
+
+**Database Tables**: `agreement_templates`, `word_templates`, `email_templates`
 
 ## 3. Component Interaction Map
 
-### 3.1 Traffic Fines Module Flow
+### 3.1 Authentication Flow
+
+```
+SignIn.tsx / SignUp.tsx
+└── AuthProvider.tsx (Context)
+    ├── AuthGuard.tsx (Route protection)
+    ├── AdminGuard.tsx (Role-based protection)
+    └── Layout.tsx (Main application shell)
+```
+
+### 3.2 Customer Management Flow
+
+```
+Customers.tsx (Page)
+└── DashboardLayout
+    ├── CustomersList
+    │   ├── CustomerCard / CustomerRow
+    │   └── CustomerFilters
+    ├── CreateCustomerDialog
+    └── CustomerImportTool
+```
+
+### 3.3 Vehicle Management Flow
+
+```
+Vehicles.tsx (Page)
+└── DashboardLayout
+    ├── VehicleList
+    │   ├── VehicleCard
+    │   └── VehicleFilters
+    ├── CreateVehicleDialog
+    └── MaintenanceScheduler
+```
+
+### 3.4 Agreement Management Flow
+
+```
+Agreements.tsx (Page)
+└── DashboardLayout
+    ├── AgreementList
+    │   ├── AgreementListHeader
+    │   ├── AgreementListContent
+    │   └── AgreementFilters
+    ├── CreateAgreementDialog
+    ├── AgreementDetailsDialog
+    ├── PaymentTrackingDialog
+    └── DeleteAgreementDialog
+```
+
+### 3.5 Finance Management Flow
+
+```
+FinanceDashboard.tsx (Page)
+└── DashboardLayout
+    ├── FinancialNavigation
+    ├── VirtualCFO
+    │   ├── QuickInsights
+    │   ├── ProfitabilityTracking
+    │   └── CashFlowMonitoring
+    └── TransactionImportTool
+        ├── FileUploadSection
+        └── ImportedTransactionsTable
+```
+
+### 3.6 Traffic Fines Flow
 
 ```
 TrafficFines.tsx (Page)
@@ -242,82 +506,118 @@ TrafficFines.tsx (Page)
             └── SortableHeader (Internal component)
 ```
 
-### 3.2 Data Flow
-
-1. **User Interactions**:
-   - Search/Filter/Sort: Updates state in `TrafficFinesDashboard` → Passed to `TrafficFinesList` → Triggers new query
-   - File Upload: `FileUploadSection` → `useImportProcess` hook → Edge function → Database → Query invalidation
-   - Bulk Assignment: `TrafficFineStats` → Database operations → Query invalidation
-   - Manual Entry: `ManualTrafficFineDialog` → Database insertion → Query invalidation
-
-2. **Data Fetching**:
-   - React Query hooks in each component fetch data independently
-   - Query keys ensure proper cache invalidation
-   - Cache invalidation triggers re-renders with fresh data
-
-3. **Edge Function Integration**:
-   - CSV processing is offloaded to Edge Functions for scalability
-   - Communication via Supabase Functions API
-   - Data validation happens server-side
-
 ## 4. Database Schema
+
+The database schema is organized around core entities with relationships that support the system's functionality. Below are the key tables and their relationships.
 
 ### 4.1 Primary Tables
 
-#### traffic_fines
+#### profiles (users and customers)
 - `id`: UUID (Primary Key)
-- `lease_id`: UUID (Foreign Key to leases)
-- `serial_number`: Text
-- `violation_number`: Text
-- `violation_date`: Timestamp
-- `license_plate`: Text
-- `fine_location`: Text
-- `fine_type`: Text
-- `fine_amount`: Numeric
-- `violation_points`: Integer
-- `payment_status`: Enum ('pending', 'completed', 'failed', 'refunded')
-- `assignment_status`: Enum ('pending', 'assigned')
-- `created_at`: Timestamp
-- `updated_at`: Timestamp
-
-#### leases
-- `id`: UUID (Primary Key)
-- `agreement_number`: Text
-- `customer_id`: UUID (Foreign Key to profiles)
-- `vehicle_id`: UUID (Foreign Key to vehicles)
-- `start_date`: Timestamp
-- `end_date`: Timestamp
-- `status`: Enum
+- `full_name`: Text
+- `phone_number`: Text
+- `email`: Text
+- `address`: Text
+- `role`: Enum ('customer', 'staff', 'admin')
+- `nationality`: Text
+- `driver_license`: Text
+- `document_verification_status`: Text
+- `status`: Enum ('active', 'inactive', 'suspended', 'pending_review', 'blacklisted')
 
 #### vehicles
 - `id`: UUID (Primary Key)
 - `make`: Text
 - `model`: Text
 - `year`: Integer
+- `color`: Text
 - `license_plate`: Text
+- `vin`: Text
+- `status`: Enum ('available', 'rented', 'maintenance', 'retired')
+- `mileage`: Integer
+- `location`: Text
+- `insurance_company`: Text
 
-#### profiles (customers)
+#### leases (agreements)
 - `id`: UUID (Primary Key)
-- `full_name`: Text
-- `phone_number`: Text
-- `email`: Text
-- `role`: Enum ('customer', 'staff', 'admin')
+- `agreement_number`: Text
+- `customer_id`: UUID (Foreign Key to profiles)
+- `vehicle_id`: UUID (Foreign Key to vehicles)
+- `start_date`: Timestamp
+- `end_date`: Timestamp
+- `status`: Enum ('pending_payment', 'pending_deposit', 'active', 'closed')
+- `agreement_type`: Enum ('lease_to_own', 'short_term')
+- `total_amount`: Numeric
+- `rent_amount`: Numeric
+- `daily_late_fee`: Numeric
+- `template_id`: UUID (Foreign Key to agreement_templates)
 
-#### traffic_fine_imports
+#### unified_payments
 - `id`: UUID (Primary Key)
-- `file_name`: Text
-- `total_fines`: Integer
-- `unassigned_fines`: Integer
-- `processed_by`: UUID (Foreign Key to profiles)
-- `import_errors`: JSONB
+- `lease_id`: UUID (Foreign Key to leases)
+- `amount`: Numeric
+- `amount_paid`: Numeric
+- `balance`: Numeric
+- `payment_date`: Timestamp
+- `due_date`: Timestamp
+- `status`: Enum ('pending', 'completed', 'failed', 'refunded')
+- `payment_method`: Text
+- `type`: Text
+- `description`: Text
+- `days_overdue`: Integer
+- `late_fine_amount`: Numeric
+
+#### traffic_fines
+- `id`: UUID (Primary Key)
+- `lease_id`: UUID (Foreign Key to leases)
+- `vehicle_id`: UUID (Foreign Key to vehicles)
+- `license_plate`: Text
+- `serial_number`: Text
+- `violation_number`: Text
+- `violation_date`: Timestamp
+- `fine_location`: Text
+- `fine_type`: Text
+- `fine_amount`: Numeric
+- `violation_points`: Integer
+- `payment_status`: Enum ('pending', 'completed', 'failed', 'refunded')
+- `assignment_status`: Enum ('pending', 'assigned')
+
+#### legal_cases
+- `id`: UUID (Primary Key)
+- `customer_id`: UUID (Foreign Key to profiles)
+- `case_type`: Text
+- `status`: Enum ('pending_reminder', 'in_progress', 'escalated', 'resolved')
+- `description`: Text
+- `amount_owed`: Numeric
 - `created_at`: Timestamp
+- `resolution_date`: Timestamp
 
-### 4.2 Key Relationships
+### 4.2 Support Tables
 
-- Traffic Fines → Leases: Many-to-One relationship through `lease_id`
-- Leases → Vehicles: Many-to-One relationship through `vehicle_id`
-- Leases → Customers (Profiles): Many-to-One relationship through `customer_id`
-- Traffic Fine Imports → Profiles: Many-to-One relationship through `processed_by`
+#### agreement_templates
+- `id`: UUID (Primary Key)
+- `name`: Text
+- `agreement_type`: Enum ('lease_to_own', 'short_term')
+- `content`: Text
+- `variable_mappings`: JSONB
+
+#### maintenance
+- `id`: UUID (Primary Key)
+- `vehicle_id`: UUID (Foreign Key to vehicles)
+- `service_type`: Text
+- `status`: Enum ('scheduled', 'in_progress', 'completed', 'cancelled')
+- `scheduled_date`: Timestamp
+- `cost`: Numeric
+
+#### car_installment_contracts
+- `id`: UUID (Primary Key)
+- `car_type`: Text
+- `model_year`: Integer
+- `number_of_cars`: Integer
+- `price_per_car`: Numeric
+- `total_contract_value`: Numeric
+- `total_installments`: Integer
+- `installment_value`: Numeric
+- `remaining_installments`: Integer
 
 ## 5. Edge Functions
 
@@ -325,197 +625,125 @@ TrafficFines.tsx (Page)
 
 **Purpose**: Processes uploaded CSV files for traffic fine imports.
 
-**Components**:
-- `index.ts`: Main entry point handling HTTP requests
-- `dataProcessor.ts`: Handles CSV processing and database insertion
-- `validators.ts`: Validates data against schema
-- `csvParser.ts`: Parses and validates CSV lines
+**API Endpoint**: `/functions/v1/process-traffic-fine-import`
 
 **Input**: CSV file content from storage
 **Output**: Processing result with counts and error details
 
-**API Endpoint**: `/functions/v1/process-traffic-fine-import`
+### 5.2 process-agreement-import
 
-**Key Functions**:
-- `processCSVContent()`: Extracts headers and rows from CSV
-- `insertTrafficFines()`: Inserts valid fines into the database
-- `parseCSVRow()`: Parses individual CSV rows with proper handling
-- `validateRow()`: Validates row structure
-- `validateDate()`, `validateNumeric()`: Type-specific validators
+**Purpose**: Processes uploaded agreement data for batch imports.
+
+**API Endpoint**: `/functions/v1/process-agreement-import`
+
+**Input**: CSV or JSON data with agreement details
+**Output**: Import results with success/failure counts
+
+### 5.3 payment-service
+
+**Purpose**: Handles payment processing, calculations, and reconciliation.
+
+**API Endpoint**: `/functions/v1/payment-service`
+
+**Input**: Payment data and operation type
+**Output**: Processed payment result or calculation results
 
 ## 6. Feature Recreation Guide
 
-### 6.1 Traffic Fines Dashboard
+### 6.1 Authentication System
 
 **Database Requirements**:
-- `traffic_fines` table with all required fields
-- `leases` table with vehicle and customer relationships
-- `vehicles` table with vehicle details
-- `profiles` table with customer information
+- `profiles` table with role field
 
 **Implementation Steps**:
-1. Create the `TrafficFinesDashboard` component as the main container
-2. Implement statistics display with `TrafficFineStats` and `StatsDisplay`
-3. Add import functionality with `TrafficFineImport`
-4. Create the fines list display with `TrafficFinesList`
-5. Implement search, filter, and sort capabilities
-6. Add the delete all confirmation dialog
+1. Set up Supabase Auth with email and password authentication
+2. Implement SignIn and SignUp components with form validation
+3. Create AuthProvider context for managing authentication state
+4. Implement route guards with AuthGuard and AdminGuard
+5. Set up profile management for user information
 
-**Key Database Queries**:
-```typescript
-// Count query
-const { count } = await supabase
-  .from('traffic_fines')
-  .select('*', { count: 'exact', head: true });
-
-// List query with filters and sorting
-let query = supabase
-  .from("traffic_fines")
-  .select(`
-    *,
-    lease:leases(
-      customer_id,
-      vehicle:vehicles(make, model, year, license_plate)
-    )
-  `);
-
-if (searchQuery) {
-  query = query.or(`license_plate.ilike.%${searchQuery}%,violation_number.ilike.%${searchQuery}%`);
-}
-
-if (statusFilter !== "all") {
-  query = query.eq("payment_status", statusFilter);
-}
-
-if (sortField) {
-  query = query.order(sortField, { ascending: sortDirection === "asc" });
-}
-```
-
-### 6.2 Traffic Fine Import
+### 6.2 Customer Management
 
 **Database Requirements**:
-- `traffic_fines` table for storing imported fines
-- `traffic_fine_imports` table for tracking import history
-- Storage bucket for temporary CSV files
+- `profiles` table with customer fields
+- `customer_notes` table for storing notes
+- `credit_assessments` table for risk assessment
 
 **Implementation Steps**:
-1. Create the Edge Function for processing imports
-2. Implement the CSV analysis utilities
-3. Create the file upload component
-4. Implement the import process hook
-5. Add the AI analysis card for data quality feedback
-6. Create the data repair utilities
+1. Implement CustomersList component with search and filtering
+2. Create CustomerDetails view with tabbed interface
+3. Implement document upload and verification system
+4. Create customer onboarding workflow
+5. Implement credibility scoring system
 
-**Key Database Operations**:
-```typescript
-// Insert fines in batches
-for (const batch of batches) {
-  const { error: insertError } = await supabase
-    .from('traffic_fines')
-    .insert(batch)
-    .select();
-}
-
-// Log import results
-const { error: logError } = await supabase
-  .from('traffic_fine_imports')
-  .insert({
-    file_name: 'import_file',
-    total_fines: fines.length,
-    unassigned_fines: fines.length,
-    processed_by: null,
-    import_errors: errors.length > 0 ? errors : null,
-  });
-```
-
-### 6.3 Traffic Fine Assignment
+### 6.3 Vehicle Management
 
 **Database Requirements**:
-- `traffic_fines` table with `assignment_status` and `lease_id` fields
-- `leases` table with date ranges and vehicle relationships
-- `vehicles` table with license plate information
+- `vehicles` table with all vehicle fields
+- `vehicle_documents` table for certificates, insurance
+- `maintenance` table for service records
 
 **Implementation Steps**:
-1. Create bulk assignment functionality in `TrafficFineStats`
-2. Implement license plate matching logic
-3. Add date-based lease matching
-4. Implement status updates for assigned fines
+1. Create VehicleList component with filtering and search
+2. Implement VehicleDetails view with maintenance history
+3. Create maintenance scheduling system
+4. Implement document management for vehicles
+5. Create vehicle status tracking system
 
-**Key Database Queries**:
-```typescript
-// Find vehicle by license plate
-const { data: vehicles } = await supabase
-  .from('vehicles')
-  .select('id')
-  .eq('license_plate', fine.license_plate)
-  .limit(1);
-
-// Find matching lease by date and vehicle
-let query = supabase
-  .from('leases')
-  .select('id');
-
-if (fine.vehicle_id) {
-  query = query.eq('vehicle_id', fine.vehicle_id);
-}
-
-if (fine.violation_date) {
-  query = query
-    .lte('start_date', fine.violation_date)
-    .gte('end_date', fine.violation_date);
-}
-
-// Update fine assignment
-const { error: updateError } = await supabase
-  .from('traffic_fines')
-  .update({ 
-    lease_id: leases[0].id,
-    assignment_status: 'assigned'
-  })
-  .eq('id', fine.id);
-```
-
-### 6.4 Reporting Module
+### 6.4 Agreement Management
 
 **Database Requirements**:
-- All tables listed in section 4.1
-- Proper relationships between tables for report aggregation
+- `leases` table for agreement data
+- `agreement_templates` table for document templates
+- `unified_payments` table for payment tracking
 
 **Implementation Steps**:
-1. Create the report utilities in `trafficFinesReportUtils.ts`
-2. Implement data aggregation functions
-3. Create CSV export utilities
-4. Implement PDF generation with jsPDF
-5. Add report UI components
+1. Implement AgreementList with filtering and search
+2. Create agreement creation workflow with customer and vehicle selection
+3. Implement document generation using templates
+4. Create payment tracking and scheduling
+5. Implement agreement renewal and termination flows
 
-**Key Database Queries**:
-```typescript
-// Fetch all traffic fines with relationships for reporting
-const { data: fines, error } = await supabase
-  .from('traffic_fines')
-  .select(`
-    *,
-    lease:lease_id(
-      id,
-      agreement_number,
-      customer_id,
-      vehicle_id,
-      customer:customer_id(
-        id, 
-        full_name
-      ),
-      vehicle:vehicle_id(
-        id,
-        make,
-        model,
-        year,
-        license_plate
-      )
-    )
-  `)
-  .order('violation_date', { ascending: false });
-```
+### 6.5 Finance Management
+
+**Database Requirements**:
+- `unified_payments` table for all financial transactions
+- `transaction_imports` table for import tracking
+- `car_installment_contracts` and related tables
+
+**Implementation Steps**:
+1. Create finance dashboard with key metrics
+2. Implement transaction import and reconciliation
+3. Create Virtual CFO with financial insights
+4. Implement car installment tracking system
+5. Create financial reporting system
+
+### 6.6 Traffic Fines Management
+
+**Database Requirements**:
+- `traffic_fines` table with all fine details
+- `import_logs` table for tracking imports
+
+**Implementation Steps**:
+1. Create TrafficFinesDashboard component
+2. Implement fine listing with search and filtering
+3. Create import system with CSV validation
+4. Implement fine assignment to agreements
+5. Create reporting system for fine analytics
+
+### 6.7 Legal Module
+
+**Database Requirements**:
+- `legal_cases` table for case tracking
+- `legal_communications` for interactions
+- `workflow_templates` for process automation
+
+**Implementation Steps**:
+1. Implement legal case management system
+2. Create workflow builder for process automation
+3. Implement document generation for legal communications
+4. Create reminder system for case follow-ups
+5. Implement reporting for legal metrics
 
 ## 7. Best Practices and Standards
 
@@ -548,4 +776,4 @@ const { data: fines, error } = await supabase
 - Input sanitization
 - Rate limiting for sensitive operations
 
-This architecture document provides a comprehensive guide to the system structure, focusing on the Traffic Fines module. Follow the implementation steps and database requirements to recreate the functionality while maintaining the established patterns and best practices.
+This architecture document provides a comprehensive guide to the system structure, covering all major modules. Follow the implementation steps and database requirements to recreate the functionality while maintaining the established patterns and best practices.
