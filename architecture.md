@@ -1,4 +1,3 @@
-
 # System Architecture Documentation
 
 ## 1. System Overview
@@ -26,7 +25,362 @@ The architecture follows a component-based approach with clear separation of con
 8. **Legal Module**
 9. **Settings & Configuration**
 
-## 2. Feature Documentation
+## 10. Component Architecture & UI Framework
+
+### 10.1 Core UI Components
+
+The system uses a combination of custom components and shadcn/ui library components to create a consistent user experience:
+
+#### 10.1.1 Layout Components
+
+**Dashboard Layout**
+- `DashboardLayout.tsx`: Primary layout wrapper for authenticated pages
+- `DashboardHeader.tsx`: Contains navigation, profile, and global action buttons
+- `DashboardSidebar.tsx`: Collapsible navigation sidebar
+- `RouteWrapper.tsx`: Handles route-specific layout requirements
+
+**Dialog Components**
+- Standardized dialog/modal pattern for all CRUD operations
+- Toast notifications for status updates and operation results
+
+#### 10.1.2 Form Components
+
+- Form architecture follows React Hook Form patterns
+- Component-based input types with validation
+- Reusable patterns for all data entry (search, filter, input, etc.)
+
+#### 10.1.3 Table & List Components
+
+- Standardized table component structure with sorting, pagination
+- Card-based list views as alternatives to tabular data
+- Consistent action pattern for row/item operations
+
+### 10.2 Responsive Design Approach
+
+The application implements a mobile-first approach with three primary breakpoints:
+- Mobile: < 640px
+- Tablet: 640px - 1024px
+- Desktop: > 1024px
+
+Key responsive design patterns:
+- Flexible layouts using Tailwind Grid and Flexbox
+- Mobile navigation via slide-out menu
+- Stacked layouts on smaller screens, side-by-side on larger screens
+- Dynamic table handling on mobile devices (collapsing columns, card views)
+
+### 10.3 Theming & Styling
+
+All styling is implemented through Tailwind CSS with:
+- Global theme variables for colors, spacing, typography
+- Component-specific design tokens
+- Dark/light mode support via CSS variables
+- Animation utilities for transitions and interactions
+
+## 11. Type System Architecture
+
+### 11.1 Core Type Definitions
+
+The system uses TypeScript throughout with a structured approach to type definitions:
+
+#### 11.1.1 Domain-Specific Types
+
+Located in `/src/types/`, categorized by domain:
+- `agreement.types.ts`: Agreement-related types
+- `customer.types.ts`: Customer profile types
+- `vehicle.types.ts`: Vehicle and maintenance types
+- `finance.types.ts`: Payment and transaction types
+- `legal.types.ts`: Legal case and document types
+
+#### 11.1.2 API Response Types
+
+- Database table interfaces generated from Supabase schema
+- Edge function request/response type definitions
+- External API integration types
+
+#### 11.1.3 Component Props Types
+
+- Consistent props typing pattern for all components
+- Extensive use of TypeScript utility types (Pick, Omit, Partial)
+- Union and intersection types for variant handling
+
+### 11.2 Type Safety Patterns
+
+- Zod schema validation for runtime type checking
+- Discriminated unions for state management
+- Generic types for reusable components
+
+## 12. State Management Architecture
+
+### 12.1 Server State Management
+
+All remote data is managed through TanStack Query (React Query) with:
+- Query keys structured by entity type and ID
+- Optimistic updates for mutation operations
+- Background refetching strategies
+- Error boundary integration
+
+#### 12.1.1 Query Structure Pattern
+
+```typescript
+const { data, isLoading, error } = useQuery({
+  queryKey: ['entity-type', id],
+  queryFn: () => fetchEntityData(id),
+  staleTime: 5 * 60 * 1000, // 5 minutes
+});
+```
+
+#### 12.1.2 Mutation Pattern
+
+```typescript
+const mutation = useMutation({
+  mutationFn: (data) => updateEntityData(id, data),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['entity-type', id] });
+    toast.success("Successfully updated");
+  },
+});
+```
+
+### 12.2 Local State Management
+
+- Component-level state using React useState
+- Complex form state handled by React Hook Form
+- Context API for cross-component state sharing
+- URL state for persistent filter/sort parameters
+
+### 12.3 Caching Strategies
+
+- Query caching with TanStack Query
+- Optimistic updates for responsive UX
+- Stale-while-revalidate pattern for data freshness
+- Intelligent refetch policies based on user interactions
+
+## 13. Authentication & Authorization Architecture
+
+### 13.1 Authentication Flow
+
+- Supabase Auth for sign-in/sign-up flows
+- JWT token-based session management
+- Refresh token handling for session persistence
+- Protected route guards with role verification
+
+### 13.2 Role-Based Access Control
+
+The system implements three primary roles:
+- `admin`: Full system access
+- `staff`: Operational access with limited configuration rights
+- `customer`: Self-service portal access
+
+Access control is implemented at multiple levels:
+- Route-level guards preventing unauthorized navigation
+- Component-level conditional rendering
+- API-level permission checks (RLS policies)
+- UI element visibility based on permissions
+
+### 13.3 Security Patterns
+
+- CSRF protection
+- XSS prevention through React's built-in protections
+- Input sanitization and validation
+- Secure credential handling
+
+## 14. API & Data Access Architecture
+
+### 14.1 Supabase Integration
+
+The application uses a structured approach to Supabase integration:
+
+#### 14.1.1 Client Configuration
+
+```typescript
+// src/integrations/supabase/client.ts
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
+```
+
+#### 14.1.2 Data Access Patterns
+
+- Typed query functions for database operations
+- Consistent error handling pattern
+- Transaction handling for multi-step operations
+
+### 14.2 Edge Functions
+
+Located in `/supabase/functions/`, providing server-side processing for:
+- Complex data operations
+- Third-party API integrations
+- Secure operations requiring service role
+- Batch processing and scheduled tasks
+
+### 14.3 External API Integrations
+
+- Payment gateway integration
+- Document processing services
+- Mapping and location tracking
+- Email and communication services
+
+## 15. Error Handling & Logging
+
+### 15.1 Frontend Error Handling
+
+- React Error Boundaries for component-level error containment
+- Global error handler for unhandled exceptions
+- Form validation error handling patterns
+- Network error recovery strategies
+
+### 15.2 API Error Handling
+
+- Standardized error response format
+- HTTP status code mapping
+- Error categorization (validation, permission, server)
+- Retry strategies for transient failures
+
+### 15.3 Logging Architecture
+
+- Client-side logging for user interactions and errors
+- Server-side logging in edge functions
+- Error reporting to monitoring services
+- Structured log format for machine parsing
+
+## 16. Testing Architecture
+
+### 16.1 Testing Framework
+
+- Jest for unit and integration testing
+- React Testing Library for component testing
+- Cypress for end-to-end testing
+- Vitest for utility and hook testing
+
+### 16.2 Testing Patterns
+
+- Component testing focusing on user interactions
+- Hooks testing for business logic
+- Utility function unit tests
+- Mock strategies for external dependencies
+- Integration tests for critical flows
+
+### 16.3 Test Organization
+
+```
+__tests__/
+  components/
+    [ComponentName].test.tsx
+  hooks/
+    [HookName].test.ts
+  utils/
+    [UtilityName].test.ts
+  integration/
+    [Flow].test.tsx
+```
+
+## 17. Build & Deployment Architecture
+
+### 17.1 Build Configuration
+
+- Vite for frontend bundling and development
+- TypeScript configuration with strict mode
+- Bundle optimization strategies
+- Environment-specific configuration
+
+### 17.2 Deployment Pipeline
+
+- CI/CD workflow using GitHub Actions
+- Staging and production environments
+- Preview deployments for pull requests
+- Database migration handling
+
+### 17.3 Infrastructure Requirements
+
+- Frontend hosting (Vercel/Netlify)
+- Supabase instance for database and auth
+- Storage for documents and images
+- Third-party service integrations
+
+## 18. File & Folder Structure
+
+The application follows a feature-based organization with shared utilities:
+
+```
+src/
+  components/
+    [feature-name]/         # Feature-specific components
+      [ComponentName].tsx
+      [ComponentName]/      # Complex components with sub-components
+        index.tsx
+        utils.ts
+        types.ts
+    ui/                    # Shared UI components
+      [component-name]/     # shadcn/ui components
+  hooks/                   # Custom hooks
+    use[HookName].ts
+  integrations/            # External service integrations
+    supabase/
+    [service-name]/
+  lib/                     # Utility functions and constants
+    utils.ts
+    constants.ts
+  types/                   # Type definitions
+    [domain].types.ts
+  contexts/                # React contexts
+    [ContextName]Context.tsx
+  app/                     # Routes and page components
+    [route-path]/
+      page.tsx
+  assets/                  # Static assets
+  styles/                  # Global styles
+```
+
+## 19. Security Architecture
+
+### 19.1 Authentication Security
+
+- Password policies and enforcement
+- Multi-factor authentication options
+- Session management and timeout handling
+- Secure credential storage
+
+### 19.2 Data Security
+
+- Row-level security policies in Supabase
+- Data encryption for sensitive information
+- Access control on all API endpoints
+- Secure file handling for documents
+
+### 19.3 Application Security
+
+- Content Security Policy configuration
+- Input validation and sanitization
+- Protection against common web vulnerabilities
+- Secure development practices
+
+## 20. Performance Optimization
+
+### 20.1 Frontend Performance
+
+- Code splitting and lazy loading
+- Component memoization strategies
+- Asset optimization (images, fonts, CSS)
+- Rendering optimization techniques
+
+### 20.2 API Performance
+
+- Efficient query design
+- Pagination for large datasets
+- Caching strategies for frequent queries
+- Background processing for intensive operations
+
+### 20.3 Monitoring & Metrics
+
+- Performance monitoring tools
+- User experience metrics
+- Server response time tracking
+- Resource utilization monitoring
+
+## 21. Feature Documentation
 
 ### 2.1 Authentication & User Management
 
