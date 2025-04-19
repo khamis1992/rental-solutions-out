@@ -365,6 +365,83 @@ export type Database = {
           },
         ]
       }
+      agreement_import_reverts: {
+        Row: {
+          created_at: string | null
+          deleted_count: number
+          id: string
+          import_id: string
+          reason: string | null
+          reverted_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          deleted_count: number
+          id?: string
+          import_id: string
+          reason?: string | null
+          reverted_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          deleted_count?: number
+          id?: string
+          import_id?: string
+          reason?: string | null
+          reverted_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agreement_import_reverts_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "agreement_imports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agreement_imports: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          error_count: number | null
+          errors: Json | null
+          file_name: string
+          id: string
+          original_file_name: string | null
+          processed_count: number | null
+          row_count: number | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          error_count?: number | null
+          errors?: Json | null
+          file_name: string
+          id?: string
+          original_file_name?: string | null
+          processed_count?: number | null
+          row_count?: number | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          error_count?: number | null
+          errors?: Json | null
+          file_name?: string
+          id?: string
+          original_file_name?: string | null
+          processed_count?: number | null
+          row_count?: number | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       agreement_templates: {
         Row: {
           agreement_duration: string
@@ -805,6 +882,101 @@ export type Database = {
           status?: string | null
         }
         Relationships: []
+      }
+      api_keys: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          expires_at: string | null
+          id: string
+          ip_restrictions: string[] | null
+          is_active: boolean
+          key_value: string
+          last_used_at: string | null
+          name: string
+          permissions: string[]
+          rate_limit: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_restrictions?: string[] | null
+          is_active?: boolean
+          key_value: string
+          last_used_at?: string | null
+          name: string
+          permissions?: string[]
+          rate_limit?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_restrictions?: string[] | null
+          is_active?: boolean
+          key_value?: string
+          last_used_at?: string | null
+          name?: string
+          permissions?: string[]
+          rate_limit?: number | null
+        }
+        Relationships: []
+      }
+      api_request_logs: {
+        Row: {
+          api_key_id: string | null
+          created_at: string
+          endpoint: string
+          id: string
+          ip_address: string | null
+          method: string
+          request_body: Json | null
+          response_body: Json | null
+          response_time_ms: number | null
+          status_code: number | null
+          user_agent: string | null
+        }
+        Insert: {
+          api_key_id?: string | null
+          created_at?: string
+          endpoint: string
+          id?: string
+          ip_address?: string | null
+          method: string
+          request_body?: Json | null
+          response_body?: Json | null
+          response_time_ms?: number | null
+          status_code?: number | null
+          user_agent?: string | null
+        }
+        Update: {
+          api_key_id?: string | null
+          created_at?: string
+          endpoint?: string
+          id?: string
+          ip_address?: string | null
+          method?: string
+          request_body?: Json | null
+          response_body?: Json | null
+          response_time_ms?: number | null
+          status_code?: number | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_request_logs_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       applied_discounts: {
         Row: {
@@ -1699,6 +1871,51 @@ export type Database = {
           },
         ]
       }
+      customer_import_logs: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          error_count: number | null
+          errors: Json | null
+          file_name: string
+          id: string
+          mapping_used: Json | null
+          original_file_name: string | null
+          processed_count: number | null
+          row_count: number | null
+          status: Database["public"]["Enums"]["import_progress_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          error_count?: number | null
+          errors?: Json | null
+          file_name: string
+          id?: string
+          mapping_used?: Json | null
+          original_file_name?: string | null
+          processed_count?: number | null
+          row_count?: number | null
+          status?: Database["public"]["Enums"]["import_progress_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          error_count?: number | null
+          errors?: Json | null
+          file_name?: string
+          id?: string
+          mapping_used?: Json | null
+          original_file_name?: string | null
+          processed_count?: number | null
+          row_count?: number | null
+          status?: Database["public"]["Enums"]["import_progress_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       customer_notes: {
         Row: {
           created_at: string
@@ -1892,6 +2109,42 @@ export type Database = {
           id?: string
           name?: Database["public"]["Enums"]["loyalty_tier_type"]
           points_required?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      customers: {
+        Row: {
+          address: string | null
+          created_at: string
+          driver_license: string | null
+          email: string | null
+          first_name: string
+          id: string
+          last_name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          driver_license?: string | null
+          email?: string | null
+          first_name: string
+          id?: string
+          last_name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          driver_license?: string | null
+          email?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          phone?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -3590,6 +3843,42 @@ export type Database = {
           },
         ]
       }
+      invoice_templates: {
+        Row: {
+          category: string
+          content: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_default: boolean | null
+          name: string
+          updated_at: string | null
+          variables: Json | null
+        }
+        Insert: {
+          category: string
+          content: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Relationships: []
+      }
       lead_activities: {
         Row: {
           activity_type: string
@@ -3675,19 +3964,13 @@ export type Database = {
           customer_id: string
           daily_late_fee: number | null
           daily_late_fine: number | null
-          damage_penalty_rate: number | null
-          down_payment: number | null
+          deposit_amount: number | null
           early_payoff_allowed: boolean | null
           end_date: string | null
-          fuel_penalty_rate: number | null
           id: string
-          initial_mileage: number
-          interest_rate: number | null
           last_payment_date: string | null
-          late_fee_grace_period: unknown | null
           late_fee_rate: number | null
           late_fine_start_day: number | null
-          late_return_fee: number | null
           lease_duration: unknown | null
           license_no: string | null
           license_number: string | null
@@ -3702,7 +3985,6 @@ export type Database = {
           rent_amount: number | null
           rent_due_day: number | null
           return_date: string | null
-          return_mileage: number | null
           start_date: string | null
           status: Database["public"]["Enums"]["lease_status"] | null
           template_id: string | null
@@ -3722,19 +4004,13 @@ export type Database = {
           customer_id: string
           daily_late_fee?: number | null
           daily_late_fine?: number | null
-          damage_penalty_rate?: number | null
-          down_payment?: number | null
+          deposit_amount?: number | null
           early_payoff_allowed?: boolean | null
           end_date?: string | null
-          fuel_penalty_rate?: number | null
           id?: string
-          initial_mileage: number
-          interest_rate?: number | null
           last_payment_date?: string | null
-          late_fee_grace_period?: unknown | null
           late_fee_rate?: number | null
           late_fine_start_day?: number | null
-          late_return_fee?: number | null
           lease_duration?: unknown | null
           license_no?: string | null
           license_number?: string | null
@@ -3749,7 +4025,6 @@ export type Database = {
           rent_amount?: number | null
           rent_due_day?: number | null
           return_date?: string | null
-          return_mileage?: number | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["lease_status"] | null
           template_id?: string | null
@@ -3769,19 +4044,13 @@ export type Database = {
           customer_id?: string
           daily_late_fee?: number | null
           daily_late_fine?: number | null
-          damage_penalty_rate?: number | null
-          down_payment?: number | null
+          deposit_amount?: number | null
           early_payoff_allowed?: boolean | null
           end_date?: string | null
-          fuel_penalty_rate?: number | null
           id?: string
-          initial_mileage?: number
-          interest_rate?: number | null
           last_payment_date?: string | null
-          late_fee_grace_period?: unknown | null
           late_fee_rate?: number | null
           late_fine_start_day?: number | null
-          late_return_fee?: number | null
           lease_duration?: unknown | null
           license_no?: string | null
           license_number?: string | null
@@ -3796,7 +4065,6 @@ export type Database = {
           rent_amount?: number | null
           rent_due_day?: number | null
           return_date?: string | null
-          return_mileage?: number | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["lease_status"] | null
           template_id?: string | null
@@ -3806,6 +4074,13 @@ export type Database = {
           vehicle_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_leases_customer"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "leases_template_id_fkey"
             columns: ["template_id"]
@@ -3857,6 +4132,33 @@ export type Database = {
           },
         ]
       }
+      legal_case_history_backup: {
+        Row: {
+          action: string
+          case_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          performed_by: string | null
+        }
+        Insert: {
+          action: string
+          case_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          performed_by?: string | null
+        }
+        Update: {
+          action?: string
+          case_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          performed_by?: string | null
+        }
+        Relationships: []
+      }
       legal_case_types: {
         Row: {
           created_at: string
@@ -3885,6 +4187,68 @@ export type Database = {
         Relationships: []
       }
       legal_cases: {
+        Row: {
+          amount_owed: number | null
+          assigned_to: string | null
+          case_type: string
+          created_at: string
+          customer_id: string
+          description: string | null
+          escalation_date: string | null
+          id: string
+          last_reminder_sent: string | null
+          priority: string | null
+          reminder_count: number | null
+          resolution_date: string | null
+          resolution_notes: string | null
+          status: Database["public"]["Enums"]["legal_case_status"] | null
+          updated_at: string
+        }
+        Insert: {
+          amount_owed?: number | null
+          assigned_to?: string | null
+          case_type: string
+          created_at?: string
+          customer_id: string
+          description?: string | null
+          escalation_date?: string | null
+          id?: string
+          last_reminder_sent?: string | null
+          priority?: string | null
+          reminder_count?: number | null
+          resolution_date?: string | null
+          resolution_notes?: string | null
+          status?: Database["public"]["Enums"]["legal_case_status"] | null
+          updated_at?: string
+        }
+        Update: {
+          amount_owed?: number | null
+          assigned_to?: string | null
+          case_type?: string
+          created_at?: string
+          customer_id?: string
+          description?: string | null
+          escalation_date?: string | null
+          id?: string
+          last_reminder_sent?: string | null
+          priority?: string | null
+          reminder_count?: number | null
+          resolution_date?: string | null
+          resolution_notes?: string | null
+          status?: Database["public"]["Enums"]["legal_case_status"] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_legal_cases_profiles"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legal_cases_backup: {
         Row: {
           amount_owed: number | null
           assigned_to: string | null
@@ -4396,6 +4760,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      legal_settlements_backup: {
+        Row: {
+          case_id: string | null
+          created_at: string
+          id: string
+          paid_amount: number | null
+          payment_plan: Json | null
+          payments: Json | null
+          receipt_url: string | null
+          signed_by_company: boolean | null
+          signed_by_customer: boolean | null
+          signed_date: string | null
+          status: string | null
+          terms: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          case_id?: string | null
+          created_at?: string
+          id?: string
+          paid_amount?: number | null
+          payment_plan?: Json | null
+          payments?: Json | null
+          receipt_url?: string | null
+          signed_by_company?: boolean | null
+          signed_by_customer?: boolean | null
+          signed_date?: string | null
+          status?: string | null
+          terms: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          case_id?: string | null
+          created_at?: string
+          id?: string
+          paid_amount?: number | null
+          payment_plan?: Json | null
+          payments?: Json | null
+          receipt_url?: string | null
+          signed_by_company?: boolean | null
+          signed_by_customer?: boolean | null
+          signed_date?: string | null
+          status?: string | null
+          terms?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       legal_templates: {
         Row: {
@@ -6200,6 +6615,7 @@ export type Database = {
           nationality: string | null
           needs_review: boolean | null
           normalized_name: string | null
+          notes: string | null
           phone_number: string | null
           portal_password: string | null
           portal_username: string | null
@@ -6243,6 +6659,7 @@ export type Database = {
           nationality?: string | null
           needs_review?: boolean | null
           normalized_name?: string | null
+          notes?: string | null
           phone_number?: string | null
           portal_password?: string | null
           portal_username?: string | null
@@ -6286,6 +6703,7 @@ export type Database = {
           nationality?: string | null
           needs_review?: boolean | null
           normalized_name?: string | null
+          notes?: string | null
           phone_number?: string | null
           portal_password?: string | null
           portal_username?: string | null
@@ -6632,6 +7050,63 @@ export type Database = {
             columns: ["lease_id"]
             isOneToOne: false
             referencedRelation: "leases_missing_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rental_agreements: {
+        Row: {
+          created_at: string
+          customer_id: string
+          deposit_amount: number | null
+          end_date: string
+          id: string
+          notes: string | null
+          start_date: string
+          status: string
+          total_cost: number
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          deposit_amount?: number | null
+          end_date: string
+          id?: string
+          notes?: string | null
+          start_date: string
+          status: string
+          total_cost?: number
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          deposit_amount?: number | null
+          end_date?: string
+          id?: string
+          notes?: string | null
+          start_date?: string
+          status?: string
+          total_cost?: number
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_agreements_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_agreements_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
             referencedColumns: ["id"]
           },
         ]
@@ -7522,6 +7997,51 @@ export type Database = {
           },
         ]
       }
+      traffic_fine_validations: {
+        Row: {
+          batch_id: string | null
+          created_at: string | null
+          created_by: string | null
+          error_message: string | null
+          fine_id: string | null
+          id: string
+          license_plate: string
+          result: Json
+          status: string
+          updated_at: string | null
+          validation_date: string | null
+          validation_source: string | null
+        }
+        Insert: {
+          batch_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          error_message?: string | null
+          fine_id?: string | null
+          id?: string
+          license_plate: string
+          result: Json
+          status?: string
+          updated_at?: string | null
+          validation_date?: string | null
+          validation_source?: string | null
+        }
+        Update: {
+          batch_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          error_message?: string | null
+          fine_id?: string | null
+          id?: string
+          license_plate?: string
+          result?: Json
+          status?: string
+          updated_at?: string | null
+          validation_date?: string | null
+          validation_source?: string | null
+        }
+        Relationships: []
+      }
       traffic_fines: {
         Row: {
           assignment_status: string | null
@@ -7531,6 +8051,7 @@ export type Database = {
           fine_location: string | null
           fine_type: string | null
           id: string
+          last_check_date: string | null
           lease_id: string | null
           license_plate: string | null
           payment_date: string | null
@@ -7538,6 +8059,9 @@ export type Database = {
           payment_status: string | null
           serial_number: string | null
           updated_at: string | null
+          validation_attempts: number | null
+          validation_date: string | null
+          validation_result: Json | null
           validation_status: string | null
           vehicle_id: string | null
           violation_charge: string | null
@@ -7553,6 +8077,7 @@ export type Database = {
           fine_location?: string | null
           fine_type?: string | null
           id?: string
+          last_check_date?: string | null
           lease_id?: string | null
           license_plate?: string | null
           payment_date?: string | null
@@ -7560,6 +8085,9 @@ export type Database = {
           payment_status?: string | null
           serial_number?: string | null
           updated_at?: string | null
+          validation_attempts?: number | null
+          validation_date?: string | null
+          validation_result?: Json | null
           validation_status?: string | null
           vehicle_id?: string | null
           violation_charge?: string | null
@@ -7575,6 +8103,7 @@ export type Database = {
           fine_location?: string | null
           fine_type?: string | null
           id?: string
+          last_check_date?: string | null
           lease_id?: string | null
           license_plate?: string | null
           payment_date?: string | null
@@ -7582,6 +8111,9 @@ export type Database = {
           payment_status?: string | null
           serial_number?: string | null
           updated_at?: string | null
+          validation_attempts?: number | null
+          validation_date?: string | null
+          validation_result?: Json | null
           validation_status?: string | null
           vehicle_id?: string | null
           violation_charge?: string | null
@@ -8899,6 +9431,7 @@ export type Database = {
           id: string
           image_url: string | null
           insurance_company: string | null
+          insurance_expiry: string | null
           is_test_data: boolean | null
           license_plate: string
           location: string | null
@@ -8920,6 +9453,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           insurance_company?: string | null
+          insurance_expiry?: string | null
           is_test_data?: boolean | null
           license_plate: string
           location?: string | null
@@ -8941,6 +9475,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           insurance_company?: string | null
+          insurance_expiry?: string | null
           is_test_data?: boolean | null
           license_plate?: string
           location?: string | null
@@ -9400,6 +9935,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_leases_customer"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "unified_payments_lease_id_fkey"
             columns: ["agreement_id"]
             isOneToOne: false
@@ -9451,6 +9993,13 @@ export type Database = {
           updated_at: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_leases_customer"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "unified_payments_invoice_id_fkey"
             columns: ["invoice_id"]
@@ -9584,11 +10133,7 @@ export type Database = {
     }
     Functions: {
       add_loyalty_points: {
-        Args: {
-          p_customer_id: string
-          p_points: number
-          p_reason: string
-        }
+        Args: { p_customer_id: string; p_points: number; p_reason: string }
         Returns: undefined
       }
       analyze_vehicle_maintenance: {
@@ -9596,10 +10141,7 @@ export type Database = {
         Returns: undefined
       }
       calculate_case_duration_stats: {
-        Args: {
-          p_case_type: string
-          p_time_period: string
-        }
+        Args: { p_case_type: string; p_time_period: string }
         Returns: undefined
       }
       calculate_credit_score: {
@@ -9622,12 +10164,7 @@ export type Database = {
         Returns: Json
       }
       calculate_distance: {
-        Args: {
-          lat1: number
-          lon1: number
-          lat2: number
-          lon2: number
-        }
+        Args: { lat1: number; lon1: number; lat2: number; lon2: number }
         Returns: number
       }
       calculate_late_fine: {
@@ -9643,34 +10180,23 @@ export type Database = {
         Returns: undefined
       }
       calculate_model_risk_metrics: {
-        Args: {
-          p_vehicle_model: string
-        }
+        Args: { p_vehicle_model: string }
         Returns: undefined
       }
       calculate_remaining_amount: {
-        Args: {
-          lease_id: string
-        }
+        Args: { lease_id: string }
         Returns: number
       }
       calculate_risk_score: {
-        Args: {
-          p_customer_id: string
-        }
+        Args: { p_customer_id: string }
         Returns: number
       }
       calculate_template_performance: {
-        Args: {
-          p_template_id: string
-          p_time_period: unknown
-        }
+        Args: { p_template_id: string; p_time_period: unknown }
         Returns: undefined
       }
       can_delete_customer: {
-        Args: {
-          customer_id: string
-        }
+        Args: { customer_id: string }
         Returns: boolean
       }
       check_car_installment_overdue_payments: {
@@ -9694,6 +10220,32 @@ export type Database = {
           migration_status: string
         }[]
       }
+      check_pending_imports: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string | null
+          created_by: string | null
+          error_count: number | null
+          errors: Json | null
+          file_name: string
+          id: string
+          mapping_used: Json | null
+          original_file_name: string | null
+          processed_count: number | null
+          row_count: number | null
+          status: Database["public"]["Enums"]["import_progress_status"] | null
+          updated_at: string | null
+        }[]
+      }
+      create_api_key: {
+        Args: {
+          p_name: string
+          p_description: string
+          p_permissions: string[]
+          p_expires_at?: string
+        }
+        Returns: Json
+      }
       create_default_agreement_if_not_exists: {
         Args: {
           p_agreement_number: string
@@ -9702,11 +10254,17 @@ export type Database = {
         }
         Returns: string
       }
+      create_invoice_templates_table: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       create_transaction_import: {
-        Args: {
-          p_file_name: string
-        }
+        Args: { p_file_name: string }
         Returns: string
+      }
+      delete_agreements_by_import_id: {
+        Args: { p_import_id: string }
+        Returns: Json
       }
       delete_all_agreements: {
         Args: Record<PropertyKey, never>
@@ -9721,20 +10279,20 @@ export type Database = {
         Returns: undefined
       }
       delete_historical_payments: {
-        Args: {
-          agreement_id: string
-        }
+        Args: { agreement_id: string }
         Returns: undefined
       }
       fuzzy_name_match: {
-        Args: {
-          search_name: string
-        }
+        Args: { search_name: string }
         Returns: {
           id: string
           full_name: string
           similarity: number
         }[]
+      }
+      generate_api_key: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       generate_cash_flow_alerts: {
         Args: Record<PropertyKey, never>
@@ -9779,9 +10337,7 @@ export type Database = {
         Returns: undefined
       }
       generate_template_recommendations: {
-        Args: {
-          p_template_id: string
-        }
+        Args: { p_template_id: string }
         Returns: undefined
       }
       get_dashboard_stats: {
@@ -9803,44 +10359,37 @@ export type Database = {
         }[]
       }
       handle_portal_login: {
-        Args: {
-          p_agreement_number: string
-          p_phone_number: string
-        }
+        Args: { p_agreement_number: string; p_phone_number: string }
         Returns: Json
       }
       has_active_agreements: {
-        Args: {
-          customer_id: string
-        }
+        Args: { customer_id: string }
         Returns: boolean
       }
       is_point_in_polygon: {
-        Args: {
-          p_lat: number
-          p_lng: number
-          polygon_coords: Json
-        }
+        Args: { p_lat: number; p_lng: number; polygon_coords: Json }
         Returns: boolean
       }
       is_valid_date: {
-        Args: {
-          date_str: string
-        }
+        Args: { date_str: string }
         Returns: boolean
       }
-      merge_customer_records: {
+      log_traffic_fine_validation: {
         Args: {
-          primary_id: string
-          duplicate_ids: string[]
+          p_license_plate: string
+          p_result: Json
+          p_status?: string
+          p_fine_id?: string
+          p_batch_id?: string
         }
+        Returns: string
+      }
+      merge_customer_records: {
+        Args: { primary_id: string; duplicate_ids: string[] }
         Returns: undefined
       }
       merge_duplicate_profiles: {
-        Args: {
-          target_profile_id: string
-          source_profile_id: string
-        }
+        Args: { target_profile_id: string; source_profile_id: string }
         Returns: undefined
       }
       migrate_to_unified_import_tracking: {
@@ -9872,18 +10421,14 @@ export type Database = {
         Returns: undefined
       }
       process_single_agreement_template: {
-        Args: {
-          agreement_id: string
-        }
+        Args: { agreement_id: string }
         Returns: {
           success: boolean
           error_message: string
         }[]
       }
       process_tracked_import: {
-        Args: {
-          import_id: string
-        }
+        Args: { import_id: string }
         Returns: boolean
       }
       record_payment_with_late_fee: {
@@ -9902,6 +10447,10 @@ export type Database = {
         }
         Returns: Json
       }
+      revoke_api_key: {
+        Args: { p_key_id: string }
+        Returns: boolean
+      }
       send_payment_reminders: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -9915,38 +10464,35 @@ export type Database = {
         Returns: undefined
       }
       simulate_vehicle_sensor_data: {
-        Args: {
-          vehicle_id: string
-        }
+        Args: { vehicle_id: string }
         Returns: undefined
       }
       standardize_template_variables: {
-        Args: {
-          content: string
-        }
+        Args: { content: string }
         Returns: string
       }
       swap_day_month: {
-        Args: {
-          input_date: string
-        }
+        Args: { input_date: string }
         Returns: string
+      }
+      trigger_customer_status_updates: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       update_agreement_payment_dates: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      update_customer_statuses: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       update_payment_schedule: {
-        Args: {
-          p_lease_id: string
-          p_delay_days?: number
-        }
+        Args: { p_lease_id: string; p_delay_days?: number }
         Returns: undefined
       }
       update_risk_assessment: {
-        Args: {
-          p_customer_id: string
-        }
+        Args: { p_customer_id: string }
         Returns: undefined
       }
     }
@@ -9974,6 +10520,7 @@ export type Database = {
         | "suspended"
         | "pending_review"
         | "blacklisted"
+        | "pending_payment"
       damage_severity: "none" | "minor" | "moderate" | "severe"
       discount_type: "percentage" | "fixed_amount"
       document_category: "registration" | "insurance" | "maintenance" | "other"
@@ -9988,6 +10535,12 @@ export type Database = {
         | "legal_notice"
         | "insurance_renewal"
       geofence_type: "circle" | "polygon"
+      import_progress_status:
+        | "pending"
+        | "pending_processing"
+        | "processing"
+        | "completed"
+        | "failed"
       import_source_type: "csv" | "manual" | "api" | "bulk_upload"
       import_status: "pending" | "processing" | "completed" | "failed"
       import_status_type:
@@ -10120,27 +10673,29 @@ export type Database = {
   }
 }
 
-type PublicSchema = Database[Extract<keyof Database, "public">]
+type DefaultSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
-  PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -10148,20 +10703,22 @@ export type Tables<
     : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -10169,20 +10726,22 @@ export type TablesInsert<
     : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -10190,21 +10749,23 @@ export type TablesUpdate<
     : never
 
 export type Enums<
-  PublicEnumNameOrOptions extends
-    | keyof PublicSchema["Enums"]
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof Database },
-  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema["CompositeTypes"]
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof Database
@@ -10213,6 +10774,182 @@ export type CompositeTypes<
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
   ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
-    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      agreement_template_type: ["lease_to_own", "short_term"],
+      agreement_type: ["lease_to_own", "short_term"],
+      alert_priority: ["high", "medium", "low"],
+      alert_type: ["vehicle", "payment", "maintenance"],
+      audit_action_type: [
+        "create",
+        "update",
+        "delete",
+        "view",
+        "login",
+        "logout",
+        "export",
+        "import",
+        "payment",
+        "status_change",
+        "document_upload",
+      ],
+      customer_role: ["customer", "staff", "admin"],
+      customer_status_type: [
+        "active",
+        "inactive",
+        "suspended",
+        "pending_review",
+        "blacklisted",
+        "pending_payment",
+      ],
+      damage_severity: ["none", "minor", "moderate", "severe"],
+      discount_type: ["percentage", "fixed_amount"],
+      document_category: ["registration", "insurance", "maintenance", "other"],
+      document_language: ["english", "spanish", "french", "arabic"],
+      document_version_status: ["draft", "published", "archived"],
+      driver_status: ["available", "busy", "off_duty", "on_leave"],
+      email_trigger_type: [
+        "welcome",
+        "contract_confirmation",
+        "payment_reminder",
+        "late_payment",
+        "legal_notice",
+        "insurance_renewal",
+      ],
+      geofence_type: ["circle", "polygon"],
+      import_progress_status: [
+        "pending",
+        "pending_processing",
+        "processing",
+        "completed",
+        "failed",
+      ],
+      import_source_type: ["csv", "manual", "api", "bulk_upload"],
+      import_status: ["pending", "processing", "completed", "failed"],
+      import_status_type: [
+        "pending",
+        "processing",
+        "validated",
+        "failed",
+        "completed",
+      ],
+      import_type: ["payments", "customers", "agreements"],
+      lead_status: [
+        "new",
+        "contacted",
+        "qualified",
+        "unqualified",
+        "converted",
+      ],
+      lease_status: [
+        "pending_payment",
+        "pending_deposit",
+        "active",
+        "closed",
+        "terminated",
+        "cancelled",
+        "archived",
+        "completed",
+      ],
+      legal_case_status: [
+        "pending_reminder",
+        "in_legal_process",
+        "resolved",
+        "escalated",
+      ],
+      loyalty_tier_type: ["bronze", "silver", "gold", "platinum"],
+      maintenance_status: [
+        "scheduled",
+        "in_progress",
+        "completed",
+        "cancelled",
+      ],
+      notification_status: ["pending", "sent", "failed", "cancelled"],
+      notification_trigger_type: [
+        "welcome",
+        "contract_confirmation",
+        "payment_reminder",
+        "late_payment",
+        "insurance_renewal",
+        "legal_notice",
+      ],
+      overdue_payment_status: ["pending", "partially_paid", "resolved"],
+      payment_method_type: [
+        "Invoice",
+        "Cash",
+        "WireTransfer",
+        "Cheque",
+        "Deposit",
+        "On_hold",
+      ],
+      payment_status: ["pending", "completed", "failed", "refunded"],
+      payment_status_type: ["pending", "paid", "overdue", "cancelled"],
+      portal_user_status: ["active", "inactive", "locked"],
+      pre_registration_status: ["pending", "approved", "rejected", "waitlist"],
+      recurrence_type: ["once", "daily", "weekly"],
+      seeker_target_status: ["active", "inactive", "paused"],
+      tax_filing_status: [
+        "pending",
+        "in_progress",
+        "submitted",
+        "accepted",
+        "rejected",
+      ],
+      template_section_type: [
+        "header",
+        "customer_info",
+        "vehicle_info",
+        "terms",
+        "payment_terms",
+        "signatures",
+      ],
+      timing_type: ["before", "after", "on"],
+      transaction_amount_type: ["income", "expense", "refund"],
+      transaction_type: [
+        "LATE_PAYMENT_FEE",
+        "ADMINISTRATIVE_FEES",
+        "VEHICLE_DAMAGE_CHARGE",
+        "TRAFFIC_FINE",
+        "RENTAL_FEE",
+        "ADVANCE_PAYMENT",
+        "OTHER",
+        "INCOME",
+        "EXPENSE",
+      ],
+      user_location_status: ["active", "inactive", "error"],
+      user_role: ["admin", "staff", "customer", "manager"],
+      vehicle_size: [
+        "compact",
+        "mid_size",
+        "full_size",
+        "suv",
+        "van",
+        "luxury",
+      ],
+      vehicle_status: [
+        "available",
+        "rented",
+        "maintenance",
+        "retired",
+        "police_station",
+        "accident",
+        "reserve",
+        "stolen",
+      ],
+      vehicle_status_enum: [
+        "maintenance",
+        "available",
+        "rented",
+        "police_station",
+        "accident",
+        "reserve",
+        "stolen",
+      ],
+    },
+  },
+} as const

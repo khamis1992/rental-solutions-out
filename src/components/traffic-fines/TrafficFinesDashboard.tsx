@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { TrafficFineStats } from "./TrafficFineStats";
 import { TrafficFineImport } from "./TrafficFineImport";
@@ -7,7 +6,7 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrafficCone, Car, AlertTriangle, Trash2 } from "lucide-react";
+import { TrafficCone, Car, AlertTriangle, Trash2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
   AlertDialog,
@@ -20,6 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { fetchVehicleTrafficFinesReport, exportTrafficFinesToPDF } from "../reports/utils/trafficFinesReportUtils";
 
 export function TrafficFinesDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,6 +39,11 @@ export function TrafficFinesDashboard() {
       if (error) throw error;
       return count || 0;
     }
+  });
+
+  const { data: finesData } = useQuery({
+    queryKey: ["traffic-fines-report"],
+    queryFn: fetchVehicleTrafficFinesReport,
   });
 
   const handleSort = (field: string) => {
@@ -89,6 +94,26 @@ export function TrafficFinesDashboard() {
     }
   };
 
+  const handleExportPDF = async () => {
+    try {
+      if (!finesData) {
+        toast.error("No data available to export");
+        return;
+      }
+      
+      await exportTrafficFinesToPDF(
+        finesData.vehicleReports,
+        finesData.unassignedFines,
+        finesData.summary
+      );
+      
+      toast.success("PDF report generated successfully");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate PDF report");
+    }
+  };
+
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
       <div className="flex flex-col space-y-6">
@@ -113,15 +138,25 @@ export function TrafficFinesDashboard() {
                 </p>
               </div>
             </div>
-            <Button 
-              variant="destructive" 
-              onClick={() => setIsDeleteDialogOpen(true)} 
-              disabled={finesCount === 0 || isDeleting}
-              className="flex items-center gap-2"
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete All Fines
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline"
+                onClick={handleExportPDF}
+                className="flex items-center gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                Export PDF
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={() => setIsDeleteDialogOpen(true)} 
+                disabled={finesCount === 0 || isDeleting}
+                className="flex items-center gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete All Fines
+              </Button>
+            </div>
           </div>
         </div>
         
