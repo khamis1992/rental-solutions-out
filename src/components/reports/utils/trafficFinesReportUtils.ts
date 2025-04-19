@@ -4,7 +4,145 @@ import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { TrafficFine } from "@/types/traffic-fines";
 
+// Define types for the report data structures
+export interface VehicleTrafficFineSummary {
+  totalFines: number;
+  totalAmount: number;
+  pendingAmount: number;
+  completedAmount: number;
+  totalVehicles: number;
+  unassignedFines: number;
+  unassignedAmount: number;
+}
+
+export interface VehicleTrafficFineReport {
+  vehicleId: string;
+  make: string;
+  model: string;
+  year: number;
+  licensePlate: string;
+  customerName: string | null;
+  fineCount: number;
+  totalFines: number;
+  fines: TrafficFine[];
+}
+
+export interface UnassignedFinesReport {
+  fineCount: number;
+  totalAmount: number;
+  fines: TrafficFine[];
+}
+
+// Function to fetch vehicle traffic fines report data
+export const fetchVehicleTrafficFinesReport = async () => {
+  try {
+    // Fetch assigned fines with lease and vehicle information
+    const { data: assignedFines, error: assignedError } = await supabase
+      .from('traffic_fines')
+      .select(`
+        *,
+        lease:leases(
+          id,
+          customer:profiles(
+            id,
+            full_name,
+            email
+          ),
+          vehicle:vehicles(
+            id,
+            make,
+            model,
+            year,
+            license_plate
+          )
+        )
+      `)
+      .not('lease_id', 'is', null)
+      .order('violation_date', { ascending: false });
+
+    if (assignedError) throw assignedError;
+
+    // Filter out any null leases (shouldn't happen but just in case)
+    const validAssignedFines = assignedFines.filter(fine => fine.lease && fine.lease.customer) as TrafficFine[];
+
+    // Fetch unassigned fines
+    const { data: unassignedFines, error: unassignedError } = await supabase
+      .from('traffic_fines')
+      .select('*')
+      .is('lease_id', null)
+      .order('violation_date', { ascending: false });
+
+    if (unassignedError) throw unassignedError;
+
+    // Group fines by vehicle
+    const vehicleFinesMap = validAssignedFines.reduce((map, fine) => {
+      if (!fine.lease || !fine.lease.vehicle) return map;
+      
+      const vehicleId = fine.lease.vehicle.id;
+      if (!map.has(vehicleId)) {
+        map.set(vehicleId, {
+          vehicleId,
+          make: fine.lease.vehicle.make,
+          model: fine.lease.vehicle.model,
+          year: fine.lease.vehicle.year,
+          licensePlate: fine.lease.vehicle.license_plate,
+          customerName: fine.lease.customer?.full_name || null,
+          fineCount: 0,
+          totalFines: 0,
+          fines: []
+        });
+      }
+      
+      const vehicleData = map.get(vehicleId);
+      vehicleData.fineCount += 1;
+      vehicleData.totalFines += fine.fine_amount || 0;
+      vehicleData.fines.push(fine);
+      
+      return map;
+    }, new Map<string, VehicleTrafficFineReport>());
+
+    const vehicleReports = Array.from(vehicleFinesMap.values());
+
+    // Calculate summary statistics
+    const totalAmount = validAssignedFines.reduce((sum, fine) => sum + (fine.fine_amount || 0), 0);
+    const completedFines = validAssignedFines.filter(fine => fine.payment_status === 'completed');
+    const completedAmount = completedFines.reduce((sum, fine) => sum + (fine.fine_amount || 0), 0);
+    const pendingAmount = totalAmount - completedAmount;
+    
+    const unassignedAmount = unassignedFines?.reduce((sum, fine) => sum + (fine.fine_amount || 0), 0) || 0;
+    
+    // Create a summary object
+    const summary: VehicleTrafficFineSummary = {
+      totalFines: validAssignedFines.length + (unassignedFines?.length || 0),
+      totalAmount: totalAmount + unassignedAmount,
+      pendingAmount,
+      completedAmount,
+      totalVehicles: vehicleReports.length,
+      unassignedFines: unassignedFines?.length || 0,
+      unassignedAmount
+    };
+
+    // Create unassigned fines report
+    const unassignedFinesReport: UnassignedFinesReport = {
+      fineCount: unassignedFines?.length || 0,
+      totalAmount: unassignedAmount,
+      fines: unassignedFines || []
+    };
+
+    return {
+      vehicleReports,
+      unassignedFines: unassignedFinesReport,
+      summary
+    };
+  } catch (error) {
+    console.error("Error generating traffic fines report:", error);
+    throw error;
+  }
+};
+
+// Export traffic fines to PDF with focus on assigned customer fines
 export const exportTrafficFinesToPDF = async () => {
   try {
     // Fetch only assigned traffic fines

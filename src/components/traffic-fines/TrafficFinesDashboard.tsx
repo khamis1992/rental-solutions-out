@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { TrafficFineStats } from "./TrafficFineStats";
 import { TrafficFineImport } from "./TrafficFineImport";
@@ -19,7 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { fetchVehicleTrafficFinesReport, exportTrafficFinesToPDF } from "../reports/utils/trafficFinesReportUtils";
+import { exportTrafficFinesToPDF } from "../reports/utils/trafficFinesReportUtils";
 
 export function TrafficFinesDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,11 +40,6 @@ export function TrafficFinesDashboard() {
       if (error) throw error;
       return count || 0;
     }
-  });
-
-  const { data: finesData } = useQuery({
-    queryKey: ["traffic-fines-report"],
-    queryFn: fetchVehicleTrafficFinesReport,
   });
 
   const handleSort = (field: string) => {
