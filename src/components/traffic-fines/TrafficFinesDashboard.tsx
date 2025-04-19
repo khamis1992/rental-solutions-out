@@ -96,17 +96,7 @@ export function TrafficFinesDashboard() {
 
   const handleExportPDF = async () => {
     try {
-      if (!finesData) {
-        toast.error("No data available to export");
-        return;
-      }
-      
-      await exportTrafficFinesToPDF(
-        finesData.vehicleReports,
-        finesData.unassignedFines,
-        finesData.summary
-      );
-      
+      await exportTrafficFinesToPDF();
       toast.success("PDF report generated successfully");
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -145,7 +135,7 @@ export function TrafficFinesDashboard() {
                 className="flex items-center gap-2"
               >
                 <FileText className="h-4 w-4" />
-                Export PDF
+                Export Customer Fines PDF
               </Button>
               <Button 
                 variant="destructive" 
@@ -191,7 +181,6 @@ export function TrafficFinesDashboard() {
         </CardContent>
       </Card>
 
-      {/* Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
